@@ -41,7 +41,7 @@ You need a local server environment that supports PHP and MySQL. We recommend in
 1. **Clone the Repository**
    Open your terminal and run:
    ```bash
-   git clone [https://github.com/yourusername/examify.git](https://github.com/yourusername/examify.git)
+   git clone [https://github.com/ujjaldas-11/examify.git]](https://github.com/ujjaldas-11/online-exam-system/)
 
    
 
@@ -53,6 +53,8 @@ You need a local server environment that supports PHP and MySQL. We recommend in
 
     WAMP: C:\wamp\www\examify
 
+    Linux LAMP: /srv/http/examify
+    
     Linux/Mac: /var/www/html/examify
 
 🗄️ Database Setup (using schema.sql)
@@ -80,19 +82,19 @@ You need a local server environment that supports PHP and MySQL. We recommend in
 
  ## If you prefer the terminal, you can import the schema directly:
 
-    Open your terminal or command prompt.
+   # Open your terminal or command prompt.
 
-    Log into MySQL:
-    Bash
+   #Log into MySQL:
+   Bash
 
     mysql -u root -p
 
-    Run the schema file (replace the path with your actual path to the file):
-    Bash
+   # Run the schema file (replace the path with your actual path to the file):
+   Bash
 
     source /path/to/your/project/sql/schema.sql;
 
-    Type exit to leave the MySQL monitor.
+   #Type exit to leave the MySQL monitor.
     
 ## Configure Database Credentials
 
@@ -110,10 +112,10 @@ This project uses a configuration file to securely manage database credentials.
 ### env file setup 
 
 # .env (Sample)
-    DB_HOST=127.0.0.1
+    DB_HOST=localhost
     DB_NAME=examify
     DB_USER=root
-    DB_PASS=
+    DB_PASS=password
 
 ## Launch the App!
 ## Open your browser and navigate to:
@@ -129,12 +131,13 @@ This project uses a configuration file to securely manage database credentials.
 
   # Clone your Fork:
     
-    git clone https://github.com/YOUR_USERNAME/examify.git
+    git clone [https://github.com/ujjaldas-11/examify.git]](https://github.com/ujjaldas-11/online-exam-system/)
+
 
   # Create a Feature Branch:
   Bash
 
-    git checkout -b feature/AmazingFeature
+    git checkout -b feature/<branch_name>
 
   # Make your Changes: Add your code, fix a bug, or improve the UI.
 
@@ -146,7 +149,7 @@ This project uses a configuration file to securely manage database credentials.
   #Push to the Branch:
   Bash
 
-    git push origin feature/AmazingFeature
+    git push origin feature/<branch_name>
 
    # Open a Pull Request: Go back to the original repository on GitHub and click "New Pull Request". Explain what you changed and why!
 
