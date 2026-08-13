@@ -13,19 +13,22 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $exam_id = (int)$_GET['id'];
 $student_semester = $_SESSION['semester'];
+$student_department = $_SESSION['department'];
 
 try {
     $examSql = "SELECT id, title, duration_minutes 
             FROM exams 
             WHERE id = :id 
             AND semester = :semester 
+            AND department = :department
             AND status = 'active' 
             LIMIT 1";
     
     $examStmt = $pdo->prepare($examSql);
     $examStmt->execute([
         ':id' => $exam_id,
-        ':semester' => $student_semester
+        ':semester' => $student_semester,
+        ':department' => $student_department
     ]);
     
     $exam = $examStmt->fetch();

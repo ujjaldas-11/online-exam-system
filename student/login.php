@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['student_name'] = $student['name'];
             $_SESSION['roll_number']  = $student['roll_number'];
             $_SESSION['semester']     = $student['semester'];
+            $_SESSION['department'] = $student['department'];
 
             header("Location: dashboard.php");
             exit;
