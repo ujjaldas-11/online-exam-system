@@ -1,0 +1,33 @@
+# Environment Variables (CRITICAL)
+.env
+.env.*
+!.env.example
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Log files
+*.log
+error_log
+access_log
+php_errors.log
+
+# Composer dependencies (just in case you use Composer in the future)
+vendor/
+composer.phar
+
+# User uploaded files (if you add image/file uploads later)
+uploads/
+assets/uploads/ 
