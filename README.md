@@ -28,6 +28,35 @@ The core features (registration, exam creation, synchronized timers, and auto-gr
 * **Backend:** PHP 8+ (PDO for secure database interactions)
 * **Database:** MySQL (Relational schema with `ON DELETE CASCADE`)
 
+
+## Folder Structure
+    examify/
+      ├── .env                        # Environment variables (DB credentials)
+      ├── index.php                   # Main landing page
+      ├── README.md                   # Project documentation
+      ├── assets/                     # Static assets
+      │   └── css/
+      │       └── style.css           # Global stylesheet
+      ├── config/                     # Configuration files
+      │   └── database.php            # PDO connection logic
+      ├── schema.sql                  # SQL dump to recreate the database
+      │                              
+      ├── admin/                      # Admin panel files
+      │   ├── admin-dashboard.php           # Admin overview and stats
+      │   ├── admin-login.php               # Admin login
+      │   ├── admin-logout.php              # Admin session destroy
+      │   ├── manage-exam.php         # Create and start exams
+      │   ├── manage-questions.php    # Insert questions to exams
+      │   
+      │   
+      └── student/                    # Student panel files
+          ├── dashboard.php           # Student overview and past results
+          ├── login.php               # Student login
+          ├── logout.php              # Student session destroy
+          ├── register.php            # Student registration (with dept/sem)
+          ├── result.php              # Background script to calculate score
+          └── exam.php                # Exam interface with countdown timer
+
 ---
 
 ## How to Run Locally
