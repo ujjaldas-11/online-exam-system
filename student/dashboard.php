@@ -11,16 +11,20 @@ if (!isset($_SESSION['student_id'])) {
 
 $student_name = $_SESSION['student_name'];
 $semester     = $_SESSION['semester'];
+$department   = $_SESSION['department'];
 
 // 2. Fetch active exams for the student's specific semester
 try {
     $sql = "SELECT id, title, description, duration_minutes, total_marks 
             FROM exams 
-            WHERE semester = :semester AND status = 'active' 
-            ORDER BY created_at DESC";
+            WHERE department = :department 
+            AND semester = :semester 
+            AND status = 'active'
+            ORDER BY id DESC";
             
     $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':semester', $semester, PDO::PARAM_INT);
+    $stmt->bindParam(':department', $department, PDO::PARAM_STR);   
     $stmt->execute();
     
     $available_exams = $stmt->fetchAll();
@@ -53,8 +57,9 @@ try {
     <div class="container">
         <div class="header">
             <div>
-                <h1 style="margin: 0;">Welcome, <?php echo htmlspecialchars($student_name); ?></h1>
+                <h1 style="margin: 0;"> <?php echo htmlspecialchars($student_name); ?></h1>
                 <p style="margin: 5px 0 0 0; color: #666;">Semester: <?php echo htmlspecialchars($semester); ?></p>
+                <p style="margin: 5px 0 0 0; color: #666;">department: <?php echo htmlspecialchars($department); ?></p>
             </div>
             <a href="logout.php" class="logout-btn">Logout</a>
         </div>
@@ -71,8 +76,8 @@ try {
                     <p><?php echo htmlspecialchars($exam['description']); ?></p>
                     
                     <div class="exam-meta">
-                        <span>⏱️ Duration: <strong><?php echo htmlspecialchars($exam['duration_minutes']); ?> mins</strong></span> &nbsp; | &nbsp;
-                        <span>🎯 Total Marks: <strong><?php echo htmlspecialchars($exam['total_marks']); ?></strong></span>
+                        <span>⏱Duration: <strong><?php echo htmlspecialchars($exam['duration_minutes']); ?> mins</strong></span> &nbsp; | &nbsp;
+                        <span>Total Marks: <strong><?php echo htmlspecialchars($exam['total_marks']); ?></strong></span>
                     </div>
                     
                     <!-- Notice how we use 'id' here to pass the exam ID securely -->
