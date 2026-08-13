@@ -89,7 +89,6 @@ $exams = $pdo->query("SELECT * FROM exams ORDER BY id DESC")->fetchAll();
             <tr>
                 <th>ID</th>
                 <th>Title</th>
-                <th>Department</th>
                 <th>Semester</th>
                 <th>Duration</th>
                 <th>Status</th>
@@ -99,7 +98,6 @@ $exams = $pdo->query("SELECT * FROM exams ORDER BY id DESC")->fetchAll();
             <tr>
                 <td><?php echo $exam['id']; ?></td>
                 <td><?php echo htmlspecialchars($exam['title']); ?></td>
-                <td><?php echo htmlspecialchars($exam['department']); ?></td>
                 <td>Sem <?php echo $exam['semester']; ?></td>
                 <td><?php echo $exam['duration_minutes']; ?> mins</td>
                 <td>
