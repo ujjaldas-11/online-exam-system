@@ -1,193 +1,350 @@
-# Examify - Online Examination System
+# Examify — Online Examination System
 
-Examify is a secure, fast, and responsive online examination platform built with PHP and MySQL. It allows administrators to create timed, department-specific multiple-choice exams and instantly grade student submissions.
+**Examify** is a secure, fast, and responsive online examination platform built with **PHP and MySQL**. It enables administrators and teachers to create and manage timed, department-specific multiple-choice examinations while providing students with a simple and secure interface for taking exams and viewing results.
 
-## Project Status
-**Status:** MVP (Minimum Viable Product) - Fully Functional. 
-The core features (registration, exam creation, synchronized timers, and auto-grading) are completely built and working. 
+## 🎯 Motive
 
-##  Features
+The goal of Examify is to provide a complete digital examination system that simplifies exam creation, management, evaluation, and result tracking.
 
-###  Admin Features
-* **Custom Exam Creation:** Create exams targeted to specific Departments (e.g., BCA, BBA) and Semesters.
-* **Question Bank Management:** Add unlimited multiple-choice questions with custom point values.
-* **Global Synchronized Timer:** Exams only start when the admin clicks "Start". The timer is server-controlled, meaning all students experience the exact same start and end time.
-* **Dashboard Analytics:** View system-wide stats like active exams, total students, and total submissions.
+### Core Capabilities
 
-### Student Features
-* **Smart Exam Feed:** Students only see exams that strictly match their registered Department and Semester.
-* **Live Countdown Timer:** A sticky countdown timer that visually alerts students when time is running out.
-* **Auto-Submission:** When the server-side timer hits zero, the exam automatically submits to prevent cheating.
-* **Instant Results:** Objective questions are auto-graded immediately, allowing students to view their past scores on their dashboard.
-* **Secure Sessions:** Robust PHP session management prevents students from spoofing identities.
+* **Admin Panel** — Create and manage exams, control timers, build a large question bank, select departments/classes and semesters, configure marks, duration, question count, and exam schedules.
+* **Randomized Questions** — Teachers can add, for example, 50 questions to an exam while selecting only 20 questions for the actual examination. Each student receives a randomized set of questions.
+* **Student Panel** — Students log in using their roll number and password to access their profile, upcoming exams, previous exams, results, and rankings.
+* **Exam Interface** — Provides question navigation, countdown timer, next/previous controls, mark-for-review functionality, auto-saving, and automatic submission when the time expires.
+* **Results & Rankings** — Students can view their score, percentage, correct/wrong/unanswered questions, rank, and optionally the top 5 performers.
+* **Teacher Analytics** — Teachers can view student scores, rankings, average marks, difficult questions, and overall exam performance.
+* **Exam Management** — Exams can be targeted to specific departments, classes, or semesters and can potentially be conducted for multiple groups simultaneously.
+* **Exam Security** — Includes one-attempt restrictions, server-side timing, preservation of each student's randomized question set, and restrictions against accessing an exam before or after its scheduled time.
 
 ---
 
-## Tech Stack
-* **Frontend:** HTML5, CSS3, Vanilla JavaScript
-* **Backend:** PHP 8+ (PDO for secure database interactions)
-* **Database:** MySQL (Relational schema with `ON DELETE CASCADE`)
+## 🚀 Project Status
 
+**Status: MVP (Minimum Viable Product) — Fully Functional**
 
-## Folder Structure
-    examify/
-      ├── .env                        # Environment variables (DB credentials)
-      ├── index.php                   # Main landing page
-      ├── README.md                   # Project documentation
-      ├── assets/                     # Static assets
-      │   └── css/
-      │       └── style.css           # Global stylesheet
-      ├── config/                     # Configuration files
-      │   └── database.php            # PDO connection logic
-      ├── schema.sql                  # SQL dump to recreate the database
-      │                              
-      ├── admin/                      # Admin panel files
-      │   ├── admin-dashboard.php           # Admin overview and stats
-      │   ├── admin-login.php               # Admin login
-      │   ├── admin-logout.php              # Admin session destroy
-      │   ├── manage-exam.php         # Create and start exams
-      │   ├── manage-questions.php    # Insert questions to exams
-      │   
-      │   
-      └── student/                    # Student panel files
-          ├── dashboard.php           # Student overview and past results
-          ├── login.php               # Student login
-          ├── logout.php              # Student session destroy
-          ├── register.php            # Student registration (with dept/sem)
-          ├── result.php              # Background script to calculate score
-          └── exam.php                # Exam interface with countdown timer
+The core examination workflow is currently implemented, including:
+
+* Student registration and authentication
+* Admin authentication
+* Exam creation and management
+* Question management
+* Department/semester-based exam access
+* Server-controlled examination timers
+* Automatic submission
+* Automatic grading
+* Student result viewing
+* Basic dashboard statistics
+
+The project is actively open to improvements, UI enhancements, and additional examination features.
 
 ---
 
-## How to Run Locally
+## ✨ Features
 
-Follow these steps to get Examify running on your own machine.
+### 👨‍🏫 Admin Features
 
-### Prerequisites
-You need a local server environment that supports PHP and MySQL. We recommend installing [XAMPP](https://www.apachefriends.org/) (Windows/Mac/Linux) or using WAMP/MAMP.
+* **Custom Exam Creation** — Create exams for specific departments such as BCA, BBA, etc., and target particular semesters.
+* **Question Bank Management** — Add and manage multiple-choice questions with customizable marks.
+* **Exam Control** — Start and manage examinations from the admin panel.
+* **Server-Controlled Timer** — Examination timing is controlled by the server to maintain consistent start and end times for students.
+* **Dashboard Analytics** — View important statistics such as total students, active exams, and total submissions.
+* **Result Management** — View student performance, scores, rankings, and overall examination statistics.
 
-### Step-by-Step Setup
-1. **Clone the Repository**
-   Open your terminal and run:
-   ```bash
-     git clone https://github.com/ujjaldas-11/online-exam-system/
+### 🎓 Student Features
 
-### Move to your Server Directory
-### Move the cloned examify folder into your local server's public directory:
+* **Smart Exam Feed** — Students only see examinations assigned to their registered department and semester.
+* **Live Countdown Timer** — A visible countdown keeps students informed about the remaining examination time.
+* **Auto-Submission** — The examination is automatically submitted when the server-side timer expires.
+* **Instant Results** — Objective questions are automatically evaluated after submission.
+* **Exam History** — Students can view their previous examination results.
+* **Secure Sessions** — PHP session management helps prevent unauthorized access and identity spoofing.
 
-    XAMPP: C:\xampp\htdocs\examify
+---
 
-    WAMP: C:\wamp\www\examify
+## 🛠️ Tech Stack
 
-    Linux LAMP: /srv/http/examify
-    
-    Linux/Mac: /var/www/html/examify
+| Layer           | Technology                                 |
+| --------------- | ------------------------------------------ |
+| Frontend        | HTML5, CSS3, Vanilla JavaScript            |
+| Backend         | PHP 8+                                     |
+| Database        | MySQL                                      |
+| Database Access | PDO                                        |
+| Server          | Apache                                     |
+| Authentication  | PHP Sessions                               |
+| Database Design | Relational schema with `ON DELETE CASCADE` |
 
-🗄️ Database Setup (using schema.sql)
+---
 
-### To get the app running, you need to create the database tables using the provided schema.sql file. You can do this using   either phpMyAdmin (GUI) or the Command Line.
- ## Method 1: Using phpMyAdmin (Recommended for XAMPP/WAMP users)
+## 📁 Folder Structure
 
-  * **Start Apache and MySQL in your XAMPP/WAMP control panel.**
+```text
+examify/
+├── .env                              # Environment variables
+├── index.php                         # Main landing page
+├── README.md                         # Project documentation
+├── schema.sql                        # Database schema
+│
+├── assets/
+│   └── css/
+│       └── style.css                 # Global stylesheet
+│
+├── config/
+│   └── database.php                  # PDO database connection
+│
+├── admin/
+│   ├── admin-dashboard.php           # Admin dashboard and statistics
+│   ├── admin-login.php               # Admin authentication
+│   ├── admin-logout.php              # Admin session logout
+│   ├── manage-exam.php               # Create and manage exams
+│   └── manage-questions.php          # Manage exam questions
+│
+└── student/
+    ├── dashboard.php                 # Student dashboard and results
+    ├── login.php                     # Student login
+    ├── logout.php                    # Student logout
+    ├── register.php                  # Student registration
+    ├── result.php                    # Result calculation/display
+    └── exam.php                      # Examination interface
+```
 
-  * **Open your web browser and go to http://localhost/phpmyadmin.**
+---
 
-  * **Click on New in the left sidebar to create a new database.**
+# ⚙️ How to Run Locally
 
-  * **Name the database examify and click Create.**
+Follow these steps to set up Examify on your local machine.
 
-  * **Select the newly created examify database from the left sidebar.**
+## Prerequisites
 
-  * **Click on the Import tab in the top menu.**
+You need a local environment that supports **PHP, Apache, and MySQL**.
 
-  * **Click Choose File and select the sql/schema.sql file from your cloned project folder.**
+Recommended options:
 
-  * **Scroll to the bottom and click Import (or Go). The system will automatically create all tables and relationships!**
+* XAMPP — Windows / macOS / Linux
+* WAMP — Windows
+* MAMP — macOS
+* LAMP — Linux
 
- ## Method 2: Using MySQL Command Line
+---
 
- * **If you prefer the terminal, you can import the schema directly:**
+## 1. Clone the Repository
 
-   * **Open your terminal or command prompt.**
+Open your terminal and run:
 
-   * **Log into MySQL:**
-   Bash
+```bash
+git clone https://github.com/ujjaldas-11/online-exam-system.git
+```
 
-          mysql -u root -p
+Then enter the project directory:
 
-   * **Run the schema file (replace the path with your actual path to the file):**
-   Bash
+```bash
+cd online-exam-system
+```
 
-          source /path/to/your/project/sql/schema.sql;
+---
 
-   * **Type exit to leave the MySQL monitor.**
-    
-## Configure Database Credentials
+## 2. Move the Project to Your Server Directory
 
-    Ensure the database name, username (usually root), and password (usually empty "" on XAMPP) match your local setup.
+Move the cloned project into your local server's public directory.
 
+### XAMPP
 
+```text
+C:\xampp\htdocs\examify
+```
 
-### Environment Configuration
+### WAMP
 
-This project uses a configuration file to securely manage database credentials. 
+```text
+C:\wamp\www\examify
+```
 
-1. Create a new file in the root directory named exactly `.env` (or copy the example file if provided).
-2. Add your database connection details to the file. Here is a sample of what it should look like:
+### Linux
 
-### env file setup 
+```text
+/var/www/html/examify
+```
 
-# .env (Sample)
-    DB_HOST=localhost
-    DB_NAME=examify
-    DB_USER=root
-    DB_PASS=password
+> The exact web-root directory may vary depending on your Linux distribution and Apache configuration.
 
-* **Launch the App!**
-* **Open your browser and navigate to:**
-* **http://localhost/examify/index.php**
+---
 
+# 🗄️ Database Setup
 
-🤝 How to Contribute
+Examify includes a `schema.sql` file that can be used to create the required database tables and relationships.
 
-## Contributions, issues, and feature requests are highly welcome! Whether you are a beginner or a pro, we'd love your help to   * **make Examify better.**
-* **Contribution Steps:**
+You can import it using **phpMyAdmin** or the **MySQL command line**.
 
-  * Fork the Project: Click the "Fork" button at the top right of this repository.
+## Method 1 — phpMyAdmin
 
-  * Clone your Fork:
-    
-          git clone https://github.com/ujjaldas-11/online-exam-system/
+Recommended for XAMPP/WAMP users.
 
+1. Start **Apache** and **MySQL** from your XAMPP/WAMP control panel.
+2. Open:
 
-   * Create a Feature Branch:
-  Bash
+```text
+http://localhost/phpmyadmin
+```
 
-          git checkout -b feature/<branch_name>
+3. Click **New** in the sidebar.
+4. Create a database named:
 
-  * **Make your Changes: Add your code, fix a bug, or improve the UI.**
+```text
+examify
+```
 
-  * Commit your Changes:
-  Bash
+5. Select the newly created `examify` database.
+6. Open the **Import** tab.
+7. Select the project's `schema.sql` file.
+8. Click **Import** or **Go**.
 
-          git commit -m 'Add some AmazingFeature'
+The required tables and relationships will be created automatically.
 
-  * Push to the Branch:
-  Bash
+---
 
-          git push origin feature/<branch_name>
+## Method 2 — MySQL Command Line
 
- * **Open a Pull Request: Go back to the original repository on GitHub and click "New Pull Request". Explain what you changed and why!**
+Open a terminal and log in to MySQL:
 
-## Ideas for Future Contributions 💡
+```bash
+mysql -u root -p
+```
 
-  * Feature:  every students get questions in random order.
-  * Feature: add real time timer for examination
-  * Design the whole UI
-  * Make the UI fully mobile-responsive using CSS Flexbox/Grid or a framework like Bootstrap.
-  * Design the exam page , only 1 question should appear on screen at a time, add prev , next button to move between questions.
-  * Add an option for teachers to export exam results as a CSV/Excel file.
-  * Add a "Review Answers" page where students can see which specific questions they got wrong after the exam ends.
+Select the database:
 
+```sql
+CREATE DATABASE examify;
+USE examify;
+```
 
-### Built by Ujjal Das
+Then import the schema:
+
+```bash
+source /path/to/examify/schema.sql;
+```
+
+Finally, exit MySQL:
+
+```sql
+exit;
+```
+
+---
+
+# 🔐 Configure Database Credentials
+
+Examify uses environment variables for database configuration.
+
+Create a file named exactly:
+
+```text
+.env
+```
+
+in the project root.
+
+Example:
+
+```env
+DB_HOST=localhost
+DB_NAME=examify
+DB_USER=root
+DB_PASS=password
+```
+
+Update the values according to your local MySQL configuration.
+
+> **Important:** Never commit your real `.env` file or database passwords to GitHub. Add `.env` to `.gitignore`.
+
+---
+
+# ▶️ Launch the Application
+
+Once Apache, PHP, and MySQL are configured, open:
+
+```text
+http://localhost/examify/index.php
+```
+
+You should now be able to access the Examify application.
+
+---
+
+# 🤝 Contributing
+
+Contributions, issues, bug reports, and feature requests are welcome!
+
+Whether you're a beginner or an experienced developer, you can help make Examify better.
+
+## Contribution Steps
+
+### 1. Fork the Repository
+
+Click the **Fork** button on the GitHub repository.
+
+### 2. Clone Your Fork
+
+```bash
+git clone https://github.com/ujjaldas-11/online-exam-system.git
+cd online-exam-system
+```
+
+### 3. Create a Feature Branch
+
+```bash
+git checkout -b feature/<branch-name>
+```
+
+### 4. Make Your Changes
+
+Add a feature, fix a bug, improve the UI, or enhance the existing functionality.
+
+### 5. Commit Your Changes
+
+```bash
+git add .
+git commit -m "Add some AmazingFeature"
+```
+
+### 6. Push Your Branch
+
+```bash
+git push origin feature/<branch-name>
+```
+
+### 7. Open a Pull Request
+
+Go back to the original GitHub repository and create a **Pull Request**.
+
+Explain what you changed and why.
+
+---
+
+# 💡 Future Improvements
+
+The following features are planned or can be contributed to the project:
+
+* [ ] Randomize the order of questions for every student.
+* [ ] Randomize the order of answer options.
+* [ ] Improve real-time examination timer synchronization.
+* [ ] Redesign the complete application UI.
+* [ ] Make the entire application fully mobile responsive.
+* [ ] Display one question at a time on the examination page.
+* [ ] Add improved **Previous / Next / Mark for Review** navigation.
+* [ ] Add an exam review page before final submission.
+* [ ] Allow teachers to export examination results as **CSV/Excel** files.
+* [ ] Add a detailed **Review Answers** page after examination.
+* [ ] Show question-wise performance and difficulty statistics.
+* [ ] Add improved student ranking and leaderboard functionality.
+* [ ] Add examination scheduling with start/end dates and times.
+* [ ] Improve exam security and anti-cheating mechanisms.
+
+---
+
+## 📌 About the Project
+
+Examify is designed as a practical **college-level online examination system** and can be extended into a larger examination management platform.
+
+The project focuses on building a reliable foundation for:
+
+**Exam Creation → Question Management → Secure Examination → Automatic Evaluation → Results & Analytics**
