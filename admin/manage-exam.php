@@ -9,12 +9,14 @@ if (!isset($_SESSION['admin_id'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
     $title = $_POST['title'];
+    $department = $_POST['department'];
     $semester = (int)$_POST['semester'];
     $duration = (int)$_POST['duration_minutes'];
     $total_marks = (int)$_POST['total_marks'];
 
-    $sql = "INSERT INTO exams (title, semester, duration_minutes, total_marks, status) 
-            VALUES (:title, :semester, :duration, :total_marks, 'inactive')";
+    $sql = "INSERT INTO exams (title, department, semester, duration_minutes, total_marks, status) 
+            VALUES (:title, :department, :semester, :duration, :total_marks, 'inactive')";
+            
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':title' => $title,
@@ -60,6 +62,13 @@ $exams = $pdo->query("SELECT * FROM exams ORDER BY id DESC")->fetchAll();
         <form method="POST">
             <label>Exam Title:</label>
             <input type="text" name="title" required>
+            
+            <label>Target Department:</label>
+            <select name="department" required>
+                <option value="">-- Choose Department --</option>
+                <option value="BCA">BCA</option>
+                <option value="BBA">BBA</option>
+            </select>
             
             <label>Target Semester:</label>
             <input type="number" name="semester" min="1" max="8" required>
