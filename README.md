@@ -41,10 +41,7 @@ You need a local server environment that supports PHP and MySQL. We recommend in
 1. **Clone the Repository**
    Open your terminal and run:
    ```bash
-   git clone [https://github.com/ujjaldas-11/examify.git]](https://github.com/ujjaldas-11/online-exam-system/)
-
-   
-
+     git clone https://github.com/ujjaldas-11/online-exam-system/
 
 ### Move to your Server Directory
 ### Move the cloned examify folder into your local server's public directory:
@@ -62,39 +59,39 @@ You need a local server environment that supports PHP and MySQL. We recommend in
 ### To get the app running, you need to create the database tables using the provided schema.sql file. You can do this using   either phpMyAdmin (GUI) or the Command Line.
  ## Method 1: Using phpMyAdmin (Recommended for XAMPP/WAMP users)
 
-  * Start Apache and MySQL in your XAMPP/WAMP control panel.
+  * **Start Apache and MySQL in your XAMPP/WAMP control panel.**
 
-  * Open your web browser and go to http://localhost/phpmyadmin.
+  * **Open your web browser and go to http://localhost/phpmyadmin.**
 
-  * Click on New in the left sidebar to create a new database.
+  * **Click on New in the left sidebar to create a new database.**
 
-  * Name the database examify and click Create.
+  * **Name the database examify and click Create.**
 
-  * Select the newly created examify database from the left sidebar.
+  * **Select the newly created examify database from the left sidebar.**
 
-  * Click on the Import tab in the top menu.
+  * **Click on the Import tab in the top menu.**
 
-  * Click Choose File and select the sql/schema.sql file from your cloned project folder.
+  * **Click Choose File and select the sql/schema.sql file from your cloned project folder.**
 
-  * Scroll to the bottom and click Import (or Go). The system will automatically create all tables and relationships!
+  * **Scroll to the bottom and click Import (or Go). The system will automatically create all tables and relationships!**
 
  ## Method 2: Using MySQL Command Line
 
- ## If you prefer the terminal, you can import the schema directly:
+ * **If you prefer the terminal, you can import the schema directly:**
 
-   # Open your terminal or command prompt.
+   * **Open your terminal or command prompt.**
 
-   #Log into MySQL:
+   * **Log into MySQL:**
    Bash
 
-    mysql -u root -p
+          mysql -u root -p
 
-   # Run the schema file (replace the path with your actual path to the file):
+   * **Run the schema file (replace the path with your actual path to the file):**
    Bash
 
-    source /path/to/your/project/sql/schema.sql;
+          source /path/to/your/project/sql/schema.sql;
 
-   #Type exit to leave the MySQL monitor.
+   * **Type exit to leave the MySQL monitor.**
     
 ## Configure Database Credentials
 
@@ -117,41 +114,41 @@ This project uses a configuration file to securely manage database credentials.
     DB_USER=root
     DB_PASS=password
 
-## Launch the App!
-## Open your browser and navigate to:
-## http://localhost/examify/index.php
+* **Launch the App!**
+* **Open your browser and navigate to:**
+* **http://localhost/examify/index.php**
 
 
 🤝 How to Contribute
 
-## Contributions, issues, and feature requests are highly welcome! Whether you are a beginner or a pro, we'd love your help to  ## make Examify better.
-# Contribution Steps:
+## Contributions, issues, and feature requests are highly welcome! Whether you are a beginner or a pro, we'd love your help to   * **make Examify better.**
+* **Contribution Steps:**
 
-  # Fork the Project: Click the "Fork" button at the top right of this repository.
+  * Fork the Project: Click the "Fork" button at the top right of this repository.
 
-  # Clone your Fork:
+  * Clone your Fork:
     
-    git clone [https://github.com/ujjaldas-11/examify.git]](https://github.com/ujjaldas-11/online-exam-system/)
+          git clone https://github.com/ujjaldas-11/online-exam-system/
 
 
-  # Create a Feature Branch:
+   * Create a Feature Branch:
   Bash
 
-    git checkout -b feature/<branch_name>
+          git checkout -b feature/<branch_name>
 
-  # Make your Changes: Add your code, fix a bug, or improve the UI.
+  * **Make your Changes: Add your code, fix a bug, or improve the UI.**
 
-  # Commit your Changes:
+  * Commit your Changes:
   Bash
 
-    git commit -m 'Add some AmazingFeature'
+          git commit -m 'Add some AmazingFeature'
 
-  #Push to the Branch:
+  * Push to the Branch:
   Bash
 
-    git push origin feature/<branch_name>
+          git push origin feature/<branch_name>
 
-   # Open a Pull Request: Go back to the original repository on GitHub and click "New Pull Request". Explain what you changed and why!
+ * **Open a Pull Request: Go back to the original repository on GitHub and click "New Pull Request". Explain what you changed and why!**
 
 ## Ideas for Future Contributions 💡
 
