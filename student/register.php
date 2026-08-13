@@ -12,8 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm_pass = $_POST['confirm_password'];
     $roll_number  = trim($_POST['roll_number']);
     $semester     = (int)$_POST['semester'];
+    $department   = $_POST['department'];
 
-    // Validation
     if (empty($name) || empty($email) || empty($password) || empty($roll_number) || empty($semester)) {
         $error = "All fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -25,18 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($semester < 1 || $semester > 8) {
         $error = "Semester must be between 1 and 8.";
     } else {
-        // Check if email or roll number already exists
-        $stmt = $pdo->prepare("SELECT id FROM students WHERE email = ? OR roll_number = ?");
-        $stmt->execute([$email, $roll_number]);
+        $stmt = $pdo->prepare("SELECT id FROM students WHERE email = ?");
+        $stmt->execute([$email]);
 
         if ($stmt->rowCount() > 0) {
-            $error = "Email or Roll Number already registered.";
+            $error = "Email or already registered.";
         } else {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            $stmt = $pdo->prepare("INSERT INTO students (name, email, password, roll_number, semester) 
-                                   VALUES (?, ?, ?, ?, ?)");
-            $result = $stmt->execute([$name, $email, $hashed_password, $roll_number, $semester]);
+            $stmt = $pdo->prepare("INSERT INTO students (name, email, password, roll_number, department, semester) 
+                                   VALUES (?, ?, ?, ?, ?, ?)");
+            $result = $stmt->execute([$name, $email, $hashed_password, $roll_number, $department, $semester]);
 
             if ($result) {
                 $success = "Registration successful! You can now login.";
@@ -92,6 +91,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             Semester <?= $i ?>
                         </option>
                     <?php endfor; ?>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Department:</label>
+                <select name="department" required>
+                    <option value="">Select Department</option>
+                    <option value="BCA">BCA</option>
+                    <option value="BBA">BBA</option>
                 </select>
             </div>
 
