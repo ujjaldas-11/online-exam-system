@@ -247,9 +247,10 @@ Example:
 
 ```env
 DB_HOST=localhost
-DB_NAME=examify
-DB_USER=root
-DB_PASS=password
+DB_DATABASE=examify
+DB_USERNAME=root
+DB_PASSWORD=passowrd
+DB_CHARSET=utf8mb4
 ```
 
 Update the values according to your local MySQL configuration.
