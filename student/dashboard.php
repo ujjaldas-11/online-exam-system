@@ -237,10 +237,10 @@ try {
                     <?php endif; ?>
 
                     <div class="meta">
-                        <span>📚 <?= htmlspecialchars($exam['subject_name']) ?></span>
+                        <span> <?= htmlspecialchars($exam['subject_name']) ?></span>
                         <span>⏱ <?= $exam['duration_minutes'] ?> mins</span>
-                        <span>❓ <?= $exam['total_questions_to_ask'] ?> questions</span>
-                        <span>🎯 <?= $exam['total_marks'] ?> marks</span>
+                        <span> <?= $exam['total_questions_to_ask'] ?> questions</span>
+                        <span><?= $exam['total_marks'] ?> marks</span>
                     </div>
 
                     <?php if ($is_completed): ?>

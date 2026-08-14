@@ -16,7 +16,7 @@ $student_semester = $_SESSION['semester'];
 $student_department = $_SESSION['department'];
 
 try {
-    $examSql = "SELECT e.id, e.title, e.duration_minutes, e.subject_id, e.total_questions_to_ask, e.total_marks
+    $examSql = "SELECT e.id, e.title, e.duration_minutes, e.subject_id, e.total_questions_to_ask, e.total_marks, TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
             FROM exams e
             JOIN subjects s ON e.subject_id = s.id
             WHERE e.id = :id 
@@ -36,6 +36,10 @@ try {
 
     if (!$exam) {
         die("Error: Exam not found or you do not have permission to take this exam.");
+    }
+
+    if ($exam['seconds_left'] <= 0) {
+        die("<h2>Time is up! This exam has ended.</h2>");
     }
 
     // Check if an attempt already exists
@@ -125,7 +129,13 @@ try {
 <body>
     <div class="exam-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
         <header class="exam-header" style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <!-- title of the exam -->
             <h1 style="margin: 0; font-size: 24px;"><?php echo htmlspecialchars($exam['title']); ?></h1>
+            <!-- timer tag -->
+            <div class="sticky-timer" id="timerDisplay" style="font-size: 20px; font-weight: bold; color: #e01327;" data-time-left="<?php echo max(0, $exam['seconds_left']); ?>">
+                Time Left: Loading...
+            </div>
+            <!-- time allowed -->
             <div class="timer" style="font-size: 18px; font-weight: bold; color: #dc3545;">
                 Time Allowed: <?php echo htmlspecialchars($exam['duration_minutes']); ?> minutes
             </div>
@@ -178,6 +188,7 @@ try {
     </div>
 
     <script src="../utils/anti-cheat.js"></script>
+    <script src="../utils/timer.js"></script>
     <script>
         const examId = <?php echo $exam_id; ?>;
         const totalQuestions = <?php echo $total_questions; ?>;
