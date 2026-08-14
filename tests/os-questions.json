@@ -1,0 +1,452 @@
+[
+    {
+        "question_text": "Which of the following state transitions is NOT valid in a standard 5-state process model?",
+        "option_a": "Running to Ready",
+        "option_b": "Blocked to Running",
+        "option_c": "Blocked to Ready",
+        "option_d": "Running to Blocked",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary purpose of a Translation Lookaside Buffer (TLB)?",
+        "option_a": "To cache page table entries and reduce memory access latency",
+        "option_b": "To store process control blocks in hardware",
+        "option_c": "To execute system calls in kernel mode faster",
+        "option_d": "To synchronize access to shared resources",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "In the Dining Philosophers problem, what condition directly causes a deadlock if all philosophers pick up their left fork simultaneously?",
+        "option_a": "Mutual Exclusion",
+        "option_b": "Hold and Wait",
+        "option_c": "Circular Wait",
+        "option_d": "No Preemption",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which CPU scheduling algorithm guarantees the minimum average waiting time for a given set of processes?",
+        "option_a": "First-Come, First-Served (FCFS)",
+        "option_b": "Round Robin (RR)",
+        "option_c": "Shortest Job First (SJF)",
+        "option_d": "Priority Scheduling",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What happens when a page fault occurs in a system using virtual memory?",
+        "option_a": "The operating system terminates the process immediately.",
+        "option_b": "The requested page is retrieved from secondary storage into main memory.",
+        "option_c": "The CPU switches execution permanently to kernel space.",
+        "option_d": "The cache memory is cleared completely.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following conditions is NOT one of Coffman's four necessary conditions for deadlock?",
+        "option_a": "Mutual Exclusion",
+        "option_b": "Hold and Wait",
+        "option_c": "Preemption",
+        "option_d": "Circular Wait",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the main advantage of thread-level parallelism over process-level parallelism?",
+        "option_a": "Threads have separate address spaces, making them safer.",
+        "option_b": "Thread context switching has lower overhead than process context switching.",
+        "option_c": "Threads do not require operating system scheduling.",
+        "option_d": "Threads eliminate the need for synchronization primitives.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In Belady's Anomaly, what unusual behavior is observed in page replacement?",
+        "option_a": "Increasing the number of page frames increases the number of page faults.",
+        "option_b": "Decreasing memory size speeds up process execution.",
+        "option_c": "LRU algorithm performs worse than FIFO under all workloads.",
+        "option_d": "Page fault rate remains constant regardless of frame count.",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "Which page replacement algorithm suffers from Belady's Anomaly?",
+        "option_a": "Least Recently Used (LRU)",
+        "option_b": "Optimal Page Replacement (OPT)",
+        "option_c": "First-In, First-Out (FIFO)",
+        "option_d": "Least Frequently Used (LFU)",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary function of the inode structure in Unix-like file systems?",
+        "option_a": "To store the file content directly in a contiguous memory block",
+        "option_b": "To maintain metadata about a file, such as permissions, size, and data block pointers",
+        "option_c": "To map user process IDs to physical memory pages",
+        "option_d": "To record disk partition table entries",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which disk scheduling algorithm services requests by moving the disk arm in one direction until it reaches the last cylinder, then reverses direction?",
+        "option_a": "FCFS",
+        "option_b": "SSTF",
+        "option_c": "SCAN",
+        "option_d": "C-SCAN",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "How does the C-SCAN (Circular SCAN) disk scheduling algorithm differ from standard SCAN?",
+        "option_a": "C-SCAN reverses direction at the midpoint of the disk.",
+        "option_b": "C-SCAN returns immediately to the beginning of the disk without servicing requests on the return trip.",
+        "option_c": "C-SCAN prioritizes requests based on file size rather than cylinder position.",
+        "option_d": "C-SCAN services requests only when the disk is completely idle.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary drawback of Shortest Remaining Time First (SRTF) CPU scheduling?",
+        "option_a": "High context switching overhead and potential starvation of long processes",
+        "option_b": "Inability to execute on multi-core processors",
+        "option_c": "Poor response time for short interactive processes",
+        "option_d": "High probability of causing system deadlocks",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What is a critical section in concurrent programming?",
+        "option_a": "A segment of code that accesses shared resources and must not be executed concurrently by multiple processes",
+        "option_b": "A region of memory reserved exclusively for kernel stack execution",
+        "option_c": "A CPU instruction set that can only be executed in user mode",
+        "option_d": "An execution phase where process priority is temporarily boosted",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "Which system call is used in Unix-like operating systems to create a new process by duplicating the calling process?",
+        "option_a": "exec()",
+        "option_b": "fork()",
+        "option_c": "create()",
+        "option_d": "spawn()",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the state of a process that has completed execution but still has an entry in the process table?",
+        "option_a": "Orphan",
+        "option_b": "Zombie",
+        "option_c": "Daemon",
+        "option_d": "Sleeping",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What occurs when a child process's parent process terminates before the child process does?",
+        "option_a": "The child becomes a zombie process permanently.",
+        "option_b": "The child becomes an orphan process and is adopted by init (or systemd).",
+        "option_c": "The child process is immediately terminated by the kernel.",
+        "option_d": "The child process inherits the parent process ID.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is thrashing in the context of virtual memory?",
+        "option_a": "Rapid swapping of pages between memory and disk due to insufficient physical frames, causing severe performance degradation",
+        "option_b": "Excessive disk fragmentation caused by non-contiguous file allocation",
+        "option_c": "High rate of CPU context switching between kernel threads",
+        "option_d": "Corrupting page table entries due to race conditions",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "Which Banker's Algorithm structure represents the maximum resources that each process may claim?",
+        "option_a": "Allocation Matrix",
+        "option_b": "Need Matrix",
+        "option_c": "Max Matrix",
+        "option_d": "Available Vector",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "In the Banker's Algorithm, how is the Need matrix calculated?",
+        "option_a": "Need = Max - Allocation",
+        "option_b": "Need = Allocation - Available",
+        "option_c": "Need = Max + Allocation",
+        "option_d": "Need = Available - Max",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the main purpose of the dual-mode operation (User Mode vs. Kernel Mode) in modern operating systems?",
+        "option_a": "To allow processes to execute two threads simultaneously",
+        "option_b": "To protect the operating system and other user programs from malicious or buggy processes",
+        "option_c": "To separate 32-bit instructions from 64-bit instructions",
+        "option_d": "To increase CPU clock speed during compute-intensive tasks",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which memory allocation strategy places a process in the smallest available memory hole that is large enough?",
+        "option_a": "First Fit",
+        "option_b": "Best Fit",
+        "option_c": "Worst Fit",
+        "option_d": "Next Fit",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What type of fragmentation occurs when allocated memory blocks have unused space internal to the allocated region?",
+        "option_a": "External Fragmentation",
+        "option_b": "Internal Fragmentation",
+        "option_c": "Dynamic Fragmentation",
+        "option_d": "Segmented Fragmentation",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What technique is used to solve external fragmentation in memory management?",
+        "option_a": "Paging",
+        "option_b": "Compaction",
+        "option_c": "Swapping",
+        "option_d": "Both Paging and Compaction",
+        "correct_option": "D",
+        "marks": 1
+    },
+    {
+        "question_text": "In pure segmentation, how is a logical address structured?",
+        "option_a": "<Segment Number, Offset>",
+        "option_b": "<Page Frame Number Number,>",
+        "option_c": "<Base Address Address, Limit>",
+        "option_d": "<Process Address ID, Virtual>",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the main advantage of dynamic linking over static linking?",
+        "option_a": "Faster program load and execution speed",
+        "option_b": "Reduced executable file size and memory savings through shared library instances",
+        "option_c": "Elimination of runtime execution errors",
+        "option_d": "Compatibility with systems without an operating system",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What hardware mechanism allows the CPU to temporarily halt current execution and handle an urgent external event?",
+        "option_a": "Trap",
+        "option_b": "Interrupt",
+        "option_c": "Semaphore",
+        "option_d": "Polling",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is a software-generated interrupt called?",
+        "option_a": "Hardware Interrupt",
+        "option_b": "Trap (or Exception)",
+        "option_c": "Signal",
+        "option_d": "Context Switch",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which synchronization construct consists of an integer variable accessed only through atomic operations signal() and wait()?",
+        "option_a": "Mutex Lock",
+        "option_b": "Semaphore",
+        "option_c": "Monitor",
+        "option_d": "Spinlock",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What happens when a process performs a wait() operation on a counting semaphore whose current value is 0?",
+        "option_a": "The semaphore value decreases to -1 and the process continues execution.",
+        "option_b": "The process is blocked until another process performs a signal() operation.",
+        "option_c": "The process terminates with a segmentation fault.",
+        "option_d": "The semaphore resets to its initial maximum value.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is a race condition?",
+        "option_a": "A situation where multiple processes access and manipulate shared data concurrently, and the outcome depends on execution order",
+        "option_b": "A failure mode where the CPU clock frequency exceeds hardware tolerance",
+        "option_c": "A condition where two processes wait indefinitely for each other to release resources",
+        "option_d": "An algorithm competition between scheduling policies",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "Which synchronization concept uses high-level language constructs to encapsulate shared variables and procedures, ensuring mutual exclusion automatically?",
+        "option_a": "Counting Semaphore",
+        "option_b": "Monitor",
+        "option_c": "Spinlock",
+        "option_d": "TestAndSet instruction",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary difference between a spinlock and a standard blocking semaphore?",
+        "option_a": "Spinlocks use busy waiting instead of putting the process to sleep.",
+        "option_b": "Spinlocks can only be used in user space applications.",
+        "option_c": "Blocking semaphores consume more CPU cycles while waiting.",
+        "option_d": "Spinlocks prevent priority inversion automatically.",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "In memory management, what is inversion of the page table designed to achieve?",
+        "option_a": "Reduce the total size of page tables in memory by storing one entry per physical frame rather than per virtual page",
+        "option_b": "Speed up logical-to-physical address translation for large processes",
+        "option_c": "Eliminate the need for Translation Lookaside Buffers (TLBs)",
+        "option_d": "Allow page tables to be stored entirely in cache memory",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What scheduling policy is non-preemptive and selects the process with the smallest CPU burst time?",
+        "option_a": "Round Robin",
+        "option_b": "Shortest Job First (SJF)",
+        "option_c": "Priority Scheduling (Preemptive)",
+        "option_d": "Multilevel Feedback Queue",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What CPU scheduling problem occurs when a low-priority process holds a resource required by a high-priority process?",
+        "option_a": "Starvation",
+        "option_b": "Priority Inversion",
+        "option_c": "Convoy Effect",
+        "option_d": "Thrashing",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What technique is commonly used to solve the priority inversion problem?",
+        "option_a": "Priority Inheritance Protocol",
+        "option_b": "Round Robin Scheduling",
+        "option_c": "Banker's Algorithm",
+        "option_d": "Aging",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What term describes the phenomenon where small processes wait behind a long process in an FCFS scheduling queue?",
+        "option_a": "Starvation",
+        "option_b": "Convoy Effect",
+        "option_c": "Priority Inversion",
+        "option_d": "Thrashing",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What scheduling mechanism prevents starvation of low-priority processes by gradually increasing their priority over time?",
+        "option_a": "Compaction",
+        "option_b": "Aging",
+        "option_c": "Swapping",
+        "option_d": "Paging",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In directory structures, what type of directory allows directories to contain subdirectories and files, forming a tree hierarchy?",
+        "option_a": "Single-Level Directory",
+        "option_b": "Two-Level Directory",
+        "option_c": "Tree-Structured Directory",
+        "option_d": "Acyclic Graph Directory",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which file allocation method supports direct/random access without suffering from external fragmentation?",
+        "option_a": "Contiguous Allocation",
+        "option_b": "Linked Allocation",
+        "option_c": "Indexed Allocation",
+        "option_d": "Sequential Allocation",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary disadvantage of linked file allocation?",
+        "option_a": "Severe external fragmentation",
+        "option_b": "Inability to support efficient direct/random access to file blocks",
+        "option_c": "High disk space waste due to fixed block sizes",
+        "option_d": "Requirement for contiguous free disk space during file creation",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which mechanism enables user programs to request services directly from the operating system kernel?",
+        "option_a": "Interrupt Service Routine",
+        "option_b": "System Call",
+        "option_c": "Direct Memory Access (DMA)",
+        "option_d": "Signal",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the role of Direct Memory Access (DMA) in operating system architecture?",
+        "option_a": "Allows I/O devices to transfer data directly to/from main memory without continuous CPU intervention",
+        "option_b": "Prevents user processes from accessing physical RAM",
+        "option_c": "Translates virtual memory addresses to physical memory addresses",
+        "option_d": "Manages CPU register allocation during context switching",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What disk scheduling algorithm chooses the pending request that requires the least disk arm movement from its current position?",
+        "option_a": "FCFS",
+        "option_b": "SSTF (Shortest Seek Time First)",
+        "option_c": "SCAN",
+        "option_d": "LOOK",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which memory management scheme completely eliminates external fragmentation?",
+        "option_a": "Pure Segmentation",
+        "option_b": "Dynamic Partitioning",
+        "option_c": "Paging",
+        "option_d": "Contiguous Memory Allocation",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is a major disadvantage of pure Paging?",
+        "option_a": "External fragmentation",
+        "option_b": "Internal fragmentation",
+        "option_c": "Inability to support virtual memory",
+        "option_d": "High disk seek overhead",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In virtual memory systems, what is the working set of a process?",
+        "option_a": "The total set of pages allocated to the process across its lifetime",
+        "option_b": "The set of pages currently referenced by the process during a recent time window",
+        "option_c": "The maximum number of frames the OS can allocate to a process",
+        "option_d": "The set of instructions stored in the CPU registers",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which deadlock handling strategy ensures that at least one of Coffman's four necessary conditions can never hold?",
+        "option_a": "Deadlock Detection",
+        "option_b": "Deadlock Prevention",
+        "option_c": "Deadlock Avoidance",
+        "option_d": "Deadlock Recovery",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the main difference between deadlock prevention and deadlock avoidance?",
+        "option_a": "Prevention eliminates necessary conditions statically; avoidance dynamically evaluates resource allocation state safety.",
+        "option_b": "Prevention uses the Banker's Algorithm; avoidance uses Resource Allocation Graphs only.",
+        "option_c": "Prevention recovers from deadlocks after they occur; avoidance prevents them from ever forming.",
+        "option_d": "Prevention applies to threads; avoidance applies to processes.",
+        "correct_option": "A",
+        "marks": 1
+    }
+]
