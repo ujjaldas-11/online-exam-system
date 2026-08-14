@@ -29,7 +29,7 @@ foreach ($lines as $line) {
 
 
 
-
+    
 $host = $_ENV['DB_HOST'];
 $dbname = $_ENV['DB_DATABASE'];
 $username = $_ENV['DB_USERNAME'];      
