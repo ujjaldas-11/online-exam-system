@@ -95,6 +95,8 @@ $default_json = '[
         textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: monospace; font-size: 14px; background: #f8f9fa; }
         .btn { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; }
         .btn:hover { background: #218838; }
+        .btn-blue { background: #007bff; font-size: 14px; padding: 6px 12px; margin-bottom: 10px; }
+        .btn-blue:hover { background: #0056b3; }
         .alert-success { color: #155724; background-color: #d4edda; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
         .alert-error { color: #721c24; background-color: #f8d7da; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
         .instructions { font-size: 13px; color: #555; background: #e9ecef; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
@@ -128,13 +130,70 @@ $default_json = '[
             </div>
 
             <div class="form-group">
-                <label>JSON Data Array:</label>
-                <textarea name="json_data" rows="20" required><?php echo htmlspecialchars($default_json); ?></textarea>
+                <label style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>JSON Data Array:</span>
+                    <div>
+                        <button type="button" class="btn btn-blue" id="copy-prompt-btn">📋 Copy LLM Prompt</button>
+                        <button type="button" class="btn btn-blue" id="paste-btn" style="background: #17a2b8;">📝 Paste JSON</button>
+                    </div>
+                </label>
+                <textarea name="json_data" id="json_data" rows="20" required><?php echo htmlspecialchars($default_json); ?></textarea>
             </div>
 
             <button type="submit" name="add_bulk_questions" class="btn">Upload All Questions</button>
         </form>
     </div>
 
+    <script>
+        document.getElementById('copy-prompt-btn').addEventListener('click', function() {
+            const prompt = `Please generate 10 multiple-choice questions about [TOPIC] suitable for [DIFFICULTY LEVEL] students. Return the output STRICTLY as a JSON array of objects with no markdown code blocks (\`\`\`) and no extra text. 
+
+Each object must EXACTLY match this structure:
+{
+  "question_text": "Sample question?",
+  "option_a": "Option 1",
+  "option_b": "Option 2",
+  "option_c": "Option 3",
+  "option_d": "Option 4",
+  "correct_option": "A",
+  "marks": 1
+}
+
+Rules:
+- "correct_option" must be exactly "A", "B", "C", or "D".
+- "marks" must be an integer.
+- Do NOT wrap the JSON in backticks or markdown formatting. Start directly with [ and end with ].`;
+
+            navigator.clipboard.writeText(prompt).then(() => {
+                const btn = document.getElementById('copy-prompt-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.style.backgroundColor = '#28a745';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.backgroundColor = '';
+                }, 2500);
+            }).catch(err => {
+                alert('Failed to copy prompt to clipboard. ' + err);
+            });
+        });
+
+        document.getElementById('paste-btn').addEventListener('click', async function() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('json_data').value = text;
+                const btn = document.getElementById('paste-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Pasted!';
+                btn.style.backgroundColor = '#28a745';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.backgroundColor = '#17a2b8';
+                }, 2000);
+            } catch (err) {
+                alert('Failed to read from clipboard. You may need to grant permission or paste manually. Error: ' + err);
+            }
+        });
+    </script>
 </body>
 </html>
