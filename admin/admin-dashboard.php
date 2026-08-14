@@ -43,7 +43,7 @@ try {
             line-height: 1.5;
         }
 
-        /* Navbar */
+        /* Navbar
         nav {
             background: var(--dark);
             color: white;
@@ -79,7 +79,7 @@ try {
             color: white;
             font-size: 1.5rem;
             cursor: pointer;
-        }
+        } */
 
         /* Layout */
         .container {
@@ -143,7 +143,7 @@ try {
         }
 
         /* Mobile */
-        @media (max-width: 768px) {
+        /* @media (max-width: 768px) {
             .menu-btn { display: block; }
             .nav-links {
                 display: none;
@@ -159,15 +159,15 @@ try {
             .nav-links.show { display: flex; }
             .nav-links a { padding: 12px; text-align: center; }
             .stats { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 480px) {
+        } */
+        /* @media (max-width: 480px) {
             .stats { grid-template-columns: 1fr; }
-        }
+        } */
     </style>
 </head>
 <body>
 
-<nav>
+<!-- <nav>
     <div class="nav-inner">
         <div class="logo">Examify Admin</div>
         <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
@@ -180,7 +180,9 @@ try {
             <a href="admin-logout.php" class="logout">Logout</a>
         </div>
     </div>
-</nav>
+</nav> -->
+
+<?php include 'admin-navbar.php'; ?>
 
 <div class="container">
     <h1>Welcome back, <?= htmlspecialchars($admin_name) ?></h1>
