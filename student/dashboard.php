@@ -13,18 +13,22 @@ $student_name = $_SESSION['student_name'];
 $semester     = $_SESSION['semester'];
 $department   = $_SESSION['department'];
 
-// 2. Fetch active exams for the student's specific semester
+// 2. Fetch active exams and their attempt status for the student
 try {
-    $sql = "SELECT id, title, description, duration_minutes, total_marks 
-            FROM exams 
-            WHERE department = :department 
-            AND semester = :semester 
-            AND status = 'active'
-            ORDER BY id DESC";
+    $sql = "SELECT e.id, e.title, e.description, e.duration_minutes, e.total_marks, e.total_questions_to_ask,
+                   s.name AS subject_name, ea.id AS attempt_id, ea.score
+            FROM exams e
+            JOIN subjects s ON e.subject_id = s.id
+            LEFT JOIN exam_attempts ea ON e.id = ea.exam_id AND ea.student_id = :student_id
+            WHERE s.department = :department 
+            AND s.semester = :semester 
+            AND e.status = 'active'
+            ORDER BY e.id DESC";
             
     $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':semester', $semester, PDO::PARAM_INT);
     $stmt->bindParam(':department', $department, PDO::PARAM_STR);   
+    $stmt->bindParam(':student_id', $_SESSION['student_id'], PDO::PARAM_INT);
     $stmt->execute();
     
     $available_exams = $stmt->fetchAll();
@@ -59,7 +63,7 @@ try {
             <div>
                 <h1 style="margin: 0;"> <?php echo htmlspecialchars($student_name); ?></h1>
                 <p style="margin: 5px 0 0 0; color: #666;">Semester: <?php echo htmlspecialchars($semester); ?></p>
-                <p style="margin: 5px 0 0 0; color: #666;">department: <?php echo htmlspecialchars($department); ?></p>
+                <p style="margin: 5px 0 0 0; color: #666;">Department: <?php echo htmlspecialchars($department); ?></p>
             </div>
             <a href="logout.php" class="logout-btn">Logout</a>
         </div>
@@ -76,12 +80,28 @@ try {
                     <p><?php echo htmlspecialchars($exam['description']); ?></p>
                     
                     <div class="exam-meta">
-                        <span>⏱Duration: <strong><?php echo htmlspecialchars($exam['duration_minutes']); ?> mins</strong></span> &nbsp; | &nbsp;
+                        <span>📚 Subject: <strong><?php echo htmlspecialchars($exam['subject_name']); ?></strong></span> &nbsp; | &nbsp;
+                        <span>⏱ Duration: <strong><?php echo htmlspecialchars($exam['duration_minutes']); ?> mins</strong></span> &nbsp; | &nbsp;
+                        <span>Questions: <strong><?php echo htmlspecialchars($exam['total_questions_to_ask']); ?></strong></span> &nbsp; | &nbsp;
                         <span>Total Marks: <strong><?php echo htmlspecialchars($exam['total_marks']); ?></strong></span>
                     </div>
                     
-                    <!-- Notice how we use 'id' here to pass the exam ID securely -->
-                    <a href="exam.php?id=<?php echo urlencode($exam['id']); ?>" class="btn">Start Exam</a>
+                    <?php 
+                        $is_completed = !empty($exam['attempt_id']);
+                        $is_ongoing = isset($_SESSION['exam_answers'][$exam['id']]);
+                    ?>
+                    
+                    <div style="margin-top: 15px;">
+                        <?php if ($is_completed): ?>
+                            <span style="display:inline-block; padding:8px 15px; background:#e9ecef; color:#28a745; font-weight:bold; border-radius:4px; border:1px solid #c3e6cb;">
+                                ✅ Completed (Score: <?php echo htmlspecialchars($exam['score']); ?> / <?php echo htmlspecialchars($exam['total_marks']); ?>)
+                            </span>
+                        <?php elseif ($is_ongoing): ?>
+                            <a href="exam.php?id=<?php echo urlencode($exam['id']); ?>" class="btn" style="background-color:#fd7e14;">Resume Exam</a>
+                        <?php else: ?>
+                            <a href="exam.php?id=<?php echo urlencode($exam['id']); ?>" class="btn">Start Exam</a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             <?php endforeach; ?>
 

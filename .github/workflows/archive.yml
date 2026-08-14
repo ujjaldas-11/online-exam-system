@@ -1,0 +1,34 @@
+name: Build and Archive Release
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create Archive
+        run: |
+          # Explicitly selecting only the required files and folders for the production release
+          # Excluding .env, temp.php, .git, and .github/
+          zip -r examify-release.zip \
+            admin/ \
+            assets/ \
+            config/ \
+            student/ \
+            utils/ \
+            index.php
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: examify-release
+          path: examify-release.zip
+          retention-days: 7

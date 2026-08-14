@@ -8,35 +8,65 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
-    $title = $_POST['title'];
-    $department = $_POST['department'];
-    $semester = (int)$_POST['semester'];
-    $duration = (int)$_POST['duration_minutes'];
-    $total_marks = (int)$_POST['total_marks'];
+    $title = trim(strip_tags($_POST['title'] ?? ''));
+    $subject_id = (int)($_POST['subject_id'] ?? 0);
+    $duration = (int)($_POST['duration_minutes'] ?? 0);
+    $total_marks = (int)($_POST['total_marks'] ?? 0);
+    $total_questions = (int)($_POST['total_questions_to_ask'] ?? 0);
 
-    $sql = "INSERT INTO exams (title, department, semester, duration_minutes, total_marks, status) 
-            VALUES (:title, :department, :semester, :duration, :total_marks, 'inactive')";
-            
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':title' => $title,
-        ':department' => $department,
-        ':semester' => $semester,
-        ':duration' => $duration,
-        ':total_marks' => $total_marks
-    ]);
-    $message = "Exam created successfully! It is currently inactive.";
+    if (empty($title) || $subject_id <= 0 || $duration <= 0 || $total_marks <= 0 || $total_questions <= 0) {
+        $message = "Invalid input! Please fill out all fields correctly.";
+    } else {
+        // Validate if subject has enough questions in the pool
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE subject_id = :subject_id");
+        $stmt->execute([':subject_id' => $subject_id]);
+        $available_questions = $stmt->fetchColumn();
+        
+        if ($available_questions < $total_questions) {
+            $message = "Error: The selected subject only has $available_questions questions in its pool. Cannot ask for $total_questions.";
+        } else {
+            $sql = "INSERT INTO exams (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, status) 
+                    VALUES (:title, :subject_id, :duration, :total_marks, :total_questions, 'inactive')";
+                    
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':title' => $title,
+                ':subject_id' => $subject_id,
+                ':duration' => $duration,
+                ':total_marks' => $total_marks,
+                ':total_questions' => $total_questions
+            ]);
+            $message = "Exam created successfully! It is currently inactive.";
+        }
+    }
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'start' && isset($_GET['id'])) {
     $exam_id = (int)$_GET['id'];
-    $startSql = "UPDATE exams SET status = 'active', start_time = NOW() WHERE id = :id";
-    $pdo->prepare($startSql)->execute([':id' => $exam_id]);
-    $message = "Exam timer has been STARTED. Students can now join.";
+    
+    // Check if it's already active to avoid resetting the timer on reload
+    $checkSql = "SELECT status FROM exams WHERE id = :id";
+    $stmt = $pdo->prepare($checkSql);
+    $stmt->execute([':id' => $exam_id]);
+    $examStatus = $stmt->fetchColumn();
+    
+    if ($examStatus !== 'active') {
+        $startSql = "UPDATE exams SET status = 'active', start_time = NOW() WHERE id = :id";
+        $pdo->prepare($startSql)->execute([':id' => $exam_id]);
+        $message = "Exam timer has been STARTED. Students can now join.";
+    } else {
+        $message = "Exam is already active.";
+    }
 }
 
-// Fetch all exams
-$exams = $pdo->query("SELECT * FROM exams ORDER BY id DESC")->fetchAll();
+// Fetch all exams with subject info
+$exams = $pdo->query("SELECT e.*, s.name as subject_name, s.department, s.semester 
+                      FROM exams e 
+                      JOIN subjects s ON e.subject_id = s.id 
+                      ORDER BY e.id DESC")->fetchAll();
+                      
+// Fetch subjects for form
+$subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -55,7 +85,12 @@ $exams = $pdo->query("SELECT * FROM exams ORDER BY id DESC")->fetchAll();
 </head>
 <body>
     <h1>Admin Panel - Manage Exams</h1>
-    <?php if(isset($message)) echo "<p style='color:green;'><b>$message</b></p>"; ?>
+    <?php 
+    if(isset($message)) { 
+        $color = strpos($message, 'Invalid') !== false ? 'red' : 'green';
+        echo "<p style='color:$color;'><b>" . htmlspecialchars($message) . "</b></p>"; 
+    } 
+    ?>
 
     <div class="card">
         <h3>Create New Examination</h3>
@@ -63,15 +98,18 @@ $exams = $pdo->query("SELECT * FROM exams ORDER BY id DESC")->fetchAll();
             <label>Exam Title:</label>
             <input type="text" name="title" required>
             
-            <label>Target Department:</label>
-            <select name="department" required>
-                <option value="">-- Choose Department --</option>
-                <option value="BCA">BCA</option>
-                <option value="BBA">BBA</option>
+            <label>Subject:</label>
+            <select name="subject_id" required>
+                <option value="">-- Choose Subject --</option>
+                <?php foreach ($subjects as $sub): ?>
+                    <option value="<?php echo $sub['id']; ?>">
+                        <?php echo htmlspecialchars($sub['name']); ?> (<?php echo htmlspecialchars($sub['department']); ?>, Sem <?php echo $sub['semester']; ?>)
+                    </option>
+                <?php endforeach; ?>
             </select>
             
-            <label>Target Semester:</label>
-            <input type="number" name="semester" min="1" max="8" required>
+            <label>Total Questions to Ask per Student:</label>
+            <input type="number" name="total_questions_to_ask" min="1" required placeholder="e.g. 10">
             
             <label>Duration (in minutes):</label>
             <input type="number" name="duration_minutes" required>
@@ -89,7 +127,8 @@ $exams = $pdo->query("SELECT * FROM exams ORDER BY id DESC")->fetchAll();
             <tr>
                 <th>ID</th>
                 <th>Title</th>
-                <th>Semester</th>
+                <th>Subject</th>
+                <th>Questions to Ask</th>
                 <th>Duration</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -98,7 +137,8 @@ $exams = $pdo->query("SELECT * FROM exams ORDER BY id DESC")->fetchAll();
             <tr>
                 <td><?php echo $exam['id']; ?></td>
                 <td><?php echo htmlspecialchars($exam['title']); ?></td>
-                <td>Sem <?php echo $exam['semester']; ?></td>
+                <td><?php echo htmlspecialchars($exam['subject_name']); ?> <br><small>(<?php echo htmlspecialchars($exam['department']); ?>, Sem <?php echo $exam['semester']; ?>)</small></td>
+                <td><?php echo $exam['total_questions_to_ask']; ?></td>
                 <td><?php echo $exam['duration_minutes']; ?> mins</td>
                 <td>
                     <b style="color: <?php echo $exam['status'] == 'active' ? 'green' : 'red'; ?>">

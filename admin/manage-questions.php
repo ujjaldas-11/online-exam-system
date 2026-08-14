@@ -7,10 +7,10 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-$exams = $pdo->query("SELECT id, title, semester FROM exams WHERE status = 'inactive' ORDER BY id DESC")->fetchAll();
+$subjects = $pdo->query("SELECT id, name, department, semester FROM subjects ORDER BY id DESC")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])) {
-    $exam_id = (int)$_POST['exam_id'];
+    $subject_id = (int)$_POST['subject_id'];
     $json_input = trim($_POST['json_data']);
     
     // Decode JSON string to PHP Array
@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
             // Begin Transaction
             $pdo->beginTransaction();
             
-            $sql = "INSERT INTO questions (exam_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks) 
-                    VALUES (:exam_id, :q_text, :opt_a, :opt_b, :opt_c, :opt_d, :correct, :marks)";
+            $sql = "INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks) 
+                    VALUES (:subject_id, :q_text, :opt_a, :opt_b, :opt_c, :opt_d, :correct, :marks)";
             $stmt = $pdo->prepare($sql);
             
             $count = 0;
@@ -35,13 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
                 }
 
                 $stmt->execute([
-                    ':exam_id' => $exam_id,
-                    ':q_text'  => $q['question_text'],
-                    ':opt_a'   => $q['option_a'],
-                    ':opt_b'   => $q['option_b'],
-                    ':opt_c'   => $q['option_c'] ?? '',
-                    ':opt_d'   => $q['option_d'] ?? '',
-                    ':correct' => strtoupper($q['correct_option']),
+                    ':subject_id' => $subject_id,
+                    ':q_text'  => trim(strip_tags($q['question_text'])),
+                    ':opt_a'   => trim(strip_tags($q['option_a'])),
+                    ':opt_b'   => trim(strip_tags($q['option_b'])),
+                    ':opt_c'   => isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
+                    ':opt_d'   => isset($q['option_d']) ? trim(strip_tags($q['option_d'])) : '',
+                    ':correct' => strtoupper(trim(strip_tags($q['correct_option']))),
                     ':marks'   => isset($q['marks']) ? (int)$q['marks'] : 1
                 ]);
                 $count++;
@@ -95,6 +95,8 @@ $default_json = '[
         textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: monospace; font-size: 14px; background: #f8f9fa; }
         .btn { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; }
         .btn:hover { background: #218838; }
+        .btn-blue { background: #007bff; font-size: 14px; padding: 6px 12px; margin-bottom: 10px; }
+        .btn-blue:hover { background: #0056b3; }
         .alert-success { color: #155724; background-color: #d4edda; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
         .alert-error { color: #721c24; background-color: #f8d7da; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
         .instructions { font-size: 13px; color: #555; background: #e9ecef; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
@@ -105,8 +107,8 @@ $default_json = '[
     <div class="card">
         <h2>Bulk Insert Questions (JSON)</h2>
         
-        <?php if(isset($success_message)) echo "<div class='alert-success'><b>$success_message</b></div>"; ?>
-        <?php if(isset($error_message)) echo "<div class='alert-error'><b>$error_message</b></div>"; ?>
+        <?php if(isset($success_message)) echo "<div class='alert-success'><b>" . htmlspecialchars($success_message) . "</b></div>"; ?>
+        <?php if(isset($error_message)) echo "<div class='alert-error'><b>" . htmlspecialchars($error_message) . "</b></div>"; ?>
 
         <div class="instructions">
             <strong>Instructions:</strong> Paste your questions in a valid JSON array format. 
@@ -116,25 +118,104 @@ $default_json = '[
 
         <form method="POST">
             <div class="form-group">
-                <label>Select Exam (Only inactive exams shown):</label>
-                <select name="exam_id" required>
-                    <option value="">-- Choose Exam --</option>
-                    <?php foreach ($exams as $ex): ?>
-                        <option value="<?php echo $ex['id']; ?>">
-                            <?php echo htmlspecialchars($ex['title']); ?> (Semester <?php echo $ex['semester']; ?>)
+                <label>Select Subject:</label>
+                <select name="subject_id" id="subject_id" required>
+                    <option value="">-- Choose Subject --</option>
+                    <?php foreach ($subjects as $sub): ?>
+                        <option value="<?php echo $sub['id']; ?>">
+                            <?php echo htmlspecialchars($sub['name']); ?> (<?php echo $sub['department']; ?>, Sem <?php echo $sub['semester']; ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
 
             <div class="form-group">
-                <label>JSON Data Array:</label>
-                <textarea name="json_data" rows="20" required><?php echo htmlspecialchars($default_json); ?></textarea>
+                <label style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>JSON Data Array:</span>
+                    <div>
+                        <button type="button" class="btn btn-blue" id="copy-prompt-btn" disabled style="opacity: 0.6; cursor: not-allowed;">📋 Copy LLM Prompt</button>
+                        <button type="button" class="btn btn-blue" id="paste-btn" style="background: #17a2b8;">📝 Paste JSON</button>
+                    </div>
+                </label>
+                <textarea name="json_data" id="json_data" rows="20" required><?php echo htmlspecialchars($default_json); ?></textarea>
             </div>
 
             <button type="submit" name="add_bulk_questions" class="btn">Upload All Questions</button>
         </form>
     </div>
 
+    <script>
+        const subjectSelect = document.getElementById('subject_id');
+        const copyPromptBtn = document.getElementById('copy-prompt-btn');
+
+        subjectSelect.addEventListener('change', function() {
+            if (this.value) {
+                copyPromptBtn.disabled = false;
+                copyPromptBtn.style.opacity = '1';
+                copyPromptBtn.style.cursor = 'pointer';
+            } else {
+                copyPromptBtn.disabled = true;
+                copyPromptBtn.style.opacity = '0.6';
+                copyPromptBtn.style.cursor = 'not-allowed';
+            }
+        });
+
+        copyPromptBtn.addEventListener('click', function() {
+            if (subjectSelect.disabled || !subjectSelect.value) return;
+            
+            // Get selected subject text without the semester/department extra info if possible, or just use the whole text
+            let subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
+            // Extract just the name if it's formatted like "Name (Dept, Sem)"
+            subjectText = subjectText.split('(')[0].trim();
+
+            const prompt = `Please generate 10 multiple-choice questions about ${subjectText} suitable for university students. Return the output STRICTLY as a JSON array of objects with no markdown code blocks (\`\`\`) and no extra text. 
+
+Each object must EXACTLY match this structure:
+{
+  "question_text": "Sample question?",
+  "option_a": "Option 1",
+  "option_b": "Option 2",
+  "option_c": "Option 3",
+  "option_d": "Option 4",
+  "correct_option": "A",
+  "marks": 1
+}
+
+Rules:
+- "correct_option" must be exactly "A", "B", "C", or "D".
+- "marks" must be an integer.
+- Do NOT wrap the JSON in backticks or markdown formatting. Start directly with [ and end with ].`;
+
+            navigator.clipboard.writeText(prompt).then(() => {
+                const btn = document.getElementById('copy-prompt-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.style.backgroundColor = '#28a745';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.backgroundColor = '';
+                }, 2500);
+            }).catch(err => {
+                alert('Failed to copy prompt to clipboard. ' + err);
+            });
+        });
+
+        document.getElementById('paste-btn').addEventListener('click', async function() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('json_data').value = text;
+                const btn = document.getElementById('paste-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Pasted!';
+                btn.style.backgroundColor = '#28a745';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.backgroundColor = '#17a2b8';
+                }, 2000);
+            } catch (err) {
+                alert('Failed to read from clipboard. You may need to grant permission or paste manually. Error: ' + err);
+            }
+        });
+    </script>
 </body>
 </html>

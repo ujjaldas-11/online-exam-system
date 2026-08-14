@@ -6,13 +6,13 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name         = trim($_POST['name']);
-    $email        = trim($_POST['email']);
-    $password     = $_POST['password'];
-    $confirm_pass = $_POST['confirm_password'];
-    $roll_number  = trim($_POST['roll_number']);
-    $semester     = (int)$_POST['semester'];
-    $department   = $_POST['department'];
+    $name         = trim(strip_tags($_POST['name'] ?? ''));
+    $email        = trim($_POST['email'] ?? '');
+    $password     = $_POST['password'] ?? '';
+    $confirm_pass = $_POST['confirm_password'] ?? '';
+    $roll_number  = trim(strip_tags($_POST['roll_number'] ?? ''));
+    $semester     = (int)($_POST['semester'] ?? 0);
+    $department   = trim(strip_tags($_POST['department'] ?? ''));
 
     if (empty($name) || empty($email) || empty($password) || empty($roll_number) || empty($semester)) {
         $error = "All fields are required.";

@@ -14,6 +14,9 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM exams");
     $total_exams = $stmt->fetchColumn();
 
+    $stmt = $pdo->query("SELECT COUNT(*) FROM subjects");
+    $total_subjects = $stmt->fetchColumn();
+
     $stmt = $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'active'");
     $active_exams = $stmt->fetchColumn();
 
@@ -70,6 +73,7 @@ try {
         </div>
         <div class="nav-links">
             <a href="admin-dashboard.php">Dashboard</a>
+            <a href="manage-subjects.php">Manage Subjects</a>
             <a href="manage-exam.php">Manage Exams</a>
             <a href="manage-questions.php">Manage Questions</a>
             <a href="results.php">View Results</a>
@@ -82,6 +86,11 @@ try {
         <p>Here is an overview of the system today.</p>
 
         <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Subjects</h3>
+                <p class="number"><?php echo $total_subjects; ?></p>
+            </div>
+            
             <div class="stat-card">
                 <h3>Total Exams</h3>
                 <p class="number"><?php echo $total_exams; ?></p>
@@ -105,6 +114,7 @@ try {
 
         <h2 style="margin-top: 40px; color: #333;">Quick Actions</h2>
         <div class="quick-links">
+            <a href="manage-subjects.php">📚 Manage Subjects</a>
             <a href="manage-exam.php">➕ Create New Exam</a>
             <a href="manage-questions.php">📝 Add Questions</a>
             <a href="results.php">📊 Review Submissions (<?php echo $total_attempts; ?>)</a>
