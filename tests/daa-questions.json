@@ -1,0 +1,452 @@
+[
+    {
+        "question_text": "What is the worst-case time complexity of the QuickSort algorithm?",
+        "option_a": "O(n log n)",
+        "option_b": "O(n)",
+        "option_c": "O(n^2)",
+        "option_d": "O(log n)",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following sorting algorithms is NOT inherently stable?",
+        "option_a": "Merge Sort",
+        "option_b": "Insertion Sort",
+        "option_c": "Bubble Sort",
+        "option_d": "Heap Sort",
+        "correct_option": "D",
+        "marks": 1
+    },
+    {
+        "question_text": "What data structure is typically used to implement Breadth-First Search (BFS)?",
+        "option_a": "Stack",
+        "option_b": "Queue",
+        "option_c": "Priority Queue",
+        "option_d": "Hash Table",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Dijkstra's algorithm is used for finding the shortest path. Which of the following limitations does it have?",
+        "option_a": "It cannot handle directed graphs.",
+        "option_b": "It cannot handle graphs with cycles.",
+        "option_c": "It cannot handle edges with negative weights.",
+        "option_d": "It requires the graph to be a tree.",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "In Principal Component Analysis (PCA), what is the primary objective?",
+        "option_a": "To increase the dimensionality of the dataset",
+        "option_b": "To find the axes that maximize variance in the data",
+        "option_c": "To classify data points into predefined labels",
+        "option_d": "To handle missing values in the dataset",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which algorithm is used to find the Minimum Spanning Tree of a graph by continually adding the shortest edge that does not form a cycle?",
+        "option_a": "Prim's Algorithm",
+        "option_b": "Kruskal's Algorithm",
+        "option_c": "Bellman-Ford Algorithm",
+        "option_d": "Floyd-Warshall Algorithm",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the time complexity of searching for an element in a balanced Binary Search Tree (BST)?",
+        "option_a": "O(1)",
+        "option_b": "O(n)",
+        "option_c": "O(log n)",
+        "option_d": "O(n log n)",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which property is a mandatory requirement for a problem to be solvable using Dynamic Programming?",
+        "option_a": "Greedy choice property",
+        "option_b": "Optimal substructure and overlapping subproblems",
+        "option_c": "Non-overlapping subproblems",
+        "option_d": "It must be an NP-hard problem",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In a Hash Table, what is the 'load factor'?",
+        "option_a": "The maximum size of the hash table",
+        "option_b": "The ratio of the number of stored entries to the number of buckets",
+        "option_c": "The time taken to compute a hash function",
+        "option_d": "The number of collisions resolved using chaining",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "K-Means is a popular algorithm used for which type of machine learning task?",
+        "option_a": "Supervised learning (Classification)",
+        "option_b": "Supervised learning (Regression)",
+        "option_c": "Unsupervised learning (Clustering)",
+        "option_d": "Reinforcement learning",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following metrics is best suited for evaluating an imbalanced classification model?",
+        "option_a": "Accuracy",
+        "option_b": "Mean Squared Error (MSE)",
+        "option_c": "F1-Score",
+        "option_d": "R-squared",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the main purpose of cross-validation in data analysis?",
+        "option_a": "To decrease model training time",
+        "option_b": "To ensure the model generalizes well to unseen data",
+        "option_c": "To increase the complexity of the model",
+        "option_d": "To eliminate missing data points",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following correctly describes a Type I error in hypothesis testing?",
+        "option_a": "Failing to reject a false null hypothesis",
+        "option_b": "Rejecting a true null hypothesis",
+        "option_c": "Accepting a true alternative hypothesis",
+        "option_d": "Failing to reject a true null hypothesis",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the output of the sigmoid function used in Logistic Regression?",
+        "option_a": "A continuous value between -infinity and +infinity",
+        "option_b": "An integer representing a class label",
+        "option_c": "A probability value between 0 and 1",
+        "option_d": "A binary value strictly 0 or 1",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "The Master Theorem can be used to solve recurrence relations of which general form?",
+        "option_a": "T(n) = aT(n/b) + f(n)",
+        "option_b": "T(n) = T(n-1) + T(n-2)",
+        "option_c": "T(n) = T(n) + f(n)",
+        "option_d": "T(n) = aT(n-b) + f(n)",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What does a p-value of 0.01 imply in a statistical test (assuming alpha = 0.05)?",
+        "option_a": "There is a 1% chance the alternative hypothesis is true.",
+        "option_b": "We reject the null hypothesis.",
+        "option_c": "We fail to reject the null hypothesis.",
+        "option_d": "The test is inconclusive.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which algorithm is commonly used for finding the strongly connected components of a directed graph?",
+        "option_a": "Tarjan's Algorithm",
+        "option_b": "A* Search",
+        "option_c": "Ford-Fulkerson Algorithm",
+        "option_d": "Edmonds-Karp Algorithm",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "In the context of algorithm design, what does 'NP-Complete' mean?",
+        "option_a": "The problem can be solved in polynomial time.",
+        "option_b": "It is in NP, and every problem in NP can be reduced to it in polynomial time.",
+        "option_c": "The problem cannot be verified in polynomial time.",
+        "option_d": "The problem is strictly harder than any problem in NP.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the time complexity of inserting an element into a Max Heap of size n?",
+        "option_a": "O(1)",
+        "option_b": "O(log n)",
+        "option_c": "O(n)",
+        "option_d": "O(n log n)",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which technique is most appropriate for handling missing numerical data in a dataset before applying an algorithm?",
+        "option_a": "Assigning them a value of string 'Unknown'",
+        "option_b": "Deleting the entire feature column immediately",
+        "option_c": "Imputing them using the mean or median of the feature",
+        "option_d": "Randomizing the order of the rows",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "In data structures, which tree guarantees that the heights of the two child subtrees of any node differ by at most one?",
+        "option_a": "Binary Search Tree",
+        "option_b": "Spanning Tree",
+        "option_c": "B-Tree",
+        "option_d": "AVL Tree",
+        "correct_option": "D",
+        "marks": 1
+    },
+    {
+        "question_text": "Which algorithm is best suited for finding all-pairs shortest paths in a dense graph?",
+        "option_a": "Bellman-Ford",
+        "option_b": "Floyd-Warshall",
+        "option_c": "Dijkstra's (run once)",
+        "option_d": "Depth First Search",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is 'Overfitting' in the context of predictive modeling?",
+        "option_a": "When a model fails to learn the underlying pattern of the training data",
+        "option_b": "When a model learns the training data too well, including its noise, reducing generalization",
+        "option_c": "When a model has high bias and low variance",
+        "option_d": "When a model requires too much computational power to train",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following statements about the 'Apriori' algorithm is true?",
+        "option_a": "It is used for continuous sequence generation.",
+        "option_b": "It relies on the downward closure property of frequent itemsets.",
+        "option_c": "It builds a decision tree for classification.",
+        "option_d": "It finds the maximum flow in a network.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In a MapReduce framework, what is the primary function of the 'Reducer'?",
+        "option_a": "To split input files into smaller chunks",
+        "option_b": "To filter and sort raw data",
+        "option_c": "To aggregate values associated with the same intermediate key",
+        "option_d": "To visualize the output data",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What does TF-IDF stand for in Natural Language Processing and Information Retrieval?",
+        "option_a": "Text Frequency - Inverse Data Factor",
+        "option_b": "Term Frequency - Inverse Document Frequency",
+        "option_c": "Token Feature - Index Document Form",
+        "option_d": "True Frequency - Inverse Data Frequency",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which method is commonly used to find the global minimum of a cost function in machine learning?",
+        "option_a": "Gradient Descent",
+        "option_b": "Binary Search",
+        "option_c": "Depth-First Search",
+        "option_d": "Dynamic Programming",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary assumption made by the Naive Bayes classifier?",
+        "option_a": "Features are linearly dependent on each other.",
+        "option_b": "The data is perfectly normally distributed.",
+        "option_c": "Features are conditionally independent given the class label.",
+        "option_d": "The prior probabilities of all classes are equal.",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "In graph theory, a graph that contains no cycles is called a:",
+        "option_a": "Bipartite graph",
+        "option_b": "Directed Acyclic Graph (DAG) or Forest",
+        "option_c": "Complete graph",
+        "option_d": "Strongly connected graph",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary advantage of using a Random Forest over a single Decision Tree?",
+        "option_a": "Random Forest is easier to interpret visually.",
+        "option_b": "Random Forest trains faster than a single Decision Tree.",
+        "option_c": "Random Forest reduces variance and helps prevent overfitting.",
+        "option_d": "Random Forest does not require numeric data.",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following describes the space complexity of Depth-First Search (DFS) in the worst case (where V is vertices)?",
+        "option_a": "O(1)",
+        "option_b": "O(V)",
+        "option_c": "O(V^2)",
+        "option_d": "O(log V)",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In algorithm analysis, Big-Omega (\u03a9) notation provides:",
+        "option_a": "An asymptotic tight bound",
+        "option_b": "An asymptotic upper bound",
+        "option_c": "An asymptotic lower bound",
+        "option_d": "The exact running time in seconds",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What statistical measure describes the asymmetry of a probability distribution around its mean?",
+        "option_a": "Variance",
+        "option_b": "Kurtosis",
+        "option_c": "Standard Deviation",
+        "option_d": "Skewness",
+        "correct_option": "D",
+        "marks": 1
+    },
+    {
+        "question_text": "If a correlation coefficient between two variables is -0.9, what does this indicate?",
+        "option_a": "A strong positive linear relationship",
+        "option_b": "A strong negative linear relationship",
+        "option_c": "No linear relationship",
+        "option_d": "An error in calculation",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which algorithm builds a Minimum Spanning Tree by maintaining a set of explored vertices and adding the cheapest edge connecting an explored vertex to an unexplored one?",
+        "option_a": "Kruskal's Algorithm",
+        "option_b": "Prim's Algorithm",
+        "option_c": "Dijkstra's Algorithm",
+        "option_d": "A* Search",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What does a Z-score of 0 indicate for a specific data point?",
+        "option_a": "The point is an extreme outlier.",
+        "option_b": "The point is exactly at the mean of the dataset.",
+        "option_c": "The dataset has a standard deviation of 0.",
+        "option_d": "The data point is missing.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In a relational database, what is the purpose of normal forms (e.g., 1NF, 2NF, 3NF)?",
+        "option_a": "To increase data redundancy for backups",
+        "option_b": "To ensure queries execute in O(1) time",
+        "option_c": "To organize data to reduce redundancy and improve data integrity",
+        "option_d": "To encrypt sensitive user information",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the time complexity of finding the median of an unsorted array of size n using the Quickselect algorithm in the average case?",
+        "option_a": "O(n)",
+        "option_b": "O(n log n)",
+        "option_c": "O(log n)",
+        "option_d": "O(n^2)",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following is a key characteristic of the K-Nearest Neighbors (KNN) algorithm?",
+        "option_a": "It builds a complex internal model during the training phase.",
+        "option_b": "It is a parametric method.",
+        "option_c": "It is a lazy learning algorithm that does not explicitly build a model during training.",
+        "option_d": "It relies heavily on gradient descent for optimization.",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "When choosing a split in a Decision Tree, the algorithm often tries to maximize Information Gain. This is equivalent to minimizing what metric?",
+        "option_a": "Variance",
+        "option_b": "Accuracy",
+        "option_c": "Entropy",
+        "option_d": "F1-Score",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is a 'Trie' data structure primarily used for?",
+        "option_a": "Balancing unbalanced binary search trees",
+        "option_b": "Efficient retrieval of keys in a large dataset of strings (e.g., autocomplete)",
+        "option_c": "Implementing a Last-In-First-Out (LIFO) queue",
+        "option_d": "Finding the shortest path in a weighted graph",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In time series analysis, what does 'stationarity' imply?",
+        "option_a": "The data is collected at irregular intervals.",
+        "option_b": "Statistical properties such as mean and variance remain constant over time.",
+        "option_c": "The time series shows a strong upward trend.",
+        "option_d": "The data cannot be used for forecasting.",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following string matching algorithms uses a preprocessing step on the pattern to avoid redundant comparisons?",
+        "option_a": "Brute-force algorithm",
+        "option_b": "Knuth-Morris-Pratt (KMP) algorithm",
+        "option_c": "Dijkstra's algorithm",
+        "option_d": "Needleman-Wunsch algorithm",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Support Vector Machines (SVM) find a hyperplane that separates classes. What does the algorithm try to maximize?",
+        "option_a": "The number of support vectors",
+        "option_b": "The distance (margin) between the hyperplane and the nearest data points of any class",
+        "option_c": "The training error",
+        "option_d": "The total number of features used",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Topological sorting can only be applied to which type of graph?",
+        "option_a": "Undirected graphs",
+        "option_b": "Directed graphs with cycles",
+        "option_c": "Directed Acyclic Graphs (DAGs)",
+        "option_d": "Complete bipartite graphs",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "In Big Data, the '3 Vs' are commonly used to describe its characteristics. What do they stand for?",
+        "option_a": "Volume, Velocity, Variety",
+        "option_b": "Value, Verification, Viability",
+        "option_c": "Variance, Vector, Velocity",
+        "option_d": "Visibility, Volume, Vulnerability",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What type of problem is the Fractional Knapsack problem, and what approach provides the optimal solution?",
+        "option_a": "Optimization problem; Dynamic Programming",
+        "option_b": "Optimization problem; Greedy approach",
+        "option_c": "Decision problem; Backtracking",
+        "option_d": "Sorting problem; Divide and Conquer",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which algorithm computes the longest common subsequence (LCS) of two strings optimally?",
+        "option_a": "Dynamic Programming",
+        "option_b": "Greedy Algorithm",
+        "option_c": "Depth-First Search",
+        "option_d": "KMP Algorithm",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What does R-squared (Coefficient of Determination) measure in a regression model?",
+        "option_a": "The average magnitude of errors",
+        "option_b": "The proportion of variance in the dependent variable explained by the independent variable(s)",
+        "option_c": "The statistical significance of individual coefficients",
+        "option_d": "The probability of a binary outcome",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following best defines an 'outlier' in a dataset?",
+        "option_a": "A data point that perfectly matches the mean",
+        "option_b": "A feature column containing text instead of numbers",
+        "option_c": "An observation that deviates significantly from other observations in the dataset",
+        "option_d": "The mode of a categorical variable",
+        "correct_option": "C",
+        "marks": 1
+    }
+]
