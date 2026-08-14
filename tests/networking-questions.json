@@ -1,0 +1,452 @@
+[
+    {
+        "question_text": "Which layer of the OSI model is responsible for logical addressing and routing?",
+        "option_a": "Physical Layer",
+        "option_b": "Data Link Layer",
+        "option_c": "Network Layer",
+        "option_d": "Transport Layer",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary function of the Address Resolution Protocol (ARP)?",
+        "option_a": "Map an IP address to a MAC address",
+        "option_b": "Map a domain name to an IP address",
+        "option_c": "Assign dynamic IP addresses to hosts",
+        "option_d": "Translate private IP addresses to public IP addresses",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following routing protocols uses the Shortest Path First (SPF) algorithm?",
+        "option_a": "RIP",
+        "option_b": "OSPF",
+        "option_c": "BGP",
+        "option_d": "EIGRP",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "How many bits constitute an IPv6 address?",
+        "option_a": "32",
+        "option_b": "64",
+        "option_c": "128",
+        "option_d": "256",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which transport layer protocol provides a connectionless, unacknowledged service?",
+        "option_a": "TCP",
+        "option_b": "UDP",
+        "option_c": "SCTP",
+        "option_d": "ICMP",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the correct sequence of packets in the TCP three-way handshake?",
+        "option_a": "SYN, ACK, SYN-ACK",
+        "option_b": "SYN, SYN-ACK, ACK",
+        "option_c": "ACK, SYN-ACK, SYN",
+        "option_d": "SYN-ACK, SYN, ACK",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which field in an IP header prevents packets from circulating endlessly in a routing loop?",
+        "option_a": "Header Checksum",
+        "option_b": "Protocol",
+        "option_c": "Time to Live (TTL)",
+        "option_d": "Fragment Offset",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which protocol is primarily used by the ping command to test network connectivity?",
+        "option_a": "TCP",
+        "option_b": "UDP",
+        "option_c": "IGMP",
+        "option_d": "ICMP",
+        "correct_option": "D",
+        "marks": 1
+    },
+    {
+        "question_text": "What does a subnet mask of 255.255.255.240 indicate in CIDR notation?",
+        "option_a": "/24",
+        "option_b": "/26",
+        "option_c": "/28",
+        "option_d": "/30",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which underlying protocol and port does BGP use to establish neighbor adjacencies?",
+        "option_a": "UDP 520",
+        "option_b": "TCP 179",
+        "option_c": "UDP 179",
+        "option_d": "TCP 520",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In the context of medium access control, what does CSMA/CD stand for?",
+        "option_a": "Carrier Sense Multiple Access with Collision Detection",
+        "option_b": "Carrier Sense Multiple Access with Collision Avoidance",
+        "option_c": "Channel Sequence Multiple Access with Code Division",
+        "option_d": "Carrier System Multiple Access with Collision Domain",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "Which spanning tree protocol state indicates that a port is participating in frame forwarding?",
+        "option_a": "Listening",
+        "option_b": "Learning",
+        "option_c": "Forwarding",
+        "option_d": "Blocking",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary purpose of a VLAN?",
+        "option_a": "To increase the physical distance of a LAN",
+        "option_b": "To segment a network into separate broadcast domains logically",
+        "option_c": "To convert private IP addresses to public IPs",
+        "option_d": "To encrypt traffic between switches",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which metric does the Routing Information Protocol (RIP) use to determine the best path?",
+        "option_a": "Bandwidth",
+        "option_b": "Delay",
+        "option_c": "Hop count",
+        "option_d": "Cost",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "In the TCP congestion control mechanism, what is the initial phase where the congestion window grows exponentially?",
+        "option_a": "Congestion Avoidance",
+        "option_b": "Fast Retransmit",
+        "option_c": "Fast Recovery",
+        "option_d": "Slow Start",
+        "correct_option": "D",
+        "marks": 1
+    },
+    {
+        "question_text": "Which DNS record type maps a domain name to an IPv4 address?",
+        "option_a": "AAAA",
+        "option_b": "CNAME",
+        "option_c": "A",
+        "option_d": "MX",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which port is standard for HTTPS traffic?",
+        "option_a": "80",
+        "option_b": "443",
+        "option_c": "22",
+        "option_d": "21",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What happens in distance-vector routing to mitigate the count-to-infinity problem?",
+        "option_a": "Link state advertisements",
+        "option_b": "Spanning Tree Protocol",
+        "option_c": "Split Horizon",
+        "option_d": "Slow Start",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the length of a standard Ethernet MAC address?",
+        "option_a": "32 bits",
+        "option_b": "48 bits",
+        "option_c": "64 bits",
+        "option_d": "128 bits",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which IP class provides a default subnet mask of 255.255.0.0?",
+        "option_a": "Class A",
+        "option_b": "Class B",
+        "option_c": "Class C",
+        "option_d": "Class D",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the reserved loopback address in IPv4?",
+        "option_a": "10.0.0.1",
+        "option_b": "172.16.0.1",
+        "option_c": "127.0.0.1",
+        "option_d": "192.168.1.1",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which DHCP message is typically broadcast by a client searching for a DHCP server?",
+        "option_a": "DHCP OFFER",
+        "option_b": "DHCP DISCOVER",
+        "option_c": "DHCP REQUEST",
+        "option_d": "DHCP ACK",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following describes Network Address Translation (NAT)?",
+        "option_a": "Assigns dynamic IPs to local hosts",
+        "option_b": "Maps private IP addresses to a public IP address",
+        "option_c": "Resolves hostnames to IP addresses",
+        "option_d": "Encrypts network traffic at the IP layer",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In a sliding window protocol, what is the primary purpose of the window?",
+        "option_a": "Error detection",
+        "option_b": "Encryption",
+        "option_c": "Flow control",
+        "option_d": "Routing",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which IEEE standard governs Wireless LANs (Wi-Fi)?",
+        "option_a": "802.3",
+        "option_b": "802.1Q",
+        "option_c": "802.11",
+        "option_d": "802.1X",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "How does a router process a packet whose destination IP is unknown and there is no default route?",
+        "option_a": "Broadcasts it to all ports",
+        "option_b": "Drops the packet and sends an ICMP Destination Unreachable message",
+        "option_c": "Forwards it back to the sender",
+        "option_d": "Stores it in a buffer until a route is learned",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which IPsec protocol provides data confidentiality (encryption)?",
+        "option_a": "Authentication Header (AH)",
+        "option_b": "Internet Key Exchange (IKE)",
+        "option_c": "Encapsulating Security Payload (ESP)",
+        "option_d": "Generic Routing Encapsulation (GRE)",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What problem does the RTS/CTS mechanism in 802.11 networks aim to solve?",
+        "option_a": "Count-to-infinity",
+        "option_b": "Hidden node problem",
+        "option_c": "Routing loops",
+        "option_d": "Broadcast storms",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which layer of the OSI model manages the encryption and decryption of data?",
+        "option_a": "Application Layer",
+        "option_b": "Presentation Layer",
+        "option_c": "Session Layer",
+        "option_d": "Transport Layer",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the maximum payload size of a standard Ethernet frame?",
+        "option_a": "64 bytes",
+        "option_b": "128 bytes",
+        "option_c": "1500 bytes",
+        "option_d": "9000 bytes",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "In SDN (Software-Defined Networking), which plane is centralized into a controller?",
+        "option_a": "Data Plane",
+        "option_b": "Forwarding Plane",
+        "option_c": "Control Plane",
+        "option_d": "Physical Plane",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which protocol is used to securely transfer files over an SSH connection?",
+        "option_a": "TFTP",
+        "option_b": "FTP",
+        "option_c": "SFTP",
+        "option_d": "SMTP",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What type of address is 224.0.0.5?",
+        "option_a": "Unicast address",
+        "option_b": "Multicast address",
+        "option_c": "Broadcast address",
+        "option_d": "Anycast address",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which tool manipulates the TTL field to map the path packets take to a destination?",
+        "option_a": "netstat",
+        "option_b": "nslookup",
+        "option_c": "traceroute",
+        "option_d": "ipconfig",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What technique allows multiple distinct physical subnets to be grouped into a single logical network over the internet?",
+        "option_a": "NAT",
+        "option_b": "VPN",
+        "option_c": "VLAN",
+        "option_d": "ARP",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following is a link-state routing protocol primarily used within large autonomous systems?",
+        "option_a": "RIPv2",
+        "option_b": "BGP",
+        "option_c": "IS-IS",
+        "option_d": "EIGRP",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the primary function of Port Address Translation (PAT)?",
+        "option_a": "Map a single private IP to multiple public IPs",
+        "option_b": "Map multiple private IPs to a single public IP using distinct ports",
+        "option_c": "Translate MAC addresses to IP addresses",
+        "option_d": "Allocate bandwidth per port dynamically",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In the IPv4 header, what is the purpose of the Fragment Offset field?",
+        "option_a": "To indicate the remaining lifetime of the packet",
+        "option_b": "To assist in the reassembly of fragmented packets",
+        "option_c": "To provide error-checking for the header",
+        "option_d": "To define the protocol encapsulated in the payload",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which application layer protocol is used for sending emails between servers?",
+        "option_a": "POP3",
+        "option_b": "IMAP",
+        "option_c": "SMTP",
+        "option_d": "SNMP",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the typical use of the 169.254.0.0/16 address range?",
+        "option_a": "Public routing",
+        "option_b": "Multicasting",
+        "option_c": "APIPA (Link-local addressing)",
+        "option_d": "Private NAT networks",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What mechanism does TCP use to handle out-of-order packets?",
+        "option_a": "Sequence Numbers",
+        "option_b": "Window Size",
+        "option_c": "Checksums",
+        "option_d": "Source Ports",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What does a switch use to build its forwarding table?",
+        "option_a": "Destination IP addresses",
+        "option_b": "Source IP addresses",
+        "option_c": "Destination MAC addresses",
+        "option_d": "Source MAC addresses",
+        "correct_option": "D",
+        "marks": 1
+    },
+    {
+        "question_text": "Which of the following is considered an interior gateway protocol (IGP)?",
+        "option_a": "EIGRP",
+        "option_b": "BGP",
+        "option_c": "MPLS",
+        "option_d": "LDP",
+        "correct_option": "A",
+        "marks": 1
+    },
+    {
+        "question_text": "What is Multiprotocol Label Switching (MPLS) primarily designed to improve?",
+        "option_a": "Wireless security",
+        "option_b": "Speed and flow of network traffic routing",
+        "option_c": "Domain name resolution time",
+        "option_d": "Application layer encryption",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which IEEE standard describes the tagging scheme used for VLANs?",
+        "option_a": "802.1D",
+        "option_b": "802.1Q",
+        "option_c": "802.11i",
+        "option_d": "802.3af",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "What happens when a switch receives a frame with a broadcast destination MAC address?",
+        "option_a": "It drops the frame",
+        "option_b": "It forwards the frame out all ports except the receiving port",
+        "option_c": "It sends the frame only to the default gateway",
+        "option_d": "It requests the IP address via ARP",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "Which IP version utilizes Neighbor Discovery Protocol (NDP) instead of ARP?",
+        "option_a": "IPv4",
+        "option_b": "IPv5",
+        "option_c": "IPv6",
+        "option_d": "IPsec",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "What is the fundamental difference between an active and a passive FTP session?",
+        "option_a": "Encryption algorithms used",
+        "option_b": "Which side initiates the data connection",
+        "option_c": "The authentication mechanism",
+        "option_d": "The file transfer speed",
+        "correct_option": "B",
+        "marks": 1
+    },
+    {
+        "question_text": "In a TCP segment header, what does the RST flag indicate?",
+        "option_a": "Request to start a connection",
+        "option_b": "Acknowledgment of received data",
+        "option_c": "Immediate termination of the connection",
+        "option_d": "Urgent data follows",
+        "correct_option": "C",
+        "marks": 1
+    },
+    {
+        "question_text": "Which multiplexing technique assigns different frequency bands to multiple channels over a single medium?",
+        "option_a": "TDM",
+        "option_b": "FDM",
+        "option_c": "CDM",
+        "option_d": "SDM",
+        "correct_option": "B",
+        "marks": 1
+    }
+]
