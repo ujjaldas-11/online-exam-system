@@ -220,7 +220,7 @@ USE examify;
 Then import the schema:
 
 ```bash
-source /path/to/examify/schema.sql;
+source /path/to/examify/archive/schema.sql;
 ```
 
 Finally, exit MySQL:
