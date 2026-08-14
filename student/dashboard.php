@@ -1,9 +1,7 @@
 <?php
-// student/dashboard.php
 session_start();
 require_once '../config/database.php';
 
-// 1. Check if the student is logged in
 if (!isset($_SESSION['student_id'])) {
     header("Location: login.php");
     exit();
@@ -13,23 +11,23 @@ $student_name = $_SESSION['student_name'];
 $semester     = $_SESSION['semester'];
 $department   = $_SESSION['department'];
 
-// 2. Fetch active exams and their attempt status for the student
 try {
     $sql = "SELECT e.id, e.title, e.description, e.duration_minutes, e.total_marks, e.total_questions_to_ask,
-                   s.name AS subject_name, ea.id AS attempt_id, ea.score
+                   s.name AS subject_name, ea.id AS attempt_id, ea.score, ea.total_questions
             FROM exams e
             JOIN subjects s ON e.subject_id = s.id
             LEFT JOIN exam_attempts ea ON e.id = ea.exam_id AND ea.student_id = :student_id
             WHERE s.department = :department 
-            AND s.semester = :semester 
-            AND e.status = 'active'
+              AND s.semester = :semester 
+              AND e.status = 'active'
             ORDER BY e.id DESC";
             
     $stmt = $pdo->prepare($sql);
-    $stmt->bindParam(':semester', $semester, PDO::PARAM_INT);
-    $stmt->bindParam(':department', $department, PDO::PARAM_STR);   
-    $stmt->bindParam(':student_id', $_SESSION['student_id'], PDO::PARAM_INT);
-    $stmt->execute();
+    $stmt->execute([
+        ':semester'   => $semester,
+        ':department' => $department,
+        ':student_id' => $_SESSION['student_id']
+    ]);
     
     $available_exams = $stmt->fetchAll();
 
@@ -37,77 +35,228 @@ try {
     die("Database error: " . $e->getMessage());
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard - Examify</title>
+    <title>Student Dashboard • Examify</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-        .exam-card { border: 1px solid #e0e0e0; padding: 20px; margin-bottom: 15px; border-radius: 6px; background-color: #fafafa; }
-        .exam-card h3 { margin-top: 0; color: #333; }
-        .exam-meta { font-size: 0.9em; color: #555; margin: 15px 0; }
-        .btn { display: inline-block; padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }
-        .btn:hover { background-color: #218838; }
-        .logout-btn { color: #dc3545; text-decoration: none; font-weight: bold; }
+        :root {
+            --primary: #2563eb;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --warning: #d97706;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        /* Navbar */
+        nav {
+            background: var(--dark);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .nav-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { font-weight: 700; font-size: 1.25rem; }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .student-info {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-align: right;
+        }
+        .student-info strong {
+            display: block;
+            color: white;
+            font-size: 0.95rem;
+        }
+        .logout {
+            background: #dc2626;
+            color: white;
+            text-decoration: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .logout:hover { background: #b91c1c; }
+
+        /* Layout */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            color: var(--gray);
+            margin-bottom: 28px;
+        }
+
+        /* Exam Cards */
+        .exam-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .exam-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px 24px;
+        }
+        .exam-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+        }
+        .exam-card .desc {
+            color: var(--gray);
+            font-size: 0.95rem;
+            margin-bottom: 14px;
+        }
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            font-size: 0.9rem;
+            color: #475569;
+            margin-bottom: 18px;
+        }
+        .meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            color: white;
+            background: var(--primary);
+        }
+        .btn:hover { background: #1d4ed8; }
+        .btn-resume {
+            background: var(--warning);
+        }
+        .btn-resume:hover { background: #b45309; }
+
+        .completed {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #dcfce7;
+            color: var(--success);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--gray);
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .nav-inner { height: auto; padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+            .student-info { text-align: left; }
+            .meta { gap: 8px 14px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1 style="margin: 0;"> <?php echo htmlspecialchars($student_name); ?></h1>
-                <p style="margin: 5px 0 0 0; color: #666;">Semester: <?php echo htmlspecialchars($semester); ?></p>
-                <p style="margin: 5px 0 0 0; color: #666;">Department: <?php echo htmlspecialchars($department); ?></p>
+<nav>
+    <div class="nav-inner">
+        <div class="logo">Examify</div>
+        <div class="nav-right">
+            <div class="student-info">
+                <strong><?= htmlspecialchars($student_name) ?></strong>
+                <?= htmlspecialchars($department) ?> • Sem <?= htmlspecialchars($semester) ?>
             </div>
-            <a href="logout.php" class="logout-btn">Logout</a>
+            <a href="logout.php" class="logout">Logout</a>
         </div>
+    </div>
+</nav>
 
-        <h2>Available Exams</h2>
+<div class="container">
+    <h1>Available Exams</h1>
+    <p class="subtitle">Exams currently active for your department & semester</p>
 
-        <?php if (empty($available_exams)): ?>
-            <p>No active exams are available for your semester at this time.</p>
-        <?php else: ?>
-            
+    <?php if (empty($available_exams)): ?>
+        <div class="empty">
+            No active exams available for you at the moment.
+        </div>
+    <?php else: ?>
+        <div class="exam-list">
             <?php foreach ($available_exams as $exam): ?>
+                <?php
+                    $is_completed = !empty($exam['attempt_id']);
+                    $is_ongoing   = isset($_SESSION['exam_answers'][$exam['id']]);
+                ?>
                 <div class="exam-card">
-                    <h3><?php echo htmlspecialchars($exam['title']); ?></h3>
-                    <p><?php echo htmlspecialchars($exam['description']); ?></p>
+                    <h3><?= htmlspecialchars($exam['title']) ?></h3>
                     
-                    <div class="exam-meta">
-                        <span>📚 Subject: <strong><?php echo htmlspecialchars($exam['subject_name']); ?></strong></span> &nbsp; | &nbsp;
-                        <span>⏱ Duration: <strong><?php echo htmlspecialchars($exam['duration_minutes']); ?> mins</strong></span> &nbsp; | &nbsp;
-                        <span>Questions: <strong><?php echo htmlspecialchars($exam['total_questions_to_ask']); ?></strong></span> &nbsp; | &nbsp;
-                        <span>Total Marks: <strong><?php echo htmlspecialchars($exam['total_marks']); ?></strong></span>
+                    <?php if (!empty($exam['description'])): ?>
+                        <p class="desc"><?= htmlspecialchars($exam['description']) ?></p>
+                    <?php endif; ?>
+
+                    <div class="meta">
+                        <span>📚 <?= htmlspecialchars($exam['subject_name']) ?></span>
+                        <span>⏱ <?= $exam['duration_minutes'] ?> mins</span>
+                        <span>❓ <?= $exam['total_questions_to_ask'] ?> questions</span>
+                        <span>🎯 <?= $exam['total_marks'] ?> marks</span>
                     </div>
-                    
-                    <?php 
-                        $is_completed = !empty($exam['attempt_id']);
-                        $is_ongoing = isset($_SESSION['exam_answers'][$exam['id']]);
-                    ?>
-                    
-                    <div style="margin-top: 15px;">
-                        <?php if ($is_completed): ?>
-                            <span style="display:inline-block; padding:8px 15px; background:#e9ecef; color:#28a745; font-weight:bold; border-radius:4px; border:1px solid #c3e6cb;">
-                                ✅ Completed (Score: <?php echo htmlspecialchars($exam['score']); ?> / <?php echo htmlspecialchars($exam['total_marks']); ?>)
-                            </span>
-                        <?php elseif ($is_ongoing): ?>
-                            <a href="exam.php?id=<?php echo urlencode($exam['id']); ?>" class="btn" style="background-color:#fd7e14;">Resume Exam</a>
-                        <?php else: ?>
-                            <a href="exam.php?id=<?php echo urlencode($exam['id']); ?>" class="btn">Start Exam</a>
-                        <?php endif; ?>
-                    </div>
+
+                    <?php if ($is_completed): ?>
+                        <div class="completed">
+                            ✅ Completed — Score: <?= $exam['score'] ?> / <?= $exam['total_questions'] ?? $exam['total_marks'] ?>
+                        </div>
+                    <?php elseif ($is_ongoing): ?>
+                        <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-resume">Resume Exam</a>
+                    <?php else: ?>
+                        <a href="exam.php?id=<?= $exam['id'] ?>" class="btn">Start Exam</a>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
-
-        <?php endif; ?>
-
-    </div>
+        </div>
+    <?php endif; ?>
+</div>
 
 </body>
 </html>

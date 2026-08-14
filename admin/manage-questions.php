@@ -7,59 +7,56 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-$subjects = $pdo->query("SELECT id, name, department, semester FROM subjects ORDER BY id DESC")->fetchAll();
+$subjects = $pdo->query("SELECT id, name, department, semester FROM subjects ORDER BY name ASC")->fetchAll();
+
+$success_message = '';
+$error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])) {
     $subject_id = (int)$_POST['subject_id'];
     $json_input = trim($_POST['json_data']);
-    
-    // Decode JSON string to PHP Array
+
     $questions = json_decode($json_input, true);
-    
+
     if (json_last_error() !== JSON_ERROR_NONE || !is_array($questions)) {
-        $error_message = "Invalid JSON format! Please check your syntax. Error: " . json_last_error_msg();
+        $error_message = "Invalid JSON format! Error: " . json_last_error_msg();
     } else {
         try {
-            // Begin Transaction
             $pdo->beginTransaction();
-            
-            $sql = "INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks) 
-                    VALUES (:subject_id, :q_text, :opt_a, :opt_b, :opt_c, :opt_d, :correct, :marks)";
+
+            $sql = "INSERT INTO questions 
+                    (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
-            
+
             $count = 0;
             foreach ($questions as $q) {
-                // Ensure all required fields exist in the JSON object
                 if (empty($q['question_text']) || empty($q['option_a']) || empty($q['option_b']) || empty($q['correct_option'])) {
                     throw new Exception("Missing required fields in one or more questions.");
                 }
 
                 $stmt->execute([
-                    ':subject_id' => $subject_id,
-                    ':q_text'  => trim(strip_tags($q['question_text'])),
-                    ':opt_a'   => trim(strip_tags($q['option_a'])),
-                    ':opt_b'   => trim(strip_tags($q['option_b'])),
-                    ':opt_c'   => isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
-                    ':opt_d'   => isset($q['option_d']) ? trim(strip_tags($q['option_d'])) : '',
-                    ':correct' => strtoupper(trim(strip_tags($q['correct_option']))),
-                    ':marks'   => isset($q['marks']) ? (int)$q['marks'] : 1
+                    $subject_id,
+                    trim(strip_tags($q['question_text'])),
+                    trim(strip_tags($q['option_a'])),
+                    trim(strip_tags($q['option_b'])),
+                    isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
+                    isset($q['option_d']) ? trim(strip_tags($q['option_d'])) : '',
+                    strtoupper(trim(strip_tags($q['correct_option']))),
+                    isset($q['marks']) ? (int)$q['marks'] : 1
                 ]);
                 $count++;
             }
-            
-            // Commit Transaction if everything is successful
+
             $pdo->commit();
-            $success_message = "$count Questions added successfully!";
-            
+            $success_message = "$count questions added successfully!";
         } catch (Exception $e) {
-            // Rollback if any error occurs (prevents partial insertion)
             $pdo->rollBack();
-            $error_message = "Error adding questions: " . $e->getMessage();
+            $error_message = "Error: " . $e->getMessage();
         }
     }
 }
 
-// Default JSON Template to guide the admin
 $default_json = '[
   {
     "question_text": "What does DBMS stand for?",
@@ -81,94 +78,288 @@ $default_json = '[
   }
 ]';
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Bulk Insert Questions - Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Questions • Examify</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; }
-        .card { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; }
-        select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: monospace; font-size: 14px; background: #f8f9fa; }
-        .btn { padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; }
-        .btn:hover { background: #218838; }
-        .btn-blue { background: #007bff; font-size: 14px; padding: 6px 12px; margin-bottom: 10px; }
-        .btn-blue:hover { background: #0056b3; }
-        .alert-success { color: #155724; background-color: #d4edda; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
-        .alert-error { color: #721c24; background-color: #f8d7da; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
-        .instructions { font-size: 13px; color: #555; background: #e9ecef; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        :root {
+            --primary: #2563eb;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --error: #dc2626;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        /* Navbar */
+        nav {
+            background: var(--dark);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { font-weight: 700; font-size: 1.25rem; }
+        .nav-links { display: flex; gap: 6px; }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .nav-links a:hover,
+        .nav-links a.active { background: #1e293b; color: white; }
+        .logout { background: #dc2626 !important; color: white !important; }
+        .menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+        h1 { font-size: 1.6rem; margin-bottom: 4px; }
+        .subtitle { color: var(--gray); margin-bottom: 24px; }
+
+        /* Alerts */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .alert.success { background: #dcfce7; color: var(--success); }
+        .alert.error { background: #fee2e2; color: var(--error); }
+
+        /* Card */
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .card h2 {
+            font-size: 1.15rem;
+            margin-bottom: 16px;
+        }
+
+        /* Form */
+        .form-group { margin-bottom: 18px; }
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #334155;
+        }
+        select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
+        }
+        textarea {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 320px;
+        }
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #334155;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-secondary:hover { background: #cbd5e1; }
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .btn:hover { background: #1d4ed8; }
+
+        .instructions {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 0.875rem;
+            color: #475569;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .instructions code {
+            background: #e2e8f0;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .menu-btn { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--dark);
+                flex-direction: column;
+                padding: 12px;
+                gap: 4px;
+            }
+            .nav-links.show { display: flex; }
+            .nav-links a { padding: 12px; text-align: center; }
+        }
     </style>
 </head>
 <body>
 
+<nav>
+    <div class="nav-inner">
+        <div class="logo">Examify Admin</div>
+        <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+        <div class="nav-links">
+            <a href="admin-dashboard.php">Dashboard</a>
+            <a href="manage-subjects.php">Subjects</a>
+            <a href="manage-exam.php">Exams</a>
+            <a href="manage-questions.php" class="active">Questions</a>
+            <a href="results.php">Results</a>
+            <a href="admin-logout.php" class="logout">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <h1>Manage Questions</h1>
+    <p class="subtitle">Bulk upload questions using JSON</p>
+
+    <?php if ($success_message): ?>
+        <div class="alert success"><?= htmlspecialchars($success_message) ?></div>
+    <?php endif; ?>
+    <?php if ($error_message): ?>
+        <div class="alert error"><?= htmlspecialchars($error_message) ?></div>
+    <?php endif; ?>
+
     <div class="card">
-        <h2>Bulk Insert Questions (JSON)</h2>
-        
-        <?php if(isset($success_message)) echo "<div class='alert-success'><b>" . htmlspecialchars($success_message) . "</b></div>"; ?>
-        <?php if(isset($error_message)) echo "<div class='alert-error'><b>" . htmlspecialchars($error_message) . "</b></div>"; ?>
+        <h2>Bulk Insert Questions</h2>
 
         <div class="instructions">
-            <strong>Instructions:</strong> Paste your questions in a valid JSON array format. 
-            Ensure the keys are exactly: <code>question_text, option_a, option_b, option_c, option_d, correct_option, marks</code>. 
-            The <code>correct_option</code> must be "A", "B", "C", or "D".
+            <strong>Instructions:</strong> Paste a valid JSON array.  
+            Required keys: <code>question_text</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code>.  
+            Optional: <code>option_c</code>, <code>option_d</code>, <code>marks</code>.  
+            <code>correct_option</code> must be <code>A</code>, <code>B</code>, <code>C</code> or <code>D</code>.
         </div>
 
         <form method="POST">
             <div class="form-group">
-                <label>Select Subject:</label>
+                <label>Select Subject</label>
                 <select name="subject_id" id="subject_id" required>
                     <option value="">-- Choose Subject --</option>
                     <?php foreach ($subjects as $sub): ?>
-                        <option value="<?php echo $sub['id']; ?>">
-                            <?php echo htmlspecialchars($sub['name']); ?> (<?php echo $sub['department']; ?>, Sem <?php echo $sub['semester']; ?>)
+                        <option value="<?= $sub['id'] ?>">
+                            <?= htmlspecialchars($sub['name']) ?> 
+                            (<?= htmlspecialchars($sub['department']) ?>, Sem <?= $sub['semester'] ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
 
             <div class="form-group">
-                <label style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>JSON Data Array:</span>
-                    <div>
-                        <button type="button" class="btn btn-blue" id="copy-prompt-btn" disabled style="opacity: 0.6; cursor: not-allowed;">📋 Copy LLM Prompt</button>
-                        <button type="button" class="btn btn-blue" id="paste-btn" style="background: #17a2b8;">📝 Paste JSON</button>
-                    </div>
-                </label>
-                <textarea name="json_data" id="json_data" rows="20" required><?php echo htmlspecialchars($default_json); ?></textarea>
+                <label>JSON Data</label>
+                <div class="btn-row">
+                    <button type="button" class="btn-secondary" id="copy-prompt-btn" disabled>
+                        📋 Copy LLM Prompt
+                    </button>
+                    <button type="button" class="btn-secondary" id="paste-btn">
+                        📝 Paste from Clipboard
+                    </button>
+                </div>
+                <textarea name="json_data" id="json_data" required><?= htmlspecialchars($default_json) ?></textarea>
             </div>
 
             <button type="submit" name="add_bulk_questions" class="btn">Upload All Questions</button>
         </form>
     </div>
+</div>
 
-    <script>
-        const subjectSelect = document.getElementById('subject_id');
-        const copyPromptBtn = document.getElementById('copy-prompt-btn');
+<script>
+    const subjectSelect = document.getElementById('subject_id');
+    const copyPromptBtn = document.getElementById('copy-prompt-btn');
+    const pasteBtn = document.getElementById('paste-btn');
+    const jsonTextarea = document.getElementById('json_data');
 
-        subjectSelect.addEventListener('change', function() {
-            if (this.value) {
-                copyPromptBtn.disabled = false;
-                copyPromptBtn.style.opacity = '1';
-                copyPromptBtn.style.cursor = 'pointer';
-            } else {
-                copyPromptBtn.disabled = true;
-                copyPromptBtn.style.opacity = '0.6';
-                copyPromptBtn.style.cursor = 'not-allowed';
-            }
-        });
+    subjectSelect.addEventListener('change', function () {
+        copyPromptBtn.disabled = !this.value;
+    });
 
-        copyPromptBtn.addEventListener('click', function() {
-            if (subjectSelect.disabled || !subjectSelect.value) return;
-            
-            // Get selected subject text without the semester/department extra info if possible, or just use the whole text
-            let subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
-            // Extract just the name if it's formatted like "Name (Dept, Sem)"
-            subjectText = subjectText.split('(')[0].trim();
+    copyPromptBtn.addEventListener('click', function () {
+        if (!subjectSelect.value) return;
 
-            const prompt = `Please generate 10 multiple-choice questions about ${subjectText} suitable for university students. Return the output STRICTLY as a JSON array of objects with no markdown code blocks (\`\`\`) and no extra text. 
+        let subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
+        subjectText = subjectText.split('(')[0].trim();
+
+        const prompt = `Please generate 10 multiple-choice questions about ${subjectText} suitable for university students. Return the output STRICTLY as a JSON array of objects with no markdown code blocks and no extra text.
 
 Each object must EXACTLY match this structure:
 {
@@ -184,38 +375,27 @@ Each object must EXACTLY match this structure:
 Rules:
 - "correct_option" must be exactly "A", "B", "C", or "D".
 - "marks" must be an integer.
-- Do NOT wrap the JSON in backticks or markdown formatting. Start directly with [ and end with ].`;
+- Do NOT wrap the JSON in backticks or markdown. Start directly with [ and end with ].`;
 
-            navigator.clipboard.writeText(prompt).then(() => {
-                const btn = document.getElementById('copy-prompt-btn');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ Copied!';
-                btn.style.backgroundColor = '#28a745';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style.backgroundColor = '';
-                }, 2500);
-            }).catch(err => {
-                alert('Failed to copy prompt to clipboard. ' + err);
-            });
+        navigator.clipboard.writeText(prompt).then(() => {
+            const original = copyPromptBtn.innerHTML;
+            copyPromptBtn.innerHTML = '✅ Copied!';
+            setTimeout(() => copyPromptBtn.innerHTML = original, 2000);
         });
+    });
 
-        document.getElementById('paste-btn').addEventListener('click', async function() {
-            try {
-                const text = await navigator.clipboard.readText();
-                document.getElementById('json_data').value = text;
-                const btn = document.getElementById('paste-btn');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ Pasted!';
-                btn.style.backgroundColor = '#28a745';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style.backgroundColor = '#17a2b8';
-                }, 2000);
-            } catch (err) {
-                alert('Failed to read from clipboard. You may need to grant permission or paste manually. Error: ' + err);
-            }
-        });
-    </script>
+    pasteBtn.addEventListener('click', async function () {
+        try {
+            const text = await navigator.clipboard.readText();
+            jsonTextarea.value = text;
+            const original = pasteBtn.innerHTML;
+            pasteBtn.innerHTML = '✅ Pasted!';
+            setTimeout(() => pasteBtn.innerHTML = original, 2000);
+        } catch (err) {
+            alert('Could not read clipboard. Please paste manually.');
+        }
+    });
+</script>
+
 </body>
 </html>
