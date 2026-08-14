@@ -7,94 +7,299 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
-    $name = trim(strip_tags($_POST['name'] ?? ''));
-    $department = trim(strip_tags($_POST['department'] ?? ''));
-    $semester = (int)($_POST['semester'] ?? 0);
+$message = '';
+$message_type = '';
 
-    if (empty($name) || empty($department) || $semester <= 0) {
-        $message = "Invalid input! Please fill out all fields.";
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
+    $name       = trim(strip_tags($_POST['name'] ?? ''));
+    $department = trim(strip_tags($_POST['department'] ?? ''));
+    $semester   = (int)($_POST['semester'] ?? 0);
+
+    if (empty($name) || empty($department) || $semester < 1 || $semester > 8) {
+        $message = "Please fill all fields correctly.";
+        $message_type = 'error';
     } else {
-        $sql = "INSERT INTO subjects (name, department, semester) VALUES (:name, :department, :semester)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            ':name' => $name,
-            ':department' => $department,
-            ':semester' => $semester
-        ]);
-        $message = "Subject created successfully!";
+        try {
+            $stmt = $pdo->prepare("INSERT INTO subjects (name, department, semester) VALUES (?, ?, ?)");
+            $stmt->execute([$name, $department, $semester]);
+            $message = "Subject created successfully!";
+            $message_type = 'success';
+        } catch (PDOException $e) {
+            $message = "Error: " . $e->getMessage();
+            $message_type = 'error';
+        }
     }
 }
 
-// Fetch all subjects
 $subjects = $pdo->query("SELECT * FROM subjects ORDER BY id DESC")->fetchAll();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Manage Subjects - Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Subjects • Examify</title>
     <style>
-        body { font-family: Arial; padding: 20px; background: #f4f7f6; }
-        .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .btn { padding: 8px 15px; color: white; text-decoration: none; border-radius: 3px; border: none; cursor: pointer; }
-        .btn-green { background: #28a745; } .btn-blue { background: #007bff; }
-        input, select { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        :root {
+            --primary: #2563eb;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --error: #dc2626;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        /* Navbar */
+        nav {
+            background: var(--dark);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { font-weight: 700; font-size: 1.25rem; }
+        .nav-links { display: flex; gap: 6px; }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .nav-links a:hover,
+        .nav-links a.active { background: #1e293b; color: white; }
+        .logout { background: #dc2626 !important; color: white !important; }
+        .menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+        h1 { font-size: 1.6rem; margin-bottom: 4px; }
+        .subtitle { color: var(--gray); margin-bottom: 24px; }
+
+        /* Alert */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .alert.success { background: #dcfce7; color: var(--success); }
+        .alert.error { background: #fee2e2; color: var(--error); }
+
+        /* Cards */
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card h2 {
+            font-size: 1.15rem;
+            margin-bottom: 16px;
+        }
+
+        /* Form */
+        .form-group { margin-bottom: 14px; }
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #334155;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+        .btn:hover { background: #1d4ed8; }
+
+        /* Table */
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        tr:hover td { background: #f8fafc; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .menu-btn { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--dark);
+                flex-direction: column;
+                padding: 12px;
+                gap: 4px;
+            }
+            .nav-links.show { display: flex; }
+            .nav-links a { padding: 12px; text-align: center; }
+        }
     </style>
 </head>
 <body>
-    <h1>Admin Panel - Manage Subjects</h1>
-    <a href="admin-dashboard.php" class="btn btn-blue" style="margin-bottom:20px; display:inline-block;">&larr; Back to Dashboard</a>
-    
-    <?php 
-    if(isset($message)) { 
-        $color = strpos($message, 'Invalid') !== false ? 'red' : 'green';
-        echo "<p style='color:$color;'><b>" . htmlspecialchars($message) . "</b></p>"; 
-    } 
-    ?>
 
+<nav>
+    <div class="nav-inner">
+        <div class="logo">Examify Admin</div>
+        <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+        <div class="nav-links">
+            <a href="admin-dashboard.php">Dashboard</a>
+            <a href="manage-subjects.php" class="active">Subjects</a>
+            <a href="manage-exam.php">Exams</a>
+            <a href="manage-questions.php">Questions</a>
+            <a href="results.php">Results</a>
+            <a href="admin-logout.php" class="logout">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <h1>Manage Subjects</h1>
+    <p class="subtitle">Create and view all subjects</p>
+
+    <?php if ($message): ?>
+        <div class="alert <?= $message_type ?>">
+            <?= htmlspecialchars($message) ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- Create Subject -->
     <div class="card">
-        <h3>Create New Subject</h3>
+        <h2>Create New Subject</h2>
         <form method="POST">
-            <label>Subject Name:</label>
-            <input type="text" name="name" required placeholder="e.g. Operating Systems">
-            
-            <label>Department:</label>
-            <select name="department" required>
-                <option value="">-- Choose Department --</option>
-                <option value="BCA">BCA</option>
-                <option value="BBA">BBA</option>
-            </select>
-            
-            <label>Semester:</label>
-            <input type="number" name="semester" min="1" max="8" required>
-            
-            <button type="submit" name="create_subject" class="btn btn-blue">Create Subject</button>
+            <div class="form-group">
+                <label>Subject Name</label>
+                <input type="text" name="name" required placeholder="e.g. Operating Systems">
+            </div>
+
+            <div class="form-group">
+                <label>Department</label>
+                <select name="department" required>
+                    <option value="">-- Choose Department --</option>
+                    <option value="BCA">BCA</option>
+                    <option value="BBA">BBA</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Semester</label>
+                <select name="semester" required>
+                    <option value="">-- Select Semester --</option>
+                    <?php for ($i = 1; $i <= 8; $i++): ?>
+                        <option value="<?= $i ?>">Semester <?= $i ?></option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+
+            <button type="submit" name="create_subject" class="btn">Create Subject</button>
         </form>
     </div>
 
+    <!-- Existing Subjects -->
     <div class="card">
-        <h3>Existing Subjects</h3>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Department</th>
-                <th>Semester</th>
-                <th>Created At</th>
-            </tr>
-            <?php foreach ($subjects as $sub): ?>
-            <tr>
-                <td><?php echo $sub['id']; ?></td>
-                <td><?php echo htmlspecialchars($sub['name']); ?></td>
-                <td><?php echo htmlspecialchars($sub['department']); ?></td>
-                <td>Sem <?php echo $sub['semester']; ?></td>
-                <td><?php echo $sub['created_at']; ?></td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
+        <h2>Existing Subjects (<?= count($subjects) ?>)</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Semester</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($subjects)): ?>
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:var(--gray);">No subjects found</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($subjects as $sub): ?>
+                            <tr>
+                                <td><?= $sub['id'] ?></td>
+                                <td><?= htmlspecialchars($sub['name']) ?></td>
+                                <td><?= htmlspecialchars($sub['department']) ?></td>
+                                <td>Sem <?= $sub['semester'] ?></td>
+                                <td><?= date('d M Y', strtotime($sub['created_at'])) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
+</div>
+
 </body>
 </html>
