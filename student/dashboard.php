@@ -60,29 +60,6 @@ try {
             line-height: 1.5;
         }
 
-        /* Navbar */
-        nav {
-            background: var(--dark);
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
-        .nav-inner {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 20px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .logo { font-weight: 700; font-size: 1.25rem; }
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
         .student-info {
             font-size: 0.9rem;
             color: #94a3b8;
@@ -104,6 +81,15 @@ try {
         }
         .logout:hover { background: #b91c1c; }
 
+        .profile {
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
         /* Layout */
         .container {
             max-width: 900px;
@@ -201,18 +187,9 @@ try {
 </head>
 <body>
 
-<nav>
-    <div class="nav-inner">
-        <div class="logo">Examify</div>
-        <div class="nav-right">
-            <div class="student-info">
-                <strong><?= htmlspecialchars($student_name) ?></strong>
-                <?= htmlspecialchars($department) ?> • Sem <?= htmlspecialchars($semester) ?>
-            </div>
-            <a href="logout.php" class="logout">Logout</a>
-        </div>
-    </div>
-</nav>
+
+<!-- navbar -->
+<?php include 'navbar.php'; ?>
 
 <div class="container">
     <h1>Available Exams</h1>
