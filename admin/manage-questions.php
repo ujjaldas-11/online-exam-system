@@ -7,10 +7,10 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-$exams = $pdo->query("SELECT id, title, semester FROM exams WHERE status = 'inactive' ORDER BY id DESC")->fetchAll();
+$subjects = $pdo->query("SELECT id, name, department, semester FROM subjects ORDER BY id DESC")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])) {
-    $exam_id = (int)$_POST['exam_id'];
+    $subject_id = (int)$_POST['subject_id'];
     $json_input = trim($_POST['json_data']);
     
     // Decode JSON string to PHP Array
@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
             // Begin Transaction
             $pdo->beginTransaction();
             
-            $sql = "INSERT INTO questions (exam_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks) 
-                    VALUES (:exam_id, :q_text, :opt_a, :opt_b, :opt_c, :opt_d, :correct, :marks)";
+            $sql = "INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks) 
+                    VALUES (:subject_id, :q_text, :opt_a, :opt_b, :opt_c, :opt_d, :correct, :marks)";
             $stmt = $pdo->prepare($sql);
             
             $count = 0;
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
                 }
 
                 $stmt->execute([
-                    ':exam_id' => $exam_id,
+                    ':subject_id' => $subject_id,
                     ':q_text'  => trim(strip_tags($q['question_text'])),
                     ':opt_a'   => trim(strip_tags($q['option_a'])),
                     ':opt_b'   => trim(strip_tags($q['option_b'])),
@@ -118,12 +118,12 @@ $default_json = '[
 
         <form method="POST">
             <div class="form-group">
-                <label>Select Exam (Only inactive exams shown):</label>
-                <select name="exam_id" required>
-                    <option value="">-- Choose Exam --</option>
-                    <?php foreach ($exams as $ex): ?>
-                        <option value="<?php echo $ex['id']; ?>">
-                            <?php echo htmlspecialchars($ex['title']); ?> (Semester <?php echo $ex['semester']; ?>)
+                <label>Select Subject:</label>
+                <select name="subject_id" id="subject_id" required>
+                    <option value="">-- Choose Subject --</option>
+                    <?php foreach ($subjects as $sub): ?>
+                        <option value="<?php echo $sub['id']; ?>">
+                            <?php echo htmlspecialchars($sub['name']); ?> (<?php echo $sub['department']; ?>, Sem <?php echo $sub['semester']; ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -133,7 +133,7 @@ $default_json = '[
                 <label style="display: flex; justify-content: space-between; align-items: center;">
                     <span>JSON Data Array:</span>
                     <div>
-                        <button type="button" class="btn btn-blue" id="copy-prompt-btn">📋 Copy LLM Prompt</button>
+                        <button type="button" class="btn btn-blue" id="copy-prompt-btn" disabled style="opacity: 0.6; cursor: not-allowed;">📋 Copy LLM Prompt</button>
                         <button type="button" class="btn btn-blue" id="paste-btn" style="background: #17a2b8;">📝 Paste JSON</button>
                     </div>
                 </label>
@@ -145,8 +145,30 @@ $default_json = '[
     </div>
 
     <script>
-        document.getElementById('copy-prompt-btn').addEventListener('click', function() {
-            const prompt = `Please generate 10 multiple-choice questions about [TOPIC] suitable for [DIFFICULTY LEVEL] students. Return the output STRICTLY as a JSON array of objects with no markdown code blocks (\`\`\`) and no extra text. 
+        const subjectSelect = document.getElementById('subject_id');
+        const copyPromptBtn = document.getElementById('copy-prompt-btn');
+
+        subjectSelect.addEventListener('change', function() {
+            if (this.value) {
+                copyPromptBtn.disabled = false;
+                copyPromptBtn.style.opacity = '1';
+                copyPromptBtn.style.cursor = 'pointer';
+            } else {
+                copyPromptBtn.disabled = true;
+                copyPromptBtn.style.opacity = '0.6';
+                copyPromptBtn.style.cursor = 'not-allowed';
+            }
+        });
+
+        copyPromptBtn.addEventListener('click', function() {
+            if (subjectSelect.disabled || !subjectSelect.value) return;
+            
+            // Get selected subject text without the semester/department extra info if possible, or just use the whole text
+            let subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
+            // Extract just the name if it's formatted like "Name (Dept, Sem)"
+            subjectText = subjectText.split('(')[0].trim();
+
+            const prompt = `Please generate 10 multiple-choice questions about ${subjectText} suitable for university students. Return the output STRICTLY as a JSON array of objects with no markdown code blocks (\`\`\`) and no extra text. 
 
 Each object must EXACTLY match this structure:
 {
