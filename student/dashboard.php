@@ -59,7 +59,7 @@ try {
             <div>
                 <h1 style="margin: 0;"> <?php echo htmlspecialchars($student_name); ?></h1>
                 <p style="margin: 5px 0 0 0; color: #666;">Semester: <?php echo htmlspecialchars($semester); ?></p>
-                <p style="margin: 5px 0 0 0; color: #666;">department: <?php echo htmlspecialchars($department); ?></p>
+                <p style="margin: 5px 0 0 0; color: #666;">Department: <?php echo htmlspecialchars($department); ?></p>
             </div>
             <a href="logout.php" class="logout-btn">Logout</a>
         </div>

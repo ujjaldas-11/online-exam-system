@@ -18,7 +18,7 @@ if (!isset($_POST['exam_id']) || empty($_POST['exam_id'])) {
 
 $exam_id = (int)$_POST['exam_id'];
 $student_id = $_SESSION['student_id'];
-$submitted_answers = isset($_POST['answers']) ? $_POST['answers'] : [];
+$submitted_answers = (isset($_POST['answers']) && is_array($_POST['answers'])) ? $_POST['answers'] : [];
 
 $score = 0;
 $total_marks = 0;
@@ -73,7 +73,7 @@ try {
             $marks = (int)$q['marks'];
             $correct_ans = $q['correct_option'];
             
-            $selected_option = isset($submitted_answers[$q_id]) ? $submitted_answers[$q_id] : null;
+            $selected_option = isset($submitted_answers[$q_id]) ? trim(strip_tags($submitted_answers[$q_id])) : null;
             $is_correct = ($selected_option === $correct_ans) ? 1 : 0;
             
             if ($is_correct) {

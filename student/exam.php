@@ -83,22 +83,22 @@ try {
                         <div class="options">
                             <label style="display: block; margin: 8px 0;">
                                 <input type="radio" name="answers[<?php echo $q['id']; ?>]" value="A" required>
-                                A) <?php echo htmlspecialchars($q['option_a']); ?>
+                                A&#41; <?php echo htmlspecialchars($q['option_a']); ?>
                             </label>
                             
                             <label style="display: block; margin: 8px 0;">
                                 <input type="radio" name="answers[<?php echo $q['id']; ?>]" value="B">
-                                B) <?php echo htmlspecialchars($q['option_b']); ?>
+                                B&#41; <?php echo htmlspecialchars($q['option_b']); ?>
                             </label>
                             
                             <label style="display: block; margin: 8px 0;">
                                 <input type="radio" name="answers[<?php echo $q['id']; ?>]" value="C">
-                                C) <?php echo htmlspecialchars($q['option_c']); ?>
+                                C&#41; <?php echo htmlspecialchars($q['option_c']); ?>
                             </label>
                             
                             <label style="display: block; margin: 8px 0;">
                                 <input type="radio" name="answers[<?php echo $q['id']; ?>]" value="D">
-                                D) <?php echo htmlspecialchars($q['option_d']); ?>
+                                D&#41; <?php echo htmlspecialchars($q['option_d']); ?>
                             </label>
                         </div>
                     </div>
