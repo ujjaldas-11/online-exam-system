@@ -18,7 +18,7 @@ if (!isset($_POST['exam_id']) || empty($_POST['exam_id'])) {
 
 $exam_id = (int)$_POST['exam_id'];
 $student_id = $_SESSION['student_id'];
-$submitted_answers = (isset($_POST['answers']) && is_array($_POST['answers'])) ? $_POST['answers'] : [];
+$submitted_answers = $_SESSION['exam_answers'][$exam_id] ?? [];
 
 $score = 0;
 $total_marks = 0;
@@ -26,18 +26,25 @@ $already_submitted = false;
 
 try {
     // 1. Check if the student has already attempted this exam
-    $checkSql = "SELECT id, score FROM exam_attempts WHERE student_id = :student_id AND exam_id = :exam_id LIMIT 1";
+    $checkSql = "SELECT id, score, status FROM exam_attempts WHERE student_id = :student_id AND exam_id = :exam_id LIMIT 1";
     $checkStmt = $pdo->prepare($checkSql);
     $checkStmt->execute([
         ':student_id' => $student_id,
         ':exam_id' => $exam_id
     ]);
     
-    if ($checkStmt->rowCount() > 0) {
-        // Student already took the exam, fetch existing data
-        $existingAttempt = $checkStmt->fetch();
+    $attempt = $checkStmt->fetch();
+    
+    if (!$attempt) {
+        die("Error: No active attempt found for this exam.");
+    }
+    
+    $attempt_id = $attempt['id'];
+    
+    if ($attempt['status'] === 'completed') {
+        // Student already submitted the exam, fetch existing data
         $already_submitted = true;
-        $score = $existingAttempt['score'];
+        $score = $attempt['score'];
         
         $examStmt = $pdo->prepare("SELECT title, total_marks FROM exams WHERE id = :exam_id");
         $examStmt->execute([':exam_id' => $exam_id]);
@@ -45,31 +52,35 @@ try {
         $total_marks = $exam['total_marks'];
         
     } else {
-        // 2. New Attempt: Fetch exam details
-        $examSql = "SELECT title, total_marks FROM exams WHERE id = :exam_id AND status = 'active' LIMIT 1";
+        // 2. Process Submission: Fetch exam details
+        $examSql = "SELECT title, total_marks FROM exams WHERE id = :exam_id LIMIT 1";
         $examStmt = $pdo->prepare($examSql);
         $examStmt->execute([':exam_id' => $exam_id]);
         $exam = $examStmt->fetch();
 
         if (!$exam) {
-            die("Error: Invalid or inactive exam.");
+            die("Error: Invalid exam.");
         }
         $total_marks = $exam['total_marks'];
 
-        // 3. Fetch correct answers and marks for this exam
-        $qSql = "SELECT id, correct_option, marks FROM questions WHERE exam_id = :exam_id";
+        // 3. Fetch assigned questions for this attempt
+        $qSql = "SELECT sa.id AS ans_id, q.id AS question_id, q.correct_option, q.marks 
+                 FROM student_answers sa 
+                 JOIN questions q ON sa.question_id = q.id 
+                 WHERE sa.attempt_id = :attempt_id";
         $qStmt = $pdo->prepare($qSql);
-        $qStmt->execute([':exam_id' => $exam_id]);
-        $questions = $qStmt->fetchAll();
+        $qStmt->execute([':attempt_id' => $attempt_id]);
+        $assigned_questions = $qStmt->fetchAll();
 
         // 4. Begin Database Transaction
         $pdo->beginTransaction();
 
-        // Array to hold data for student_answers table
-        $answersData = [];
+        $updateAnsSql = "UPDATE student_answers SET selected_option = :selected_option, is_correct = :is_correct WHERE id = :ans_id";
+        $updateAnsStmt = $pdo->prepare($updateAnsSql);
 
-        foreach ($questions as $q) {
-            $q_id = $q['id'];
+        foreach ($assigned_questions as $q) {
+            $q_id = $q['question_id'];
+            $ans_id = $q['ans_id'];
             $marks = (int)$q['marks'];
             $correct_ans = $q['correct_option'];
             
@@ -80,44 +91,30 @@ try {
                 $score += $marks;
             }
 
-            // Store for bulk insert later
-            $answersData[] = [
-                'question_id' => $q_id,
-                'selected_option' => $selected_option,
-                'is_correct' => $is_correct
-            ];
-        }
-
-        // 5. Insert into exam_attempts
-        // Note: Assuming your table has columns: student_id, exam_id, score
-        $attemptSql = "INSERT INTO exam_attempts (student_id, exam_id, score) VALUES (:student_id, :exam_id, :score)";
-        $attemptStmt = $pdo->prepare($attemptSql);
-        $attemptStmt->execute([
-            ':student_id' => $student_id,
-            ':exam_id' => $exam_id,
-            ':score' => $score
-        ]);
-        
-        // Get the ID of the attempt we just inserted (useful if student_answers connects to attempt_id)
-        $attempt_id = $pdo->lastInsertId();
-
-        // 6. Insert individual answers into student_answers
-        // Note: Assuming your table has columns: attempt_id, question_id, selected_option, is_correct
-        $ansSql = "INSERT INTO student_answers (attempt_id, question_id, selected_option, is_correct) 
-                   VALUES (:attempt_id, :question_id, :selected_option, :is_correct)";
-        $ansStmt = $pdo->prepare($ansSql);
-
-        foreach ($answersData as $data) {
-            $ansStmt->execute([
-                ':attempt_id' => $attempt_id,
-                ':question_id' => $data['question_id'],
-                ':selected_option' => $data['selected_option'],
-                ':is_correct' => $data['is_correct']
+            // Update individual answer row
+            $updateAnsStmt->execute([
+                ':selected_option' => $selected_option,
+                ':is_correct' => $is_correct,
+                ':ans_id' => $ans_id
             ]);
         }
 
-        // 7. Commit the transaction
+        // 5. Update exam_attempts
+        $attemptUpdateSql = "UPDATE exam_attempts 
+                             SET score = :score, status = 'completed', submitted_at = NOW() 
+                             WHERE id = :attempt_id";
+        $attemptUpdateStmt = $pdo->prepare($attemptUpdateSql);
+        $attemptUpdateStmt->execute([
+            ':score' => $score,
+            ':attempt_id' => $attempt_id
+        ]);
+        
+        // 6. Commit the transaction
         $pdo->commit();
+        
+        // Clear session answers
+        unset($_SESSION['exam_answers'][$exam_id]);
+        unset($_SESSION['exam_reviews'][$exam_id]);
     }
 
 } catch (PDOException $e) {
