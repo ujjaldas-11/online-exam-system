@@ -8,24 +8,28 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
-    $title = $_POST['title'];
-    $department = $_POST['department'];
-    $semester = (int)$_POST['semester'];
-    $duration = (int)$_POST['duration_minutes'];
-    $total_marks = (int)$_POST['total_marks'];
+    $title = trim(strip_tags($_POST['title'] ?? ''));
+    $department = trim(strip_tags($_POST['department'] ?? ''));
+    $semester = (int)($_POST['semester'] ?? 0);
+    $duration = (int)($_POST['duration_minutes'] ?? 0);
+    $total_marks = (int)($_POST['total_marks'] ?? 0);
 
-    $sql = "INSERT INTO exams (title, department, semester, duration_minutes, total_marks, status) 
-            VALUES (:title, :department, :semester, :duration, :total_marks, 'inactive')";
-            
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':title' => $title,
-        ':department' => $department,
-        ':semester' => $semester,
-        ':duration' => $duration,
-        ':total_marks' => $total_marks
-    ]);
-    $message = "Exam created successfully! It is currently inactive.";
+    if (empty($title) || empty($department) || $semester <= 0 || $duration <= 0 || $total_marks <= 0) {
+        $message = "Invalid input! Please fill out all fields correctly.";
+    } else {
+        $sql = "INSERT INTO exams (title, department, semester, duration_minutes, total_marks, status) 
+                VALUES (:title, :department, :semester, :duration, :total_marks, 'inactive')";
+                
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':title' => $title,
+            ':department' => $department,
+            ':semester' => $semester,
+            ':duration' => $duration,
+            ':total_marks' => $total_marks
+        ]);
+        $message = "Exam created successfully! It is currently inactive.";
+    }
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'start' && isset($_GET['id'])) {
@@ -55,7 +59,12 @@ $exams = $pdo->query("SELECT * FROM exams ORDER BY id DESC")->fetchAll();
 </head>
 <body>
     <h1>Admin Panel - Manage Exams</h1>
-    <?php if(isset($message)) echo "<p style='color:green;'><b>$message</b></p>"; ?>
+    <?php 
+    if(isset($message)) { 
+        $color = strpos($message, 'Invalid') !== false ? 'red' : 'green';
+        echo "<p style='color:$color;'><b>" . htmlspecialchars($message) . "</b></p>"; 
+    } 
+    ?>
 
     <div class="card">
         <h3>Create New Examination</h3>

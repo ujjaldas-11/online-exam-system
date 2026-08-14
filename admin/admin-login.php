@@ -18,8 +18,8 @@ if (isset($_SESSION['admin_id'])) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email']);
-    $password = $_POST['password'];
+    $email    = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
 
     if (empty($email) || empty($password)) {
         $error = "Please enter both email and password.";
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([':email' => $email]);
         $admin = $stmt->fetch();
 
-        if ($admin && password_verify($password, $admin['password'])) {
+        if ($admin && password_verify($_POST['password'], $admin['password'])) {
             $_SESSION['admin_id'] = $admin['id'];
             $_SESSION['admin_name'] = $admin['name'];
             $_SESSION['role'] = 'admin'; 

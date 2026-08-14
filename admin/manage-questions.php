@@ -36,12 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
 
                 $stmt->execute([
                     ':exam_id' => $exam_id,
-                    ':q_text'  => $q['question_text'],
-                    ':opt_a'   => $q['option_a'],
-                    ':opt_b'   => $q['option_b'],
-                    ':opt_c'   => $q['option_c'] ?? '',
-                    ':opt_d'   => $q['option_d'] ?? '',
-                    ':correct' => strtoupper($q['correct_option']),
+                    ':q_text'  => trim(strip_tags($q['question_text'])),
+                    ':opt_a'   => trim(strip_tags($q['option_a'])),
+                    ':opt_b'   => trim(strip_tags($q['option_b'])),
+                    ':opt_c'   => isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
+                    ':opt_d'   => isset($q['option_d']) ? trim(strip_tags($q['option_d'])) : '',
+                    ':correct' => strtoupper(trim(strip_tags($q['correct_option']))),
                     ':marks'   => isset($q['marks']) ? (int)$q['marks'] : 1
                 ]);
                 $count++;
@@ -105,8 +105,8 @@ $default_json = '[
     <div class="card">
         <h2>Bulk Insert Questions (JSON)</h2>
         
-        <?php if(isset($success_message)) echo "<div class='alert-success'><b>$success_message</b></div>"; ?>
-        <?php if(isset($error_message)) echo "<div class='alert-error'><b>$error_message</b></div>"; ?>
+        <?php if(isset($success_message)) echo "<div class='alert-success'><b>" . htmlspecialchars($success_message) . "</b></div>"; ?>
+        <?php if(isset($error_message)) echo "<div class='alert-error'><b>" . htmlspecialchars($error_message) . "</b></div>"; ?>
 
         <div class="instructions">
             <strong>Instructions:</strong> Paste your questions in a valid JSON array format. 
