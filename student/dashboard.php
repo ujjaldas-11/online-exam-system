@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/database.php';
 
+date_default_timezone_set('Asia/Kolkata');
+
 if (!isset($_SESSION['student_id'])) {
     header("Location: login.php");
     exit();
@@ -12,15 +14,30 @@ $semester     = $_SESSION['semester'];
 $department   = $_SESSION['department'];
 
 try {
-    $sql = "SELECT e.id, e.title, e.description, e.duration_minutes, e.total_marks, e.total_questions_to_ask,
-                   s.name AS subject_name, ea.id AS attempt_id, ea.score, ea.total_questions
+    // Get both active and scheduled exams for this student
+    $sql = "SELECT 
+                e.id, 
+                e.title, 
+                e.description, 
+                e.duration_minutes, 
+                e.total_marks, 
+                e.total_questions_to_ask,
+                e.status,
+                e.start_time,
+                s.name AS subject_name, 
+                ea.id AS attempt_id, 
+                ea.score, 
+                ea.total_questions
             FROM exams e
             JOIN subjects s ON e.subject_id = s.id
-            LEFT JOIN exam_attempts ea ON e.id = ea.exam_id AND ea.student_id = :student_id
+            LEFT JOIN exam_attempts ea 
+                ON e.id = ea.exam_id AND ea.student_id = :student_id
             WHERE s.department = :department 
               AND s.semester = :semester 
-              AND e.status = 'active'
-            ORDER BY e.id DESC";
+              AND e.status IN ('active', 'scheduled', 'ended')
+            ORDER BY 
+                FIELD(e.status, 'active', 'scheduled', 'ended'),
+                e.start_time DESC";
             
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -60,37 +77,6 @@ try {
             line-height: 1.5;
         }
 
-        .student-info {
-            font-size: 0.9rem;
-            color: #94a3b8;
-            text-align: right;
-        }
-        .student-info strong {
-            display: block;
-            color: white;
-            font-size: 0.95rem;
-        }
-        .logout {
-            background: #dc2626;
-            color: white;
-            text-decoration: none;
-            padding: 7px 14px;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        .logout:hover { background: #b91c1c; }
-
-        .profile {
-            background: #28a745;
-            color: white;
-            text-decoration: none;
-            padding: 7px 14px;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        /* Layout */
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -105,7 +91,6 @@ try {
             margin-bottom: 28px;
         }
 
-        /* Exam Cards */
         .exam-list {
             display: flex;
             flex-direction: column;
@@ -135,7 +120,7 @@ try {
             margin-bottom: 18px;
         }
         .meta span {
-            display: flex;
+            font-weight: bold;
             align-items: center;
             gap: 5px;
         }
@@ -156,16 +141,26 @@ try {
         }
         .btn-resume:hover { background: #b45309; }
 
-        .completed {
+        .status-box {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #dcfce7;
-            color: var(--success);
             padding: 8px 14px;
             border-radius: 8px;
             font-weight: 600;
             font-size: 0.9rem;
+        }
+        .status-box.completed {
+            background: #dcfce7;
+            color: var(--success);
+        }
+        .status-box.scheduled {
+            background: #fef3c7;
+            color: var(--warning);
+        }
+        .status-box.ended {
+            background: #f1f5f9;
+            color: #64748b;
         }
 
         .empty {
@@ -177,27 +172,22 @@ try {
             color: var(--gray);
         }
 
-        /* Mobile */
         @media (max-width: 640px) {
-            .nav-inner { height: auto; padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
-            .student-info { text-align: left; }
             .meta { gap: 8px 14px; }
         }
     </style>
 </head>
 <body>
 
-
-<!-- navbar -->
 <?php include 'navbar.php'; ?>
 
 <div class="container">
     <h1>Available Exams</h1>
-    <p class="subtitle">Exams currently active for your department & semester</p>
+    <p class="subtitle">Exams for your department & semester</p>
 
     <?php if (empty($available_exams)): ?>
         <div class="empty">
-            No active exams available for you at the moment.
+            No exams available for you at the moment.
         </div>
     <?php else: ?>
         <div class="exam-list">
@@ -205,6 +195,7 @@ try {
                 <?php
                     $is_completed = !empty($exam['attempt_id']);
                     $is_ongoing   = isset($_SESSION['exam_answers'][$exam['id']]);
+                    $status       = $exam['status'];
                 ?>
                 <div class="exam-card">
                     <h3><?= htmlspecialchars($exam['title']) ?></h3>
@@ -214,18 +205,30 @@ try {
                     <?php endif; ?>
 
                     <div class="meta">
-                        <span> <?= htmlspecialchars($exam['subject_name']) ?></span>
-                        <span>⏱ <?= $exam['duration_minutes'] ?> mins</span>
-                        <span> <?= $exam['total_questions_to_ask'] ?> questions</span>
-                        <span><?= $exam['total_marks'] ?> marks</span>
+                        <p><span>Subject: </span><?= htmlspecialchars($exam['subject_name']) ?></p>
+                        <p><span>Time: </span><?= $exam['duration_minutes'] ?> mins</p>
+                        <p><span>Questions: </span><?= $exam['total_questions_to_ask'] ?> questions</p>
+                        <p><span>Marks: </span><?= $exam['total_marks'] ?> marks</p>
                     </div>
 
                     <?php if ($is_completed): ?>
-                        <div class="completed">
-                            ✅ Completed — Score: <?= $exam['score'] ?> / <?= $exam['total_questions'] ?? $exam['total_marks'] ?>
+                        <div class="status-box completed">
+                            Completed — Score: <?= $exam['score'] ?> / <?= $exam['total_questions'] ?? $exam['total_marks'] ?>
                         </div>
+
+                    <?php elseif ($status === 'scheduled'): ?>
+                        <div class="status-box scheduled">
+                            Starts on <?= date('d M Y, h:i A', strtotime($exam['start_time'])) ?>
+                        </div>
+
+                    <?php elseif ($status === 'ended'): ?>
+                        <div class="status-box ended">
+                            Exam has ended
+                        </div>
+
                     <?php elseif ($is_ongoing): ?>
                         <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-resume">Resume Exam</a>
+
                     <?php else: ?>
                         <a href="exam.php?id=<?= $exam['id'] ?>" class="btn">Start Exam</a>
                     <?php endif; ?>

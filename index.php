@@ -9,64 +9,110 @@ session_start();
     <title>Examify • Online Examination System</title>
     <style>
         :root {
-            --primary: #2563eb;
+            --blue: #1e40af;
+            --blue-light: #2563eb;
+            --gold: #d97706;
             --dark: #0f172a;
             --gray: #64748b;
             --light: #f8fafc;
+            --white: #ffffff;
             --border: #e2e8f0;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: var(--light);
-            color: var(--dark);
-            line-height: 1.5;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        /* Navbar */
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* ========== Navbar ========== */
         nav {
-            background: white;
+            background: var(--white);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 50;
         }
+
         .nav-inner {
             max-width: 1100px;
             margin: 0 auto;
-            padding: 0 20px;
-            height: 64px;
+            padding: 0 24px;
+            height: 68px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
         }
+
         .logo {
             font-weight: 700;
-            font-size: 2.00rem;
+            font-size: 1.7rem;
             color: var(--dark);
             text-decoration: none;
-        }
-        .logo span { color: var(--primary); }
-
-        /* Hero */
-        .hero {
-            background: var(--dark);
-            color: white;
-            text-align: center;
-            padding: 90px 20px 100px;
-        }
-        .hero h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            margin-bottom: 16px;
             letter-spacing: -0.5px;
         }
+
+        .logo span {
+            color: var(--blue);
+        }
+
+        /* ========== Hero ========== */
+        .hero {
+            background: linear-gradient(145deg, #0f172a 0%, #1e3a8a 60%, #1e40af 100%);
+            color: white;
+            text-align: center;
+            padding: 105px 24px 115px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Soft decorative circles */
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(59, 130, 246, 0.13);
+            border-radius: 50%;
+            top: -130px;
+            right: -100px;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            background: rgba(217, 119, 6, 0.08);
+            border-radius: 50%;
+            bottom: -70px;
+            left: -50px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 2.9rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            letter-spacing: -0.8px;
+            line-height: 1.2;
+        }
+
         .hero p {
             font-size: 1.15rem;
             color: #94a3b8;
             max-width: 520px;
-            margin: 0 auto 36px;
+            margin: 0 auto 40px;
         }
 
         .cta {
@@ -75,75 +121,135 @@ session_start();
             gap: 14px;
             flex-wrap: wrap;
         }
+
         .btn {
             display: inline-block;
-            padding: 13px 28px;
-            border-radius: 8px;
+            padding: 13px 30px;
+            border-radius: 9px;
             font-weight: 600;
             font-size: 1rem;
             text-decoration: none;
-            transition: 0.2s;
+            transition: all 0.22s ease;
         }
+
         .btn-primary {
-            background: var(--primary);
+            background: var(--blue-light);
             color: white;
+            box-shadow: 0 6px 18px -4px rgba(37, 99, 235, 0.45);
         }
-        .btn-primary:hover { background: #1d4ed8; }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px -4px rgba(37, 99, 235, 0.5);
+        }
+
         .btn-outline {
             background: transparent;
             color: white;
-            border: 1.5px solid #475569;
-        }
-        .btn-outline:hover {
-            border-color: white;
-            background: rgba(255,255,255,0.05);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
         }
 
-        /* Features */
+        .btn-outline:hover {
+            border-color: white;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* ========== Features ========== */
         .features {
             max-width: 1100px;
             margin: 0 auto;
-            padding: 70px 20px;
+            padding: 85px 24px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 24px;
-        }
-        .card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 28px 24px;
-            text-align: center;
-        }
-        .card .icon {
-            font-size: 2rem;
-            margin-bottom: 14px;
-        }
-        .card h3 {
-            font-size: 1.15rem;
-            margin-bottom: 8px;
-        }
-        .card p {
-            color: var(--gray);
-            font-size: 0.95rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 28px;
         }
 
-        /* Footer */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 34px 28px;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #bfdbfe;
+            box-shadow: 0 16px 35px -10px rgba(30, 64, 175, 0.12);
+        }
+
+        .card .icon {
+            width: 58px;
+            height: 58px;
+            background: #eff6ff;
+            color: var(--blue);
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin: 0 auto 18px;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .card h3::after {
+            content: "";
+            display: block;
+            width: 34px;
+            height: 3px;
+            background: var(--gold);
+            margin: 12px auto 0;
+            border-radius: 4px;
+        }
+
+        .card p {
+            color: var(--gray);
+            font-size: 0.96rem;
+            line-height: 1.65;
+        }
+
+        /* ========== Footer ========== */
         footer {
             text-align: center;
-            padding: 24px 20px;
+            padding: 28px 24px;
             color: var(--gray);
             font-size: 0.9rem;
             border-top: 1px solid var(--border);
+            background: var(--white);
         }
 
-        /* Mobile */
+        /* ========== Mobile ========== */
         @media (max-width: 640px) {
-            .hero { padding: 70px 20px 80px; }
-            .hero h1 { font-size: 2.1rem; }
-            .hero p { font-size: 1.05rem; }
-            .cta { flex-direction: column; align-items: center; }
-            .btn { width: 100%; max-width: 280px; text-align: center; }
+            .hero {
+                padding: 85px 20px 95px;
+            }
+
+            .hero h1 {
+                font-size: 2.25rem;
+            }
+
+            .hero p {
+                font-size: 1.05rem;
+            }
+
+            .cta {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 280px;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -156,12 +262,14 @@ session_start();
 </nav>
 
 <header class="hero">
-    <h1>Welcome to Examify</h1>
-    <p>A modern and secure platform for conducting online semester examinations.</p>
+    <div class="hero-content">
+        <h1>Welcome to Examify</h1>
+        <p>A modern and secure platform for conducting online semester examinations.</p>
 
-    <div class="cta">
-        <a href="student/login.php" class="btn btn-primary">Student Portal</a>
-        <a href="admin/admin-login.php" class="btn btn-outline">Admin Portal</a>
+        <div class="cta">
+            <a href="student/login.php" class="btn btn-primary">Student Portal</a>
+            <a href="admin/admin-login.php" class="btn btn-outline">Admin Portal</a>
+        </div>
     </div>
 </header>
 

@@ -43,7 +43,7 @@
       `duration_minutes` int(11) NOT NULL,
       `total_questions_to_ask` int(11) NOT NULL DEFAULT 10,
       `total_marks` int(11) DEFAULT 0,
-      `status` enum('active','inactive') DEFAULT 'active',
+      `status` enum('scheduled','active','ended','inactive') NOT NULL DEFAULT 'active',
       `start_time` datetime DEFAULT NULL,
       `created_at` timestamp NULL DEFAULT current_timestamp(),
       PRIMARY KEY (`id`),
