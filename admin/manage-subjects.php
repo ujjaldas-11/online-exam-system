@@ -225,6 +225,13 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY id DESC")->fetchAll();
                                 <td><?= htmlspecialchars($sub['department']) ?></td>
                                 <td>Sem <?= $sub['semester'] ?></td>
                                 <td><?= date('d M Y', strtotime($sub['created_at'])) ?></td>
+                                <td>
+                                <a href="view-questions.php?subject_id=<?= $sub['id'] ?>">
+                                    <button class="btn btn-secondary">
+                                        View Questions
+                                    </button>    
+                                </a>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

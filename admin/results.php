@@ -120,7 +120,8 @@ $exams = $stmt->fetchAll();
                 <thead>
                     <tr>
                         <th>Exam Title</th>
-                        <th>Target Audience</th>
+                        <th>Department</th>
+                        <th>Semester</th>
                         <th>Total Marks</th>
                         <th>Submissions</th>
                         <th>Action</th>
