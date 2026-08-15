@@ -110,9 +110,17 @@ examify/
 
 ---
 
+# 🚀 Production Deployment
+
+If you are looking to deploy this application to a live production server, you do not need all the source files. Examify uses GitHub CI/CD to automatically generate a clean, production-ready build. 
+
+Please refer to the **[Production Build Instructions](production.md)** to download the latest release artifacts.
+
+---
+
 # ⚙️ How to Run Locally
 
-Follow these steps to set up Examify on your local machine.
+Follow these steps to set up Examify on your local machine for development.
 
 ## Prerequisites
 
