@@ -1,11 +1,8 @@
 <?php
-session_start();
+require_once 'student-guard.php';
 require_once '../config/database.php';
 
-if (!isset($_SESSION['student_id'])) {
-    header("Location: login.php");
-    exit();
-}
+
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: dashboard.php");
@@ -25,7 +22,7 @@ $total_marks = 0;
 $already_submitted = false;
 
 try {
-    // 1. Check if the student has already attempted this exam
+    //  Check if the student has already attempted this exam
     $checkSql = "SELECT id, score, status FROM exam_attempts WHERE student_id = :student_id AND exam_id = :exam_id LIMIT 1";
     $checkStmt = $pdo->prepare($checkSql);
     $checkStmt->execute([
@@ -52,7 +49,7 @@ try {
         $total_marks = $exam['total_marks'];
         
     } else {
-        // 2. Process Submission: Fetch exam details
+        //  Process Submission: Fetch exam details
         $examSql = "SELECT title, total_marks FROM exams WHERE id = :exam_id LIMIT 1";
         $examStmt = $pdo->prepare($examSql);
         $examStmt->execute([':exam_id' => $exam_id]);
@@ -63,7 +60,7 @@ try {
         }
         $total_marks = $exam['total_marks'];
 
-        // 3. Fetch assigned questions for this attempt
+        //  Fetch assigned questions for this attempt
         $qSql = "SELECT sa.id AS ans_id, q.id AS question_id, q.correct_option, q.marks 
                  FROM student_answers sa 
                  JOIN questions q ON sa.question_id = q.id 
@@ -72,7 +69,7 @@ try {
         $qStmt->execute([':attempt_id' => $attempt_id]);
         $assigned_questions = $qStmt->fetchAll();
 
-        // 4. Begin Database Transaction
+        //  Begin Database Transaction
         $pdo->beginTransaction();
 
         $updateAnsSql = "UPDATE student_answers SET selected_option = :selected_option, is_correct = :is_correct WHERE id = :ans_id";
@@ -99,7 +96,7 @@ try {
             ]);
         }
 
-        // 5. Update exam_attempts
+        // Update exam_attempts
         $attemptUpdateSql = "UPDATE exam_attempts 
                              SET score = :score, status = 'completed', submitted_at = NOW() 
                              WHERE id = :attempt_id";
@@ -109,7 +106,7 @@ try {
             ':attempt_id' => $attempt_id
         ]);
         
-        // 6. Commit the transaction
+        // Commit the transaction
         $pdo->commit();
         
         // Clear session answers

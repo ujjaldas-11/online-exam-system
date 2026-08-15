@@ -167,20 +167,8 @@ try {
 </head>
 <body>
 
-<!-- <nav>
-    <div class="nav-inner">
-        <div class="logo">Examify Admin</div>
-        <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
-        <div class="nav-links">
-            <a href="admin-dashboard.php">Dashboard</a>
-            <a href="manage-subjects.php">Subjects</a>
-            <a href="manage-exam.php">Exams</a>
-            <a href="manage-questions.php">Questions</a>
-            <a href="results.php">Results</a>
-            <a href="admin-logout.php" class="logout">Logout</a>
-        </div>
-    </div>
-</nav> -->
+
+
 
 <?php include 'admin-navbar.php'; ?>
 

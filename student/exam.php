@@ -1,11 +1,7 @@
 <?php
-session_start();
+require_once 'student-guard.php';
 require_once '../config/database.php';
 
-if (!isset($_SESSION['student_id'])) {
-    header("Location: login.php");
-    exit();
-}
 
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     die("Error: No exam selected.");
@@ -88,7 +84,9 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($exam['title']) ?> • Examify</title>
+    <!-- <link rel="stylesheet" href="../assets/css/student.css"> -->
     <style>
+
         :root {
             --primary: #2563eb;
             --dark: #0f172a;
@@ -332,7 +330,13 @@ try {
                 grid-template-columns: repeat(8, 1fr);
             }
         }
+
+
+
+
+
     </style>
+   
 </head>
 <body>
 

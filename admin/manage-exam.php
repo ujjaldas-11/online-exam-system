@@ -1,13 +1,10 @@
 <?php
-session_start();
+require_once 'admin-guard.php';
 require_once '../config/database.php';
 
 date_default_timezone_set('Asia/Kolkata');
 
-if (!isset($_SESSION['admin_id'])) {
-    header("Location: admin-login.php");
-    exit();
-}
+
 
 $message = '';
 $message_type = '';
@@ -302,6 +299,10 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
     <!-- Exam List -->
     <div class="card">
         <h2>Exam Control Center (<?= count($exams) ?>)</h2>
+        <?php
+                $search_placeholder = "Search students, roll number, or department...";
+                include '../components/searchbar.php';
+        ?>
         <div class="table-wrap">
             <table>
                 <thead>

@@ -75,7 +75,7 @@
                         <a href="manage-exam.php">Exams</a>
                         <a href="results.php">Results</a>
                         <a href="admin-logout.php" class="logout">Logout</a>
-                    </div>
+                    </div> 
                 </div>
             </nav>
 

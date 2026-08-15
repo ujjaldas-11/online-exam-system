@@ -3,8 +3,9 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
+ <!-- <link rel="stylesheet" href="../assets/css/student.css"> -->
 <style>
-    .navbar { 
+        .navbar { 
         background-color: #031e3b; 
         padding: 15px 20px; 
         display: flex; 
@@ -37,7 +38,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
     
     .nav-logout { background-color: #dc3545; }
     .nav-logout:hover { background-color: #c82333; }
+
 </style>
+
 
 <nav class="navbar">
     <h2>Examify Student Portal</h2>
@@ -64,9 +67,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <a href="profile.php" class="nav-profile">Cancel Edit</a>
             
         <?php 
-        else: 
+        elseif($current_page === 'admin-dashboard.php'): 
         ?>
-            <a href="dashboard.php" class="nav-dash">Dashboard</a>
+            <a href="admin-dashboard.php" class="nav-dash">Dashboard</a>
             
         <?php endif; ?>
 

@@ -1,11 +1,8 @@
 <?php
-session_start();
+require_once 'admin-guard.php';
 require_once '../config/database.php';
 
-if (!isset($_SESSION['admin_id'])) {
-    header("Location: admin-login.php");
-    exit();
-}
+
 
 if (!isset($_GET['subject_id'])) {
     die("No subject selected.");
@@ -138,6 +135,7 @@ $all_results = $resultsStmt->fetchAll();
         </div>
     <?php else: ?>
 
+        
         <div class="card">
             <div class="header-flex" style="margin-bottom: 10px;">
                 <h2 style="border: none; margin: 0; padding: 0;"> Question Bank (<?= count($all_results) ?> Questions)</h2>
@@ -162,6 +160,12 @@ $all_results = $resultsStmt->fetchAll();
                     </button>
                 </form>
             </div>
+
+            <?php
+                $search_placeholder = "Search students, roll number, or department...";
+                include '../components/searchbar.php';
+            ?>
+
             
             <div class="table-wrap">
                 <table>

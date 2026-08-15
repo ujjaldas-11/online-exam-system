@@ -1,11 +1,8 @@
 <?php
-session_start();
+require_once 'admin-guard.php';
 require_once '../config/database.php';
 
-if (!isset($_SESSION['admin_id'])) {
-    header("Location: admin-login.php");
-    exit();
-}
+
 
 $message = '';
 $message_type = '';

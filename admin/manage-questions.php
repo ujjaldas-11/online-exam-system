@@ -1,11 +1,6 @@
 <?php
-session_start();
+require_once 'admin-guard.php';
 require_once '../config/database.php';
-
-if (!isset($_SESSION['admin_id'])) {
-    header("Location: admin-login.php");
-    exit();
-}
 
 $subjects = $pdo->query("SELECT id, name, department, semester FROM subjects ORDER BY name ASC")->fetchAll();
 
