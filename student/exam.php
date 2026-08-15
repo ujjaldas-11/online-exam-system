@@ -39,6 +39,10 @@ try {
         die("<h2 style='text-align:center;margin-top:100px;'>Time is up! This exam has ended.</h2>");
     }
 
+    // CALCULATE POINTS PER QUESTION (Added this line)
+    $points_per_question = ($exam['total_questions_to_ask'] > 0) ? ($exam['total_marks'] / $exam['total_questions_to_ask']) : 0;
+    $points_per_question = (float)$points_per_question;
+
     // Check existing attempt
     $attemptStmt = $pdo->prepare("SELECT id, total_questions FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
     $attemptStmt->execute([$_SESSION['student_id'], $exam_id]);
@@ -331,10 +335,6 @@ try {
             }
         }
 
-
-
-
-
     </style>
    
 </head>
@@ -399,6 +399,8 @@ try {
 <script>
     const examId = <?= $exam_id ?>;
     const totalQuestions = <?= $total_questions ?>;
+    // ADDED POINTS PER QUESTION CONSTANT HERE
+    const pointsPerQuestion = <?= $points_per_question ?>; 
     let currentIndex = 0;
     let currentQuestionId = null;
 
@@ -432,8 +434,9 @@ try {
 
     function renderQuestion(q, selected, marked) {
         const container = document.getElementById('question-container');
+        // REPLACED q.marks WITH pointsPerQuestion IN HTML
         let html = `
-            <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${q.marks} Mark${q.marks > 1 ? 's' : ''}</div>
+            <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''}</div>
             <div class="question-text">${q.question_text}</div>
             <div class="options">
         `;

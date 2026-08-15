@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
             $pdo->beginTransaction();
 
             $sql = "INSERT INTO questions 
-                    (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
 
             $count = 0;
@@ -37,8 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
                     trim(strip_tags($q['option_b'])),
                     isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
                     isset($q['option_d']) ? trim(strip_tags($q['option_d'])) : '',
-                    strtoupper(trim(strip_tags($q['correct_option']))),
-                    isset($q['marks']) ? (int)$q['marks'] : 1
+                    strtoupper(trim(strip_tags($q['correct_option'])))
                 ]);
                 $count++;
             }
@@ -52,26 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
     }
 }
 
-$default_json = '[
-  {
-    "question_text": "What does DBMS stand for?",
-    "option_a": "Database Management System",
-    "option_b": "Data Basic Management System",
-    "option_c": "Database Basic Management System",
-    "option_d": "None of the above",
-    "correct_option": "A",
-    "marks": 1
-  },
-  {
-    "question_text": "Which of the following is a NoSQL database?",
-    "option_a": "MySQL",
-    "option_b": "PostgreSQL",
-    "option_c": "MongoDB",
-    "option_d": "Oracle",
-    "correct_option": "C",
-    "marks": 2
-  }
-]';
+$default_json = '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -232,7 +212,7 @@ $default_json = '[
         <div class="instructions">
             <strong>Instructions:</strong> Paste a valid JSON array.  
             Required keys: <code>question_text</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code>.  
-            Optional: <code>option_c</code>, <code>option_d</code>, <code>marks</code>.  
+            Optional: <code>option_c</code>, <code>option_d</code>.  
             <code>correct_option</code> must be <code>A</code>, <code>B</code>, <code>C</code> or <code>D</code>.
         </div>
 
@@ -293,13 +273,11 @@ Each object must EXACTLY match this structure:
   "option_b": "Option 2",
   "option_c": "Option 3",
   "option_d": "Option 4",
-  "correct_option": "A",
-  "marks": 1
+  "correct_option": "A"
 }
 
 Rules:
 - "correct_option" must be exactly "A", "B", "C", or "D".
-- "marks" must be an integer.
 - Do NOT wrap the JSON in backticks or markdown. Start directly with [ and end with ].`;
 
         navigator.clipboard.writeText(prompt).then(() => {
