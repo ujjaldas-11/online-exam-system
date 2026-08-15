@@ -1,11 +1,7 @@
 <?php
-session_start();
+require_once 'student-guard.php';
 require_once '../config/database.php';
 
-if (!isset($_SESSION['student_id'])) {
-    header("Location: login.php");
-    exit();
-}
 
 $student_id = $_SESSION['student_id'];
 $message = '';
@@ -63,126 +59,15 @@ if (!$student) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Profile • Examify</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --dark: #0f172a;
-            --gray: #64748b;
-            --light: #f8fafc;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --error: #dc2626;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: var(--light);
-            color: var(--dark);
-            line-height: 1.5;
-        }
-
-        .container {
-            max-width: 560px;
-            margin: 0 auto;
-            padding: 32px 20px;
-        }
-        h1 {
-            font-size: 1.6rem;
-            margin-bottom: 4px;
-        }
-        .subtitle {
-            color: var(--gray);
-            margin-bottom: 24px;
-        }
-
-        .card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 28px 24px;
-        }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-        .alert.success {
-            background: #dcfce7;
-            color: var(--success);
-        }
-        .alert.error {
-            background: #fee2e2;
-            color: var(--error);
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-        label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 5px;
-            color: #334155;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            background: white;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        input[readonly] {
-            background: #f1f5f9;
-            color: var(--gray);
-            cursor: not-allowed;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-        .btn:hover { background: #1d4ed8; }
-
-        .btn-secondary {
-            display: block;
-            width: 100%;
-            text-align: center;
-            margin-top: 12px;
-            padding: 11px;
-            background: #e2e8f0;
-            color: #334155;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-        .btn-secondary:hover {
-            background: #cbd5e1;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/student.css">
+     <!-- <style>
+        
+     </style> -->
+    
 </head>
 <body>
-
-<?php include 'navbar.php'; ?>
+    
+<?php include '../components/navbar.php'; ?>
 
 <div class="container">
     <h1>Edit Profile</h1>

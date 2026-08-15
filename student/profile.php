@@ -1,11 +1,8 @@
 <?php
-session_start();
+require_once 'student-guard.php';
 require_once '../config/database.php';
 
-if (!isset($_SESSION['student_id'])) {
-    header("Location: login.php");
-    exit();
-}
+
 
 $student_id = $_SESSION['student_id'];
 
@@ -40,7 +37,9 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile • Examify</title>
-    <style>
+     <!-- <link rel="stylesheet" href="../assets/css/student.css"> -->
+     <style>
+
         :root {
             --primary: #2563eb;
             --dark: #0f172a;
@@ -166,11 +165,12 @@ try {
                 gap: 12px;
             }
         }
-    </style>
+     </style>
+    
 </head>
 <body>
 
-<?php include 'navbar.php'; ?>
+<?php include '../components/navbar.php'; ?>
 
 <div class="container">
     <h1>My Profile</h1>

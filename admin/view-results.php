@@ -1,11 +1,7 @@
 <?php
-session_start();
+require_once 'admin-guard.php';
 require_once '../config/database.php';
 
-if (!isset($_SESSION['admin_id'])) {
-    header("Location: admin-login.php");
-    exit();
-}
 
 if (!isset($_GET['exam_id'])) {
     die("No exam selected.");
@@ -234,7 +230,7 @@ $top_scorers = array_slice($all_results, 0, 3);
 
             <?php
                 $search_placeholder = "Search students, roll number, or department...";
-                include 'searchbar.php';
+                include '../components/searchbar.php';
             ?>
 
             <div class="table-wrap">

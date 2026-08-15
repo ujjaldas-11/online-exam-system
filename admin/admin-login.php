@@ -41,7 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Admin Login - Examify</title>
-    <style>
+    <link rel="stylesheet" href="../assets/css/login.css">
+    <!-- <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f7f6;
@@ -107,11 +108,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-align: center;
             margin-top: 15px;
         }
-    </style>
+    </style> -->
 </head>
 
 <body>
-    <div class="container">
+    <div class="card">
         <h2 style="text-align: center;">Admin Login</h2>
 
         <?php if ($error): ?>
@@ -130,8 +131,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="password" name="password" required>
             </div>
 
-            <button type="submit">Login</button>
+            <button type="submit" class="btn">Login</button>
         </form>
+
+        <p class="footer">
+            Only Admin can login here
+        </p>
 
     </div>
 </body>
