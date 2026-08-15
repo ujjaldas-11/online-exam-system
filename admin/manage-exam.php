@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/database.php';
 
+date_default_timezone_set('Asia/Kolkata');
+
 if (!isset($_SESSION['admin_id'])) {
     header("Location: admin-login.php");
     exit();
@@ -10,13 +12,13 @@ if (!isset($_SESSION['admin_id'])) {
 $message = '';
 $message_type = '';
 
-// Create Exam
+// ===================== CREATE EXAM =====================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
-    $title            = trim(strip_tags($_POST['title'] ?? ''));
-    $subject_id       = (int)($_POST['subject_id'] ?? 0);
-    $duration         = (int)($_POST['duration_minutes'] ?? 0);
-    $total_marks      = (int)($_POST['total_marks'] ?? 0);
-    $total_questions  = (int)($_POST['total_questions_to_ask'] ?? 0);
+    $title           = trim(strip_tags($_POST['title'] ?? ''));
+    $subject_id      = (int)($_POST['subject_id'] ?? 0);
+    $duration        = (int)($_POST['duration_minutes'] ?? 0);
+    $total_marks     = (int)($_POST['total_marks'] ?? 0);
+    $total_questions = (int)($_POST['total_questions_to_ask'] ?? 0);
 
     if (empty($title) || $subject_id <= 0 || $duration <= 0 || $total_marks <= 0 || $total_questions <= 0) {
         $message = "Please fill all fields correctly.";
@@ -25,24 +27,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
         // Check available questions
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE subject_id = ?");
         $stmt->execute([$subject_id]);
-        $available = $stmt->fetchColumn();
+        $available = (int)$stmt->fetchColumn();
 
         if ($available < $total_questions) {
             $message = "This subject only has $available questions. You cannot ask for $total_questions.";
             $message_type = 'error';
         } else {
-            $stmt = $pdo->prepare("INSERT INTO exams 
-                (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, status) 
-                VALUES (?, ?, ?, ?, ?, 'inactive')");
-            $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions]);
-            
-            $message = "Exam created successfully! It is currently inactive.";
-            $message_type = 'success';
+            try {
+                $stmt = $pdo->prepare("
+                    INSERT INTO exams 
+                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, status) 
+                    VALUES (?, ?, ?, ?, ?, 'inactive')
+                ");
+                $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions]);
+
+                $message = "Exam created successfully! It is currently inactive.";
+                $message_type = 'success';
+            } catch (Exception $e) {
+                $message = "Error: " . $e->getMessage();
+                $message_type = 'error';
+            }
         }
     }
 }
 
-// Start Exam
+// ===================== START EXAM =====================
 if (isset($_GET['action']) && $_GET['action'] === 'start' && isset($_GET['id'])) {
     $exam_id = (int)$_GET['id'];
 
@@ -50,18 +59,35 @@ if (isset($_GET['action']) && $_GET['action'] === 'start' && isset($_GET['id']))
     $stmt->execute([$exam_id]);
     $status = $stmt->fetchColumn();
 
-    if ($status !== 'active') {
-        $pdo->prepare("UPDATE exams SET status = 'active', start_time = NOW() WHERE id = ?")
-            ->execute([$exam_id]);
-        $message = "Exam has been started. Students can now join.";
-        $message_type = 'success';
-    } else {
+    if (!$status) {
+        $message = "Exam not found.";
+        $message_type = 'error';
+    } elseif ($status === 'active') {
         $message = "Exam is already active.";
         $message_type = 'error';
+    } else {
+        $pdo->prepare("UPDATE exams SET status = 'active', start_time = NOW() WHERE id = ?")
+            ->execute([$exam_id]);
+
+        $message = "Exam has been started successfully. Students can now join.";
+        $message_type = 'success';
     }
 }
 
-// Fetch data
+// ===================== AUTO END EXAMS =====================
+try {
+    $pdo->exec("
+        UPDATE exams 
+        SET status = 'ended' 
+        WHERE status = 'active' 
+          AND start_time IS NOT NULL 
+          AND DATE_ADD(start_time, INTERVAL duration_minutes MINUTE) <= NOW()
+    ");
+} catch (PDOException $e) {
+    // silent
+}
+
+// ===================== FETCH DATA =====================
 $exams = $pdo->query("
     SELECT e.*, s.name AS subject_name, s.department, s.semester 
     FROM exams e 
@@ -86,6 +112,7 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
             --border: #e2e8f0;
             --success: #16a34a;
             --error: #dc2626;
+            --warning: #d97706;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -96,7 +123,6 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
             line-height: 1.5;
         }
 
-        /* Layout */
         .container {
             max-width: 1100px;
             margin: 0 auto;
@@ -105,7 +131,6 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
         h1 { font-size: 1.6rem; margin-bottom: 4px; }
         .subtitle { color: var(--gray); margin-bottom: 24px; }
 
-        /* Alert */
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
@@ -115,7 +140,6 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
         .alert.success { background: #dcfce7; color: var(--success); }
         .alert.error { background: #fee2e2; color: var(--error); }
 
-        /* Cards */
         .card {
             background: white;
             border: 1px solid var(--border);
@@ -123,12 +147,8 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
             padding: 24px;
             margin-bottom: 24px;
         }
-        .card h2 {
-            font-size: 1.15rem;
-            margin-bottom: 16px;
-        }
+        .card h2 { font-size: 1.15rem; margin-bottom: 16px; }
 
-        /* Form */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -136,6 +156,7 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
         }
         .form-group { margin-bottom: 4px; }
         .form-group.full { grid-column: 1 / -1; }
+
         label {
             display: block;
             font-size: 0.9rem;
@@ -156,6 +177,7 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
+
         .btn {
             display: inline-block;
             background: var(--primary);
@@ -166,21 +188,23 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
             font-weight: 600;
             font-size: 0.95rem;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 12px;
         }
         .btn:hover { background: #1d4ed8; }
+
         .btn-start {
-            background: var(--success);
-            padding: 7px 12px;
-            font-size: 0.85rem;
+            display: inline-block;
+            background: #16a34a;
+            color: white !important;
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
             text-decoration: none;
             border-radius: 6px;
-            color: white;
-            font-weight: 600;
+            white-space: nowrap;
         }
         .btn-start:hover { background: #15803d; }
 
-        /* Table */
         .table-wrap { overflow-x: auto; }
         table {
             width: 100%;
@@ -209,15 +233,18 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
             font-size: 0.8rem;
             font-weight: 600;
         }
-        .badge.active { background: #dcfce7; color: var(--success); }
+        .badge.active   { background: #dcfce7; color: var(--success); }
         .badge.inactive { background: #fee2e2; color: var(--error); }
+        .badge.ended    { background: #e2e8f0; color: #475569; }
 
-        
+        @media (max-width: 700px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-<?php include 'admin-navbar.php' ?>
+<?php include 'admin-navbar.php'; ?>
 
 <div class="container">
     <h1>Manage Exams</h1>
@@ -285,16 +312,18 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
                         <th>Questions</th>
                         <th>Duration</th>
                         <th>Status</th>
+                        <th>Start Time</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($exams)): ?>
                         <tr>
-                            <td colspan="7" style="text-align:center; color:var(--gray);">No exams created yet</td>
+                            <td colspan="8" style="text-align:center; color:var(--gray);">No exams created yet</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($exams as $exam): ?>
+                            <?php $status = $exam['status']; ?>
                             <tr>
                                 <td><?= $exam['id'] ?></td>
                                 <td><?= htmlspecialchars($exam['title']) ?></td>
@@ -307,21 +336,30 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
                                 <td><?= $exam['total_questions_to_ask'] ?></td>
                                 <td><?= $exam['duration_minutes'] ?> min</td>
                                 <td>
-                                    <span class="badge <?= $exam['status'] ?>">
-                                        <?= strtoupper($exam['status']) ?>
+                                    <span class="badge <?= htmlspecialchars($status) ?>">
+                                        <?= strtoupper(htmlspecialchars($status)) ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <?php if ($exam['status'] === 'inactive'): ?>
+                                    <?php if ($exam['start_time']): ?>
+                                        <?= date('d M Y, h:i A', strtotime($exam['start_time'])) ?>
+                                    <?php else: ?>
+                                        <span style="color:var(--gray)">—</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($status === 'inactive'): ?>
                                         <a href="?action=start&id=<?= $exam['id'] ?>" 
                                            class="btn-start"
                                            onclick="return confirm('Start this exam now? Students will be able to join immediately.')">
                                             ▶ Start Exam
                                         </a>
+                                    <?php elseif ($status === 'active'): ?>
+                                        <span style="color:#16a34a; font-weight:600; font-size:0.85rem;">● Running</span>
+                                    <?php elseif ($status === 'ended'): ?>
+                                        <span style="color:#64748b; font-size:0.85rem;">Ended</span>
                                     <?php else: ?>
-                                        <small style="color:var(--gray)">
-                                            Started: <?= $exam['start_time'] ? date('d M Y, h:i A', strtotime($exam['start_time'])) : '-' ?>
-                                        </small>
+                                        <span style="color:#64748b; font-size:0.85rem;">—</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
