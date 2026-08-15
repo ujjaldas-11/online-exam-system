@@ -22,16 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Update marks for all questions in this subject
-    if (isset($_POST['update_marks']) && isset($_POST['new_marks'])) {
-        $new_marks = (int)$_POST['new_marks'];
-        if ($new_marks > 0) {
-            $updStmt = $pdo->prepare("UPDATE questions SET marks = ? WHERE subject_id = ?");
-            if ($updStmt->execute([$new_marks, $subject_id])) {
-                $message = "<div class='alert alert-success'>✅ All questions are now worth $new_marks marks.</div>";
-            }
-        }
-    }
+
 }
 
 $subjectStmt = $pdo->prepare("SELECT * FROM subjects WHERE id = ?");
@@ -41,7 +32,7 @@ $subject = $subjectStmt->fetch();
 if (!$subject) die("Subject not found.");
 
 // Fetch All Questions for this specific subject
-$resultsSql = "SELECT question_text, marks FROM questions WHERE subject_id = :subject_id ORDER BY id ASC"; 
+$resultsSql = "SELECT question_text FROM questions WHERE subject_id = :subject_id ORDER BY id ASC"; 
 $resultsStmt = $pdo->prepare($resultsSql);
 $resultsStmt->execute([':subject_id' => $subject_id]);
 $all_results = $resultsStmt->fetchAll();
@@ -122,9 +113,11 @@ $all_results = $resultsStmt->fetchAll();
             <h1><?= htmlspecialchars($subject['name']) ?></h1>
             <p class="subtitle">Department: <?= htmlspecialchars($subject['department']) ?> • Semester <?= $subject['semester'] ?></p>
         </div>
-        <button onclick="window.print()" class="btn btn-primary no-print">
-            📥 Download PDF
-        </button>
+        <a href="manage-questions.php">
+                    <button  class="btn btn-primary" style="padding: 6px 12px;" >
+                        Upload questions
+                    </button>
+                </a>
     </div>
 
     <?= $message ?>
@@ -142,12 +135,6 @@ $all_results = $resultsStmt->fetchAll();
             </div>
             
             <div class="action-bar no-print">
-                <form method="POST" style="border-right: 2px solid var(--border); padding-right: 15px;">
-                    <label style="font-size: 0.9rem; font-weight: 600; color: var(--gray);">Set all marks to:</label>
-                    <input type="number" name="new_marks" class="mark-input" value="1" min="1" required>
-                    <button type="submit" name="update_marks" class="btn btn-primary" style="padding: 6px 12px;">Update Marks</button>
-                </form>
-
                 <a href="manage-questions.php">
                     <button  class="btn btn-primary" style="padding: 6px 12px;" >
                         Upload questions
@@ -173,7 +160,6 @@ $all_results = $resultsStmt->fetchAll();
                         <tr>
                             <th style="width: 50px;">#</th>
                             <th>Question Text</th>
-                            <th style="width: 100px;">Marks</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -69,8 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             exit();
         }
 
-        // Get the specific question by index from the student's assigned questions
-        $qSql = "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.marks 
+        // Get the specific question by index from the student's assigned questions (REMOVED q.marks)
+        $qSql = "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d
                  FROM student_answers sa
                  JOIN questions q ON sa.question_id = q.id
                  WHERE sa.attempt_id = :attempt_id 
