@@ -145,7 +145,7 @@ Examify includes several browser-based mechanisms to improve examination securit
 Examify allows administrators to maintain a question bank containing more questions than are required for a particular examination.
 
 For example:
-
+```
 text
 Subject Question Bank
         50 Questions
@@ -157,7 +157,7 @@ Exam Configuration
              ↓
        Examination
        20 Questions
-
+```
 
 ## ⏱️ Examination Interface
 
@@ -191,6 +191,7 @@ Questions can be represented through different states such as:
 After an examination is submitted, Examify evaluates the student's MCQ answers automatically.
 The evaluation process follows:
 
+```
 Student Answer
       ↓
 Compare With Correct Answer
@@ -200,7 +201,7 @@ Correct / Incorrect / Unanswered
 Calculate Score
       ↓
 Store Examination Result
-
+```
 The system can calculate and display information such as:
 
 - Total questions
@@ -361,6 +362,7 @@ Before deploying Examify to a production environment:
 - Configure appropriate server permissions.
 - Back up the database regularly.
 - Test the complete examination workflow before conducting real examinations.
+
 # ⚙️ How to Run Locally
 
 Follow these steps to set up Examify on your local machine.
@@ -419,7 +421,6 @@ C:\wamp\www\online-exam-system
 > The exact web-root directory may vary depending on your Linux distribution and Apache configuration.
 
 ---
-
 # 🗄️ Database Setup
 
 Examify includes a `schema.sql` file that can be used to create the required database tables and relationships.
@@ -461,7 +462,7 @@ Open a terminal and log in to MySQL:
 mysql -u root -p
 ```
 
-Create and select the database:
+Select the database:
 
 ```sql
 CREATE DATABASE examify;
@@ -470,8 +471,8 @@ USE examify;
 
 Then import the schema:
 
-```sql
-source /path/to/online-exam-system/schema.sql;
+```bash
+source /path/to/examify/schema.sql;
 ```
 
 Finally, exit MySQL:
@@ -479,28 +480,33 @@ Finally, exit MySQL:
 ```sql
 exit;
 ```
-
 ---
 
 # 🔐 Configure Database Credentials
 
-Examify uses:
+Examify uses environment variables for database configuration.
 
+Create a file named exactly:
+
+```text
+.env
 ```
-config/database.php
-```
-for database connectivity.
-Configure the database values according to your local MySQL installation.
-Typical local configuration:
+
+in the project root.
+
+Example:
 
 ```env
-Host: localhost
-Database: examify
-Username: root
-Password: your_password
+DB_HOST=localhost
+DB_DATABASE=examify
+DB_USERNAME=root
+DB_PASSWORD=passowrd
+DB_CHARSET=utf8mb4
 ```
 
-> **Important:** Never commit real database passwords or credentials to GitHub.
+Update the values according to your local MySQL configuration.
+
+> **Important:** Never commit your real `.env` file or database passwords to GitHub. Add `.env` to `.gitignore`.
 
 ---
 
