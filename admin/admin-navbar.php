@@ -72,7 +72,7 @@
                         <a href="admin-dashboard.php">Dashboard</a>
                         <a href="manage-subjects.php">Subjects</a>
                         <a href="manage-questions.php">Questions</a>
-                        <a href="manage-exam.php">Exams</a>
+                        <a href="control-exams.php">Exams</a>
                         <a href="results.php">Results</a>
                         <a href="admin-logout.php" class="logout">Logout</a>
                     </div> 

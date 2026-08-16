@@ -85,6 +85,17 @@ $exams = $pdo->query("
         .badge-running { background: #dcfce7; color: var(--success); border: 1px solid #bbf7d0; }
         .badge-notstarted { background: #f1f5f9; color: var(--gray); border: 1px solid var(--border); }
         .badge-ended { background: #fee2e2; color: var(--error); border: 1px solid #fecaca;}
+
+        .btn {
+            background-color: var(--primary);
+            padding: 6px 10px;
+            color: var(--light);
+            font-weight: bold;
+            border-radius: 8px;
+            border:none;
+            cursor: pointer;
+            font-size: large;
+        }
     </style>
 </head>
 <body>
@@ -93,7 +104,7 @@ $exams = $pdo->query("
 
 <div class="container">
     <h1>Exam Control Center</h1>
-    <p class="subtitle">Monitor active exams and manage sessions</p>
+    <p class="subtitle">Monitor active exams and manage sessions</p>    
 
     <?php if ($message): ?>
         <div class="alert <?= $message_type ?>">
@@ -103,11 +114,15 @@ $exams = $pdo->query("
 
     <div class="card">
         <h2 style="margin-bottom: 16px;">All Exams (<?= count($exams) ?>)</h2>
-        
-        <?php
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <?php
             $search_placeholder = "Search exam title, subject, or status...";
             include '../components/searchbar.php';
-        ?>
+            ?>
+            <a href="manage-exam.php"> 
+                <button name="create_exam" class="btn"">Create Exam</button>
+            </a>
+        </div>
         
         <div class="table-wrap">
             <table>
