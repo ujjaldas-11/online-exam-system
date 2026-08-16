@@ -1,243 +1,495 @@
-        :root {
-            --blue: #1e40af;
-            --blue-light: #2563eb;
-            --gold: #d97706;
-            --dark: #0f172a;
-            --gray: #64748b;
-            --light: #f8fafc;
-            --white: #ffffff;
-            --border: #e2e8f0;
-        }
+/* =========================================================
+   EXAMIFY LANDING PAGE
+========================================================= */
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+:root {
+    --blue: #2563eb;
+    --blue-dark: #1d4ed8;
+    --blue-light: #3b82f6;
 
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: var(--light);
-            color: var(--dark);
-            line-height: 1.6;
-        }
+    --dark: #0f172a;
+    --gray: #64748b;
+    --gray-light: #94a3b8;
 
-        /* ========== Navbar ========== */
-        nav {
-            background: var(--white);
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
+    --light: #f8fafc;
+    --white: #ffffff;
 
-        .nav-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
-            height: 68px;
-            display: flex;
-            align-items: center;
-        }
+    --border: #e2e8f0;
 
-        .logo {
-            font-weight: 700;
-            font-size: 1.7rem;
-            color: var(--dark);
-            text-decoration: none;
-            letter-spacing: -0.5px;
-        }
+    --gold: #d97706;
+}
 
-        .logo span {
-            color: var(--blue);
-        }
 
-        /* ========== Hero ========== */
-        .hero {
-            background: linear-gradient(145deg, #0f172a 0%, #1e3a8a 60%, #1e40af 100%);
-            color: white;
-            text-align: center;
-            padding: 105px 24px 115px;
-            position: relative;
-            overflow: hidden;
-        }
+/* =========================================================
+   RESET
+========================================================= */
 
-        /* Soft decorative circles */
-        .hero::before {
-            content: "";
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: rgba(59, 130, 246, 0.13);
-            border-radius: 50%;
-            top: -130px;
-            right: -100px;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .hero::after {
-            content: "";
-            position: absolute;
-            width: 260px;
-            height: 260px;
-            background: rgba(217, 119, 6, 0.08);
-            border-radius: 50%;
-            bottom: -70px;
-            left: -50px;
-        }
+html {
+    scroll-behavior: smooth;
+}
 
-        .hero-content {
-            position: relative;
-            z-index: 2;
-        }
+body {
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
 
-        .hero h1 {
-            font-size: 2.9rem;
-            font-weight: 700;
-            margin-bottom: 18px;
-            letter-spacing: -0.8px;
-            line-height: 1.2;
-        }
 
-        .hero p {
-            font-size: 1.15rem;
-            color: #94a3b8;
-            max-width: 520px;
-            margin: 0 auto 40px;
-        }
+/* =========================================================
+   NAVBAR
+========================================================= */
 
-        .cta {
-            display: flex;
-            justify-content: center;
-            gap: 14px;
-            flex-wrap: wrap;
-        }
+nav {
+    height: 72px;
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+}
 
-        .btn {
-            display: inline-block;
-            padding: 13px 30px;
-            border-radius: 9px;
-            font-weight: 600;
-            font-size: 1rem;
-            text-decoration: none;
-            transition: all 0.22s ease;
-        }
+.nav-bar {
+    width: 100%;
+    max-width: 1180px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+}
 
-        .btn-primary {
-            background: var(--blue-light);
-            color: white;
-            box-shadow: 0 6px 18px -4px rgba(37, 99, 235, 0.45);
-        }
 
-        .btn-primary:hover {
-            background: #1d4ed8;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 22px -4px rgba(37, 99, 235, 0.5);
-        }
+.college-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    margin-left: -480px;          
+    margin-top: 7px;
+}
 
-        .btn-outline {
-            background: transparent;
-            color: white;
-            border: 1.5px solid rgba(255, 255, 255, 0.3);
-        }
+.college-brand img {
+    height: 59px;
+    width: auto;
+    border-radius: 50%;
+    max-width: 180px;
+    object-fit: contain;
+}
 
-        .btn-outline:hover {
-            border-color: white;
-            background: rgba(255, 255, 255, 0.08);
-        }
+.college-name {
+    font-size: 40px;
+    margin-left: 600px;           
+    font-weight: bold;
+    color: rgb(1, 1, 57);
+    white-space: nowrap;
+}
 
-        /* ========== Features ========== */
-        .features {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 85px 24px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 28px;
-        }
+.college-name span {
+    color: rgb(162, 23, 23);
+}
 
-        .card {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 34px 28px;
-            text-align: center;
-            transition: all 0.25s ease;
-        }
 
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: #bfdbfe;
-            box-shadow: 0 16px 35px -10px rgba(30, 64, 175, 0.12);
-        }
+/* =========================================================
+   HERO
+========================================================= */
 
-        .card .icon {
-            width: 58px;
-            height: 58px;
-            background: #eff6ff;
-            color: var(--blue);
-            border-radius: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.6rem;
-            margin: 0 auto 18px;
-        }
+.hero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, #0f172a 0%, #172554 45%, #1e40af 100%);
+    color: var(--white);
+    text-align: center;
+    padding: 85px 24px 105px;
+}
 
-        .card h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--dark);
-        }
+.hero::before {
+    content: "";
+    position: absolute;
+    width: 520px;
+    height: 520px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.14);
+    filter: blur(10px);
+    top: -280px;
+    right: -140px;
+    pointer-events: none;
+}
 
-        .card h3::after {
-            content: "";
-            display: block;
-            width: 34px;
-            height: 3px;
-            background: var(--gold);
-            margin: 12px auto 0;
-            border-radius: 4px;
-        }
+.hero::after {
+    content: "";
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.12);
+    bottom: -260px;
+    left: -130px;
+    pointer-events: none;
+}
 
-        .card p {
-            color: var(--gray);
-            font-size: 0.96rem;
-            line-height: 1.65;
-        }
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+    margin: 0 auto;
+}
 
-        /* ========== Footer ========== */
-        footer {
-            text-align: center;
-            padding: 28px 24px;
-            color: var(--gray);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--border);
-            background: var(--white);
-        }
 
-        /* ========== Mobile ========== */
-        @media (max-width: 640px) {
-            .hero {
-                padding: 85px 20px 95px;
-            }
+/* =========================================================
+   EXAMIFY LOGO
+========================================================= */
 
-            .hero h1 {
-                font-size: 2.25rem;
-            }
+.examify-logo-wrapper {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-            .hero p {
-                font-size: 1.05rem;
-            }
+.examify-logo {
+    width: 450px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin-bottom: 50px;
+    margin-top: 17px;
+    filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.30));
+}
 
-            .cta {
-                flex-direction: column;
-                align-items: center;
-            }
 
-            .btn {
-                width: 100%;
-                max-width: 280px;
-                text-align: center;
-            }
-        }
+/* =========================================================
+   EXAMIFY NAME
+========================================================= */
+
+.hero h1 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    font-weight: 750;
+    letter-spacing: -1.8px;
+    margin-bottom: 16px;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.hero-description {
+    max-width: 570px;
+    margin: 0 auto 38px;
+    font-size: 1.12rem;
+    line-height: 1.7;
+    color: #cbd5e1;
+}
+
+
+/* =========================================================
+   CTA BUTTONS
+========================================================= */
+
+.cta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 160px;
+    padding: 13px 26px;
+    border-radius: 9px;
+    font-size: 0.98rem;
+    font-weight: 650;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    
+}
+
+.btn-primary {
+    background: var(--blue-light);
+    color: white;
+    border: 1px solid var(--blue-light);
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
+}
+
+.btn-primary:hover {
+    background: #60a5fa;
+    border-color: #60a5fa;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.42);
+}
+
+.btn-outline {
+    background: rgba(255, 255, 255, 0.04);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   FEATURES
+========================================================= */
+
+.features {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 80px 28px 90px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 26px;
+}
+
+.card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 34px 28px;
+    text-align: center;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    border-color: #bfdbfe;
+    box-shadow: 0 18px 38px rgba(30, 64, 175, 0.10);
+}
+
+.card .icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #eff6ff;
+    color: var(--blue);
+}
+
+.card .icon svg {
+    width: 27px;
+    height: 27px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.card h3 {
+    font-size: 1.15rem;
+    font-weight: 650;
+    color: var(--dark);
+    margin-bottom: 11px;
+}
+
+.card h3::after {
+    content: "";
+    display: block;
+    width: 32px;
+    height: 3px;
+    background: var(--gold);
+    margin: 11px auto 0;
+    border-radius: 10px;
+}
+
+.card p {
+    color: var(--gray);
+    font-size: 0.94rem;
+    line-height: 1.65;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer {
+    text-align: center;
+    padding: 27px 24px;
+    color: var(--gray);
+    font-size: 0.88rem;
+    border-top: 1px solid var(--border);
+    background: var(--white);
+}
+
+
+/* =========================================================
+   TABLET (≤ 900px)
+========================================================= */
+
+@media (max-width: 900px) {
+
+    
+    .college-brand {
+        margin-left: 0;
+        margin-top: 0;
+        gap: 10px;
+    }
+
+    .college-name {
+        margin-left: 0;
+        font-size: 10px;
+    }
+
+    .college-brand img {
+        height: 48px;
+        max-width: 140px;
+    }
+
+    .hero {
+        padding: 70px 24px 85px;
+    }
+
+    .examify-logo {
+        width: 280px;
+        margin-bottom: 30px;
+        margin-top: 10px;
+    }
+
+    .examify-logo-wrapper {
+        width: 130px;
+        height: 130px;
+        margin-bottom: 16px;
+    }
+
+    .hero h1 {
+        font-size: 2.9rem;
+    }
+
+    .features {
+        grid-template-columns: 1fr;
+        max-width: 620px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE (≤ 600px)
+========================================================= */
+
+@media (max-width: 600px) {
+
+    nav {
+        height: 60px;
+    }
+
+    .nav-bar {
+        padding: 0 16px;
+    }
+
+    .college-brand img {
+        height: 40px;
+        max-width: 120px;
+    }
+
+    .college-name {
+        font-size: 10px;
+    }
+
+    .hero {
+        padding: 55px 18px 70px;
+    }
+
+    .examify-logo-wrapper {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 14px;
+    }
+
+    .examify-logo {
+        width: 180px;
+        margin-bottom: 20px;
+        margin-top: 8px;
+    }
+
+    .hero h1 {
+        font-size: 2.3rem;
+        letter-spacing: -1px;
+    }
+
+    .hero-description {
+        font-size: 1rem;
+        margin-bottom: 28px;
+    }
+
+    .cta {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .features {
+        padding: 50px 16px 60px;
+        gap: 16px;
+    }
+
+    .card {
+        padding: 28px 22px;
+    }
+
+    
+    .btn-primary:hover,
+    .btn-outline:hover,
+    .card:hover {
+        transform: none;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES (≤ 400px)
+========================================================= */
+
+@media (max-width: 400px) {
+
+    .college-name {
+        font-size: 17px;
+    }
+
+    .college-brand img {
+        height: 36px;
+    }
+
+    .examify-logo {
+        width: 150px;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+}
