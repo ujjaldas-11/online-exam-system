@@ -54,7 +54,7 @@ body {
 
 nav {
     height: 72px;
-    background: rgba(255, 255, 255, 0.92);
+    background-color: #f4e8e8;
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
@@ -77,9 +77,8 @@ nav {
 .college-brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     text-decoration: none;
-    margin-left: -300px;          
     margin-top: 7px;
 }
 
@@ -92,11 +91,13 @@ nav {
 }
 
 .college-name {
-    font-size: 40px;
-    margin-left: 260px;           
-    font-weight: bold;
+    font-size: 2rem;
+    max-width: 0 auto 2rem;
+    font-weight: 900;
     color: rgb(1, 1, 57);
     white-space: nowrap;
+    
+
 }
 
 .college-name span {
@@ -351,14 +352,13 @@ footer {
 
     
     .college-brand {
-        margin-left: 0;
         margin-top: 0;
         gap: 10px;
     }
 
     .college-name {
-        margin-left: 0;
-        font-size: 10px;
+        font-size: 1.5rem;
+        max-width: auto;
     }
 
     .college-brand img {
@@ -413,7 +413,8 @@ footer {
     }
 
     .college-name {
-        font-size: 10px;
+        font-size: 1.2rem;
+        max-width: auto;
     }
 
     .hero {
@@ -475,10 +476,11 @@ footer {
    VERY SMALL PHONES (≤ 400px)
 ========================================================= */
 
-@media (max-width: 400px) {
+@media (max-width: 450px) {
 
     .college-name {
-        font-size: 17px;
+        font-size: 0.88rem;
+        max-width: auto;
     }
 
     .college-brand img {
