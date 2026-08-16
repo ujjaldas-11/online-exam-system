@@ -125,19 +125,21 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
                 </div>
 
                 <div class="form-group">
-                    <label>Questions to Ask</label>
-                    <input type="number" name="total_questions_to_ask" id="calcQuestions" min="1" required placeholder="e.g. 20">
+                    <label>Total Marks</label>
+                    <input type="number" name="total_marks" id="calcTotalMarks">
                 </div>
-
+                
                 <div class="form-group">
                     <label>Marks per Question</label>
                     <input type="number" id="calcMarksPerQ" min="1" value="1" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Total Marks (Auto-Calculated)</label>
-                    <input type="number" name="total_marks" id="calcTotalMarks" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: var(--primary);">
+                    <label>Questions to Ask (Auto-Calculated)</label>
+                    <input type="number" name="total_questions_to_ask" id="calcQuestions" min="1" readonly  style="background-color: #f1f5f9;
+                      font-weight: bold; color: var(--primary); cursor: not-allowed;">
                 </div>
+
             </div>
 
             <button type="submit" name="create_exam" class="btn">Create Exam</button>
@@ -151,17 +153,21 @@ document.addEventListener("DOMContentLoaded", function() {
     const marksPerQInput = document.getElementById('calcMarksPerQ');
     const totalMarksInput = document.getElementById('calcTotalMarks');
 
-    function calculateTotal() {
-        const qCount = parseInt(questionsInput.value) || 0;
+    function claculateQuestionNumber(){
+        const total_marks = parseInt(totalMarksInput.value) || 0;
         const marksQ = parseInt(marksPerQInput.value) || 0;
-        totalMarksInput.value = qCount * marksQ;
+
+        questionsInput.value = total_marks / marksQ;
     }
 
-    if (questionsInput && marksPerQInput) {
-        questionsInput.addEventListener('input', calculateTotal);
-        marksPerQInput.addEventListener('input', calculateTotal);
+
+    if (totalMarksInput && marksPerQInput) {
+        totalMarksInput.addEventListener('input', claculateQuestionNumber);
+        marksPerQInput.addEventListener('input', claculateQuestionNumber);
     }
 });
+
+
 </script>
 
 </body>
