@@ -70,7 +70,7 @@ nav {
     padding: 0 28px;
     display: flex;
     align-items: center;
-    justify-content: space-between; 
+    justify-content: space-evenly;
 }
 
 
@@ -79,12 +79,12 @@ nav {
     align-items: center;
     gap: 14px;
     text-decoration: none;
-    margin-left: -480px;          
+    margin-left: -300px;          
     margin-top: 7px;
 }
 
 .college-brand img {
-    height: 59px;
+    height: 50px;
     width: auto;
     border-radius: 50%;
     max-width: 180px;
@@ -93,7 +93,7 @@ nav {
 
 .college-name {
     font-size: 40px;
-    margin-left: 600px;           
+    margin-left: 260px;           
     font-weight: bold;
     color: rgb(1, 1, 57);
     white-space: nowrap;
