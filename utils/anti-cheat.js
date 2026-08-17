@@ -11,7 +11,7 @@
 const AntiCheat = (function() {
     let isExamActive = false;
     let violationCount = 0;
-    const MAX_VIOLATIONS = 3;
+    const MAX_VIOLATIONS = 2;
     let violationCallback = null;
     let terminationCallback = null;
 
