@@ -3,8 +3,8 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
- <!-- <link rel="stylesheet" href="../assets/css/student.css"> -->
-<style>
+ <link rel="stylesheet" href="../assets/css/components.css">
+<!-- <style>
         .navbar { 
         background-color: #031e3b; 
         padding: 15px 20px; 
@@ -39,7 +39,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     .nav-logout { background-color: #dc3545; }
     .nav-logout:hover { background-color: #c82333; }
 
-</style>
+</style> -->
 
 
 <nav class="navbar">

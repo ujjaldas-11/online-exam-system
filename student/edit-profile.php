@@ -7,8 +7,12 @@ $student_id = $_SESSION['student_id'];
 $message = '';
 $error = '';
 
-// Handle Profile Update
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+$stmt = $pdo->prepare("SELECT id FROM profile_requests WHERE student_id = ? AND status = 'pending'");
+$stmt->execute([$student_id]);
+$has_pending_request = $stmt->fetchColumn();
+
+// Handle Profile Update request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_update']) && !$has_pending_request) {
     $name        = trim(strip_tags($_POST['name'] ?? ''));
     $roll_number = trim(strip_tags($_POST['roll_number'] ?? ''));
     $department  = trim(strip_tags($_POST['department'] ?? ''));
@@ -21,25 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
         $checkStmt = $pdo->prepare("SELECT id FROM students WHERE roll_number = ? AND id != ?");
         $checkStmt->execute([$roll_number, $student_id]);
 
+
+
         if ($checkStmt->rowCount() > 0) {
             $error = "This Roll Number is already registered to another student.";
         } else {
-            $updateStmt = $pdo->prepare("
-                UPDATE students 
-                SET name = ?, roll_number = ?, department = ?, semester = ? 
-                WHERE id = ?
-            ");
+                $insertStmt = $pdo->prepare("
+                    INSERT INTO profile_requests (student_id, new_name, new_roll_no, new_department, new_semester) 
+                    VALUES (?, ?, ?, ?, ?)
+                ");
+                $insertStmt->execute([$student_id, $name, $roll_number, $department, $semester]);
 
-            if ($updateStmt->execute([$name, $roll_number, $department, $semester, $student_id])) {
-                $message = "Profile updated successfully!";
-
-                // Update session so dashboard reflects changes immediately
-                $_SESSION['student_name'] = $name;
-                $_SESSION['department']   = $department;
-                $_SESSION['semester']     = $semester;
-            } else {
-                $error = "Failed to update profile. Please try again.";
-            }
+            $has_pending_request = true;
+            $message = "Update request sent to admin for approval!";
+            
         }
     }
 }
@@ -82,46 +81,54 @@ if (!$student) {
             <div class="alert error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
-        <form method="POST">
-            <div class="form-group">
-                <label>Email Address (cannot be changed)</label>
-                <input type="email" value="<?= htmlspecialchars($student['email']) ?>" readonly>
-            </div>
 
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" name="name" required 
-                       value="<?= htmlspecialchars($student['name']) ?>">
+        <?php if ($has_pending_request): ?>
+            <div style="background: #fef3c7; color: #92400e; padding: 15px; border-radius: 8px;">
+                <strong>Notice:</strong> You have a profile update waiting for admin approval. You cannot make changes right now.
             </div>
+        <?php else: ?>
+            <form method="POST">
+            
+                <div class="form-group">
+                    <label>Email Address (cannot be changed)</label>
+                    <input type="email" value="<?= htmlspecialchars($student['email']) ?>" readonly>
+                </div>
 
-            <div class="form-group">
-                <label>Roll Number</label>
-                <input type="text" name="roll_number" required 
-                       value="<?= htmlspecialchars($student['roll_number']) ?>">
-            </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" required 
+                        value="<?= htmlspecialchars($student['name']) ?>">
+                </div>
 
-            <div class="form-group">
-                <label>Department</label>
-                <select name="department" required>
-                    <option value="BCA" <?= $student['department'] === 'BCA' ? 'selected' : '' ?>>BCA</option>
-                    <option value="BBA" <?= $student['department'] === 'BBA' ? 'selected' : '' ?>>BBA</option>
-                </select>
-            </div>
+                <div class="form-group">
+                    <label>Roll Number</label>
+                    <input type="text" name="roll_number" required 
+                        value="<?= htmlspecialchars($student['roll_number']) ?>">
+                </div>
 
-            <div class="form-group">
-                <label>Current Semester</label>
-                <select name="semester" required>
-                    <?php for ($i = 1; $i <= 8; $i++): ?>
-                        <option value="<?= $i ?>" <?= $student['semester'] == $i ? 'selected' : '' ?>>
-                            Semester <?= $i ?>
-                        </option>
-                    <?php endfor; ?>
-                </select>
-            </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="department" required>
+                        <option value="BCA" <?= $student['department'] === 'BCA' ? 'selected' : '' ?>>BCA</option>
+                        <option value="BBA" <?= $student['department'] === 'BBA' ? 'selected' : '' ?>>BBA</option>
+                    </select>
+                </div>
 
-            <button type="submit" name="update_profile" class="btn">Save Changes</button>
-            <a href="profile.php" class="btn-secondary">Cancel & Go Back</a>
-        </form>
+                <div class="form-group">
+                    <label>Current Semester</label>
+                    <select name="semester" required>
+                        <?php for ($i = 1; $i <= 8; $i++): ?>
+                            <option value="<?= $i ?>" <?= $student['semester'] == $i ? 'selected' : '' ?>>
+                                Semester <?= $i ?>
+                            </option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+
+                <button type="submit" name="request_update" class="btn">Request to update</button>
+                <a href="profile.php" class="btn-secondary">Cancel & Go Back</a>
+            </form>
+        <?php endif?>
     </div>
 </div>
 

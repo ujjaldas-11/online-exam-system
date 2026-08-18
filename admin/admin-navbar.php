@@ -1,7 +1,8 @@
 
 <style>
     nav {
-            background: var(--dark);
+            /* background: var(--dark); */
+            background: #1e293b;
             color: white;
             position: sticky;
             top: 0;
@@ -74,6 +75,7 @@
                         <a href="manage-questions.php">Questions</a>
                         <a href="control-exams.php">Exams</a>
                         <a href="results.php">Results</a>
+                        <a href="manage-requests.php">Manage requests</a>
                         <a href="admin-logout.php" class="logout">Logout</a>
                     </div> 
                 </div>
