@@ -43,43 +43,6 @@ try {
             line-height: 1.5;
         }
 
-        /* Navbar
-        nav {
-            background: var(--dark);
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
-        .nav-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .logo { font-weight: 700; font-size: 1.25rem; }
-        .nav-links { display: flex; gap: 6px; }
-        .nav-links a {
-            color: #cbd5e1;
-            text-decoration: none;
-            padding: 7px 12px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        .nav-links a:hover { background: #1e293b; color: white; }
-        .logout { background: #dc2626 !important; color: white !important; }
-        .menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        } */
 
         /* Layout */
         .container {
