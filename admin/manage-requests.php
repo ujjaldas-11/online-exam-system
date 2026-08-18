@@ -65,8 +65,29 @@ $requests = $pdo->query("
     <title>Manage Requests • Examify</title>
 </head>
 
+<style>
+    :root {
+            --primary: #2563eb;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --error: #dc2626;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+</style>
+
 <body>
-    <?php include 'admin-navbar.php' ?>
+    <?php include '../components/navbar.php'; ?>
+
     <!-- Show Success or Error Messages -->
     <?php if ($message): ?>
         <div style="background: green; color: white; padding: 10px; margin-bottom: 15px;"><?= htmlspecialchars($message) ?></div>
@@ -74,6 +95,8 @@ $requests = $pdo->query("
     <?php if ($error): ?>
         <div style="background: red; color: white; padding: 10px; margin-bottom: 15px;"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
+
+
     <div class="table-wrap">
 
         <table cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
@@ -88,8 +111,9 @@ $requests = $pdo->query("
             <tbody>
                 <?php if (empty($requests)): ?>
                     <tr>
-                        <td colspan="4" style="text-align: center; color: gray;">No pending requests.</td>
+                        <td colspan="7" style="text-align:center; color:var(--gray);">No Pending request available</td>
                     </tr>
+
                 <?php else: ?>
                     <?php foreach ($requests as $req): ?>
                         <tr>
@@ -104,8 +128,8 @@ $requests = $pdo->query("
                             <td>
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                    <button type="submit" name="action" value="approve" style="background: green; color: white; padding: 5px 10px; border: none; cursor: pointer;">Approve</button>
-                                    <button type="submit" name="action" value="reject" style="background: red; color: white; padding: 5px 10px; border: none; cursor: pointer;">Reject</button>
+                                    <button type="submit" name="action" value="approve" style="background: green; color: white; padding: 5px 10px; border: none; border-radius: 8px; cursor: pointer;">Approve</button>
+                                    <button type="submit" name="action" value="reject" style="background: red; color: white; padding: 5px 10px; border: none; border-radius: 8px; cursor: pointer;">Reject</button>
                                 </form>
                             </td>
                         </tr>

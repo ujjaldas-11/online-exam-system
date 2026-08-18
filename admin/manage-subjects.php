@@ -124,34 +124,13 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY id DESC")->fetchAll();
         }
         .btn:hover { background: #1d4ed8; }
 
-        /* Table */
-        .table-wrap { overflow-x: auto; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95rem;
-        }
-        th, td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        th {
-            background: #f1f5f9;
-            font-weight: 600;
-            color: #475569;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        tr:hover td { background: #f8fafc; }
-
     </style>
 </head>
 <body>
 
 
-<?php include 'admin-navbar.php' ?>
+<?php include '../components/navbar.php'; ?>
+
 
 <div class="container">
     <h1>Manage Subjects</h1>

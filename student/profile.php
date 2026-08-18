@@ -206,7 +206,7 @@ try {
     </div>
 
     <!-- Exam History -->
-    <div class="card">
+    <div class="card exam-history">
         <div class="card-header">
             <h2>Exam History</h2>
         </div>

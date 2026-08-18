@@ -81,14 +81,6 @@ $all_results = $resultsStmt->fetchAll();
         .alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-weight: 500; }
         .alert-success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
 
-        /* Table */
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: #f1f5f9; font-weight: 600; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.3px; }
-        tr:hover td { background: #f8fafc; }
-        .score { font-weight: 700; color: var(--primary); }
-
         /* Print Settings */
         @media print {
             body { background: white; padding: 0; }
@@ -102,7 +94,8 @@ $all_results = $resultsStmt->fetchAll();
 <body>
 
 <div class="no-print">
-    <?php include 'admin-navbar.php' ?>
+    <?php include '../components/navbar.php'; ?>
+
 </div>
 
 <div class="container">

@@ -4,75 +4,56 @@ $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
  <link rel="stylesheet" href="../assets/css/components.css">
-<!-- <style>
-        .navbar { 
-        background-color: #031e3b; 
-        padding: 15px 20px; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        color: white; 
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .navbar h2 { margin: 0; font-size: 22px; }
-    .nav-right { display: flex; align-items: center; gap: 10px; }
-    .nav-greeting { margin-right: 15px; font-size: 16px; }
-    .navbar a { 
-        color: white; 
-        text-decoration: none; 
-        font-weight: bold; 
-        padding: 8px 15px; 
-        border-radius: 4px; 
-        transition: 0.2s;
-    }
-    
-    /* Different button colors */
-    .nav-dash { background-color: #17a2b8; }
-    .nav-dash:hover { background-color: #138496; }
-    
-    .nav-profile { background-color: #28a745; }
-    .nav-profile:hover { background-color: #218838; }
-
-    .nav-edit { background-color: #ffc107; color: #333 !important; }
-    .nav-edit:hover { background-color: #e0a800; }
-    
-    .nav-logout { background-color: #dc3545; }
-    .nav-logout:hover { background-color: #c82333; }
-
-</style> -->
 
 
 <nav class="navbar">
-    <h2>Examify Student Portal</h2>
     <div class="nav-right">
-        <span class="nav-greeting">
-            Hi, <?php echo htmlspecialchars($_SESSION['student_name'] ?? 'Student'); ?>!
-        </span>
+        <?php if($current_page === 'admin-dashboard.php' || 
+                 $current_page === 'manage-subjects.php' ||
+                 $current_page === 'manage-questions.php' ||
+                 $current_page === 'control-exams.php' ||
+                 $current_page === 'results.php' ||
+                 $current_page === 'manage-requests.php' 
+                 ): ?>
+
+                <div class="nav-inner">
+                     <h1>
+                    Hi, <?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin'); ?>!
+                    </h1>
+                    <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+
+                    <div class="nav-links">
+                        <a href="admin-dashboard.php">Dashboard</a>
+                        <a href="manage-subjects.php">Subjects</a>
+                        <a href="manage-questions.php">Questions</a>
+                        <a href="control-exams.php">Exams</a>
+                        <a href="results.php">Results</a>
+                        <a href="manage-requests.php">Manage requests</a>
+                        <a href="admin-logout.php" class="logout">Logout</a>
+                    </div> 
+                </div>
 
         <?php 
-        if ($current_page === 'dashboard.php'): 
+            elseif ($current_page === 'dashboard.php' || $current_page === 'profile.php' || $current_page === 'edit-profile.php'): 
         ?>
-            <a href="profile.php" class="nav-profile">My Profile</a>
-            
-        <?php 
-        elseif ($current_page === 'profile.php'): 
-        ?>
-            <a href="dashboard.php" class="nav-dash">Dashboard</a>
-            <a href="edit-profile.php" class="nav-edit">✎ Edit Profile</a>
-            
-        <?php 
-        elseif ($current_page === 'edit-profile.php'): 
-        ?>
-            <a href="dashboard.php" class="nav-dash">Dashboard</a>
-            <a href="profile.php" class="nav-profile">Cancel Edit</a>
-            
-        <?php 
-        elseif($current_page === 'admin-dashboard.php'): 
-        ?>
-            <a href="admin-dashboard.php" class="nav-dash">Dashboard</a>
-            
-        <?php endif; ?>
+            <div class="nav-inner">
+                <span class="nav-greeting">
+                    Hi, <?php echo htmlspecialchars($_SESSION['student_name'] ?? 'Student'); ?>!
+                </span>
 
-        <a href="logout.php" class="nav-logout">Logout</a>
+                <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+
+                <div class="nav-links">
+                    <a href="dashboard.php" >Dashboard</a>
+                    <a href="profile.php" >My Profile</a>
+                    <!-- <a href="#exam-history" >Exam History</a> -->
+
+                    <a href="logout.php" class="nav-logout">Logout</a>
+                </div>
+
+            </div>
+            
+        
+        <?php endif ?>
     </div>
 </nav>

@@ -140,26 +140,6 @@ $top_scorers = array_slice($all_results, 0, 3);
             margin-top: 8px;
         }
 
-        .table-wrap { overflow-x: auto; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95rem;
-        }
-        th, td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        th {
-            background: #f1f5f9;
-            font-weight: 600;
-            color: #475569;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        tr:hover td { background: #f8fafc; }
         .score { font-weight: 700; color: var(--primary); }
 
         @media print {
@@ -175,7 +155,8 @@ $top_scorers = array_slice($all_results, 0, 3);
 </head>
 <body>
 <div class="no-print">
-    <?php include 'admin-navbar.php'; ?>
+    <?php include '../components/navbar.php'; ?>
+
 </div>
 
 <div class="container">

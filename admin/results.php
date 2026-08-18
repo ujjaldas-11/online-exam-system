@@ -69,12 +69,6 @@ $exams = $stmt->fetchAll();
         .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
         .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* Table Styles */
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: #f1f5f9; font-weight: 600; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.3px; }
-        tr:hover td { background: #f8fafc; }
 
         .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
         .badge.info { background: #e0f2fe; color: #0369a1; }
@@ -85,7 +79,8 @@ $exams = $stmt->fetchAll();
 </head>
 <body>
 
-<?php include 'admin-navbar.php' ?>
+<?php include '../components/navbar.php'; ?>
+
 
 <div class="container">
     <h1> Results Dashboard</h1>

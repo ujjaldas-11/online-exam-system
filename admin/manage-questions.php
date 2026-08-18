@@ -193,7 +193,8 @@ $default_json = '';
 </head>
 <body>
 
-<?php include 'admin-navbar.php' ?>
+<?php include '../components/navbar.php'; ?>
+
 
 <div class="container">
     <h1>Manage Questions</h1>

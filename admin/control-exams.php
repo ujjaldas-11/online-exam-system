@@ -65,13 +65,7 @@ $exams = $pdo->query("
         .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; }
         .alert.success { background: #dcfce7; color: var(--success); }
         .alert.error { background: #fee2e2; color: var(--error); }
-        .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-        
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: #f1f5f9; font-weight: 600; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.3px; }
-        tr:hover td { background: #f8fafc; }
+        .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }  
 
         .action-flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         
@@ -100,7 +94,7 @@ $exams = $pdo->query("
 </head>
 <body>
 
-<?php include 'admin-navbar.php'; ?>
+<?php include '../components/navbar.php'; ?>
 
 <div class="container">
     <h1>Exam Control Center</h1>

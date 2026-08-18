@@ -80,7 +80,8 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
 </head>
 <body>
 
-<?php include 'admin-navbar.php'; ?>
+<?php include '../components/navbar.php'; ?>
+
 
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center;">

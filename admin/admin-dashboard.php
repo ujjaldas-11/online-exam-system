@@ -1,11 +1,8 @@
 <?php
-session_start();
+require_once 'admin-guard.php';
 require_once '../config/database.php';
 
-if (!isset($_SESSION['admin_id'])) {
-    header("Location: admin-login.php");
-    exit();
-}
+
 
 $admin_name = $_SESSION['admin_name'];
 
@@ -104,28 +101,6 @@ try {
             color: var(--primary);
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
         }
-
-        /* Mobile */
-        /* @media (max-width: 768px) {
-            .menu-btn { display: block; }
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 60px;
-                left: 0;
-                right: 0;
-                background: var(--dark);
-                flex-direction: column;
-                padding: 12px;
-                gap: 4px;
-            }
-            .nav-links.show { display: flex; }
-            .nav-links a { padding: 12px; text-align: center; }
-            .stats { grid-template-columns: repeat(2, 1fr); }
-        } */
-        /* @media (max-width: 480px) {
-            .stats { grid-template-columns: 1fr; }
-        } */
     </style>
 </head>
 <body>
@@ -133,7 +108,7 @@ try {
 
 
 
-<?php include 'admin-navbar.php'; ?>
+<?php include '../components/navbar.php'; ?>
 
 <div class="container">
     <h1>Welcome back, <?= htmlspecialchars($admin_name) ?></h1>
