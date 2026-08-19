@@ -158,8 +158,8 @@ try {
         const data = await response.json();
         const quotesArray = data.quotes;
 
-        // console.log("Full Data:", data);
-        // console.log("First Item:", quotesArray[0]);
+        console.log("Full Data:", data);
+        console.log("First Item:", quotesArray[0]);
 
 
         if(quotesArray && quotesArray.length > 0) {

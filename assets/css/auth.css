@@ -1,10 +1,8 @@
-
-
-        :root {
+   :root {
             --primary: #2563eb;
             --dark: #0f172a;
             --gray: #64748b;
-            --light: #f8fafc;
+            --light: linear-gradient(135deg, #0A1128 0%, #1E1233 50%, #3B1C56 100%);
             --border: #e2e8f0;
             --error: #dc2626;
             --success: #16a34a;
@@ -20,9 +18,9 @@
             padding: 24px 16px;
         }
         .card {
-            background: white;
+            background: rgb(250, 244, 250);
             width: 100%;
-            max-width: 440px;
+            max-width: 400px;
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 32px 28px;
@@ -38,7 +36,7 @@
             font-size: 0.95rem;
             margin-bottom: 24px;
         }
-        .form-group { margin-bottom: 14px; }
+        .form-group { margin-bottom: 16px; }
         label {
             display: block;
             font-size: 0.9rem;
@@ -78,6 +76,8 @@
             font-size: 0.9rem;
             text-align: center;
             font-weight: 500;
+            background: #fee2e2;
+            color: var(--error);
         }
         .alert.error { background: #fee2e2; color: var(--error); }
         .alert.success { background: #dcfce7; color: var(--success); }
@@ -92,4 +92,3 @@
             text-decoration: none;
             font-weight: 500;
         }
-
