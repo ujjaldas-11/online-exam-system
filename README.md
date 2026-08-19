@@ -2,7 +2,7 @@
 
 **Examify** is a web-based online examination platform built with **PHP, MySQL, HTML5, CSS3, and Vanilla JavaScript**. It provides separate interfaces for administrators and students to manage subjects, create examinations, maintain MCQ question banks, conduct timed examinations, automatically evaluate submissions, and manage examination results.
 
-## 🎯 Motive
+## Motive
 
 The goal of Examify is to provide a simple and centralized digital examination system for colleges and educational institutions.
 
@@ -31,7 +31,7 @@ The system covers the complete examination workflow:
 
 ---
 
-## 🚀 Project Status
+## Project Status
 
 **Status: Functional Development Version**
 
@@ -79,7 +79,7 @@ The project can be further improved with additional analytics, advanced security
 
 ## ✨ Features
 
-### 👨‍🏫 Admin Features
+### Admin Features
 
 - **Admin Authentication** — Secure login and session-based access control for administrators.
 - **Admin Dashboard** — Provides an overview of important system and examination information.
@@ -96,7 +96,7 @@ The project can be further improved with additional analytics, advanced security
 - **Result Filtering** — Filter examination results according to available examination information.
 - **Search Functionality** — Search examinations and questions using the available search interfaces.
 
-### 🎓 Student Features
+### Student Features
 
 - **Student Registration** — Students can create an account by providing their required academic and personal information.
 - **Student Login** — Students can securely log in to their account.
@@ -122,7 +122,7 @@ The project can be further improved with additional analytics, advanced security
 
 ---
 
-## 🛡️ Examination Security
+## Examination Security
 
 Examify includes several browser-based mechanisms to improve examination security.
 
@@ -140,7 +140,7 @@ Examify includes several browser-based mechanisms to improve examination securit
 
 > **Note:** Browser-based security mechanisms are deterrents and cannot completely prevent cheating. For high-stakes examinations, additional institutional security and proctoring mechanisms should be used.
 
-## 🎲 Randomized Questions
+## Randomized Questions
 
 Examify allows administrators to maintain a question bank containing more questions than are required for a particular examination.
 
@@ -159,7 +159,7 @@ Exam Configuration
        20 Questions
 ```
 
-## ⏱️ Examination Interface
+## Examination Interface
 
 The examination interface provides the student with the tools required to complete a timed MCQ examination.
 
@@ -186,7 +186,7 @@ Questions can be represented through different states such as:
 | Not Answered      | Question has not been answered            |
 | Marked for Review | Question has been marked for later review |
 
-## 🧮 Automatic Evaluation
+## Automatic Evaluation
 
 After an examination is submitted, Examify evaluates the student's MCQ answers automatically.
 The evaluation process follows:
@@ -212,7 +212,7 @@ The system can calculate and display information such as:
 - Total marks
 - Examination performance
 
-## 📊 Results
+## Results
 **Student Results**
 
 After completing an examination, students can view their result.
@@ -241,7 +241,7 @@ The result management interface supports:
 - Examination submission information
 - Individual result details
 
-## 🗃️ Database
+## Database
 
 Examify uses MySQL with InnoDB as its relational database system.
 
@@ -260,7 +260,7 @@ The main database tables include:
 The application uses PDO for database communication.
 
 Database relationships and foreign keys are used to maintain data consistency between students, examinations, subjects, questions, attempts, and answers.
-## 🛠️ Tech Stack
+## Tech Stack
 
 | **Layer**         | **Technology**     |
 | ----------------- | ------------------ |
@@ -277,7 +277,7 @@ Database relationships and foreign keys are used to maintain data consistency be
 
 ---
 
-## 📁 Folder Structure
+## Folder Structure
 ```
 online-exam-system/
 ├── .github/
@@ -290,20 +290,23 @@ online-exam-system/
 │   ├── admin-guard.php
 │   ├── admin-login.php
 │   ├── admin-logout.php
-│   ├── admin-navbar.php
 │   ├── control-exams.php
 │   ├── manage-exam.php
 │   ├── manage-questions.php
+|   ├── manage-request.php
 │   ├── manage-subjects.php
 │   ├── results.php
 │   ├── view-questions.php
 │   └── view-results.php
 │
 ├── archive/
+|   ├── 001_add_indexes.sql
 │   └── schema.sql
 │
 ├── assets/
+|   ├── images/ 
 │   └── css/
+|       ├── components.css
 │       ├── login.css
 │       ├── register.css
 │       ├── student.css
@@ -317,6 +320,7 @@ online-exam-system/
 │   └── database.php
 │
 ├── student/
+|   ├── check-exams.php
 │   ├── dashboard.php
 │   ├── edit-profile.php
 │   ├── exam.php
@@ -339,6 +343,8 @@ online-exam-system/
 │   ├── anti-cheat.js
 │   └── timer.js
 │
+├── .editorconfig
+├── funny_quotes.json
 ├── index.php
 ├── LICENSE
 ├── production.md
@@ -346,7 +352,7 @@ online-exam-system/
 ```
 
 ---
-# 🚀 Production Deployment
+# Production Deployment
 Examify includes a production.md file containing information related to production deployment.
 
 The project also contains GitHub Actions configuration for project automation.
@@ -421,7 +427,7 @@ C:\wamp\www\online-exam-system
 > The exact web-root directory may vary depending on your Linux distribution and Apache configuration.
 
 ---
-# 🗄️ Database Setup
+# Database Setup
 
 Examify includes a `schema.sql` file that can be used to create the required database tables and relationships.
 
@@ -482,7 +488,7 @@ exit;
 ```
 ---
 
-# 🔐 Configure Database Credentials
+# Configure Database Credentials
 
 Examify uses environment variables for database configuration.
 
@@ -510,7 +516,7 @@ Update the values according to your local MySQL configuration.
 
 ---
 
-# ▶️ Launch the Application
+# Launch the Application
 
 Once Apache, PHP, and MySQL are configured, open:
 
@@ -524,7 +530,7 @@ The application provides separate access areas for:
 -**Administrator**
 ---
 
-# 🤝 Contributing
+# Contributing
 
 Contributions, issues, bug reports, and feature requests are welcome!
 
@@ -574,7 +580,7 @@ Explain what you changed and why.
 
 ---
 
-# 💡 Future Improvements
+# Future Improvements
 
 The following features can be added in future versions:
 
@@ -597,7 +603,7 @@ The following features can be added in future versions:
 
 ---
 
-## 📌 About the Project
+## About the Project
 
 Examify is designed as a practical **college-level online examination system** that provides a foundation for managing digital examinations.
 
