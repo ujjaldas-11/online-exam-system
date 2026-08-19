@@ -95,4 +95,18 @@
       CONSTRAINT `fk_student_answers_question` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+    CREATE TABLE `profile_requests` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `student_id` int(11) NOT NULL,
+      `new_name` varchar(100) NOT NULL,
+      `new_roll_no` varchar(50) NOT NULL,
+      `new_department` varchar(50) NOT NULL,
+      `new_semester` tinyint(4) NOT NULL,
+      `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+      `request_date` timestamp NULL DEFAULT current_timestamp(),
+      PRIMARY KEY (`id`),
+      KEY `student_id` (`student_id`),
+      CONSTRAINT `fk_profile_requests_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
     COMMIT;
