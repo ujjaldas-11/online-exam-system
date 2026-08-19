@@ -62,147 +62,210 @@ $default_json = '';
     <style>
         :root {
             --primary: #2563eb;
-            --dark: #0f172a;
-            --gray: #64748b;
-            --light: #f8fafc;
+            --primary-soft: #eff6ff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
             --border: #e2e8f0;
+            --bg: #f8fafc;
+            --card: #ffffff;
             --success: #16a34a;
             --error: #dc2626;
+            --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: var(--light);
-            color: var(--dark);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
             line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
-        /* Layout */
+
         .container {
-            max-width: 900px;
+            max-width: 920px;
             margin: 0 auto;
-            padding: 32px 20px;
+            padding: 36px 24px 60px;
         }
-        h1 { font-size: 1.6rem; margin-bottom: 4px; }
-        .subtitle { color: var(--gray); margin-bottom: 24px; }
+
+        /* Header */
+        .page-header {
+            margin-bottom: 32px;
+        }
+        .page-header h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-size: 0.95rem;
+        }
 
         /* Alerts */
         .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            padding: 13px 16px;
+            border-radius: 10px;
+            margin-bottom: 24px;
             font-weight: 500;
+            font-size: 0.95rem;
         }
-        .alert.success { background: #dcfce7; color: var(--success); }
-        .alert.error { background: #fee2e2; color: var(--error); }
+        .alert.success {
+            background: #dcfce7;
+            color: var(--success);
+            border: 1px solid #bbf7d0;
+        }
+        .alert.error {
+            background: #fee2e2;
+            color: var(--error);
+            border: 1px solid #fecaca;
+        }
 
         /* Card */
         .card {
-            background: white;
+            background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow: var(--shadow);
         }
         .card h2 {
             font-size: 1.15rem;
-            margin-bottom: 16px;
+            font-weight: 600;
+            margin-bottom: 18px;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 0.875rem;
+            color: #475569;
+            margin-bottom: 24px;
+            line-height: 1.55;
+        }
+        .instructions strong {
+            color: var(--text);
+        }
+        .instructions code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         }
 
         /* Form */
-        .form-group { margin-bottom: 18px; }
+        .form-group {
+            margin-bottom: 20px;
+        }
         label {
             display: block;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             font-weight: 500;
             margin-bottom: 6px;
             color: #334155;
         }
         select, textarea {
             width: 100%;
-            padding: 10px 12px;
+            padding: 11px 13px;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 9px;
             font-size: 0.95rem;
             background: white;
-        }
-        textarea {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            resize: vertical;
-            min-height: 320px;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
         select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+        textarea {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            resize: vertical;
+            min-height: 340px;
         }
 
+        /* Buttons row */
         .btn-row {
             display: flex;
             gap: 10px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
         }
+
         .btn-secondary {
-            background: #e2e8f0;
+            background: white;
             color: #334155;
-            border: none;
-            padding: 7px 14px;
-            border-radius: 6px;
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 8px;
             font-size: 0.85rem;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
-        .btn-secondary:hover { background: #cbd5e1; }
+        .btn-secondary:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
         .btn-secondary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
         .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             background: var(--primary);
             color: white;
             border: none;
-            padding: 11px 20px;
-            border-radius: 8px;
+            padding: 12px 22px;
+            border-radius: 9px;
             font-weight: 600;
             font-size: 0.95rem;
             cursor: pointer;
-            margin-top: 8px;
+            transition: background 0.15s;
+            margin-top: 6px;
         }
-        .btn:hover { background: #1d4ed8; }
-
-        .instructions {
-            background: #f1f5f9;
-            border-radius: 8px;
-            padding: 12px 14px;
-            font-size: 0.875rem;
-            color: #475569;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-        .instructions code {
-            background: #e2e8f0;
-            padding: 2px 5px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+        .btn:hover {
+            background: #1d4ed8;
         }
 
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px 16px 40px;
+            }
+        }
     </style>
 </head>
 <body>
 
 <?php include '../components/navbar.php'; ?>
 
-
 <div class="container">
-    <h1>Manage Questions</h1>
-    <p class="subtitle">Bulk upload questions using JSON</p>
+
+    <div class="page-header">
+        <div>
+            <h1>Manage Questions</h1>
+            <p class="subtitle">Bulk upload questions using JSON</p>
+        </div>
+    </div>
 
     <?php if ($success_message): ?>
         <div class="alert success"><?= htmlspecialchars($success_message) ?></div>
     <?php endif; ?>
+
     <?php if ($error_message): ?>
         <div class="alert error"><?= htmlspecialchars($error_message) ?></div>
     <?php endif; ?>
@@ -211,8 +274,8 @@ $default_json = '';
         <h2>Bulk Insert Questions</h2>
 
         <div class="instructions">
-            <strong>Instructions:</strong> Paste a valid JSON array.  
-            Required keys: <code>question_text</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code>.  
+            <strong>Instructions:</strong> Paste a valid JSON array.<br>
+            Required keys: <code>question_text</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code>.<br>
             Optional: <code>option_c</code>, <code>option_d</code>.  
             <code>correct_option</code> must be <code>A</code>, <code>B</code>, <code>C</code> or <code>D</code>.
         </div>
@@ -235,18 +298,21 @@ $default_json = '';
                 <label>JSON Data</label>
                 <div class="btn-row">
                     <button type="button" class="btn-secondary" id="copy-prompt-btn" disabled>
-                         Copy LLM Prompt
+                        📋 Copy LLM Prompt
                     </button>
                     <button type="button" class="btn-secondary" id="paste-btn">
                         📝 Paste from Clipboard
                     </button>
                 </div>
-                <textarea name="json_data" id="json_data" required><?= htmlspecialchars($default_json) ?></textarea>
+                <textarea name="json_data" id="json_data" required placeholder='[{"question_text":"...","option_a":"...","option_b":"...","correct_option":"A"}]'><?= htmlspecialchars($default_json) ?></textarea>
             </div>
 
-            <button type="submit" name="add_bulk_questions" class="btn">Upload All Questions</button>
+            <button type="submit" name="add_bulk_questions" class="btn">
+                Upload All Questions
+            </button>
         </form>
     </div>
+
 </div>
 
 <script>

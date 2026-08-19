@@ -7,15 +7,42 @@
     --blue-dark: #1d4ed8;
     --blue-light: #3b82f6;
 
-    --dark: #0f172a;
+    --maroon: #a21717;
+    --maroon-light: #d22525;
+
+    --dark: #010139;
     --gray: #64748b;
     --gray-light: #94a3b8;
 
-    --light: #f8fafc;
-    --white: #ffffff;
+    --page-gradient: linear-gradient(
+        60deg,
+        #445195 0%,
+        #afb179 100%
+    );
 
-    --border: #e2e8f0;
+    --hero-gradient: linear-gradient(
+        145deg,
+        #0f172a 0%,
+        #172554 45%,
+        #1e40af 100%
+    );
 
+    --feature-gradient: linear-gradient(
+        135deg,
+        #000080 0%,
+        #4169e1 60%
+    );
+
+    --footer-gradient: linear-gradient(
+        135deg,
+        #5b87d4 0%,
+        #66bc5e 100%
+    );
+
+    --white: #ffe6e6;
+    --white-deep: #e9e8e8;
+
+    --border: #b4b9c2;
     --gold: #d97706;
 }
 
@@ -35,73 +62,95 @@ html {
 }
 
 body {
+    min-height: 100vh;
+
     font-family:
         system-ui,
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
         sans-serif;
-    background: var(--light);
+
+    background: var(--page-gradient);
     color: var(--dark);
     line-height: 1.6;
+
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+img,
+svg {
+    display: block;
+}
+
+a {
+    color: inherit;
 }
 
 
 /* =========================================================
-   NAVBAR
+   NAVIGATION
 ========================================================= */
 
 nav {
-    height: 72px;
-    background-color: whitesmoke;
-    border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
     z-index: 100;
+
+    height: 72px;
+
+    background: rgba(245, 245, 245, 0.96);
+    border-bottom: 1px solid var(--border);
+
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .nav-bar {
     width: 100%;
     max-width: 1180px;
     height: 100%;
+
     margin: 0 auto;
     padding: 0 28px;
+
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
+    justify-content: center;
 }
 
+
+/* College Brand */
 
 .college-brand {
     display: flex;
     align-items: center;
     gap: 12px;
+
     text-decoration: none;
-    margin-top: 7px;
 }
 
 .college-brand img {
+    width: 50px;
     height: 50px;
-    width: auto;
-    border-radius: 50%;
+
     max-width: 180px;
+
     object-fit: contain;
+    border-radius: 50%;
 }
 
 .college-name {
     font-size: 2rem;
-    max-width: 0 auto 2rem;
     font-weight: 900;
-    color: rgb(1, 1, 57);
-    white-space: nowrap;
-    
 
+    color: var(--dark);
+    white-space: nowrap;
 }
 
 .college-name span {
-    color: rgb(162, 23, 23);
+    color: var(--maroon);
     font-size: 2.3rem;
 }
 
@@ -113,41 +162,59 @@ nav {
 .hero {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(145deg, #0f172a 0%, #172554 45%, #1e40af 100%);
-    color: var(--white);
-    text-align: center;
+
     padding: 85px 24px 105px;
+
+    background: var(--hero-gradient);
+    color: var(--white);
+
+    text-align: center;
+}
+
+
+/* Decorative Background */
+
+.hero::before,
+.hero::after {
+    content: "";
+
+    position: absolute;
+
+    border-radius: 50%;
+
+    pointer-events: none;
 }
 
 .hero::before {
-    content: "";
-    position: absolute;
     width: 520px;
     height: 520px;
-    border-radius: 50%;
-    background: rgba(59, 130, 246, 0.14);
-    filter: blur(10px);
+
     top: -280px;
     right: -140px;
-    pointer-events: none;
+
+    background: rgba(59, 130, 246, 0.14);
+
+    filter: blur(10px);
 }
 
 .hero::after {
-    content: "";
-    position: absolute;
     width: 420px;
     height: 420px;
-    border-radius: 50%;
-    background: rgba(37, 99, 235, 0.12);
+
     bottom: -260px;
     left: -130px;
-    pointer-events: none;
+
+    background: rgba(37, 99, 235, 0.12);
 }
+
 
 .hero-content {
     position: relative;
     z-index: 2;
+
+    width: 100%;
     max-width: 760px;
+
     margin: 0 auto;
 }
 
@@ -159,7 +226,9 @@ nav {
 .examify-logo-wrapper {
     width: 150px;
     height: 150px;
+
     margin: 0 auto 22px;
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -167,12 +236,15 @@ nav {
 
 .examify-logo {
     width: 450px;
+    max-width: 90vw;
     height: auto;
+
     object-fit: contain;
-    display: block;
-    margin-bottom: 50px;
-    margin-top: 17px;
-    filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.30));
+
+    filter:
+        drop-shadow(
+            0 12px 28px rgba(0, 0, 0, 0.30)
+        );
 }
 
 
@@ -181,11 +253,13 @@ nav {
 ========================================================= */
 
 .hero h1 {
+    margin-bottom: 16px;
+
     font-size: 3.5rem;
     line-height: 1.1;
+
     font-weight: 750;
     letter-spacing: -1.8px;
-    margin-bottom: 16px;
 }
 
 
@@ -195,10 +269,13 @@ nav {
 
 .hero-description {
     max-width: 570px;
+
     margin: 0 auto 38px;
+
+    color: #cbd5e1;
+
     font-size: 1.12rem;
     line-height: 1.7;
-    color: #cbd5e1;
 }
 
 
@@ -210,48 +287,81 @@ nav {
     display: flex;
     justify-content: center;
     align-items: center;
+
     gap: 14px;
     flex-wrap: wrap;
 }
 
 .btn {
+    min-width: 160px;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 160px;
+
     padding: 13px 26px;
+
     border-radius: 9px;
+
     font-size: 0.98rem;
     font-weight: 650;
+
     text-decoration: none;
-    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
 }
+
+
+/* Primary */
 
 .btn-primary {
     background: var(--blue-light);
     color: white;
+
     border: 1px solid var(--blue-light);
-    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
+
+    box-shadow:
+        0 8px 22px rgba(37, 99, 235, 0.35);
 }
 
 .btn-primary:hover {
     background: #60a5fa;
     border-color: #60a5fa;
+
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.42);
+
+    box-shadow:
+        0 12px 28px rgba(37, 99, 235, 0.42);
 }
+
+
+/* Outline */
 
 .btn-outline {
     background: rgba(255, 255, 255, 0.04);
     color: white;
+
     border: 1px solid rgba(255, 255, 255, 0.32);
 }
 
 .btn-outline:hover {
     background: rgba(255, 255, 255, 0.10);
     border-color: rgba(255, 255, 255, 0.7);
+
     transform: translateY(-2px);
+}
+
+
+/* Keyboard Accessibility */
+
+.btn:focus-visible,
+.college-brand:focus-visible {
+    outline: 3px solid rgba(96, 165, 250, 0.7);
+    outline-offset: 3px;
 }
 
 
@@ -262,37 +372,59 @@ nav {
 .features {
     width: 100%;
     max-width: 1180px;
+
     margin: 0 auto;
     padding: 80px 28px 90px;
+
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+
     gap: 26px;
 }
 
+
+/* Feature Card */
+
 .card {
-    background: var(--white);
+    padding: 34px 28px;
+
+    background: var(--feature-gradient);
+
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 34px 28px;
+
     text-align: center;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    
+
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.25s ease;
 }
 
 .card:hover {
-    transform: translateY(-6px);
-    border-color: #bfdbfe;
-    box-shadow: 0 18px 38px rgba(30, 64, 175, 0.10);
+    transform: translateY(-5px);
+
+    border-color: rgb(165, 157, 157);
+
+    box-shadow:
+        0 18px 38px rgba(139, 155, 208, 0.1);
 }
+
+
+/* Feature Icon */
 
 .card .icon {
     width: 58px;
     height: 58px;
+
     margin: 0 auto 20px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     border-radius: 14px;
+
     background: #eff6ff;
     color: var(--blue);
 }
@@ -300,33 +432,49 @@ nav {
 .card .icon svg {
     width: 27px;
     height: 27px;
+
     fill: none;
     stroke: currentColor;
     stroke-width: 1.7;
+
     stroke-linecap: round;
     stroke-linejoin: round;
 }
 
+
+/* Feature Heading */
+
 .card h3 {
-    font-size: 1.15rem;
-    font-weight: 650;
-    color: var(--dark);
     margin-bottom: 11px;
+
+    color: var(--white);
+
+    font-size: 1.5rem;
+    font-weight: 750;
 }
 
 .card h3::after {
     content: "";
+
     display: block;
+
     width: 32px;
     height: 3px;
-    background: var(--gold);
+
     margin: 11px auto 0;
+
+    background: var(--gold);
+
     border-radius: 10px;
 }
 
+
+/* Feature Description */
+
 .card p {
-    color: var(--gray);
-    font-size: 0.94rem;
+    color: var(--white-deep);
+
+    font-size: 1rem;
     line-height: 1.65;
 }
 
@@ -336,51 +484,52 @@ nav {
 ========================================================= */
 
 footer {
-    text-align: center;
     padding: 27px 24px;
-    color: var(--gray);
-    font-size: 0.88rem;
+
+    background: var(--footer-gradient);
+
     border-top: 1px solid var(--border);
-    background: var(--white);
+
+    color: var(--maroon);
+
+    text-align: center;
+
+    font-size: 0.88rem;
 }
 
 
 /* =========================================================
-   TABLET (≤ 900px)
+   TABLET — 900px
 ========================================================= */
 
 @media (max-width: 900px) {
 
-    
-    .college-brand {
-        margin-top: 0;
-        gap: 10px;
-    }
-
     .college-name {
         font-size: 1.5rem;
-        max-width: auto;
+    }
+
+    .college-name span {
+        font-size: 1.8rem;
     }
 
     .college-brand img {
+        width: 48px;
         height: 48px;
-        max-width: 140px;
     }
 
     .hero {
         padding: 70px 24px 85px;
     }
 
-    .examify-logo {
-        width: 280px;
-        margin-bottom: 30px;
-        margin-top: 10px;
-    }
-
     .examify-logo-wrapper {
         width: 130px;
         height: 130px;
+
         margin-bottom: 16px;
+    }
+
+    .examify-logo {
+        width: 280px;
     }
 
     .hero h1 {
@@ -389,13 +538,14 @@ footer {
 
     .features {
         grid-template-columns: 1fr;
+
         max-width: 620px;
     }
 }
 
 
 /* =========================================================
-   MOBILE (≤ 600px)
+   MOBILE — 600px
 ========================================================= */
 
 @media (max-width: 600px) {
@@ -408,15 +558,25 @@ footer {
         padding: 0 16px;
     }
 
+    .college-brand {
+        gap: 9px;
+    }
+
     .college-brand img {
+        width: 40px;
         height: 40px;
-        max-width: 120px;
     }
 
     .college-name {
         font-size: 1.2rem;
-        max-width: auto;
     }
+
+    .college-name span {
+        font-size: 1.4rem;
+    }
+
+
+    /* Hero */
 
     .hero {
         padding: 55px 18px 70px;
@@ -425,13 +585,12 @@ footer {
     .examify-logo-wrapper {
         width: 100px;
         height: 100px;
+
         margin-bottom: 14px;
     }
 
     .examify-logo {
         width: 180px;
-        margin-bottom: 20px;
-        margin-top: 8px;
     }
 
     .hero h1 {
@@ -440,23 +599,33 @@ footer {
     }
 
     .hero-description {
-        font-size: 1rem;
         margin-bottom: 28px;
+
+        font-size: 1rem;
     }
 
+
+    /* Buttons */
+
     .cta {
-        flex-direction: column;
         width: 100%;
         max-width: 300px;
+
         margin: 0 auto;
+
+        flex-direction: column;
     }
 
     .btn {
         width: 100%;
     }
 
+
+    /* Features */
+
     .features {
         padding: 50px 16px 60px;
+
         gap: 16px;
     }
 
@@ -464,7 +633,9 @@ footer {
         padding: 28px 22px;
     }
 
-    
+
+    /* Disable movement on touch devices */
+
     .btn-primary:hover,
     .btn-outline:hover,
     .card:hover {
@@ -474,17 +645,21 @@ footer {
 
 
 /* =========================================================
-   VERY SMALL PHONES (≤ 400px)
+   VERY SMALL PHONES — 450px
 ========================================================= */
 
 @media (max-width: 450px) {
 
     .college-name {
         font-size: 0.88rem;
-        max-width: auto;
+    }
+
+    .college-name span {
+        font-size: 1rem;
     }
 
     .college-brand img {
+        width: 36px;
         height: 36px;
     }
 
@@ -494,5 +669,23 @@ footer {
 
     .hero h1 {
         font-size: 2rem;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
     }
 }

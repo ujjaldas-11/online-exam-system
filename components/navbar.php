@@ -18,7 +18,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
                 <div class="nav-inner">
                      <h1>
-                    Hi, <?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin'); ?>!
+                    Hi, <span style="font-size:2rem; " ><?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin'); ?>!</span>
                     </h1>
                     <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
 
