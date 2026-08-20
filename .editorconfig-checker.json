@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/editorconfig-checker/editorconfig-checker/v3.11.1/.editorconfig-checker.schema.json",
+  "Verbose": false,
+  "Format": "default",
+  "Debug": false,
+  "IgnoreDefaults": false,
+  "SpacesAfterTabs": false,
+  "NoColor": false,
+  "Exclude": [
+    "\\.git",
+    "\\.idea",
+    "\\.vscode",
+    "vendor",
+    "assets/images",
+    "node_modules",
+    "\\.png$",
+    "\\.jpg$",
+    "\\.jpeg$",
+    "\\.ico$",
+    "\\.zip$"
+  ],
+  "AllowedContentTypes": [],
+  "PassedFiles": [],
+  "Disable": {
+    "Charset": false,
+    "EndOfLine": false,
+    "Indentation": false,
+    "InsertFinalNewline": false,
+    "TrimTrailingWhitespace": false,
+    "IndentSize": false,
+    "MaxLineLength": true
+  }
+}
