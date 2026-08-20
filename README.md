@@ -179,4 +179,4 @@ php php-cs-fixer.phar fix --dry-run --diff --config=.php-cs-fixer.dist.php
 
 ## 🤝 Contributing
 
-Contributions and improvements are welcome! Please read [**`CONTRIBUTING.md`**](file:///F:/DEV/online-exam-system/CONTRIBUTING.md) for code style guidelines and pull request instructions.
+Contributions and improvements are welcome! Please read [**CONTRIBUTING.md**](https://github.com/ujjaldas-11/online-exam-system/blob/main/CONTRIBUTING.md) for code style guidelines and pull request instructions.
