@@ -1,155 +1,202 @@
 <?php
+
 require_once 'admin-guard.php';
 require_once '../config/database.php';
+require_once '../utils/csrf.php';
+require_once '../utils/sanitize.php';
+require_once '../utils/logger.php';
 
 $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $request_id = (int) $_POST['request_id'];
+    verify_csrf();
 
-    if (isset($_POST['action']) && $_POST['action'] === 'approve') {
-        $reqstmt = $pdo->prepare("SELECT * FROM profile_requests WHERE id = ?");
-        $reqstmt->execute([$request_id]);
-        $req = $reqstmt->fetch();
+    if (isset($_POST['request_id']) && isset($_POST['action'])) {
+        $request_id = int_param($_POST['request_id']);
 
-        if ($req && $req['status'] === 'pending') {
-            $pdo->beginTransaction();
+        if ($_POST['action'] === 'approve') {
             try {
-                // 1. Update the student
-                $updatestmt = $pdo->prepare("UPDATE students SET name = ?, roll_number = ?, department = ?, semester = ? WHERE id = ?");
-                $updateSuccess = $updatestmt->execute([$req['new_name'], $req['new_roll_no'], $req['new_department'], $req['new_semester'], $req['student_id']]);
+                $reqstmt = $pdo->prepare("SELECT * FROM profile_requests WHERE id = ?");
+                $reqstmt->execute([$request_id]);
+                $req = $reqstmt->fetch();
 
-                // 2. Update the request status
-                $statusStmt = $pdo->prepare("UPDATE profile_requests SET status = 'approved' WHERE id = ?");
-                $statusSuccess = $statusStmt->execute([$request_id]);
+                if ($req && $req['status'] === 'pending') {
+                    $pdo->beginTransaction();
 
-                // Check if BOTH succeeded before committing
-                if ($updateSuccess && $statusSuccess) {
-                    $pdo->commit();
-                    $message = "Student profile updated successfully!";
-                } else {
-                    $pdo->rollBack();
-                    $error = "Failed to execute update queries. Check your database constraints.";
+                    // 1. Update the student
+                    $updatestmt = $pdo->prepare("UPDATE students SET name = ?, roll_number = ?, department = ?, semester = ? WHERE id = ?");
+                    $updateSuccess = $updatestmt->execute([$req['new_name'], $req['new_roll_no'], $req['new_department'], $req['new_semester'], $req['student_id']]);
+
+                    // 2. Update the request status
+                    $statusStmt = $pdo->prepare("UPDATE profile_requests SET status = 'approved' WHERE id = ?");
+                    $statusSuccess = $statusStmt->execute([$request_id]);
+
+                    if ($updateSuccess && $statusSuccess) {
+                        $pdo->commit();
+                        $message = "Student profile updated successfully!";
+                    } else {
+                        $pdo->rollBack();
+                        $error = "Failed to update profile constraints.";
+                    }
                 }
-
             } catch (Exception $e) {
-                $pdo->rollBack();
-                // This will now print the EXACT error if the database complains!
-                $error = "Database Error: " . $e->getMessage();
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $error = safe_db_error($e, "Failed to approve request.");
+            }
+        } elseif ($_POST['action'] === 'reject') {
+            try {
+                $pdo->prepare("UPDATE profile_requests SET status ='rejected' WHERE id = ?")->execute([$request_id]);
+                $message = "Request has been rejected.";
+            } catch (PDOException $e) {
+                $error = safe_db_error($e, "Failed to reject request.");
             }
         }
-    } elseif (isset($_POST['action']) && $_POST['action'] === 'reject') {
-        $pdo->prepare("UPDATE profile_requests SET status ='rejected' WHERE id = ?")->execute([$request_id]);
-        $message = "Request has been rejected.";
+    } elseif (isset($_POST['reset_password'])) {
+        // Teacher One-Click Student Password Reset
+        $roll_number = clean_input($_POST['student_roll'] ?? '');
+        $new_password = $_POST['new_password'] ?? '';
+
+        if (empty($roll_number) || strlen($new_password) < 6) {
+            $error = "Please provide a valid Roll Number and a password with at least 6 characters.";
+        } else {
+            try {
+                $checkStmt = $pdo->prepare("SELECT id, name FROM students WHERE roll_number = ?");
+                $checkStmt->execute([$roll_number]);
+                $student = $checkStmt->fetch();
+
+                if (!$student) {
+                    $error = "No student found with Roll Number: $roll_number";
+                } else {
+                    $hashed = password_hash($new_password, PASSWORD_DEFAULT);
+                    $upStmt = $pdo->prepare("UPDATE students SET password = ? WHERE id = ?");
+                    $upStmt->execute([$hashed, $student['id']]);
+                    $message = "Password successfully reset for " . e($student['name']) . " ($roll_number)!";
+                }
+            } catch (PDOException $e) {
+                $error = safe_db_error($e, "Failed to reset student password.");
+            }
+        }
     }
 }
 
-// FIXED: Variable named $requests (plural) so your HTML loop works
-$requests = $pdo->query("
-    SELECT r.*, s.name as old_name, s.roll_number as old_roll, s.department as old_dept, s.semester as old_sem
-    FROM profile_requests r
-    JOIN students s ON r.student_id = s.id
-    WHERE r.status = 'pending'
-    ORDER BY r.request_date ASC
-")->fetchAll();
+try {
+    $requests = $pdo->query("
+        SELECT r.*, s.name as old_name, s.roll_number as old_roll, s.department as old_dept, s.semester as old_sem
+        FROM profile_requests r
+        JOIN students s ON r.student_id = s.id
+        WHERE r.status = 'pending'
+        ORDER BY r.request_date ASC
+    ")->fetchAll();
+} catch (PDOException $e) {
+    log_error("Failed to fetch profile requests", $e);
+    $requests = [];
+}
 
+$page_title = 'Manage Requests & Student Credentials • Examify';
+include __DIR__ . '/../components/header.php';
+include __DIR__ . '/../components/navbar.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Requests • Examify</title>
-</head>
-
-<style>
-    :root {
-        --primary: #2563eb;
-        --dark: #0f172a;
-        --gray: #64748b;
-        --light: #f8fafc;
-        --border: #e2e8f0;
-        --success: #16a34a;
-        --error: #dc2626;
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: system-ui, -apple-system, sans-serif;
-        background: var(--light);
-        color: var(--dark);
-        line-height: 1.5;
-    }
-</style>
-
-<body>
-    <?php include '../components/navbar.php'; ?>
-
-    <!-- Show Success or Error Messages -->
-    <?php if ($message): ?>
-        <div style="background: green; color: white; padding: 10px; margin-bottom: 15px;"><?= htmlspecialchars($message) ?>
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Manage Student Requests & Credentials</h1>
+            <p>Review profile updates and emergency password resets for lab surprise tests</p>
         </div>
-    <?php endif; ?>
-    <?php if ($error): ?>
-        <div style="background: red; color: white; padding: 10px; margin-bottom: 15px;"><?= htmlspecialchars($error) ?>
-        </div>
-    <?php endif; ?>
-
-
-    <div class="table-wrap">
-
-        <table cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
-            <thead style="background: #f1f5f9;">
-                <tr>
-                    <th>Student</th>
-                    <th>Current Data</th>
-                    <th>Requested Data</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($requests)): ?>
-                    <tr>
-                        <td colspan="7" style="text-align:center; color:var(--gray);">No Pending request available</td>
-                    </tr>
-
-                <?php else: ?>
-                    <?php foreach ($requests as $req): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($req['old_name']) ?></td>
-                            <td>
-                                <?= htmlspecialchars($req['old_roll']) ?> | <?= htmlspecialchars($req['old_dept']) ?> | Sem
-                                <?= htmlspecialchars($req['old_sem']) ?>
-                            </td>
-                            <td style="color: blue;">
-                                <?= htmlspecialchars($req['new_name']) ?><br>
-                                <?= htmlspecialchars($req['new_roll_no']) ?> | <?= htmlspecialchars($req['new_department']) ?> |
-                                Sem <?= htmlspecialchars($req['new_semester']) ?>
-                            </td>
-                            <td>
-                                <form method="POST" style="display:inline;">
-                                    <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                    <button type="submit" name="action" value="approve"
-                                        style="background: green; color: white; padding: 5px 10px; border: none; border-radius: 8px; cursor: pointer;">Approve</button>
-                                    <button type="submit" name="action" value="reject"
-                                        style="background: red; color: white; padding: 5px 10px; border: none; border-radius: 8px; cursor: pointer;">Reject</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
     </div>
 
-</body>
+    <?php if ($message): ?>
+        <div class="alert alert-success"><?= e($message) ?></div>
+    <?php endif; ?>
 
-</html>
+    <?php if ($error): ?>
+        <div class="alert alert-error"><?= e($error) ?></div>
+    <?php endif; ?>
+
+    <!-- Pending Profile Requests -->
+    <div class="card">
+        <div class="card-title">Pending Profile Modification Requests (<?= count($requests) ?>)</div>
+
+        <?php if (empty($requests)): ?>
+            <p style="color: var(--color-text-secondary); padding: 16px 0;">No pending profile requests at this time.</p>
+        <?php else: ?>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Current Academic Details</th>
+                            <th>Requested Changes</th>
+                            <th>Request Date</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($requests as $req): ?>
+                            <tr>
+                                <td><strong><?= e($req['old_roll']) ?></strong></td>
+                                <td>
+                                    <strong><?= e($req['old_name']) ?></strong><br>
+                                    <small style="color: var(--color-text-secondary);">
+                                        <?= e($req['old_dept']) ?> • Sem <?= e((string)$req['old_sem']) ?>
+                                    </small>
+                                </td>
+                                <td>
+                                    <strong style="color: var(--color-primary);"><?= e($req['new_name']) ?></strong> (Roll: <?= e($req['new_roll_no']) ?>)<br>
+                                    <small style="color: var(--color-primary);">
+                                        <?= e($req['new_department']) ?> • Sem <?= e((string)$req['new_semester']) ?>
+                                    </small>
+                                </td>
+                                <td><?= date('d M Y, h:i A', strtotime($req['request_date'])) ?></td>
+                                <td style="text-align: right;">
+                                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                        <form method="POST" style="display: inline;">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button>
+                                        </form>
+
+                                        <form method="POST" style="display: inline;">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">Reject</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Teacher Emergency Password Reset Tool -->
+    <div class="card">
+        <div class="card-title">🔑 Classroom Password Reset (Offline LAN Mode)</div>
+        <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+            If a student forgets their password before a surprise test in the lab, reset their password instantly below.
+        </p>
+
+        <form method="POST" style="max-width: 500px;">
+            <?= csrf_field() ?>
+
+            <div class="form-group">
+                <label>Student Roll Number</label>
+                <input type="text" name="student_roll" required placeholder="e.g. BCA2401">
+            </div>
+
+            <div class="form-group">
+                <label>New Temporary Password</label>
+                <input type="text" name="new_password" required minlength="6" placeholder="e.g. password123">
+            </div>
+
+            <button type="submit" name="reset_password" class="btn btn-primary">Reset Student Password</button>
+        </form>
+    </div>
+</div>
+
+<?php include __DIR__ . '/../components/footer.php'; ?>
