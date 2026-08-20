@@ -92,7 +92,7 @@ if (!$student) {
         :root {
             --blue: #2563eb;
             --blue-hover: #1d4ed8;
-            --bg: #d5a979;
+            --bg: #f5eadf;
             --card: #faf4fa;
             --text: #171717;
             --gray: #64748b;

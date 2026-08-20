@@ -1,11 +1,11 @@
 :root {
     --primary: #2563eb;
     --primary-soft: #eff6ff;
-    --text: #070a10;
-    --text-secondary: #232518;
+    --text: #f1f9b7;
+    --text-secondary: #f3f8f4;
     --border: #056473;
     --bg: #f8fafc;
-    --card: linear-gradient(135deg, #594e69 0%, #bfef23 100%);
+    --card: rgb(79, 79, 138);
     --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
     --shadow-hover: 0 10px 25px -5px background: linear-gradient(135deg, #473d56 0%, #9dcc18 100%);
 }
@@ -41,6 +41,7 @@ body {
 }
 
 .page-header h1 {
+    color: rgb(11, 1, 1);
     font-size: 1.75rem;
     font-weight: 700;
     letter-spacing: -0.4px;
@@ -122,6 +123,7 @@ body {
 .section-title h2 {
     font-size: 1.3rem;
     font-weight: 700;
+    color: rgb(12, 9, 9);
 }
 
 /* ===== Actions ===== */
@@ -149,7 +151,7 @@ body {
     border-color: #bfdbfe;
     box-shadow: var(--shadow-hover);
     transform: translateY(-2px);
-    background: linear-gradient(135deg, #473d56 0%, #9dcc18 50%);
+    background: rgb(134, 134, 177)
 }
 
 .action-icon {

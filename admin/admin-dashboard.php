@@ -32,7 +32,7 @@ try {
     <!-- Header -->
     <div class="page-header">
         <div>
-            <h1>Welcome back, <?= htmlspecialchars($admin_name) ?></h1>
+            <!-- <h1>Admin Dashboard</h1> -->
             <p class="subtitle">System overview & quick actions</p>
         </div>
         <div class="date-badge"><?= date('l, d M Y') ?></div>

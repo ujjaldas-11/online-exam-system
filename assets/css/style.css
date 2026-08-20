@@ -29,8 +29,8 @@
 
     --feature-gradient: linear-gradient(
         135deg,
-        #000080 0%,
-        #4169e1 60%
+        #77779d 30%,
+        #e0bd35 70%
     );
 
     --footer-gradient: linear-gradient(
@@ -486,11 +486,11 @@ nav {
 footer {
     padding: 27px 24px;
 
-    background: var(--footer-gradient);
+    background: rgb(237, 227, 241);
 
     border-top: 1px solid var(--border);
 
-    color: var(--maroon);
+    color: rgb(1, 43, 36);
 
     text-align: center;
 

@@ -2,7 +2,7 @@
 /* global navbar style */
     nav {
             /* background: var(--dark); */
-            background:linear-gradient(135deg, #0A1128 0%, #1E1233 50%, #3B1C56 100%);
+            background:rgb(79, 79, 138);
             color: white;
             position: sticky;
             top: 0;
@@ -28,7 +28,7 @@
             font-size: 0.9rem;
             font-weight: 500;
         }
-        .nav-links a:hover { background: linear-gradient(135deg, #c543b8 0%, #3ccbd3 100%); color: rgb(252, 253, 251); }
+        .nav-links a:hover { background: rgb(134, 134, 177); color: rgb(212, 232, 197); }
         .logout { background: #e21515 !important; color: white !important; }
         .menu-btn {
             display: none;
