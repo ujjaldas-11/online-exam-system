@@ -14,10 +14,34 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Minification Tools
+        run: npm install -g clean-css-cli terser
+
+      - name: Minify CSS & JavaScript Assets
+        run: |
+          echo "Minifying CSS assets in assets/css/..."
+          for file in assets/css/*.css; do
+            if [ -f "$file" ]; then
+              cleancss -o "$file" "$file"
+            fi
+          done
+
+          echo "Minifying JavaScript assets in utils/..."
+          for file in utils/*.js; do
+            if [ -f "$file" ]; then
+              terser "$file" -o "$file" --compress --mangle
+            fi
+          done
+
       - name: Create Archive
         run: |
-          # Explicitly selecting only the required files and folders for the production release
-          # Excluding .env, temp.php, .git, and .github/
+          # Explicitly selecting only the runtime files required for the production release
+          # Excluding .env, .git, .github/, archive/, tests/, tools/, and dev linters
           zip -r examify-release.zip \
             admin/ \
             assets/ \
@@ -34,3 +58,4 @@ jobs:
           name: examify-release
           path: examify-release.zip
           retention-days: 7
+
