@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS `students` (
   `roll_number` varchar(50) NOT NULL,
   `department` varchar(50) NOT NULL,
   `semester` tinyint(4) NOT NULL,
+  `status` enum('active','pending','blocked') DEFAULT 'active',
+  `active_session_id` varchar(128) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
@@ -44,6 +46,7 @@ CREATE TABLE IF NOT EXISTS `exams` (
   `total_questions_to_ask` int(11) NOT NULL DEFAULT 10,
   `total_marks` int(11) DEFAULT 0,
   `status` enum('scheduled','active','ended','inactive') NOT NULL DEFAULT 'active',
+  `access_pin` varchar(10) DEFAULT NULL,
   `start_time` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
@@ -74,6 +77,7 @@ CREATE TABLE IF NOT EXISTS `exam_attempts` (
   `submitted_at` timestamp NULL DEFAULT NULL,
   `score` int(11) DEFAULT 0,
   `total_questions` int(11) DEFAULT 0,
+  `option_order_map` longtext DEFAULT NULL,
   `status` enum('in_progress','completed') DEFAULT 'in_progress',
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_attempt` (`student_id`,`exam_id`),
@@ -93,6 +97,18 @@ CREATE TABLE IF NOT EXISTS `student_answers` (
   KEY `question_id` (`question_id`),
   CONSTRAINT `fk_student_answers_attempt` FOREIGN KEY (`attempt_id`) REFERENCES `exam_attempts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_student_answers_question` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Exam Violations Table for Real-time Proctoring Audit
+CREATE TABLE IF NOT EXISTS `exam_violations` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `attempt_id` int(11) NOT NULL,
+  `violation_type` varchar(50) NOT NULL,
+  `details` text DEFAULT NULL,
+  `occurred_at` timestamp DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_violations_attempt` (`attempt_id`),
+  CONSTRAINT `fk_violations_attempt` FOREIGN KEY (`attempt_id`) REFERENCES `exam_attempts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Profile Edit Requests Table
