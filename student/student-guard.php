@@ -1,11 +1,5 @@
 <?php
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../utils/auth.php';
 
-if (!isset($_SESSION['student_id'])) {
-    header("Location: login.php");
-    exit();
-}
-?>
+require_student();
