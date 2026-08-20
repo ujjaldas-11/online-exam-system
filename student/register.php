@@ -1,23 +1,31 @@
 <?php
-session_start();
-require_once '../config/database.php';
 
-if (isset($_SESSION['student_id'])) {
-    header("Location: dashboard.php");
-    exit;
+require_once __DIR__ . '/../utils/session.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../utils/csrf.php';
+require_once __DIR__ . '/../utils/auth.php';
+require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../utils/sanitize.php';
+
+init_secure_session();
+
+if (is_student_logged_in()) {
+    redirect('dashboard.php');
 }
 
 $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim(strip_tags($_POST['name'] ?? ''));
-    $email = trim($_POST['email'] ?? '');
-    $roll = trim(strip_tags($_POST['roll_number'] ?? ''));
-    $dept = trim(strip_tags($_POST['department'] ?? ''));
+    verify_csrf();
+
+    $name = clean_input($_POST['name'] ?? '');
+    $email = clean_input($_POST['email'] ?? '');
+    $roll = clean_input($_POST['roll_number'] ?? '');
+    $dept = clean_input($_POST['department'] ?? '');
     $pass = $_POST['password'] ?? '';
     $cpass = $_POST['confirm_password'] ?? '';
-    $sem = (int) ($_POST['semester'] ?? 0);
+    $sem = int_param($_POST['semester'] ?? 0);
 
     if (!$name || !$email || !$pass || !$roll || !$sem || !$dept) {
         $error = "All fields are required.";
@@ -50,51 +58,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } catch (PDOException $e) {
-            $error = "Something went wrong. Please try again.";
+            $error = safe_db_error($e, "Registration failed. Please check your information.");
         }
     }
 }
+
+$page_title = 'Student Registration • Examify';
+$body_class = 'auth-body';
+include __DIR__ . '/../components/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Registration • Examify</title>
-    <link rel="stylesheet" href="../assets/css/auth.css">
+<div class="auth-card" style="max-width: 480px;">
+    <h1>Create Account</h1>
+    <p class="subtitle">Register as a student for classroom examinations</p>
 
-</head>
+    <?php if ($error): ?>
+        <div class="alert alert-error"><?= e($error) ?></div>
+    <?php endif; ?>
+    <?php if ($success): ?>
+        <div class="alert alert-success"><?= e($success) ?></div>
+    <?php endif; ?>
 
-<body>
-    <div class="card">
-        <h1>Create Account</h1>
-        <p class="subtitle">Register as a student</p>
+    <form method="POST">
+        <?= csrf_field() ?>
 
-        <?php if ($error): ?>
-            <div class="alert error"><?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
-        <?php if ($success): ?>
-            <div class="alert success"><?= htmlspecialchars($success) ?></div>
-        <?php endif; ?>
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Alex Johnson">
+        </div>
 
-        <form method="POST">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" name="name" required value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
-            </div>
+        <div class="form-group">
+            <label>College Email</label>
+            <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
+        </div>
 
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" required value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
-            </div>
+        <div class="form-group">
+            <label>Roll Number / Student ID</label>
+            <input type="text" name="roll_number" required value="<?= e($_POST['roll_number'] ?? '') ?>" placeholder="e.g. BCA2401">
+        </div>
 
-            <div class="form-group">
-                <label>Roll Number</label>
-                <input type="text" name="roll_number" required
-                    value="<?= htmlspecialchars($_POST['roll_number'] ?? '') ?>">
-            </div>
-
+        <div class="form-grid">
             <div class="form-group">
                 <label>Department</label>
                 <select name="department" required>
@@ -115,24 +118,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endfor; ?>
                 </select>
             </div>
+        </div>
 
+        <div class="form-grid">
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" name="password" required>
+                <input type="password" name="password" required placeholder="Min 6 characters">
             </div>
 
             <div class="form-group">
                 <label>Confirm Password</label>
-                <input type="password" name="confirm_password" required>
+                <input type="password" name="confirm_password" required placeholder="Re-enter password">
             </div>
+        </div>
 
-            <button type="submit" class="btn">Register</button>
-        </form>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px;">Register</button>
+    </form>
 
-        <p class="footer">
-            Already have an account? <a href="login.php">Login here</a>
-        </p>
-    </div>
-</body>
+    <p class="footer">
+        Already have an account? <a href="login.php">Login here</a>
+    </p>
+</div>
 
-</html>
+<?php include __DIR__ . '/../components/footer.php'; ?>

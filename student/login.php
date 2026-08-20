@@ -1,16 +1,24 @@
 <?php
-session_start();
-require_once '../config/database.php';
 
-if (isset($_SESSION['student_id'])) {
-    header("Location: dashboard.php");
-    exit;
+require_once __DIR__ . '/../utils/session.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../utils/csrf.php';
+require_once __DIR__ . '/../utils/auth.php';
+require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../utils/sanitize.php';
+
+init_secure_session();
+
+if (is_student_logged_in()) {
+    redirect('dashboard.php');
 }
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
+    verify_csrf();
+
+    $email = clean_input($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
     if (empty($email) || empty($password)) {
@@ -22,61 +30,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $student = $stmt->fetch();
 
             if ($student && password_verify($password, $student['password'])) {
-                $_SESSION['student_id'] = $student['id'];
-                $_SESSION['student_name'] = $student['name'];
-                $_SESSION['roll_number'] = $student['roll_number'];
-                $_SESSION['semester'] = $student['semester'];
-                $_SESSION['department'] = $student['department'];
+                if (isset($student['status']) && $student['status'] === 'blocked') {
+                    $error = "Your account is blocked. Please contact your instructor.";
+                } else {
+                    // Prevent session fixation
+                    session_regenerate_id(true);
 
-                header("Location: dashboard.php");
-                exit;
+                    $_SESSION['student_id'] = $student['id'];
+                    $_SESSION['student_name'] = $student['name'];
+                    $_SESSION['roll_number'] = $student['roll_number'];
+                    $_SESSION['semester'] = $student['semester'];
+                    $_SESSION['department'] = $student['department'];
+
+                    // Optional: Record active session token
+                    $sessionToken = session_id();
+                    try {
+                        $upStmt = $pdo->prepare("UPDATE students SET active_session_id = ? WHERE id = ?");
+                        $upStmt->execute([$sessionToken, $student['id']]);
+                    } catch (PDOException) {
+                        // Ignore if column doesn't exist yet
+                    }
+
+                    redirect('dashboard.php');
+                }
             } else {
                 $error = "Invalid email or password.";
             }
         } catch (PDOException $e) {
-            $error = "Something went wrong. Please try again.";
+            $error = safe_db_error($e, "Login service unavailable. Please try again.");
         }
     }
 }
+
+$page_title = 'Student Login • Examify';
+$body_class = 'auth-body';
+include __DIR__ . '/../components/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Login • Examify</title>
-    <link rel="stylesheet" href="../assets/css/auth.css">
+<div class="auth-card">
+    <h1>Student Login</h1>
+    <p class="subtitle">Sign in to start your examination</p>
 
-</head>
+    <?php if ($error): ?>
+        <div class="alert alert-error"><?= e($error) ?></div>
+    <?php endif; ?>
 
-<body>
-    <div class="card">
-        <h1>Student Login</h1>
-        <p class="subtitle">Sign in to your account</p>
+    <form method="POST">
+        <?= csrf_field() ?>
 
-        <?php if ($error): ?>
-            <div class="alert"><?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
+        </div>
 
-        <form method="POST">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" required value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
-            </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" required placeholder="••••••••">
+        </div>
 
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required>
-            </div>
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </form>
 
-            <button type="submit" class="btn">Login</button>
-        </form>
+    <p class="footer">
+        Don't have an account? <a href="register.php">Register here</a>
+    </p>
+</div>
 
-        <p class="footer">
-            Don't have an account? <a href="register.php">Register here</a>
-        </p>
-    </div>
-</body>
-
-</html>
+<?php include __DIR__ . '/../components/footer.php'; ?>
