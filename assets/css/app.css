@@ -1,0 +1,8 @@
+/* =========================================================
+  EXAMIFY MASTER APPLICATION STYLESHEET
+  Unified Tokens + Base Resets + Component Primitives
+========================================================= */
+
+@import "./variables.css";
+@import "./base.css";
+@import "./components.css";
