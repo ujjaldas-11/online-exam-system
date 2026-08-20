@@ -1,6 +1,10 @@
 <?php
 require_once '../config/database.php';
-
+trigger_error(
+    'This file is deprecated and will be removed in future versions. Use the /utils/setup-db.php script instead.',
+    E_USER_DEPRECATED
+);
+exit(0);
 $password = password_hash('password123', PASSWORD_DEFAULT);
 
 try {
