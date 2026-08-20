@@ -114,7 +114,6 @@ online-exam-system/
 ├── .editorconfig                # Universal indentation and whitespace rules
 ├── .htaccess                    # Apache LAN caching and security headers
 ├── CONTRIBUTING.md              # Guidelines for developers and contributors
-├── IMPROVEMENTS.md              # Master improvement and architecture roadmap
 ├── README.md                    # System documentation
 └── index.php                    # Landing page and portal gateway
 ```
