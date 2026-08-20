@@ -11,13 +11,13 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name     = trim(strip_tags($_POST['name'] ?? ''));
-    $email    = trim($_POST['email'] ?? '');
-    $roll     = trim(strip_tags($_POST['roll_number'] ?? ''));
-    $dept     = trim(strip_tags($_POST['department'] ?? ''));
-    $pass     = $_POST['password'] ?? '';
-    $cpass    = $_POST['confirm_password'] ?? '';
-    $sem      = (int)($_POST['semester'] ?? 0);
+    $name = trim(strip_tags($_POST['name'] ?? ''));
+    $email = trim($_POST['email'] ?? '');
+    $roll = trim(strip_tags($_POST['roll_number'] ?? ''));
+    $dept = trim(strip_tags($_POST['department'] ?? ''));
+    $pass = $_POST['password'] ?? '';
+    $cpass = $_POST['confirm_password'] ?? '';
+    $sem = (int) ($_POST['semester'] ?? 0);
 
     if (!$name || !$email || !$pass || !$roll || !$sem || !$dept) {
         $error = "All fields are required.";
@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../assets/css/auth.css">
 
 </head>
+
 <body>
     <div class="card">
         <h1>Create Account</h1>
@@ -89,7 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="form-group">
                 <label>Roll Number</label>
-                <input type="text" name="roll_number" required value="<?= htmlspecialchars($_POST['roll_number'] ?? '') ?>">
+                <input type="text" name="roll_number" required
+                    value="<?= htmlspecialchars($_POST['roll_number'] ?? '') ?>">
             </div>
 
             <div class="form-group">
@@ -131,4 +134,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </p>
     </div>
 </body>
+
 </html>

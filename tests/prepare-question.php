@@ -65,13 +65,13 @@ foreach ($json_files as $file) {
 
             $insertStmt->execute([
                 ':subject_id' => $subject_id,
-                ':q_text'  => trim(strip_tags($q['question_text'])),
-                ':opt_a'   => trim(strip_tags($q['option_a'])),
-                ':opt_b'   => trim(strip_tags($q['option_b'])),
-                ':opt_c'   => isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
-                ':opt_d'   => isset($q['option_d']) ? trim(strip_tags($q['option_d'])) : '',
+                ':q_text' => trim(strip_tags($q['question_text'])),
+                ':opt_a' => trim(strip_tags($q['option_a'])),
+                ':opt_b' => trim(strip_tags($q['option_b'])),
+                ':opt_c' => isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
+                ':opt_d' => isset($q['option_d']) ? trim(strip_tags($q['option_d'])) : '',
                 ':correct' => strtoupper(trim(strip_tags($q['correct_option']))),
-                ':marks'   => isset($q['marks']) ? (int)$q['marks'] : 1
+                ':marks' => isset($q['marks']) ? (int) $q['marks'] : 1
             ]);
             $inserted_count++;
         }

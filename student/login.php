@@ -10,7 +10,7 @@ if (isset($_SESSION['student_id'])) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email'] ?? '');
+    $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
     if (empty($email) || empty($password)) {
@@ -22,11 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $student = $stmt->fetch();
 
             if ($student && password_verify($password, $student['password'])) {
-                $_SESSION['student_id']   = $student['id'];
+                $_SESSION['student_id'] = $student['id'];
                 $_SESSION['student_name'] = $student['name'];
-                $_SESSION['roll_number']  = $student['roll_number'];
-                $_SESSION['semester']     = $student['semester'];
-                $_SESSION['department']   = $student['department'];
+                $_SESSION['roll_number'] = $student['roll_number'];
+                $_SESSION['semester'] = $student['semester'];
+                $_SESSION['department'] = $student['department'];
 
                 header("Location: dashboard.php");
                 exit;
@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../assets/css/auth.css">
 
 </head>
+
 <body>
     <div class="card">
         <h1>Student Login</h1>
@@ -76,4 +78,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </p>
     </div>
 </body>
+
 </html>

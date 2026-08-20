@@ -1,4 +1,3 @@
-
 <?php
 require_once 'student-guard.php';
 require_once '../config/database.php';
@@ -34,6 +33,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,7 +43,7 @@ try {
         :root {
             --blue: #2563eb;
             --blue-hover: #1d4ed8;
-            --bg:  #f5eadf;
+            --bg: #f5eadf;
             --card: #faf4fa;
             --text: #171717;
             --gray: #64748b;
@@ -152,7 +152,8 @@ try {
             min-width: 550px;
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px 14px;
             text-align: left;
             border-bottom: 1px solid var(--border);
@@ -219,131 +220,132 @@ try {
 
 <body>
 
-<?php include '../components/navbar.php'; ?>
+    <?php include '../components/navbar.php'; ?>
 
-<div class="container">
+    <div class="container">
 
-    <div class="header">
-        <div>
-            <h1>My Profile</h1>
-            <p class="subtitle">Your personal details and exam history</p>
+        <div class="header">
+            <div>
+                <h1>My Profile</h1>
+                <p class="subtitle">Your personal details and exam history</p>
+            </div>
+
+            <a href="edit-profile.php" class="btn">Edit Profile</a>
         </div>
 
-        <a href="edit-profile.php" class="btn">Edit Profile</a>
-    </div>
 
+        <!-- Personal Information -->
 
-    <!-- Personal Information -->
+        <div class="section">
 
-    <div class="section">
+            <h2 class="section-title">Personal Information</h2>
 
-        <h2 class="section-title">Personal Information</h2>
+            <div class="info-grid">
 
-        <div class="info-grid">
-
-            <div class="info">
-                <div class="label">Full Name</div>
-                <div class="value">
-                    <?= htmlspecialchars($student['name']) ?>
+                <div class="info">
+                    <div class="label">Full Name</div>
+                    <div class="value">
+                        <?= htmlspecialchars($student['name']) ?>
+                    </div>
                 </div>
-            </div>
 
-            <div class="info">
-                <div class="label">Email Address</div>
-                <div class="value">
-                    <?= htmlspecialchars($student['email']) ?>
+                <div class="info">
+                    <div class="label">Email Address</div>
+                    <div class="value">
+                        <?= htmlspecialchars($student['email']) ?>
+                    </div>
                 </div>
-            </div>
 
-            <div class="info">
-                <div class="label">Roll Number</div>
-                <div class="value">
-                    <?= htmlspecialchars($student['roll_number']) ?>
+                <div class="info">
+                    <div class="label">Roll Number</div>
+                    <div class="value">
+                        <?= htmlspecialchars($student['roll_number']) ?>
+                    </div>
                 </div>
-            </div>
 
-            <div class="info">
-                <div class="label">Department & Semester</div>
-                <div class="value">
-                    <?= htmlspecialchars($student['department']) ?>
-                    • Semester <?= htmlspecialchars($student['semester']) ?>
+                <div class="info">
+                    <div class="label">Department & Semester</div>
+                    <div class="value">
+                        <?= htmlspecialchars($student['department']) ?>
+                        • Semester <?= htmlspecialchars($student['semester']) ?>
+                    </div>
                 </div>
+
             </div>
 
         </div>
 
-    </div>
 
+        <!-- Exam History -->
 
-    <!-- Exam History -->
+        <div class="section">
 
-    <div class="section">
+            <h2 class="section-title">Exam History</h2>
 
-        <h2 class="section-title">Exam History</h2>
+            <?php if (empty($past_results)): ?>
 
-        <?php if (empty($past_results)): ?>
+                <div class="empty">
+                    You haven't completed any exams yet.
+                </div>
 
-            <div class="empty">
-                You haven't completed any exams yet.
-            </div>
+            <?php else: ?>
 
-        <?php else: ?>
+                <div class="table-wrap">
 
-            <div class="table-wrap">
+                    <table>
 
-                <table>
-
-                    <thead>
-                        <tr>
-                            <th>Exam Title</th>
-                            <th>Score</th>
-                            <th>Submitted On</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        <?php foreach ($past_results as $result): ?>
-
+                        <thead>
                             <tr>
-
-                                <td>
-                                    <?= htmlspecialchars($result['title']) ?>
-                                </td>
-
-                                <td>
-                                    <span class="score">
-                                        <?= htmlspecialchars($result['score']) ?>
-                                        /
-                                        <?= htmlspecialchars($result['total_questions']) ?>
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <?= $result['submitted_at']
-                                        ? date(
-                                            'd M Y, h:i A',
-                                            strtotime($result['submitted_at'])
-                                        )
-                                        : '—'
-                                    ?>
-                                </td>
-
+                                <th>Exam Title</th>
+                                <th>Score</th>
+                                <th>Submitted On</th>
                             </tr>
+                        </thead>
 
-                        <?php endforeach; ?>
+                        <tbody>
 
-                    </tbody>
+                            <?php foreach ($past_results as $result): ?>
 
-                </table>
+                                <tr>
 
-            </div>
+                                    <td>
+                                        <?= htmlspecialchars($result['title']) ?>
+                                    </td>
 
-        <?php endif; ?>
+                                    <td>
+                                        <span class="score">
+                                            <?= htmlspecialchars($result['score']) ?>
+                                            /
+                                            <?= htmlspecialchars($result['total_questions']) ?>
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <?= $result['submitted_at']
+                                            ? date(
+                                                'd M Y, h:i A',
+                                                strtotime($result['submitted_at'])
+                                            )
+                                            : '—'
+                                            ?>
+                                    </td>
+
+                                </tr>
+
+                            <?php endforeach; ?>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            <?php endif; ?>
+
+        </div>
 
     </div>
-
-</div>
 
 </body>
+
 </html>

@@ -11,7 +11,7 @@ if (!isset($_POST['exam_id']) || empty($_POST['exam_id'])) {
     die("Error: No exam ID provided.");
 }
 
-$exam_id = (int)$_POST['exam_id'];
+$exam_id = (int) $_POST['exam_id'];
 $student_id = $_SESSION['student_id'];
 $submitted_answers = $_SESSION['exam_answers'][$exam_id] ?? [];
 
@@ -26,7 +26,8 @@ try {
     $checkStmt->execute([':student_id' => $student_id, ':exam_id' => $exam_id]);
     $attempt = $checkStmt->fetch();
 
-    if (!$attempt) die("Error: No active attempt found for this exam.");
+    if (!$attempt)
+        die("Error: No active attempt found for this exam.");
 
     $attempt_id = $attempt['id'];
 
@@ -46,7 +47,8 @@ try {
         $examStmt->execute([':exam_id' => $exam_id]);
         $exam = $examStmt->fetch();
 
-        if (!$exam) die("Error: Invalid exam.");
+        if (!$exam)
+            die("Error: Invalid exam.");
 
         $total_marks = $exam['total_marks'];
         $points_per_question = ($exam['total_questions_to_ask'] > 0) ? ($exam['total_marks'] / $exam['total_questions_to_ask']) : 0;
@@ -70,7 +72,8 @@ try {
             $selected_option = isset($submitted_answers[$q_id]) ? trim(strip_tags($submitted_answers[$q_id])) : null;
             $is_correct = ($selected_option === $q['correct_option']) ? 1 : 0;
 
-            if ($is_correct) $score += $points_per_question;
+            if ($is_correct)
+                $score += $points_per_question;
 
             $updateAnsStmt->execute([
                 ':selected_option' => $selected_option,
@@ -100,12 +103,13 @@ try {
     $statsStmt->execute([':attempt_id' => $attempt_id]);
     $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
 
-    $correct_count = (int)$stats['correct_count'];
-    $wrong_count   = (int)$stats['wrong_count'];
-    $skipped_count = (int)$stats['skipped_count'];
+    $correct_count = (int) $stats['correct_count'];
+    $wrong_count = (int) $stats['wrong_count'];
+    $skipped_count = (int) $stats['skipped_count'];
 
 } catch (PDOException $e) {
-    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    if (isset($pdo) && $pdo->inTransaction())
+        $pdo->rollBack();
     die("Database Error: " . $e->getMessage());
 }
 
@@ -113,51 +117,218 @@ $percentage = ($total_marks > 0) ? round(($score / $total_marks) * 100) : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Result • Examify</title>
     <style>
         :root {
-            --primary: #2563eb; --primary-light: #eff6ff;
-            --success: #16a34a; --success-light: #dcfce7;
-            --danger: #dc2626;  --danger-light: #fee2e2;
-            --gray: #64748b;    --light: #f8fafc;
-            --dark: #0f172a;    --border: #e2e8f0;
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --success: #16a34a;
+            --success-light: #dcfce7;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --dark: #0f172a;
+            --border: #e2e8f0;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
-        body { background: var(--light); color: var(--dark); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
 
-        .card { background: white; width: 100%; max-width: 480px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); text-align: center; overflow: hidden; border: 1px solid var(--border); padding: 40px 30px; position: relative; }
-        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--primary); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
 
-        .icon { width: 70px; height: 70px; background: var(--success-light); color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px; }
-        .icon.info { background: var(--primary-light); color: var(--primary); }
+        body {
+            background: var(--light);
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-        h1 { font-size: 1.8rem; margin-bottom: 5px; }
-        .subtitle { color: var(--gray); font-size: 1rem; margin-bottom: 30px; font-weight: 500; }
+        .card {
+            background: white;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            padding: 40px 30px;
+            position: relative;
+        }
 
-        .score-box { background: var(--light); border: 1px solid var(--border); border-radius: 16px; padding: 25px 20px; margin-bottom: 25px; }
-        .score-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gray); font-weight: 600; margin-bottom: 10px; }
-        .score-value { font-size: 3.5rem; font-weight: 800; color: var(--primary); line-height: 1; }
-        .score-divider { font-size: 2rem; color: #cbd5e1; margin: 0 5px; }
-        .score-total { font-size: 1.8rem; color: var(--gray); font-weight: 600; }
-        .badge { display: inline-block; background: var(--primary-light); color: var(--primary); padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; margin-top: 15px; }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--primary);
+        }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 30px; }
-        .stat { padding: 15px 10px; border-radius: 12px; border: 1px solid transparent; }
-        .stat.correct { background: var(--success-light); color: var(--success); border-color: #bbf7d0; }
-        .stat.wrong { background: var(--danger-light); color: var(--danger); border-color: #fecaca; }
-        .stat.skipped { background: var(--light); color: var(--gray); border-color: var(--border); }
-        .stat-val { font-size: 1.4rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
-        .stat-lbl { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; }
+        .icon {
+            width: 70px;
+            height: 70px;
+            background: var(--success-light);
+            color: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px;
+        }
 
-        .btn { display: block; width: 100%; background: var(--primary); color: white; padding: 14px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 1rem; transition: 0.2s; }
-        .btn:hover { background: #1d4ed8; transform: translateY(-2px); }
+        .icon.info {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
 
-        .alert { background: #fef3c7; color: #92400e; padding: 12px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 25px; border: 1px solid #fde68a; }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 1rem;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .score-box {
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px 20px;
+            margin-bottom: 25px;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .score-value {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .score-divider {
+            font-size: 2rem;
+            color: #cbd5e1;
+            margin: 0 5px;
+        }
+
+        .score-total {
+            font-size: 1.8rem;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .stat {
+            padding: 15px 10px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+        }
+
+        .stat.correct {
+            background: var(--success-light);
+            color: var(--success);
+            border-color: #bbf7d0;
+        }
+
+        .stat.wrong {
+            background: var(--danger-light);
+            color: var(--danger);
+            border-color: #fecaca;
+        }
+
+        .stat.skipped {
+            background: var(--light);
+            color: var(--gray);
+            border-color: var(--border);
+        }
+
+        .stat-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .stat-lbl {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            padding: 14px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            border: 1px solid #fde68a;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="card">
@@ -202,4 +373,5 @@ $percentage = ($total_marks > 0) ? round(($score / $total_marks) * 100) : 0;
     </div>
 
 </body>
+
 </html>

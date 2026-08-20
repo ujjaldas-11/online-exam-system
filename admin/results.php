@@ -28,6 +28,7 @@ $exams = $stmt->fetchAll();
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -203,108 +204,107 @@ $exams = $stmt->fetchAll();
 
 <body>
 
-<?php include '../components/navbar.php'; ?>
+    <?php include '../components/navbar.php'; ?>
 
-<div class="container">
+    <div class="container">
 
-    <h1>Results Dashboard</h1>
-    <p class="subtitle">
-        View student scores and exam performance
-    </p>
+        <h1>Results Dashboard</h1>
+        <p class="subtitle">
+            View student scores and exam performance
+        </p>
 
-    <div class="card">
+        <div class="card">
 
-        <div class="filters">
-            <a href="results.php" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
-                All Departments
-            </a>
-
-            <?php foreach ($departments as $dept): ?>
-                <a href="results.php?department=<?= urlencode($dept) ?>" class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
-                    <?= htmlspecialchars($dept) ?>
+            <div class="filters">
+                <a href="results.php" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
+                    All Departments
                 </a>
-            <?php endforeach; ?>
-        </div>
 
-        <?php
+                <?php foreach ($departments as $dept): ?>
+                    <a href="results.php?department=<?= urlencode($dept) ?>"
+                        class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
+                        <?= htmlspecialchars($dept) ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+
+            <?php
             $search_placeholder = "Search exams, departments, or marks...";
             include '../components/searchbar.php';
-        ?>
+            ?>
 
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Exam</th>
-                        <th>Department</th>
-                        <th>Semester</th>
-                        <th>Marks</th>
-                        <th>Submissions</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                <?php if (empty($exams)): ?>
-
-                    <tr>
-                        <td colspan="6" class="empty">
-                            No exams found for
-                            <strong><?= htmlspecialchars($selected_dept) ?></strong>.
-                        </td>
-                    </tr>
-
-                <?php else: ?>
-
-                    <?php foreach ($exams as $exam): ?>
-
+            <div class="table-wrap">
+                <table>
+                    <thead>
                         <tr>
-                            <td>
-                                <strong>
-                                    <?= htmlspecialchars($exam['title']) ?>
-                                </strong>
-                            </td>
-
-                            <td>
-                                <?= htmlspecialchars($exam['department']) ?>
-                            </td>
-
-                            <td>
-                                Semester <?= htmlspecialchars($exam['semester']) ?>
-                            </td>
-
-                            <td>
-                                <?= htmlspecialchars($exam['total_marks']) ?> marks
-                            </td>
-
-                            <td>
-                                <span class="badge">
-                                    <?= htmlspecialchars($exam['total_attempts']) ?>
-                                    students
-                                </span>
-                            </td>
-
-                            <td>
-                                <a
-                                    href="view-results.php?exam_id=<?= $exam['id'] ?>"
-                                    class="btn"
-                                >
-                                    View Results
-                                </a>
-                            </td>
+                            <th>Exam</th>
+                            <th>Department</th>
+                            <th>Semester</th>
+                            <th>Marks</th>
+                            <th>Submissions</th>
+                            <th>Action</th>
                         </tr>
+                    </thead>
 
-                    <?php endforeach; ?>
+                    <tbody>
 
-                <?php endif; ?>
+                        <?php if (empty($exams)): ?>
 
-                </tbody>
-            </table>
+                            <tr>
+                                <td colspan="6" class="empty">
+                                    No exams found for
+                                    <strong><?= htmlspecialchars($selected_dept) ?></strong>.
+                                </td>
+                            </tr>
+
+                        <?php else: ?>
+
+                            <?php foreach ($exams as $exam): ?>
+
+                                <tr>
+                                    <td>
+                                        <strong>
+                                            <?= htmlspecialchars($exam['title']) ?>
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars($exam['department']) ?>
+                                    </td>
+
+                                    <td>
+                                        Semester <?= htmlspecialchars($exam['semester']) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars($exam['total_marks']) ?> marks
+                                    </td>
+
+                                    <td>
+                                        <span class="badge">
+                                            <?= htmlspecialchars($exam['total_attempts']) ?>
+                                            students
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn">
+                                            View Results
+                                        </a>
+                                    </td>
+                                </tr>
+
+                            <?php endforeach; ?>
+
+                        <?php endif; ?>
+
+                    </tbody>
+                </table>
+            </div>
+
         </div>
-
     </div>
-</div>
 
 </body>
+
 </html>

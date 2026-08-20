@@ -8,7 +8,7 @@ $success_message = '';
 $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])) {
-    $subject_id = (int)$_POST['subject_id'];
+    $subject_id = (int) $_POST['subject_id'];
     $json_input = trim($_POST['json_data']);
 
     $questions = json_decode($json_input, true);
@@ -55,6 +55,7 @@ $default_json = '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,10 +71,14 @@ $default_json = '';
             --card: #ffffff;
             --success: #16a34a;
             --error: #dc2626;
-            --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -93,11 +98,13 @@ $default_json = '';
         .page-header {
             margin-bottom: 32px;
         }
+
         .page-header h1 {
             font-size: 1.7rem;
             font-weight: 700;
             letter-spacing: -0.3px;
         }
+
         .subtitle {
             color: var(--text-secondary);
             margin-top: 4px;
@@ -112,11 +119,13 @@ $default_json = '';
             font-weight: 500;
             font-size: 0.95rem;
         }
+
         .alert.success {
             background: #dcfce7;
             color: var(--success);
             border: 1px solid #bbf7d0;
         }
+
         .alert.error {
             background: #fee2e2;
             color: var(--error);
@@ -131,6 +140,7 @@ $default_json = '';
             padding: 28px;
             box-shadow: var(--shadow);
         }
+
         .card h2 {
             font-size: 1.15rem;
             font-weight: 600;
@@ -148,9 +158,11 @@ $default_json = '';
             margin-bottom: 24px;
             line-height: 1.55;
         }
+
         .instructions strong {
             color: var(--text);
         }
+
         .instructions code {
             background: #e2e8f0;
             padding: 2px 6px;
@@ -163,6 +175,7 @@ $default_json = '';
         .form-group {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
             font-size: 0.875rem;
@@ -170,7 +183,9 @@ $default_json = '';
             margin-bottom: 6px;
             color: #334155;
         }
-        select, textarea {
+
+        select,
+        textarea {
             width: 100%;
             padding: 11px 13px;
             border: 1px solid var(--border);
@@ -179,11 +194,14 @@ $default_json = '';
             background: white;
             transition: border-color 0.15s, box-shadow 0.15s;
         }
-        select:focus, textarea:focus {
+
+        select:focus,
+        textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
+
         textarea {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             font-size: 0.875rem;
@@ -214,10 +232,12 @@ $default_json = '';
             align-items: center;
             gap: 5px;
         }
+
         .btn-secondary:hover:not(:disabled) {
             background: #f8fafc;
             border-color: #cbd5e1;
         }
+
         .btn-secondary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -238,6 +258,7 @@ $default_json = '';
             transition: background 0.15s;
             margin-top: 6px;
         }
+
         .btn:hover {
             background: #1d4ed8;
         }
@@ -249,89 +270,92 @@ $default_json = '';
         }
     </style>
 </head>
+
 <body>
 
-<?php include '../components/navbar.php'; ?>
+    <?php include '../components/navbar.php'; ?>
 
-<div class="container">
+    <div class="container">
 
-    <div class="page-header">
-        <div>
-            <h1>Manage Questions</h1>
-            <p class="subtitle">Bulk upload questions using JSON</p>
-        </div>
-    </div>
-
-    <?php if ($success_message): ?>
-        <div class="alert success"><?= htmlspecialchars($success_message) ?></div>
-    <?php endif; ?>
-
-    <?php if ($error_message): ?>
-        <div class="alert error"><?= htmlspecialchars($error_message) ?></div>
-    <?php endif; ?>
-
-    <div class="card">
-        <h2>Bulk Insert Questions</h2>
-
-        <div class="instructions">
-            <strong>Instructions:</strong> Paste a valid JSON array.<br>
-            Required keys: <code>question_text</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code>.<br>
-            Optional: <code>option_c</code>, <code>option_d</code>.
-            <code>correct_option</code> must be <code>A</code>, <code>B</code>, <code>C</code> or <code>D</code>.
+        <div class="page-header">
+            <div>
+                <h1>Manage Questions</h1>
+                <p class="subtitle">Bulk upload questions using JSON</p>
+            </div>
         </div>
 
-        <form method="POST">
-            <div class="form-group">
-                <label>Select Subject</label>
-                <select name="subject_id" id="subject_id" required>
-                    <option value="">-- Choose Subject --</option>
-                    <?php foreach ($subjects as $sub): ?>
-                        <option value="<?= $sub['id'] ?>">
-                            <?= htmlspecialchars($sub['name']) ?>
-                            (<?= htmlspecialchars($sub['department']) ?>, Sem <?= $sub['semester'] ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+        <?php if ($success_message): ?>
+            <div class="alert success"><?= htmlspecialchars($success_message) ?></div>
+        <?php endif; ?>
+
+        <?php if ($error_message): ?>
+            <div class="alert error"><?= htmlspecialchars($error_message) ?></div>
+        <?php endif; ?>
+
+        <div class="card">
+            <h2>Bulk Insert Questions</h2>
+
+            <div class="instructions">
+                <strong>Instructions:</strong> Paste a valid JSON array.<br>
+                Required keys: <code>question_text</code>, <code>option_a</code>, <code>option_b</code>,
+                <code>correct_option</code>.<br>
+                Optional: <code>option_c</code>, <code>option_d</code>.
+                <code>correct_option</code> must be <code>A</code>, <code>B</code>, <code>C</code> or <code>D</code>.
             </div>
 
-            <div class="form-group">
-                <label>JSON Data</label>
-                <div class="btn-row">
-                    <button type="button" class="btn-secondary" id="copy-prompt-btn" disabled>
-                        📋 Copy LLM Prompt
-                    </button>
-                    <button type="button" class="btn-secondary" id="paste-btn">
-                        📝 Paste from Clipboard
-                    </button>
+            <form method="POST">
+                <div class="form-group">
+                    <label>Select Subject</label>
+                    <select name="subject_id" id="subject_id" required>
+                        <option value="">-- Choose Subject --</option>
+                        <?php foreach ($subjects as $sub): ?>
+                            <option value="<?= $sub['id'] ?>">
+                                <?= htmlspecialchars($sub['name']) ?>
+                                (<?= htmlspecialchars($sub['department']) ?>, Sem <?= $sub['semester'] ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                <textarea name="json_data" id="json_data" required placeholder='[{"question_text":"...","option_a":"...","option_b":"...","correct_option":"A"}]'><?= htmlspecialchars($default_json) ?></textarea>
-            </div>
 
-            <button type="submit" name="add_bulk_questions" class="btn">
-                Upload All Questions
-            </button>
-        </form>
+                <div class="form-group">
+                    <label>JSON Data</label>
+                    <div class="btn-row">
+                        <button type="button" class="btn-secondary" id="copy-prompt-btn" disabled>
+                            📋 Copy LLM Prompt
+                        </button>
+                        <button type="button" class="btn-secondary" id="paste-btn">
+                            📝 Paste from Clipboard
+                        </button>
+                    </div>
+                    <textarea name="json_data" id="json_data" required
+                        placeholder='[{"question_text":"...","option_a":"...","option_b":"...","correct_option":"A"}]'><?= htmlspecialchars($default_json) ?></textarea>
+                </div>
+
+                <button type="submit" name="add_bulk_questions" class="btn">
+                    Upload All Questions
+                </button>
+            </form>
+        </div>
+
     </div>
 
-</div>
+    <script>
+        const subjectSelect = document.getElementById('subject_id');
+        const copyPromptBtn = document.getElementById('copy-prompt-btn');
+        const pasteBtn = document.getElementById('paste-btn');
+        const jsonTextarea = document.getElementById('json_data');
 
-<script>
-    const subjectSelect = document.getElementById('subject_id');
-    const copyPromptBtn = document.getElementById('copy-prompt-btn');
-    const pasteBtn = document.getElementById('paste-btn');
-    const jsonTextarea = document.getElementById('json_data');
+        subjectSelect.addEventListener('change', function () {
+            copyPromptBtn.disabled = !this.value;
+        });
 
-    subjectSelect.addEventListener('change', function () {
-        copyPromptBtn.disabled = !this.value;
-    });
+        copyPromptBtn.addEventListener('click', function () {
+            if (!subjectSelect.value) return;
 
-    copyPromptBtn.addEventListener('click', function () {
-        if (!subjectSelect.value) return;
+            let subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
+            subjectText = subjectText.split('(')[0].trim();
 
-        let subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
-        subjectText = subjectText.split('(')[0].trim();
-
-        const prompt = `Please generate 10 multiple-choice questions about ${subjectText} suitable for university students. Return the output STRICTLY as a JSON array of objects with no markdown code blocks and no extra text.
+            const prompt = `Please generate 10 multiple-choice questions about ${subjectText} suitable for university students. Return the output STRICTLY as a JSON array of objects with no markdown code blocks and no extra text.
 
 Each object must EXACTLY match this structure:
 {
@@ -347,25 +371,26 @@ Rules:
 - "correct_option" must be exactly "A", "B", "C", or "D".
 - Do NOT wrap the JSON in backticks or markdown. Start directly with [ and end with ].`;
 
-        navigator.clipboard.writeText(prompt).then(() => {
-            const original = copyPromptBtn.innerHTML;
-            copyPromptBtn.innerHTML = '✅ Copied!';
-            setTimeout(() => copyPromptBtn.innerHTML = original, 2000);
+            navigator.clipboard.writeText(prompt).then(() => {
+                const original = copyPromptBtn.innerHTML;
+                copyPromptBtn.innerHTML = '✅ Copied!';
+                setTimeout(() => copyPromptBtn.innerHTML = original, 2000);
+            });
         });
-    });
 
-    pasteBtn.addEventListener('click', async function () {
-        try {
-            const text = await navigator.clipboard.readText();
-            jsonTextarea.value = text;
-            const original = pasteBtn.innerHTML;
-            pasteBtn.innerHTML = '✅ Pasted!';
-            setTimeout(() => pasteBtn.innerHTML = original, 2000);
-        } catch (err) {
-            alert('Could not read clipboard. Please paste manually.');
-        }
-    });
-</script>
+        pasteBtn.addEventListener('click', async function () {
+            try {
+                const text = await navigator.clipboard.readText();
+                jsonTextarea.value = text;
+                const original = pasteBtn.innerHTML;
+                pasteBtn.innerHTML = '✅ Pasted!';
+                setTimeout(() => pasteBtn.innerHTML = original, 2000);
+            } catch (err) {
+                alert('Could not read clipboard. Please paste manually.');
+            }
+        });
+    </script>
 
 </body>
+
 </html>

@@ -6,7 +6,7 @@ $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $request_id = (int)$_POST['request_id'];
+    $request_id = (int) $_POST['request_id'];
 
     if (isset($_POST['action']) && $_POST['action'] === 'approve') {
         $reqstmt = $pdo->prepare("SELECT * FROM profile_requests WHERE id = ?");
@@ -39,8 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Database Error: " . $e->getMessage();
             }
         }
-    }
-    elseif (isset($_POST['action']) && $_POST['action'] === 'reject') {
+    } elseif (isset($_POST['action']) && $_POST['action'] === 'reject') {
         $pdo->prepare("UPDATE profile_requests SET status ='rejected' WHERE id = ?")->execute([$request_id]);
         $message = "Request has been rejected.";
     }
@@ -59,6 +58,7 @@ $requests = $pdo->query("
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,22 +67,27 @@ $requests = $pdo->query("
 
 <style>
     :root {
-            --primary: #2563eb;
-            --dark: #0f172a;
-            --gray: #64748b;
-            --light: #f8fafc;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --error: #dc2626;
-        }
+        --primary: #2563eb;
+        --dark: #0f172a;
+        --gray: #64748b;
+        --light: #f8fafc;
+        --border: #e2e8f0;
+        --success: #16a34a;
+        --error: #dc2626;
+    }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: var(--light);
-            color: var(--dark);
-            line-height: 1.5;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: system-ui, -apple-system, sans-serif;
+        background: var(--light);
+        color: var(--dark);
+        line-height: 1.5;
+    }
 </style>
 
 <body>
@@ -90,10 +95,12 @@ $requests = $pdo->query("
 
     <!-- Show Success or Error Messages -->
     <?php if ($message): ?>
-        <div style="background: green; color: white; padding: 10px; margin-bottom: 15px;"><?= htmlspecialchars($message) ?></div>
+        <div style="background: green; color: white; padding: 10px; margin-bottom: 15px;"><?= htmlspecialchars($message) ?>
+        </div>
     <?php endif; ?>
     <?php if ($error): ?>
-        <div style="background: red; color: white; padding: 10px; margin-bottom: 15px;"><?= htmlspecialchars($error) ?></div>
+        <div style="background: red; color: white; padding: 10px; margin-bottom: 15px;"><?= htmlspecialchars($error) ?>
+        </div>
     <?php endif; ?>
 
 
@@ -119,17 +126,21 @@ $requests = $pdo->query("
                         <tr>
                             <td><?= htmlspecialchars($req['old_name']) ?></td>
                             <td>
-                                <?= htmlspecialchars($req['old_roll']) ?> | <?= htmlspecialchars($req['old_dept']) ?> | Sem <?= htmlspecialchars($req['old_sem']) ?>
+                                <?= htmlspecialchars($req['old_roll']) ?> | <?= htmlspecialchars($req['old_dept']) ?> | Sem
+                                <?= htmlspecialchars($req['old_sem']) ?>
                             </td>
                             <td style="color: blue;">
                                 <?= htmlspecialchars($req['new_name']) ?><br>
-                                <?= htmlspecialchars($req['new_roll_no']) ?> | <?= htmlspecialchars($req['new_department']) ?> | Sem <?= htmlspecialchars($req['new_semester']) ?>
+                                <?= htmlspecialchars($req['new_roll_no']) ?> | <?= htmlspecialchars($req['new_department']) ?> |
+                                Sem <?= htmlspecialchars($req['new_semester']) ?>
                             </td>
                             <td>
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                    <button type="submit" name="action" value="approve" style="background: green; color: white; padding: 5px 10px; border: none; border-radius: 8px; cursor: pointer;">Approve</button>
-                                    <button type="submit" name="action" value="reject" style="background: red; color: white; padding: 5px 10px; border: none; border-radius: 8px; cursor: pointer;">Reject</button>
+                                    <button type="submit" name="action" value="approve"
+                                        style="background: green; color: white; padding: 5px 10px; border: none; border-radius: 8px; cursor: pointer;">Approve</button>
+                                    <button type="submit" name="action" value="reject"
+                                        style="background: red; color: white; padding: 5px 10px; border: none; border-radius: 8px; cursor: pointer;">Reject</button>
                                 </form>
                             </td>
                         </tr>
@@ -140,4 +151,5 @@ $requests = $pdo->query("
     </div>
 
 </body>
+
 </html>

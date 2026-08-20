@@ -23,7 +23,7 @@ if (
     $name = trim(strip_tags($_POST['name'] ?? ''));
     $roll_number = trim(strip_tags($_POST['roll_number'] ?? ''));
     $department = trim(strip_tags($_POST['department'] ?? ''));
-    $semester = (int)($_POST['semester'] ?? 0);
+    $semester = (int) ($_POST['semester'] ?? 0);
 
     if (
         empty($name) ||
@@ -298,146 +298,117 @@ if (!$student) {
 
 <body>
 
-<?php include '../components/navbar.php'; ?>
+    <?php include '../components/navbar.php'; ?>
 
-<div class="container">
+    <div class="container">
 
-    <div class="header">
-        <h1>Edit Profile</h1>
-        <p class="subtitle">
-            Update your personal information
-        </p>
-    </div>
-
-
-    <?php if ($message): ?>
-        <div class="alert success">
-            <?= htmlspecialchars($message) ?>
-        </div>
-    <?php endif; ?>
-
-
-    <?php if ($error): ?>
-        <div class="alert error">
-            <?= htmlspecialchars($error) ?>
-        </div>
-    <?php endif; ?>
-
-
-    <?php if ($has_pending_request): ?>
-
-        <div class="notice">
-            <strong>Request Pending:</strong>
-            You have a profile update waiting for admin approval.
-            You cannot make another change until the current request is reviewed.
+        <div class="header">
+            <h1>Edit Profile</h1>
+            <p class="subtitle">
+                Update your personal information
+            </p>
         </div>
 
-    <?php else: ?>
 
-        <form method="POST">
+        <?php if ($message): ?>
+            <div class="alert success">
+                <?= htmlspecialchars($message) ?>
+            </div>
+        <?php endif; ?>
 
-            <div class="form-group">
-                <label>Email Address (cannot be changed)</label>
 
-                <input
-                    type="email"
-                    value="<?= htmlspecialchars($student['email']) ?>"
-                    readonly
-                >
+        <?php if ($error): ?>
+            <div class="alert error">
+                <?= htmlspecialchars($error) ?>
+            </div>
+        <?php endif; ?>
+
+
+        <?php if ($has_pending_request): ?>
+
+            <div class="notice">
+                <strong>Request Pending:</strong>
+                You have a profile update waiting for admin approval.
+                You cannot make another change until the current request is reviewed.
             </div>
 
+        <?php else: ?>
 
-            <div class="form-group">
-                <label>Full Name</label>
+            <form method="POST">
 
-                <input
-                    type="text"
-                    name="name"
-                    required
-                    value="<?= htmlspecialchars($student['name']) ?>"
-                >
-            </div>
+                <div class="form-group">
+                    <label>Email Address (cannot be changed)</label>
+
+                    <input type="email" value="<?= htmlspecialchars($student['email']) ?>" readonly>
+                </div>
 
 
-            <div class="form-group">
-                <label>Roll Number</label>
+                <div class="form-group">
+                    <label>Full Name</label>
 
-                <input
-                    type="text"
-                    name="roll_number"
-                    required
-                    value="<?= htmlspecialchars($student['roll_number']) ?>"
-                >
-            </div>
+                    <input type="text" name="name" required value="<?= htmlspecialchars($student['name']) ?>">
+                </div>
 
 
-            <div class="form-group">
-                <label>Department</label>
+                <div class="form-group">
+                    <label>Roll Number</label>
 
-                <select name="department" required>
-
-                    <option
-                        value="BCA"
-                        <?= $student['department'] === 'BCA' ? 'selected' : '' ?>
-                    >
-                        BCA
-                    </option>
-
-                    <option
-                        value="BBA"
-                        <?= $student['department'] === 'BBA' ? 'selected' : '' ?>
-                    >
-                        BBA
-                    </option>
-
-                </select>
-            </div>
+                    <input type="text" name="roll_number" required value="<?= htmlspecialchars($student['roll_number']) ?>">
+                </div>
 
 
-            <div class="form-group">
-                <label>Current Semester</label>
+                <div class="form-group">
+                    <label>Department</label>
 
-                <select name="semester" required>
+                    <select name="department" required>
 
-                    <?php for ($i = 1; $i <= 8; $i++): ?>
-
-                        <option
-                            value="<?= $i ?>"
-                            <?= $student['semester'] == $i ? 'selected' : '' ?>
-                        >
-                            Semester <?= $i ?>
+                        <option value="BCA" <?= $student['department'] === 'BCA' ? 'selected' : '' ?>>
+                            BCA
                         </option>
 
-                    <?php endfor; ?>
+                        <option value="BBA" <?= $student['department'] === 'BBA' ? 'selected' : '' ?>>
+                            BBA
+                        </option>
 
-                </select>
-            </div>
+                    </select>
+                </div>
 
 
-            <div class="form-actions">
+                <div class="form-group">
+                    <label>Current Semester</label>
 
-                <button
-                    type="submit"
-                    name="request_update"
-                    class="btn"
-                >
-                    Request to Update
-                </button>
+                    <select name="semester" required>
 
-                <a
-                    href="profile.php"
-                    class="btn-secondary"
-                >
-                    Cancel & Go Back
-                </a>
+                        <?php for ($i = 1; $i <= 8; $i++): ?>
 
-            </div>
+                            <option value="<?= $i ?>" <?= $student['semester'] == $i ? 'selected' : '' ?>>
+                                Semester <?= $i ?>
+                            </option>
 
-        </form>
+                        <?php endfor; ?>
 
-    <?php endif; ?>
+                    </select>
+                </div>
 
-</div>
+
+                <div class="form-actions">
+
+                    <button type="submit" name="request_update" class="btn">
+                        Request to Update
+                    </button>
+
+                    <a href="profile.php" class="btn-secondary">
+                        Cancel & Go Back
+                    </a>
+
+                </div>
+
+            </form>
+
+        <?php endif; ?>
+
+    </div>
 
 </body>
+
 </html>

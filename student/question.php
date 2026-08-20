@@ -13,14 +13,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
 
     if ($input && isset($input['exam_id'], $input['question_id'])) {
-        $exam_id = (int)$input['exam_id'];
-        $question_id = (int)$input['question_id'];
+        $exam_id = (int) $input['exam_id'];
+        $question_id = (int) $input['question_id'];
 
-        if (!isset($_SESSION['exam_answers'])) $_SESSION['exam_answers'] = [];
-        if (!isset($_SESSION['exam_answers'][$exam_id])) $_SESSION['exam_answers'][$exam_id] = [];
+        if (!isset($_SESSION['exam_answers']))
+            $_SESSION['exam_answers'] = [];
+        if (!isset($_SESSION['exam_answers'][$exam_id]))
+            $_SESSION['exam_answers'][$exam_id] = [];
 
-        if (!isset($_SESSION['exam_reviews'])) $_SESSION['exam_reviews'] = [];
-        if (!isset($_SESSION['exam_reviews'][$exam_id])) $_SESSION['exam_reviews'][$exam_id] = [];
+        if (!isset($_SESSION['exam_reviews']))
+            $_SESSION['exam_reviews'] = [];
+        if (!isset($_SESSION['exam_reviews'][$exam_id]))
+            $_SESSION['exam_reviews'][$exam_id] = [];
 
         // Save selected option
         if (isset($input['selected_option'])) {
@@ -29,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Save review status
         if (isset($input['marked_for_review'])) {
-            $_SESSION['exam_reviews'][$exam_id][$question_id] = (bool)$input['marked_for_review'];
+            $_SESSION['exam_reviews'][$exam_id][$question_id] = (bool) $input['marked_for_review'];
         }
 
         echo json_encode(['success' => true]);
@@ -47,8 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit();
     }
 
-    $exam_id = (int)$_GET['exam_id'];
-    $index = (int)$_GET['index']; // 0-based index
+    $exam_id = (int) $_GET['exam_id'];
+    $index = (int) $_GET['index']; // 0-based index
 
     try {
         // Find the attempt
@@ -62,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
 
         $attempt_id = $attempt['id'];
-        $total_questions = (int)$attempt['total_questions'];
+        $total_questions = (int) $attempt['total_questions'];
 
         if ($index < 0 || $index >= $total_questions) {
             echo json_encode(['error' => 'Question index out of bounds']);
@@ -97,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             echo json_encode([
                 'success' => true,
                 'question' => $question,
-                'total' => (int)$total_questions,
+                'total' => (int) $total_questions,
                 'currentIndex' => $index,
                 'question_ids' => $all_ids,
                 'selected_option' => $selected,

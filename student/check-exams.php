@@ -22,7 +22,7 @@ try {
     $stmt->execute([$semester, $department]);
     $count = $stmt->fetchColumn();
 
-    echo json_encode(['active_exams' => (int)$count]);
+    echo json_encode(['active_exams' => (int) $count]);
 
 } catch (Exception $e) {
     echo json_encode(['error' => 'Database error']);
