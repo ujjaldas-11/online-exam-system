@@ -1,20 +1,25 @@
 <?php
-session_start();
-require_once '../config/database.php';
 
-header('Content-Type: application/json');
+require_once __DIR__ . '/../utils/session.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../utils/sanitize.php';
 
-if (!isset($_SESSION['student_id'])) {
-    echo json_encode(['error' => 'Not authenticated']);
-    exit();
+init_secure_session();
+
+if (empty($_SESSION['student_id'])) {
+    json_response(['error' => 'Not authenticated'], 401);
 }
 
+$student_id = (int) $_SESSION['student_id'];
+
+// Handle POST: Save Answer / Review status
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
 
     if ($input && isset($input['exam_id'], $input['question_id'])) {
-        $exam_id = (int) $input['exam_id'];
-        $question_id = (int) $input['question_id'];
+        $exam_id = int_param($input['exam_id']);
+        $question_id = int_param($input['question_id']);
 
         if (!isset($_SESSION['exam_answers'])) {
             $_SESSION['exam_answers'] = [];
@@ -30,9 +35,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['exam_reviews'][$exam_id] = [];
         }
 
-        // Save selected option
+        // Save selected option in session and database
         if (isset($input['selected_option'])) {
-            $_SESSION['exam_answers'][$exam_id][$question_id] = trim(strip_tags($input['selected_option']));
+            $selected = clean_input($input['selected_option']);
+            $_SESSION['exam_answers'][$exam_id][$question_id] = $selected;
+
+            // Direct database backup to prevent data loss on browser crash
+            try {
+                $syncStmt = $pdo->prepare("
+                    UPDATE student_answers sa
+                    JOIN exam_attempts ea ON sa.attempt_id = ea.id
+                    SET sa.selected_option = ?
+                    WHERE ea.student_id = ? AND ea.exam_id = ? AND sa.question_id = ?
+                ");
+                $syncStmt->execute([$selected, $student_id, $exam_id, $question_id]);
+            } catch (PDOException) {
+                // Failover gracefully to session storage
+            }
         }
 
         // Save review status
@@ -40,44 +59,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['exam_reviews'][$exam_id][$question_id] = (bool) $input['marked_for_review'];
         }
 
-        echo json_encode(['success' => true]);
-        exit();
+        // Release session lock to unblock concurrent requests
+        session_write_close();
+
+        json_response(['success' => true]);
     }
 
-    echo json_encode(['error' => 'Invalid input']);
-    exit();
+    session_write_close();
+    json_response(['error' => 'Invalid input'], 400);
 }
 
 // Handle GET: Fetch Question
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (!isset($_GET['exam_id']) || !isset($_GET['index'])) {
-        echo json_encode(['error' => 'Missing parameters']);
-        exit();
+        session_write_close();
+        json_response(['error' => 'Missing parameters'], 400);
     }
 
-    $exam_id = (int) $_GET['exam_id'];
-    $index = (int) $_GET['index']; // 0-based index
+    $exam_id = int_param($_GET['exam_id']);
+    $index = int_param($_GET['index']);
+
+    // Read session data before closing lock
+    $sessionAnswers = $_SESSION['exam_answers'][$exam_id] ?? [];
+    $sessionReviews = $_SESSION['exam_reviews'][$exam_id] ?? [];
+
+    session_write_close();
 
     try {
         // Find the attempt
         $attemptStmt = $pdo->prepare("SELECT id, total_questions FROM exam_attempts WHERE student_id = :student_id AND exam_id = :exam_id");
-        $attemptStmt->execute([':student_id' => $_SESSION['student_id'], ':exam_id' => $exam_id]);
+        $attemptStmt->execute([':student_id' => $student_id, ':exam_id' => $exam_id]);
         $attempt = $attemptStmt->fetch();
 
         if (!$attempt) {
-            echo json_encode(['error' => 'Exam attempt not initialized']);
-            exit();
+            json_response(['error' => 'Exam attempt not initialized'], 404);
         }
 
-        $attempt_id = $attempt['id'];
+        $attempt_id = (int) $attempt['id'];
         $total_questions = (int) $attempt['total_questions'];
 
         if ($index < 0 || $index >= $total_questions) {
-            echo json_encode(['error' => 'Question index out of bounds']);
-            exit();
+            json_response(['error' => 'Question index out of bounds'], 400);
         }
 
-        // Get the specific question by index from the student's assigned questions (REMOVED q.marks)
+        // Get the specific question by index from the student's assigned questions
         $qSql = "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d
             FROM student_answers sa
             JOIN questions q ON sa.question_id = q.id
@@ -92,32 +117,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $question = $qStmt->fetch(PDO::FETCH_ASSOC);
 
         // Fetch ordered list of all assigned question IDs for grid mapping
-        $idsSql = "SELECT question_id FROM student_answers WHERE attempt_id = :attempt_id ORDER BY id ASC";
+        $idsSql = "SELECT question_id, selected_option FROM student_answers WHERE attempt_id = :attempt_id ORDER BY id ASC";
         $idsStmt = $pdo->prepare($idsSql);
         $idsStmt->execute([':attempt_id' => $attempt_id]);
-        $all_ids = $idsStmt->fetchAll(PDO::FETCH_COLUMN);
+        $dbRows = $idsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $all_ids = array_column($dbRows, 'question_id');
+
+        // Merge DB saved answers with session answers
+        foreach ($dbRows as $row) {
+            if (!empty($row['selected_option']) && empty($sessionAnswers[$row['question_id']])) {
+                $sessionAnswers[$row['question_id']] = $row['selected_option'];
+            }
+        }
 
         if ($question) {
             $q_id = $question['id'];
-            $selected = $_SESSION['exam_answers'][$exam_id][$q_id] ?? null;
-            $marked = $_SESSION['exam_reviews'][$exam_id][$q_id] ?? false;
+            $selected = $sessionAnswers[$q_id] ?? null;
+            $marked = $sessionReviews[$q_id] ?? false;
 
-            echo json_encode([
+            json_response([
                 'success' => true,
                 'question' => $question,
-                'total' => (int) $total_questions,
+                'total' => $total_questions,
                 'currentIndex' => $index,
                 'question_ids' => $all_ids,
                 'selected_option' => $selected,
                 'marked_for_review' => $marked,
-                'all_answers' => $_SESSION['exam_answers'][$exam_id] ?? [],
-                'all_reviews' => $_SESSION['exam_reviews'][$exam_id] ?? []
+                'all_answers' => $sessionAnswers,
+                'all_reviews' => $sessionReviews,
             ]);
         } else {
-            echo json_encode(['error' => 'Question not found']);
+            json_response(['error' => 'Question not found'], 404);
         }
 
     } catch (PDOException $e) {
-        echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+        json_response(['error' => 'Database query failed'], 500);
     }
 }

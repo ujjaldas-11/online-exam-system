@@ -1,19 +1,23 @@
 <?php
+
 require_once 'student-guard.php';
 require_once '../config/database.php';
+require_once '../utils/csrf.php';
+require_once '../utils/sanitize.php';
+require_once '../utils/logger.php';
 
-
-if (!isset($_GET['id']) || empty($_GET['id'])) {
+if (empty($_GET['id'])) {
     die("Error: No exam selected.");
 }
 
-$exam_id = (int) $_GET['id'];
-$student_semester = $_SESSION['semester'];
-$student_department = $_SESSION['department'];
+$exam_id = int_param($_GET['id']);
+$student_id = (int) $_SESSION['student_id'];
+$student_semester = (int) $_SESSION['semester'];
+$student_department = (string) $_SESSION['department'];
 
 try {
     $examSql = "SELECT e.id, e.title, e.duration_minutes, e.subject_id, e.total_questions_to_ask, e.total_marks,
-        TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
+        e.access_pin, TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id
         WHERE e.id = :id
@@ -26,41 +30,92 @@ try {
     $examStmt->execute([
         ':id' => $exam_id,
         ':semester' => $student_semester,
-        ':department' => $student_department
+        ':department' => $student_department,
     ]);
 
     $exam = $examStmt->fetch();
 
     if (!$exam) {
-        die("Exam not found or you don't have permission.");
+        die("Exam not found or you do not have permission to access it.");
     }
 
     if ($exam['seconds_left'] <= 0) {
-        die("<h2 style='text-align:center;margin-top:100px;'>Time is up! This exam has ended.</h2>");
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Time is up! This exam has ended.</h2>");
     }
 
-    // CALCULATE POINTS PER QUESTION (Added this line)
-    $points_per_question = ($exam['total_questions_to_ask'] > 0) ? ($exam['total_marks'] / $exam['total_questions_to_ask']) : 0;
-    $points_per_question = (float) $points_per_question;
+    // Classroom PIN Verification (For Surprise Tests)
+    $pinRequired = !empty($exam['access_pin']);
+    $isUnlocked = isset($_SESSION['unlocked_exams'][$exam_id]);
+    $pinError = '';
 
-    // Check existing attempt
-    $attemptStmt = $pdo->prepare("SELECT id, total_questions FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
-    $attemptStmt->execute([$_SESSION['student_id'], $exam_id]);
+    if ($pinRequired && !$isUnlocked) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_pin'])) {
+            verify_csrf();
+            $enteredPin = clean_input($_POST['exam_pin'] ?? '');
+            if ($enteredPin === $exam['access_pin']) {
+                $_SESSION['unlocked_exams'][$exam_id] = true;
+                $isUnlocked = true;
+            } else {
+                $pinError = "Incorrect Classroom Exam PIN. Please ask your instructor.";
+            }
+        }
+    }
+
+    if ($pinRequired && !$isUnlocked) {
+        $page_title = 'Enter Exam PIN • Examify';
+        $body_class = 'auth-body';
+        include __DIR__ . '/../components/header.php';
+        ?>
+        <div class="auth-card">
+            <h1>Classroom Access PIN</h1>
+            <p class="subtitle">Enter the PIN provided by your instructor on the board to unlock <strong><?= e($exam['title']) ?></strong></p>
+
+            <?php if ($pinError): ?>
+                <div class="alert alert-error"><?= e($pinError) ?></div>
+            <?php endif; ?>
+
+            <form method="POST">
+                <?= csrf_field() ?>
+                <div class="form-group">
+                    <label>Exam PIN / Passcode</label>
+                    <input type="text" name="exam_pin" required autofocus placeholder="e.g. 1234" style="text-align: center; font-size: 1.5rem; letter-spacing: 4px;">
+                </div>
+                <button type="submit" name="verify_pin" class="btn btn-primary btn-block">Unlock Exam</button>
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="dashboard.php" class="btn btn-secondary btn-sm">Return to Dashboard</a>
+                </div>
+            </form>
+        </div>
+        <?php
+        include __DIR__ . '/../components/footer.php';
+        exit;
+    }
+
+    $points_per_question = ($exam['total_questions_to_ask'] > 0) ? ($exam['total_marks'] / $exam['total_questions_to_ask']) : 0;
+    $points_per_question = round((float) $points_per_question, 2);
+
+    // Check or initialize attempt
+    $attemptStmt = $pdo->prepare("SELECT id, total_questions, status FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
+    $attemptStmt->execute([$student_id, $exam_id]);
     $attempt = $attemptStmt->fetch();
+
+    if ($attempt && $attempt['status'] === 'completed') {
+        redirect("result.php?exam_id=$exam_id");
+    }
 
     if (!$attempt) {
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare("INSERT INTO exam_attempts (student_id, exam_id, total_questions) VALUES (?, ?, ?)");
-            $stmt->execute([$_SESSION['student_id'], $exam_id, $exam['total_questions_to_ask']]);
-            $attempt_id = $pdo->lastInsertId();
+            $stmt->execute([$student_id, $exam_id, $exam['total_questions_to_ask']]);
+            $attempt_id = (int) $pdo->lastInsertId();
 
             $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? ORDER BY RAND() LIMIT " . (int) $exam['total_questions_to_ask']);
             $qStmt->execute([$exam['subject_id']]);
             $random_questions = $qStmt->fetchAll(PDO::FETCH_COLUMN);
 
             if (count($random_questions) < $exam['total_questions_to_ask']) {
-                throw new Exception("Not enough questions available.");
+                throw new Exception("Not enough questions in question bank.");
             }
 
             $ansStmt = $pdo->prepare("INSERT INTO student_answers (attempt_id, question_id) VALUES (?, ?)");
@@ -69,551 +124,265 @@ try {
             }
 
             $pdo->commit();
-            $total_questions = $exam['total_questions_to_ask'];
+            $total_questions = (int) $exam['total_questions_to_ask'];
         } catch (Exception $e) {
             $pdo->rollBack();
+            log_error("Error initializing exam attempt for student $student_id", $e);
             die("Error starting exam: " . $e->getMessage());
         }
     } else {
-        $total_questions = $attempt['total_questions'];
+        $attempt_id = (int) $attempt['id'];
+        $total_questions = (int) $attempt['total_questions'];
     }
 
 } catch (PDOException $e) {
-    die("Database Error: " . $e->getMessage());
+    log_error("Exam loading error", $e);
+    die("Database Error. Please contact your instructor.");
 }
+
+$page_title = e($exam['title']) . ' • Examify';
+$extra_css = ['exam.css'];
+include __DIR__ . '/../components/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($exam['title']) ?> • Examify</title>
-    <!-- <link rel="stylesheet" href="../assets/css/student.css"> -->
-    <style>
-        :root {
-            --primary: #2563eb;
-            --dark: #0f172a;
-            --gray: #64748b;
-            --light: #f8fafc;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --warning: #d97706;
-            --danger: #dc2626;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: var(--light);
-            color: var(--dark);
-            line-height: 1.5;
-        }
-
-        /* Header */
-        .header {
-            background: white;
-            border-bottom: 1px solid var(--border);
-            padding: 14px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 40;
-        }
-
-        .header h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .timer {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--danger);
-            background: #fef2f2;
-            padding: 6px 14px;
-            border-radius: 8px;
-        }
-
-        /* Layout */
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 24px 20px;
-            display: grid;
-            grid-template-columns: 1fr 260px;
-            gap: 24px;
-        }
-
-        /* Question Card */
-        .question-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 28px;
-        }
-
-        .question-meta {
-            font-size: 0.9rem;
-            color: var(--gray);
-            margin-bottom: 12px;
-        }
-
-        .question-text {
-            font-size: 1.15rem;
-            font-weight: 500;
-            margin-bottom: 24px;
-            line-height: 1.6;
-        }
-
-        /* Options - Fixed Alignment */
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .option {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 14px 16px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.15s;
-            background: white;
-        }
-
-        .option:hover {
-            border-color: #93c5fd;
-            background: #f0f7ff;
-        }
-
-        .option input {
-            margin-top: 3px;
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-            flex-shrink: 0;
-        }
-
-        .option span {
-            flex: 1;
-            font-size: 0.98rem;
-        }
-
-        /* Navigation */
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 28px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-            gap: 12px;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #1d4ed8;
-        }
-
-        .btn-secondary {
-            background: #e2e8f0;
-            color: #334155;
-        }
-
-        .btn-secondary:hover {
-            background: #cbd5e1;
-        }
-
-        .btn-warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .btn-warning:hover {
-            background: #fde68a;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            height: fit-content;
-            position: sticky;
-            top: 80px;
-        }
-
-        .sidebar h3 {
-            font-size: 1rem;
-            margin-bottom: 14px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .grid-btn {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            background: white;
-            transition: 0.15s;
-        }
-
-        .grid-btn:hover {
-            background: #f1f5f9;
-        }
-
-        .grid-btn.answered {
-            background: #dcfce7;
-            border-color: #86efac;
-            color: var(--success);
-        }
-
-        .grid-btn.review {
-            border: 2px solid var(--warning);
-        }
-
-        .grid-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .legend {
-            font-size: 0.8rem;
-            color: var(--gray);
-            margin-bottom: 20px;
-        }
-
-        .legend div {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-
-        .dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-        }
-
-        .dot.answered {
-            background: #dcfce7;
-            border-color: #86efac;
-        }
-
-        .dot.review {
-            border: 2px solid var(--warning);
-        }
-
-        .dot.unanswered {
-            background: white;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 12px;
-            background: var(--success);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        .btn-submit:hover {
-            background: #15803d;
-        }
-
-        /* Overlay */
-        #exam-start-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.92);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-
-        #exam-start-overlay h2 {
-            font-size: 1.8rem;
-            margin-bottom: 12px;
-        }
-
-        #exam-start-overlay p {
-            color: #94a3b8;
-            margin-bottom: 8px;
-        }
-
-        #exam-start-overlay .warning {
-            color: #fca5a5;
-            font-weight: 600;
-            margin-top: 16px;
-        }
-
-        /* Mobile */
-        @media (max-width: 800px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: static;
-                order: -1;
-            }
-
-            .grid {
-                grid-template-columns: repeat(8, 1fr);
-            }
-        }
-    </style>
-
-</head>
-
-<body>
-
-    <div class="header">
-        <h1><?= htmlspecialchars($exam['title']) ?></h1>
-        <div class="timer" id="timerDisplay" data-time-left="<?= max(0, $exam['seconds_left']) ?>">
-            Time Left: --:--
+<div class="exam-header">
+    <h1><?= e($exam['title']) ?></h1>
+    <div class="timer-box">
+        <div class="timer" id="timerDisplay" data-time-left="<?= max(0, (int)$exam['seconds_left']) ?>">
+            ⏱️ <span id="timerText">--:--</span>
         </div>
     </div>
+</div>
 
-    <?php if ($total_questions === 0): ?>
-        <div style="text-align:center;padding:80px 20px;color:var(--gray);">
-            No questions available for this exam.
-        </div>
-    <?php else: ?>
-
-        <div class="container">
-            <!-- Question Area -->
-            <div class="question-card">
-                <div id="question-container">
-                    <p style="color:var(--gray)">Loading question...</p>
-                </div>
-
-                <div class="nav-buttons">
-                    <button type="button" id="btn-prev" class="btn btn-secondary">← Previous</button>
-                    <button type="button" id="btn-review" class="btn btn-warning" data-marked="0">Mark for Review</button>
-                    <button type="button" id="btn-next" class="btn btn-primary">Next →</button>
-                </div>
+<?php if ($total_questions === 0): ?>
+    <div style="text-align: center; padding: 80px 20px; color: var(--color-text-secondary);">
+        No questions available for this exam.
+    </div>
+<?php else: ?>
+    <div class="exam-container">
+        <!-- Question Card -->
+        <div class="question-card">
+            <div id="question-container">
+                <p style="color: var(--color-text-secondary);">Loading question...</p>
             </div>
 
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <h3>Question Map</h3>
-                <div class="grid" id="grid-container"></div>
-
-                <div class="legend">
-                    <div><span class="dot answered"></span> Answered</div>
-                    <div><span class="dot review"></span> Marked for Review</div>
-                    <div><span class="dot unanswered"></span> Not Answered</div>
-                </div>
-
-                <form action="result.php" method="POST" id="examForm">
-                    <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
-                    <button type="button" id="btn-submit-exam" class="btn-submit">Submit Exam</button>
-                </form>
+            <div class="exam-nav">
+                <button type="button" id="btn-prev" class="btn btn-secondary">← Previous</button>
+                <button type="button" id="btn-review" class="btn btn-warning" data-marked="0">Mark for Review</button>
+                <button type="button" id="btn-next" class="btn btn-primary">Next →</button>
             </div>
         </div>
 
-    <?php endif; ?>
+        <!-- Sidebar Question Map -->
+        <div class="exam-sidebar">
+            <h3>Question Palette</h3>
+            <div class="question-grid" id="grid-container"></div>
 
-    <!-- Start Overlay -->
-    <div id="exam-start-overlay">
-        <h2>Ready to begin?</h2>
-        <p>Press <strong>F11</strong> to enter full-screen mode</p>
-        <p class="warning">Switching tabs or exiting full-screen will be recorded as a violation</p>
+            <div class="exam-legend">
+                <div><span class="dot dot-answered"></span> Answered</div>
+                <div><span class="dot dot-review"></span> Marked for Review</div>
+                <div><span class="dot dot-unanswered"></span> Unanswered</div>
+            </div>
+
+            <form action="result.php" method="POST" id="examForm">
+                <?= csrf_field() ?>
+                <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
+                <button type="button" id="btn-submit-exam" class="btn btn-success btn-block" style="padding: 12px;">Submit Exam</button>
+            </form>
+        </div>
     </div>
+<?php endif; ?>
 
-    <script src="../utils/anti-cheat.js"></script>
-    <script src="../utils/timer.js"></script>
-    <script>
-        const examId = <?= $exam_id ?>;
-        const totalQuestions = <?= $total_questions ?>;
-        // ADDED POINTS PER QUESTION CONSTANT HERE
-        const pointsPerQuestion = <?= $points_per_question ?>;
-        let currentIndex = 0;
-        let currentQuestionId = null;
+<!-- Fullscreen Start Modal -->
+<div id="exam-start-overlay" class="fullscreen-overlay">
+    <div class="overlay-card">
+        <h2>🔒 Start Secure Examination</h2>
+        <p>This exam is protected by anti-cheat monitoring. Fullscreen mode will be activated.</p>
+        <div class="alert alert-warning" style="margin-bottom: 20px;">
+            ⚠️ Tab switches, window minimization, and developer tools are recorded on the instructor dashboard.
+        </div>
+        <button id="btn-enter-fullscreen" class="btn btn-primary btn-block" style="padding: 14px; font-size: 1.05rem;">
+            Click to Enter Fullscreen & Begin
+        </button>
+        <p style="margin-top: 14px; font-size: 0.85rem; color: var(--color-text-muted);">
+            Or press <strong>F11</strong> on your keyboard
+        </p>
+    </div>
+</div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            AntiCheat.init({
-                onViolation: (count, reason) => console.warn(`Violation ${count}: ${reason}`),
-                onTerminate: () => {
-                    alert("Exam terminated due to violations. Submitting answers.");
-                    document.getElementById('examForm').submit();
-                }
-            });
+<script src="../utils/anti-cheat.js"></script>
+<script src="../utils/timer.js"></script>
+<script>
+    const examId = <?= $exam_id ?>;
+    const attemptId = <?= $attempt_id ?>;
+    const totalQuestions = <?= $total_questions ?>;
+    const pointsPerQuestion = <?= $points_per_question ?>;
+    let currentIndex = 0;
+    let currentQuestionId = null;
 
-            if (totalQuestions > 0) loadQuestion(0);
+    document.addEventListener('DOMContentLoaded', () => {
+        AntiCheat.init({
+            attemptId: attemptId,
+            onViolation: (count, reason) => console.warn(`Violation ${count}: ${reason}`),
+            onTerminate: () => {
+                alert("Maximum violations reached. Your exam is being automatically submitted.");
+                document.getElementById('examForm').submit();
+            }
         });
 
-        function loadQuestion(index) {
-            fetch(`question.php?exam_id=${examId}&index=${index}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) return alert(data.error);
-
-                    currentIndex = data.currentIndex;
-                    currentQuestionId = data.question.id;
-
-                    renderQuestion(data.question, data.selected_option, data.marked_for_review);
-                    renderGrid(data.total, data.all_answers, data.all_reviews, data.question_ids);
-                    updateNavButtons();
-                })
-                .catch(err => console.error(err));
+        const startBtn = document.getElementById('btn-enter-fullscreen');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                AntiCheat.start();
+            });
         }
 
-        function renderQuestion(q, selected, marked) {
-            const container = document.getElementById('question-container');
-            // REPLACED q.marks WITH pointsPerQuestion IN HTML
-            let html = `
+        if (totalQuestions > 0) {
+            loadQuestion(0);
+        }
+    });
+
+    function loadQuestion(index) {
+        fetch(`question.php?exam_id=${examId}&index=${index}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) return alert(data.error);
+
+                currentIndex = data.currentIndex;
+                currentQuestionId = data.question.id;
+
+                renderQuestion(data.question, data.selected_option, data.marked_for_review);
+                renderGrid(data.total, data.all_answers, data.all_reviews, data.question_ids);
+                updateNavButtons();
+            })
+            .catch(err => console.error("Error loading question:", err));
+    }
+
+    function renderQuestion(q, selected, marked) {
+        const container = document.getElementById('question-container');
+        let html = `
             <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''}</div>
             <div class="question-text">${q.question_text}</div>
-            <div class="options">
+            <div class="options-list">
         `;
 
-            ['A', 'B', 'C', 'D'].forEach(opt => {
-                const text = q['option_' + opt.toLowerCase()];
-                if (text && text.trim() !== '') {
-                    const checked = selected === opt ? 'checked' : '';
-                    html += `
-                    <label class="option">
-                        <input type="radio" name="answer" value="${opt}" ${checked}>
+        ['A', 'B', 'C', 'D'].forEach(opt => {
+            const text = q['option_' + opt.toLowerCase()];
+            if (text && text.trim() !== '') {
+                const isSelected = selected === opt;
+                html += `
+                    <label class="option-item ${isSelected ? 'selected' : ''}">
+                        <input type="radio" name="answer" value="${opt}" ${isSelected ? 'checked' : ''}>
                         <span><strong>${opt}.</strong> ${text}</span>
                     </label>
                 `;
-                }
-            });
+            }
+        });
 
-            html += `</div>`;
-            container.innerHTML = html;
+        html += `</div>`;
+        container.innerHTML = html;
 
-            const reviewBtn = document.getElementById('btn-review');
+        const reviewBtn = document.getElementById('btn-review');
+        if (reviewBtn) {
             reviewBtn.dataset.marked = marked ? "1" : "0";
             reviewBtn.innerText = marked ? "Unmark Review" : "Mark for Review";
         }
+    }
 
-        function renderGrid(total, answers, reviews, allIds) {
-            const grid = document.getElementById('grid-container');
-            grid.innerHTML = '';
+    function renderGrid(total, answers, reviews, allIds) {
+        const grid = document.getElementById('grid-container');
+        grid.innerHTML = '';
 
-            for (let i = 0; i < total; i++) {
-                const qId = allIds[i];
-                const btn = document.createElement('div');
-                btn.className = 'grid-btn';
-                btn.innerText = i + 1;
-                btn.id = `grid-btn-${i}`;
+        for (let i = 0; i < total; i++) {
+            const qId = allIds[i];
+            const btn = document.createElement('div');
+            btn.className = 'grid-btn';
+            btn.innerText = i + 1;
+            btn.id = `grid-btn-${i}`;
 
-                if (answers[qId]) btn.classList.add('answered');
-                if (reviews[qId]) btn.classList.add('review');
-                if (i === currentIndex) btn.classList.add('active');
+            if (answers[qId]) btn.classList.add('answered');
+            if (reviews[qId]) btn.classList.add('review');
+            if (i === currentIndex) btn.classList.add('active');
 
-                btn.onclick = () => saveCurrentAnswer().then(() => loadQuestion(i));
-                grid.appendChild(btn);
-            }
+            btn.onclick = () => saveCurrentAnswer().then(() => loadQuestion(i));
+            grid.appendChild(btn);
         }
+    }
 
-        function updateNavButtons() {
-            document.getElementById('btn-prev').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
-            document.getElementById('btn-next').style.visibility = currentIndex < totalQuestions - 1 ? 'visible' : 'hidden';
-        }
+    function updateNavButtons() {
+        const prevBtn = document.getElementById('btn-prev');
+        const nextBtn = document.getElementById('btn-next');
+        if (prevBtn) prevBtn.style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+        if (nextBtn) nextBtn.style.visibility = currentIndex < totalQuestions - 1 ? 'visible' : 'hidden';
+    }
 
-        async function saveCurrentAnswer() {
-            if (!currentQuestionId) return;
+    async function saveCurrentAnswer() {
+        if (!currentQuestionId) return;
 
-            const selected = document.querySelector('input[name="answer"]:checked')?.value || null;
-            const isMarked = document.getElementById('btn-review').dataset.marked === "1";
+        const selected = document.querySelector('input[name="answer"]:checked')?.value || null;
+        const reviewBtn = document.getElementById('btn-review');
+        const isMarked = reviewBtn ? reviewBtn.dataset.marked === "1" : false;
 
-            const payload = {
-                exam_id: examId,
-                question_id: currentQuestionId,
-                marked_for_review: isMarked
-            };
-            if (selected) payload.selected_option = selected;
+        const payload = {
+            exam_id: examId,
+            question_id: currentQuestionId,
+            marked_for_review: isMarked
+        };
+        if (selected) payload.selected_option = selected;
 
+        try {
             await fetch('question.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+        } catch (e) {
+            console.error("Auto-sync failed:", e);
         }
+    }
 
-        // Auto-save when option selected
-        document.getElementById('question-container').addEventListener('change', e => {
-            if (e.target.name === 'answer') {
-                saveCurrentAnswer().then(() => {
-                    document.getElementById(`grid-btn-${currentIndex}`)?.classList.add('answered');
-                });
+    // Auto-save when option is clicked
+    document.getElementById('question-container').addEventListener('change', e => {
+        if (e.target.name === 'answer') {
+            document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+            e.target.closest('.option-item')?.classList.add('selected');
+
+            saveCurrentAnswer().then(() => {
+                document.getElementById(`grid-btn-${currentIndex}`)?.classList.add('answered');
+            });
+        }
+    });
+
+    document.getElementById('btn-prev').onclick = () => {
+        if (currentIndex > 0) saveCurrentAnswer().then(() => loadQuestion(currentIndex - 1));
+    };
+
+    document.getElementById('btn-next').onclick = () => {
+        if (currentIndex < totalQuestions - 1) saveCurrentAnswer().then(() => loadQuestion(currentIndex + 1));
+    };
+
+    document.getElementById('btn-review').onclick = function () {
+        const isMarked = this.dataset.marked === "1";
+        this.dataset.marked = isMarked ? "0" : "1";
+        this.innerText = isMarked ? "Mark for Review" : "Unmark Review";
+
+        const btn = document.getElementById(`grid-btn-${currentIndex}`);
+        if (btn) {
+            if (isMarked) {
+                btn.classList.remove('review');
+            } else {
+                btn.classList.add('review');
             }
-        });
+        }
+        saveCurrentAnswer();
+    };
 
-        document.getElementById('btn-prev').onclick = () => {
-            if (currentIndex > 0) saveCurrentAnswer().then(() => loadQuestion(currentIndex - 1));
-        };
-        document.getElementById('btn-next').onclick = () => {
-            if (currentIndex < totalQuestions - 1) saveCurrentAnswer().then(() => loadQuestion(currentIndex + 1));
-        };
+    document.getElementById('btn-submit-exam').onclick = async () => {
+        if (confirm("Are you sure you want to submit your examination? Once submitted, you cannot change your answers.")) {
+            await saveCurrentAnswer();
+            document.getElementById('examForm').submit();
+        }
+    };
+</script>
 
-        document.getElementById('btn-review').onclick = function () {
-            const isMarked = this.dataset.marked === "1";
-            this.dataset.marked = isMarked ? "0" : "1";
-            this.innerText = isMarked ? "Mark for Review" : "Unmark Review";
-
-            const btn = document.getElementById(`grid-btn-${currentIndex}`);
-            if (btn) isMarked ? btn.classList.remove('review') : btn.classList.add('review');
-            saveCurrentAnswer();
-        };
-
-        document.getElementById('btn-submit-exam').onclick = async () => {
-            if (confirm("Are you sure you want to submit the exam?")) {
-                await saveCurrentAnswer();
-                document.getElementById('examForm').submit();
-            }
-        };
-    </script>
-</body>
-
-</html>
+<?php include __DIR__ . '/../components/footer.php'; ?>
