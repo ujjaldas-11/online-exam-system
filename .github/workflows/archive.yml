@@ -21,9 +21,11 @@ jobs:
           zip -r examify-release.zip \
             admin/ \
             assets/ \
+            components/ \
             config/ \
             student/ \
             utils/ \
+            .htaccess \
             index.php
 
       - name: Upload Artifact
