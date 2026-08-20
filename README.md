@@ -40,7 +40,7 @@
 ### 🎨 Modern Vanilla CSS Design System
 - **Single Cached Network Hit (`assets/css/app.css`)**: Combines unified design tokens (`variables.css`), global resets (`base.css`), and reusable components (`components.css`).
 - **55% CSS Payload Reduction**: Replaced redundant inline style blocks with a consolidated ~12 KB stylesheet cached on first lab visit.
-- **Isolated Views**: Dedicated `exam.css` for the exam room and `landing.css` for the homepage.
+- **Modular Styles**: Dedicated `exam.css` for the exam room, `landing.css` for landing components, and `style.css` for page layout.
 
 ---
 
@@ -49,7 +49,12 @@
 ```text
 online-exam-system/
 ├── .github/
-│   └── workflows/lint.yml       # Automated GitHub Actions CI (EditorConfig, PHP Syntax & Style)
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.md        # GitHub bug report template
+│   │   └── feature_request.md   # GitHub feature request template
+│   └── workflows/
+│       ├── archive.yml          # Production release packager workflow
+│       └── lint.yml             # Automated GitHub Actions CI (EditorConfig, PHP Syntax & Style)
 ├── admin/
 │   ├── admin-dashboard.php      # System overview and quick action center
 │   ├── admin-guard.php          # Session authorization gate for administrators
@@ -66,15 +71,17 @@ online-exam-system/
 │   ├── view-questions.php       # Question bank browser and management
 │   └── view-results.php         # Top 3 podium, leaderboard, and printable report
 ├── archive/
-│   ├── schema.sql               # Master MySQL schema
-│   └── 002_security_and_surprise_test.sql # Security & proctoring migration
+│   ├── 001_add_indexes.sql      # Database query performance optimization indexes
+│   ├── 002_security_and_surprise_test.sql # Security & proctoring migration
+│   └── schema.sql               # Master MySQL schema
 ├── assets/
 │   ├── css/
 │   │   ├── app.css              # Consolidated master application stylesheet
 │   │   ├── base.css             # Resets and base element defaults
 │   │   ├── components.css       # Buttons, cards, tables, badges, and alerts
 │   │   ├── exam.css             # Isolated exam room and question palette
-│   │   ├── landing.css          # Isolated marketing landing hero
+│   │   ├── landing.css          # Isolated marketing landing styles
+│   │   ├── style.css            # Legacy & landing page styles
 │   │   └── variables.css        # Unified CSS custom property design tokens
 │   └── images/                  # Logos and branding assets
 ├── components/
@@ -97,14 +104,22 @@ online-exam-system/
 │   ├── register.php             # Student registration
 │   ├── result.php               # Instant score evaluation and performance breakdown
 │   └── student-guard.php        # Student authorization gate
+├── tests/
+│   ├── create-credentials.php   # Test credential generator
+│   ├── daa-questions.json       # Question bank for Algorithms
+│   ├── networking-questions.json# Question bank for Computer Networks
+│   ├── os-questions.json        # Question bank for Operating Systems
+│   └── prepare-question.php     # CLI question importer from JSON
 ├── tools/
 │   ├── check-editorconfig.ps1   # PowerShell EditorConfig runner
 │   ├── check-editorconfig.sh    # Bash EditorConfig runner
+│   ├── reset-and-seed.php       # Complete database reset & full demo seeder
 │   └── setup-db.php             # One-command database installer and health check
 ├── utils/
 │   ├── anti-cheat.js            # Fullscreen, tab-switch, and DevTools detection
 │   ├── auth.php                 # Native role verification helpers
 │   ├── csrf.php                 # Native CSRF token generation and validation
+│   ├── funny_quotes.json        # Anti-cheat violation notice quotes
 │   ├── logger.php               # Safe exception logging
 │   ├── mailer.php               # Zero-dependency Vanilla PHP socket SMTP client
 │   ├── response.php             # JSON response and redirect helpers
@@ -112,8 +127,12 @@ online-exam-system/
 │   ├── session.php              # Hardened session initialization and flash messages
 │   └── timer.js                 # Synchronized exam timer countdown
 ├── .editorconfig                # Universal indentation and whitespace rules
+├── .editorconfig-checker.json   # EditorConfig automated checker config
 ├── .htaccess                    # Apache LAN caching and security headers
+├── .php-cs-fixer.dist.php       # PHP PSR-12 code style config
 ├── CONTRIBUTING.md              # Guidelines for developers and contributors
+├── LICENSE                      # Project license
+├── PRODUCTION.md                # Production build and deployment guide
 ├── README.md                    # System documentation
 └── index.php                    # Landing page and portal gateway
 ```
@@ -143,19 +162,31 @@ online-exam-system/
   ```
 
 ### 3. Initialize Database
-Run the automated installer script:
+
+#### Option A: Quick Full Demo with Sample Data (Recommended for Development)
+```bash
+php tools/reset-and-seed.php
+```
+*This automatically creates the database, loads the schema, seeds subjects, imports 50+ test questions, and sets up sample exams with default accounts:*
+- **Admin Email**: `admin@college.edu` | **Password**: `Admin@123`
+- **Student Email**: `student@college.edu` | **Password**: `Student@123` *(BCA, Semester 4)*
+
+#### Option B: Clean Setup (Production & Clean Installs)
 ```bash
 php tools/setup-db.php
 ```
-*This automatically executes `schema.sql`, applies migrations, and creates the default admin user:*
+*Executes `archive/schema.sql`, applies pending migrations, and initializes the default administrator account:*
 - **Admin Email**: `admin@college.edu`
 - **Default Password**: `Admin@123`
 
 ### 4. Launch Application
-Open your browser and navigate to:
-```text
-http://localhost/online-exam-system/
-```
+- **Via Local Web Server (XAMPP / WampServer / Apache)**:
+  Navigate to: `http://localhost/online-exam-system/`
+- **Via Built-in PHP Server**:
+  ```bash
+  php -S localhost:8000
+  ```
+  Navigate to: `http://localhost:8000/`
 
 ---
 
@@ -163,19 +194,36 @@ http://localhost/online-exam-system/
 
 Examify uses strict PSR-12 and EditorConfig standards enforced by GitHub Actions.
 
+### Windows (PowerShell)
 ```powershell
 # 1. Verify text format & EditorConfig
 .\tools\check-editorconfig.ps1
 
 # 2. Verify PHP syntax across all files
-find . -name "*.php" -not -path "./vendor/*" -exec php -l {} +
+Get-ChildItem -Filter *.php -Recurse | Where-Object { $_.FullName -notmatch '[\\/]vendor[\\/]' } | ForEach-Object { php -l $_.FullName }
+```
 
+### Linux / macOS (Bash)
+```bash
+# 1. Verify text format & EditorConfig
+./tools/check-editorconfig.sh
+
+# 2. Verify PHP syntax across all files
+find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} +
+```
+
+### PHP Code Formatting (PHP-CS-Fixer)
+```bash
 # 3. Check PSR-12 style standards
-php php-cs-fixer.phar fix --dry-run --diff --config=.php-cs-fixer.dist.php
+php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
+
+# Or using downloaded phar
+# php php-cs-fixer.phar fix --dry-run --diff --config=.php-cs-fixer.dist.php
 ```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions and improvements are welcome! Please read [**CONTRIBUTING.md**](https://github.com/ujjaldas-11/online-exam-system/blob/main/CONTRIBUTING.md) for code style guidelines and pull request instructions.
+Contributions and improvements are welcome! Please read [**CONTRIBUTING.md**](CONTRIBUTING.md) for code style guidelines and pull request instructions.
+

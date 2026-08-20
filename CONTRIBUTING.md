@@ -25,12 +25,11 @@ Our automated CI pipeline enforces strict formatting across all files.
 
 ### 1. EditorConfig Standards
 - **Line Endings**: Unix LF (`\n`) across all files on all operating systems.
-- **Trailing Whitespace**: Stripped automatically on save.
+- **Trailing Whitespace**: Stripped automatically on save (markdown files configured to preserve line breaks).
 - **Final Newline**: Required at the end of every file.
 - **Indentation**:
-  - `*.php`, `*.sql`: **4 spaces**
-  - `*.css`, `*.js`, `*.json`, `*.yml`, `*.md`: **2 spaces**
-  - `*.{sh,bash,ps1}`: **2 spaces**
+  - `*.php`, `*.{sh,bash,ps1}`: **4 spaces**
+  - `*.sql`, `*.css`, `*.js`, `*.json`, `*.yml`, `*.md`: **2 spaces**
 
 ### 2. PHP Formatting (PSR-12)
 - All control structures must use braces `{ ... }` (no single-line `if ($x) do();`).
@@ -43,32 +42,40 @@ Our automated CI pipeline enforces strict formatting across all files.
 
 Before committing your code, run the local verification suite:
 
-### 1. Check EditorConfig & Text Formatting
+### 1. Verification on Windows (PowerShell)
 ```powershell
-# Windows (PowerShell)
+# Verify text format & EditorConfig
 .\tools\check-editorconfig.ps1
 
-# Linux / macOS (Bash)
-./tools/check-editorconfig.sh
+# Verify PHP syntax across all files
+Get-ChildItem -Filter *.php -Recurse | Where-Object { $_.FullName -notmatch '[\\/]vendor[\\/]' } | ForEach-Object { php -l $_.FullName }
 ```
 
-### 2. Check PHP Syntax
+### 2. Verification on Linux / macOS (Bash)
 ```bash
-# Check all PHP files for syntax errors
-find . -name "*.php" -not -path "./vendor/*" -exec php -l {} +
+# Verify text format & EditorConfig
+./tools/check-editorconfig.sh
+
+# Verify PHP syntax across all files
+find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} +
 ```
 
 ### 3. Check PHP Code Style (PHP-CS-Fixer)
 ```bash
-php php-cs-fixer.phar fix --dry-run --diff --config=.php-cs-fixer.dist.php
+# Using globally installed php-cs-fixer
+php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
+
+# Or using downloaded phar
+# php php-cs-fixer.phar fix --dry-run --diff --config=.php-cs-fixer.dist.php
 ```
 
 ---
 
 ## 🚀 Pull Request Checklist
 
-- [ ] My code passes `tools/check-editorconfig.ps1` with 0 errors.
+- [ ] My code passes `tools/check-editorconfig.ps1` (or `check-editorconfig.sh`) with 0 errors.
 - [ ] All modified PHP files pass `php -l` without syntax errors.
 - [ ] No credentials, `.env` files, or local logs (`logs/*.log`) are committed.
 - [ ] Forms include `<?= csrf_field() ?>` and handlers call `verify_csrf()`.
 - [ ] Database queries use prepared statements with bound parameters.
+
