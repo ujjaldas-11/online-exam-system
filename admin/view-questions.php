@@ -29,8 +29,9 @@ $subjectStmt = $pdo->prepare("SELECT * FROM subjects WHERE id = ?");
 $subjectStmt->execute([$subject_id]);
 $subject = $subjectStmt->fetch();
 
-if (!$subject)
+if (!$subject) {
     die("Subject not found.");
+}
 
 // Fetch All Questions for this specific subject
 $resultsSql = "SELECT question_text FROM questions WHERE subject_id = :subject_id ORDER BY id ASC";

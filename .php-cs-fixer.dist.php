@@ -7,6 +7,7 @@ $finder = PhpCsFixer\Finder::create()
         'archive',
         'assets',
         'node_modules',
+        'tools',
         'vendor',
     ])
     ->name('*.php')
@@ -18,6 +19,7 @@ return $config
     ->setRiskyAllowed(false)
     ->setRules([
         '@PSR12' => true,
+        'statement_indentation' => false,
         'array_syntax' => ['syntax' => 'short'],
         'no_trailing_whitespace' => true,
         'no_trailing_whitespace_in_comment' => true,
@@ -26,6 +28,7 @@ return $config
         'line_ending' => true,
         'encoding' => true,
         'full_opening_tag' => true,
-        'no_closing_tag' => false, // Keep closing tags where needed in mixed template files
+        'no_closing_tag' => false,
+        'blank_line_after_opening_tag' => false,
     ])
     ->setFinder($finder);

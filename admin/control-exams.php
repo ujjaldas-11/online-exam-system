@@ -279,8 +279,9 @@ $exams = $pdo->query("
 
                                             <td>
                                                 <span class="badge <?= $badge_class ?>">
-                                                    <?php if ($display_status === 'RUNNING')
-                                                        echo '▶ '; ?>
+                                                    <?php if ($display_status === 'RUNNING') {
+                                                        echo '▶ ';
+                                                    } ?>
                                                     <?= $display_status ?>
                                                 </span>
                                             </td>

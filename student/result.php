@@ -26,8 +26,9 @@ try {
     $checkStmt->execute([':student_id' => $student_id, ':exam_id' => $exam_id]);
     $attempt = $checkStmt->fetch();
 
-    if (!$attempt)
+    if (!$attempt) {
         die("Error: No active attempt found for this exam.");
+    }
 
     $attempt_id = $attempt['id'];
 
@@ -47,8 +48,9 @@ try {
         $examStmt->execute([':exam_id' => $exam_id]);
         $exam = $examStmt->fetch();
 
-        if (!$exam)
+        if (!$exam) {
             die("Error: Invalid exam.");
+        }
 
         $total_marks = $exam['total_marks'];
         $points_per_question = ($exam['total_questions_to_ask'] > 0) ? ($exam['total_marks'] / $exam['total_questions_to_ask']) : 0;
@@ -72,8 +74,9 @@ try {
             $selected_option = isset($submitted_answers[$q_id]) ? trim(strip_tags($submitted_answers[$q_id])) : null;
             $is_correct = ($selected_option === $q['correct_option']) ? 1 : 0;
 
-            if ($is_correct)
+            if ($is_correct) {
                 $score += $points_per_question;
+            }
 
             $updateAnsStmt->execute([
                 ':selected_option' => $selected_option,
@@ -108,8 +111,9 @@ try {
     $skipped_count = (int) $stats['skipped_count'];
 
 } catch (PDOException $e) {
-    if (isset($pdo) && $pdo->inTransaction())
+    if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
+    }
     die("Database Error: " . $e->getMessage());
 }
 

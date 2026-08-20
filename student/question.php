@@ -16,15 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $exam_id = (int) $input['exam_id'];
         $question_id = (int) $input['question_id'];
 
-        if (!isset($_SESSION['exam_answers']))
+        if (!isset($_SESSION['exam_answers'])) {
             $_SESSION['exam_answers'] = [];
-        if (!isset($_SESSION['exam_answers'][$exam_id]))
+        }
+        if (!isset($_SESSION['exam_answers'][$exam_id])) {
             $_SESSION['exam_answers'][$exam_id] = [];
+        }
 
-        if (!isset($_SESSION['exam_reviews']))
+        if (!isset($_SESSION['exam_reviews'])) {
             $_SESSION['exam_reviews'] = [];
-        if (!isset($_SESSION['exam_reviews'][$exam_id]))
+        }
+        if (!isset($_SESSION['exam_reviews'][$exam_id])) {
             $_SESSION['exam_reviews'][$exam_id] = [];
+        }
 
         // Save selected option
         if (isset($input['selected_option'])) {
