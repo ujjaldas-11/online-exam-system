@@ -1,16 +1,20 @@
 <?php
-session_start();
-require_once '../config/database.php';
 
-header('Content-Type: application/json');
+require_once __DIR__ . '/../utils/session.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../utils/response.php';
 
-if (!isset($_SESSION['student_id'])) {
-    echo json_encode(['error' => 'Not authenticated']);
-    exit();
+init_secure_session();
+
+if (empty($_SESSION['student_id'])) {
+    json_response(['error' => 'Not authenticated'], 401);
 }
 
-$semester = $_SESSION['semester'];
-$department = $_SESSION['department'];
+$semester = (int) $_SESSION['semester'];
+$department = (string) $_SESSION['department'];
+
+// Release session lock to prevent blocking concurrent student requests
+session_write_close();
 
 try {
     $stmt = $pdo->prepare("
@@ -20,10 +24,9 @@ try {
         WHERE s.semester = ? AND s.department = ? AND e.status = 'active'
     ");
     $stmt->execute([$semester, $department]);
-    $count = $stmt->fetchColumn();
+    $count = (int) $stmt->fetchColumn();
 
-    echo json_encode(['active_exams' => (int) $count]);
-
-} catch (Exception $e) {
-    echo json_encode(['error' => 'Database error']);
+    json_response(['active_exams' => $count]);
+} catch (Exception) {
+    json_response(['error' => 'Database error'], 500);
 }

@@ -1,13 +1,16 @@
 <?php
+
 require_once 'student-guard.php';
 require_once '../config/database.php';
+require_once '../utils/sanitize.php';
+require_once '../utils/logger.php';
 
 date_default_timezone_set('Asia/Kolkata');
 
-
 $student_name = $_SESSION['student_name'];
-$semester = $_SESSION['semester'];
-$department = $_SESSION['department'];
+$semester = (int) $_SESSION['semester'];
+$department = (string) $_SESSION['department'];
+$student_id = (int) $_SESSION['student_id'];
 
 try {
     $sql = "SELECT
@@ -38,173 +41,147 @@ try {
     $stmt->execute([
         ':semester' => $semester,
         ':department' => $department,
-        ':student_id' => $_SESSION['student_id']
+        ':student_id' => $student_id,
     ]);
 
     $available_exams = $stmt->fetchAll();
 
 } catch (PDOException $e) {
-    die("Database error: " . $e->getMessage());
+    log_error("Dashboard loading error for student $student_id", $e);
+    die("Database error. Please try again later.");
 }
-?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard • Examify</title>
-    <link rel="stylesheet" href="../assets/css/student.css">
-</head>
+$filtered_exams = [];
+$active_count = 0;
 
-<body>
+foreach ($available_exams as $exam) {
+    if ($exam['status'] === 'active') {
+        $start_timestamp = strtotime($exam['start_time']);
+        $duration_seconds = $exam['duration_minutes'] * 60;
+        $end_timestamp = $start_timestamp + $duration_seconds;
 
-    <?php include '../components/navbar.php'; ?>
-
-    <?php
-    $filtered_exams = [];
-    $active_count = 0;
-
-    foreach ($available_exams as $exam) {
-        if ($exam['status'] === 'active') {
-            $start_timestamp = strtotime($exam['start_time']);
-            $duration_seconds = $exam['duration_minutes'] * 60;
-            $end_timestamp = $start_timestamp + $duration_seconds;
-
-            if (time() >= $end_timestamp) {
-                continue;
-            }
-            $active_count++;
+        if (time() >= $end_timestamp) {
+            continue;
         }
-        $filtered_exams[] = $exam;
+        $active_count++;
     }
-    ?>
+    $filtered_exams[] = $exam;
+}
 
-    <div class="container">
-        <h1>Available Exams</h1>
-        <p class="subtitle">Exams for your department & semester</p>
+$page_title = 'Student Dashboard • Examify';
+include __DIR__ . '/../components/header.php';
+include __DIR__ . '/../components/navbar.php';
+?>
 
-        <?php if (empty($filtered_exams)): ?>
-
-            <div class="empty" id="empty-state"
-                style="text-align: center; padding: 50px 20px; background: white; border-radius: 12px; border: 1px dashed var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-                <h3 style="color: var(--gray); margin-bottom: 15px;">No exams scheduled right now</h3>
-                <p id="funny-quote" style="font-size: 1.8rem; font-style: italic; font-weight: 500; color: #334155;">
-                    <!-- JavaScript will inject the quote here -->
-                </p>
-            </div>
-
-        <?php else: ?>
-            <div class="exam-list">
-                <?php foreach ($filtered_exams as $exam): ?>
-                    <?php
-                    $is_completed = !empty($exam['attempt_id']);
-                    $is_ongoing = isset($_SESSION['exam_answers'][$exam['id']]);
-                    $status = $exam['status'];
-                    ?>
-
-                    <div class="exam-card">
-                        <h3><?= htmlspecialchars($exam['title']) ?></h3>
-
-                        <?php if (!empty($exam['description'])): ?>
-                            <p class="desc"><?= htmlspecialchars($exam['description']) ?></p>
-                        <?php endif; ?>
-
-                        <div class="meta">
-                            <p><span>Subject: </span><?= htmlspecialchars($exam['subject_name']) ?></p>
-                            <p><span>Time: </span><?= $exam['duration_minutes'] ?> mins</p>
-                            <p><span>Questions: </span><?= $exam['total_questions_to_ask'] ?> questions</p>
-                            <p><span>Marks: </span><?= $exam['total_marks'] ?> marks</p>
-                        </div>
-
-                        <?php if ($is_completed): ?>
-                            <div class="status-box completed">
-                                Completed — Score: <?= $exam['score'] ?> / <?= $exam['total_questions'] ?? $exam['total_marks'] ?>
-                            </div>
-
-                        <?php elseif ($status === 'scheduled'): ?>
-                            <div class="status-box scheduled">
-                                Starts on <?= date('d M Y, h:i A', strtotime($exam['start_time'])) ?>
-                            </div>
-
-                        <?php elseif ($status === 'ended'): ?>
-                            <div class="status-box ended">
-                                Exam has ended
-                            </div>
-
-                        <?php elseif ($is_ongoing): ?>
-                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-resume">Resume Exam</a>
-
-                        <?php else: ?>
-                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn">Start Exam</a>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Available Examinations</h1>
+            <p>Department: <strong><?= e($department) ?></strong> • Semester: <strong><?= e((string)$semester) ?></strong></p>
+        </div>
     </div>
 
+    <?php if (empty($filtered_exams)): ?>
+        <div class="card" id="empty-state" style="text-align: center; padding: 48px 24px; border: 2px dashed var(--color-border);">
+            <h3 style="color: var(--color-text-secondary); margin-bottom: 16px;">No exams scheduled right now</h3>
+            <p id="funny-quote" style="font-size: 1.4rem; font-style: italic; font-weight: 500; color: var(--color-dark); max-width: 600px; margin: 0 auto;">
+                "Stay ready for surprise tests!"
+            </p>
+        </div>
+    <?php else: ?>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+            <?php foreach ($filtered_exams as $exam): ?>
+                <?php
+                $is_completed = !empty($exam['attempt_id']);
+                $is_ongoing = isset($_SESSION['exam_answers'][$exam['id']]);
+                $status = $exam['status'];
+                ?>
 
+                <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px;">
+                            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-dark);"><?= e($exam['title']) ?></h3>
+                            <?php if ($status === 'active'): ?>
+                                <span class="badge badge-active">Live</span>
+                            <?php elseif ($status === 'scheduled'): ?>
+                                <span class="badge badge-scheduled">Scheduled</span>
+                            <?php else: ?>
+                                <span class="badge badge-ended">Ended</span>
+                            <?php endif; ?>
+                        </div>
 
-    <!-- MAGIC RELOAD & FUNNY QUOTES SCRIPTS -->
-    <script>
-        <?php if (empty($filtered_exams)): ?>
-            document.addEventListener("DOMContentLoaded", async function () {
+                        <?php if (!empty($exam['description'])): ?>
+                            <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+                                <?= e($exam['description']) ?>
+                            </p>
+                        <?php endif; ?>
 
-                try {
-                    const response = await fetch('../utils/funny_quotes.json');
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; font-size: 0.88rem; background: var(--color-gray-100); padding: 12px; border-radius: var(--radius-md);">
+                            <div><span style="color: var(--color-text-secondary);">Subject:</span> <strong><?= e($exam['subject_name']) ?></strong></div>
+                            <div><span style="color: var(--color-text-secondary);">Duration:</span> <strong><?= e((string)$exam['duration_minutes']) ?> mins</strong></div>
+                            <div><span style="color: var(--color-text-secondary);">Questions:</span> <strong><?= e((string)$exam['total_questions_to_ask']) ?> Qs</strong></div>
+                            <div><span style="color: var(--color-text-secondary);">Total Marks:</span> <strong><?= e((string)$exam['total_marks']) ?></strong></div>
+                        </div>
+                    </div>
 
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
+                    <div>
+                        <?php if ($is_completed): ?>
+                            <div class="alert alert-success" style="margin-bottom: 0;">
+                                Completed • Score: <strong><?= e((string)$exam['score']) ?> / <?= e((string)($exam['total_questions'] ?? $exam['total_marks'])) ?></strong>
+                            </div>
+                        <?php elseif ($status === 'scheduled'): ?>
+                            <div class="alert alert-warning" style="margin-bottom: 0;">
+                                Starts on <?= date('d M Y, h:i A', strtotime($exam['start_time'])) ?>
+                            </div>
+                        <?php elseif ($status === 'ended'): ?>
+                            <div class="alert" style="margin-bottom: 0; background: var(--color-gray-100); color: var(--color-text-secondary);">
+                                Examination Closed
+                            </div>
+                        <?php elseif ($is_ongoing): ?>
+                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-warning btn-block">Resume Exam</a>
+                        <?php else: ?>
+                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-primary btn-block">Start Exam</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>
 
-                    const data = await response.json();
-                    const quotesArray = data.quotes;
-
-                    console.log("Full Data:", data);
-                    console.log("First Item:", quotesArray[0]);
-
-
-                    if (quotesArray && quotesArray.length > 0) {
-                        const randomQuote = quotesArray[Math.floor(Math.random() * quotesArray.length)];
-
-                        const quoteText = randomQuote.quote;
-
-                        // console.log(quoteText.length)
-
-                        const target = document.getElementById('funny-quote');
-                        if (target) {
-                            target.innerText = '"' + quoteText + '"';
-                        } else {
-                            console.error('Element #funny-quote not found!');
-                        }
-
-                    }
-
-                } catch (e) {
-                    console.error('Failed to fetch quotes:', e);
-                }
-
-
-            });
-        <?php endif; ?>
-
-        let currentExamCount = <?= $active_count ?>;
-
-        setInterval(async function () {
+<script>
+    <?php if (empty($filtered_exams)): ?>
+        document.addEventListener("DOMContentLoaded", async function () {
             try {
-                const response = await fetch('check-exams.php');
-                const data = await response.json();
-
-                if (data.active_exams > currentExamCount) {
-                    window.location.reload();
+                const response = await fetch('../utils/funny_quotes.json');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.quotes && data.quotes.length > 0) {
+                        const randomQuote = data.quotes[Math.floor(Math.random() * data.quotes.length)];
+                        const target = document.getElementById('funny-quote');
+                        if (target && randomQuote.quote) {
+                            target.innerText = '"' + randomQuote.quote + '"';
+                        }
+                    }
                 }
-            } catch (error) {
-                console.error("Auto-refresh ping failed.");
+            } catch (e) {
+                // Ignore quote error
             }
-        }, 10000);
-    </script>
+        });
+    <?php endif; ?>
 
-</body>
+    let currentExamCount = <?= $active_count ?>;
+    setInterval(async function () {
+        try {
+            const response = await fetch('check-exams.php');
+            const data = await response.json();
+            if (data.active_exams > currentExamCount) {
+                window.location.reload();
+            }
+        } catch (error) {
+            // Background check error
+        }
+    }, 10000);
+</script>
 
-</html>
+<?php include __DIR__ . '/../components/footer.php'; ?>
