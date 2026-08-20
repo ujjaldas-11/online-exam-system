@@ -48,7 +48,9 @@ include __DIR__ . '/../components/header.php';
 
 <div class="container">
     <div style="margin-bottom: 16px;" class="no-print">
-        <a href="results.php" class="btn btn-secondary btn-sm">← Back to All Exams</a>
+        <a href="results.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to All Exams
+        </a>
     </div>
 
     <div class="page-header">
@@ -56,7 +58,9 @@ include __DIR__ . '/../components/header.php';
             <h1><?= e($exam['title']) ?></h1>
             <p>Total Examination Marks: <strong><?= e((string)$exam['total_marks']) ?></strong> • Total Submissions: <strong><?= count($all_results) ?></strong></p>
         </div>
-        <button onclick="window.print()" class="btn btn-primary no-print">🖨️ Print / Save PDF</button>
+        <button onclick="window.print()" class="btn btn-primary no-print" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">print</span> Print / Save PDF
+        </button>
     </div>
 
     <?php if (empty($all_results)): ?>
@@ -68,15 +72,21 @@ include __DIR__ . '/../components/header.php';
     <?php else: ?>
         <!-- Top Performers Podium -->
         <div class="card">
-            <div class="card-title">🏆 Top Performers</div>
+            <div class="card-title" style="display: flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-md" style="color: var(--color-primary);">military_tech</span> Top Performers
+            </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                 <?php
-                $medals = ['🥇 1st Place', '🥈 2nd Place', '🥉 3rd Place'];
+                $medals = [
+                    '<span class="material-symbols-outlined icon-sm" style="color: #ca8a04;">workspace_premium</span> 1st Place',
+                    '<span class="material-symbols-outlined icon-sm" style="color: #64748b;">workspace_premium</span> 2nd Place',
+                    '<span class="material-symbols-outlined icon-sm" style="color: #b45309;">workspace_premium</span> 3rd Place'
+                ];
                 $bgColors = ['#fef08a', '#f1f5f9', '#ffedd5'];
                 foreach ($top_scorers as $index => $student):
                     ?>
                     <div style="background: <?= $bgColors[$index] ?>; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; text-align: center;">
-                        <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 6px;"><?= $medals[$index] ?></div>
+                        <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"><?= $medals[$index] ?></div>
                         <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-dark); margin-bottom: 2px;"><?= e($student['name']) ?></h3>
                         <div style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 8px;">Roll: <?= e($student['roll_number']) ?></div>
                         <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-primary);">

@@ -6,7 +6,7 @@ $placeholder = isset($search_placeholder) ? $search_placeholder : "Type to searc
 
 
 <div class="search-wrapper no-print">
-    <span class="search-icon">🔍</span>
+    <span class="material-symbols-outlined search-icon" style="font-size: 18px;">search</span>
     <input type="text" id="globalTableSearch" class="search-input" placeholder="<?= htmlspecialchars($placeholder) ?>">
 </div>
 

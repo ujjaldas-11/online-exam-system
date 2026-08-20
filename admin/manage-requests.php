@@ -156,13 +156,17 @@ include __DIR__ . '/../components/navbar.php';
                                         <form method="POST" style="display: inline;">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button>
+                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                <span class="material-symbols-outlined icon-xs">check</span> Approve
+                                            </button>
                                         </form>
 
                                         <form method="POST" style="display: inline;">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">Reject</button>
+                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                <span class="material-symbols-outlined icon-xs">close</span> Reject
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
@@ -176,7 +180,9 @@ include __DIR__ . '/../components/navbar.php';
 
     <!-- Teacher Emergency Password Reset Tool -->
     <div class="card">
-        <div class="card-title">🔑 Classroom Password Reset (Offline LAN Mode)</div>
+        <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined icon-md">lock_reset</span> Classroom Password Reset (Offline LAN Mode)
+        </div>
         <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
             If a student forgets their password before a surprise test in the lab, reset their password instantly below.
         </p>
@@ -194,7 +200,9 @@ include __DIR__ . '/../components/navbar.php';
                 <input type="text" name="new_password" required minlength="6" placeholder="e.g. password123">
             </div>
 
-            <button type="submit" name="reset_password" class="btn btn-primary">Reset Student Password</button>
+            <button type="submit" name="reset_password" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">lock_reset</span> Reset Student Password
+            </button>
         </form>
     </div>
 </div>

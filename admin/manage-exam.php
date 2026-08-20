@@ -125,9 +125,13 @@ include __DIR__ . '/../components/navbar.php';
                 </div>
             </div>
 
-            <div style="margin-top: 24px; display: flex; gap: 12px;">
-                <button type="submit" name="create_exam" class="btn btn-primary">Create Examination</button>
-                <a href="control-exams.php" class="btn btn-secondary">Go to Exam Controls</a>
+            <div style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
+                <button type="submit" name="create_exam" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">add_circle</span> Create Examination
+                </button>
+                <a href="control-exams.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">tune</span> Go to Exam Controls
+                </a>
             </div>
         </form>
     </div>

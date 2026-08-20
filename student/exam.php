@@ -148,8 +148,8 @@ include __DIR__ . '/../components/header.php';
 <div class="exam-header">
     <h1><?= e($exam['title']) ?></h1>
     <div class="timer-box">
-        <div class="timer" id="timerDisplay" data-time-left="<?= max(0, (int)$exam['seconds_left']) ?>">
-            ⏱️ <span id="timerText">--:--</span>
+        <div class="timer" id="timerDisplay" data-time-left="<?= max(0, (int)$exam['seconds_left']) ?>" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">timer</span> <span id="timerText">--:--</span>
         </div>
     </div>
 </div>
@@ -167,9 +167,15 @@ include __DIR__ . '/../components/header.php';
             </div>
 
             <div class="exam-nav">
-                <button type="button" id="btn-prev" class="btn btn-secondary">← Previous</button>
-                <button type="button" id="btn-review" class="btn btn-warning" data-marked="0">Mark for Review</button>
-                <button type="button" id="btn-next" class="btn btn-primary">Next →</button>
+                <button type="button" id="btn-prev" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined icon-xs">arrow_back</span> Previous
+                </button>
+                <button type="button" id="btn-review" class="btn btn-warning" data-marked="0" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined icon-xs">bookmark</span> Mark for Review
+                </button>
+                <button type="button" id="btn-next" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 4px;">
+                    Next <span class="material-symbols-outlined icon-xs">arrow_forward</span>
+                </button>
             </div>
         </div>
 
@@ -187,7 +193,9 @@ include __DIR__ . '/../components/header.php';
             <form action="result.php" method="POST" id="examForm">
                 <?= csrf_field() ?>
                 <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
-                <button type="button" id="btn-submit-exam" class="btn btn-success btn-block" style="padding: 12px;">Submit Exam</button>
+                <button type="button" id="btn-submit-exam" class="btn btn-success btn-block" style="padding: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">check_circle</span> Submit Exam
+                </button>
             </form>
         </div>
     </div>
@@ -196,13 +204,16 @@ include __DIR__ . '/../components/header.php';
 <!-- Fullscreen Start Modal -->
 <div id="exam-start-overlay" class="fullscreen-overlay">
     <div class="overlay-card">
-        <h2>🔒 Start Secure Examination</h2>
+        <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span class="material-symbols-outlined icon-lg">shield</span> Start Secure Examination
+        </h2>
         <p>This exam is protected by anti-cheat monitoring. Fullscreen mode will be activated.</p>
-        <div class="alert alert-warning" style="margin-bottom: 20px;">
-            ⚠️ Tab switches, window minimization, and developer tools are recorded on the instructor dashboard.
+        <div class="alert alert-warning" style="margin-bottom: 20px; display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">warning</span>
+            <div>Tab switches, window minimization, and developer tools are recorded on the instructor dashboard.</div>
         </div>
-        <button id="btn-enter-fullscreen" class="btn btn-primary btn-block" style="padding: 14px; font-size: 1.05rem;">
-            Click to Enter Fullscreen & Begin
+        <button id="btn-enter-fullscreen" class="btn btn-primary btn-block" style="padding: 14px; font-size: 1.05rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            <span class="material-symbols-outlined icon-md">fullscreen</span> Click to Enter Fullscreen & Begin
         </button>
         <p style="margin-top: 14px; font-size: 0.85rem; color: var(--color-text-muted);">
             Or press <strong>F11</strong> on your keyboard

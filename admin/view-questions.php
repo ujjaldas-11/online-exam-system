@@ -57,7 +57,9 @@ include __DIR__ . '/../components/navbar.php';
 
 <div class="container">
     <div style="margin-bottom: 16px;">
-        <a href="manage-subjects.php" class="btn btn-secondary btn-sm">← Back to All Subjects</a>
+        <a href="manage-subjects.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to All Subjects
+        </a>
     </div>
 
     <div class="page-header">
@@ -66,11 +68,15 @@ include __DIR__ . '/../components/navbar.php';
             <p>Department: <strong><?= e($subject['department']) ?></strong> • Semester: <strong><?= e((string)$subject['semester']) ?></strong></p>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <a href="manage-questions.php" class="btn btn-primary btn-sm">+ Upload Questions</a>
+            <a href="manage-questions.php" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                <span class="material-symbols-outlined icon-sm">upload</span> Upload Questions
+            </a>
             <?php if (!empty($all_questions)): ?>
-                <form method="POST" style="display: inline;" onsubmit="return confirm('⚠️ WARNING: Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!');">
+                <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!');">
                     <?= csrf_field() ?>
-                    <button type="submit" name="delete_all" class="btn btn-danger btn-sm">🗑️ Delete All Questions</button>
+                    <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-sm">delete</span> Delete All Questions
+                    </button>
                 </form>
             <?php endif; ?>
         </div>

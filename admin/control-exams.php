@@ -96,7 +96,9 @@ include __DIR__ . '/../components/navbar.php';
             <h1>Exam Control & Proctoring Center</h1>
             <p>Launch surprise tests, manage classroom PINs, add emergency time, and monitor live progress</p>
         </div>
-        <a href="manage-exam.php" class="btn btn-primary">+ Create New Exam</a>
+        <a href="manage-exam.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">add</span> Create New Exam
+        </a>
     </div>
 
     <?php if ($message): ?>
@@ -165,16 +167,19 @@ include __DIR__ . '/../components/navbar.php';
                                 </td>
                                 <td>
                                     <?php if (!empty($exam['access_pin'])): ?>
-                                        <span class="badge badge-pending" style="font-family: var(--font-mono); font-size: 0.85rem;">
-                                            🔑 <?= e($exam['access_pin']) ?>
+                                        <span class="badge badge-pending" style="font-family: var(--font-mono); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
+                                            <span class="material-symbols-outlined icon-xs">key</span> <?= e($exam['access_pin']) ?>
                                         </span>
                                     <?php else: ?>
                                         <span style="color: var(--color-text-muted); font-size: 0.85rem;">None</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <span class="badge <?= $badge_class ?>">
-                                        <?= $display_status === 'RUNNING' ? '▶ ' : '' ?><?= $display_status ?>
+                                    <span class="badge <?= $badge_class ?>" style="display: inline-flex; align-items: center; gap: 4px;">
+                                        <?php if ($display_status === 'RUNNING'): ?>
+                                            <span class="material-symbols-outlined icon-xs">play_circle</span>
+                                        <?php endif; ?>
+                                        <?= $display_status ?>
                                     </span>
                                 </td>
                                 <td>
@@ -183,13 +188,13 @@ include __DIR__ . '/../components/navbar.php';
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;">
                                         <?php if ($display_status === 'NOT STARTED'): ?>
-                                            <a href="?action=start&id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm"
+                                            <a href="?action=start&id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;"
                                                 onclick="return confirm('Start this examination now? Students will be able to join immediately.')">
-                                                ▶ Start Exam
+                                                <span class="material-symbols-outlined icon-xs">play_arrow</span> Start Exam
                                             </a>
                                         <?php elseif ($display_status === 'RUNNING'): ?>
-                                            <a href="proctor-exam.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm">
-                                                👁️ Live Proctor
+                                            <a href="proctor-exam.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                <span class="material-symbols-outlined icon-xs">visibility</span> Live Proctor
                                             </a>
 
                                             <!-- Add Time Form -->
@@ -202,16 +207,18 @@ include __DIR__ . '/../components/navbar.php';
                                         <?php endif; ?>
 
                                         <?php if ($display_status === 'ENDED' || (int)$exam['total_attempts'] > 0): ?>
-                                            <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm">
-                                                📊 Results
+                                            <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                <span class="material-symbols-outlined icon-xs">leaderboard</span> Results
                                             </a>
                                         <?php endif; ?>
 
                                         <!-- Delete Exam -->
-                                        <form method="POST" style="display: inline;" onsubmit="return confirm('⚠️ WARNING: Are you sure you want to permanently delete this exam?');">
+                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to permanently delete this exam?');">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
-                                            <button type="submit" name="delete_exam" class="btn btn-danger btn-sm">🗑️</button>
+                                            <button type="submit" name="delete_exam" class="btn btn-danger btn-sm" title="Delete Exam" style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 8px;">
+                                                <span class="material-symbols-outlined icon-sm">delete</span>
+                                            </button>
                                         </form>
                                     </div>
                                 </td>

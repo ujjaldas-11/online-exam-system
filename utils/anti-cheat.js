@@ -150,12 +150,14 @@ const AntiCheat = (function() {
 
         overlay.innerHTML = `
             <div class="overlay-card">
-                <div class="violation-banner">
-                    ⚠️ Violation Recorded (${violationCount}/${MAX_VIOLATIONS})
+                <div class="violation-banner" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">warning</span> Violation Recorded (${violationCount}/${MAX_VIOLATIONS})
                 </div>
                 <h2>Exam Paused</h2>
                 <p>Reason: <strong>${reason}</strong>.<br>You must return to full-screen mode to continue your exam.</p>
-                <button id="anti-cheat-resume-btn" class="btn btn-primary btn-block">Resume Exam</button>
+                <button id="anti-cheat-resume-btn" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">play_arrow</span> Resume Exam
+                </button>
             </div>
         `;
 

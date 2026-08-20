@@ -132,7 +132,9 @@ include __DIR__ . '/../components/navbar.php';
                 <textarea name="csv_raw" rows="6" placeholder="John Doe, john@college.edu, BCA2401, BCA, 4&#10;Jane Smith, jane@college.edu, BCA2402, BCA, 4"></textarea>
             </div>
 
-            <button type="submit" name="import_csv" class="btn btn-primary">Import Classroom Roster</button>
+            <button type="submit" name="import_csv" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">upload_file</span> Import Classroom Roster
+            </button>
         </form>
     </div>
 </div>

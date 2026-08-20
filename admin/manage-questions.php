@@ -114,20 +114,20 @@ include __DIR__ . '/../components/navbar.php';
 
             <div class="form-group">
                 <label>JSON Data Array</label>
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn" disabled>
-                        📋 Copy LLM Prompt
+                <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn" disabled style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-xs">content_copy</span> Copy LLM Prompt
                     </button>
-                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn">
-                        📝 Paste from Clipboard
+                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-xs">content_paste</span> Paste from Clipboard
                     </button>
                 </div>
                 <textarea name="json_data" id="json_data" required rows="10"
                     placeholder='[{"question_text":"What is an operating system?","option_a":"System software","option_b":"Application","option_c":"Hardware","option_d":"Malware","correct_option":"A"}]'></textarea>
             </div>
 
-            <button type="submit" name="add_bulk_questions" class="btn btn-primary">
-                Upload All Questions
+            <button type="submit" name="add_bulk_questions" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">upload</span> Upload All Questions
             </button>
         </form>
     </div>
@@ -167,7 +167,7 @@ Rules:
 
         navigator.clipboard.writeText(prompt).then(() => {
             const original = copyPromptBtn.innerHTML;
-            copyPromptBtn.innerHTML = '✅ Copied Prompt!';
+            copyPromptBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">check</span> Copied Prompt!';
             setTimeout(() => copyPromptBtn.innerHTML = original, 2000);
         });
     });
@@ -177,7 +177,7 @@ Rules:
             const text = await navigator.clipboard.readText();
             jsonTextarea.value = text;
             const original = pasteBtn.innerHTML;
-            pasteBtn.innerHTML = '✅ Pasted!';
+            pasteBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">check</span> Pasted!';
             setTimeout(() => pasteBtn.innerHTML = original, 2000);
         } catch (err) {
             alert('Could not read clipboard automatically. Please press Ctrl+V to paste manually.');

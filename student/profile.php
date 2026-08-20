@@ -42,7 +42,9 @@ include __DIR__ . '/../components/navbar.php';
             <h1>Student Profile</h1>
             <p>View your academic credentials and completed examinations</p>
         </div>
-        <a href="edit-profile.php" class="btn btn-primary">Edit Profile</a>
+        <a href="edit-profile.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">edit</span> Edit Profile
+        </a>
     </div>
 
     <!-- Student Credentials Card -->

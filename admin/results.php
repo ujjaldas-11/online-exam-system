@@ -92,8 +92,8 @@ include __DIR__ . '/../components/navbar.php';
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm">
-                                        View Results
+                                    <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                        <span class="material-symbols-outlined icon-xs">leaderboard</span> View Results
                                     </a>
                                 </td>
                             </tr>

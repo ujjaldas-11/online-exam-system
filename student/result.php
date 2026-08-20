@@ -126,8 +126,10 @@ include __DIR__ . '/../components/navbar.php';
 
 <div class="container" style="max-width: 700px;">
     <div class="card" style="text-align: center; padding: 40px 24px;">
-        <div style="font-size: 3rem; margin-bottom: 8px;">
-            <?= $percentage >= 50 ? '🎉' : '📚' ?>
+        <div style="margin-bottom: 12px;">
+            <span class="material-symbols-outlined icon-2xl" style="color: <?= $percentage >= 50 ? 'var(--color-success)' : 'var(--color-primary)' ?>;">
+                <?= $percentage >= 50 ? 'celebration' : 'auto_stories' ?>
+            </span>
         </div>
 
         <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--color-dark); margin-bottom: 4px;">
@@ -165,8 +167,12 @@ include __DIR__ . '/../components/navbar.php';
         </div>
 
         <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
-            <a href="dashboard.php" class="btn btn-primary">Return to Dashboard</a>
-            <a href="profile.php" class="btn btn-secondary">View Profile History</a>
+            <a href="dashboard.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">dashboard</span> Return to Dashboard
+            </a>
+            <a href="profile.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">history</span> View Profile History
+            </a>
         </div>
     </div>
 </div>

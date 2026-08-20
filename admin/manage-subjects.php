@@ -91,7 +91,9 @@ include __DIR__ . '/../components/navbar.php';
             </div>
 
             <div style="margin-top: 16px;">
-                <button type="submit" name="create_subject" class="btn btn-primary">Create Subject</button>
+                <button type="submit" name="create_subject" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">add</span> Create Subject
+                </button>
             </div>
         </form>
     </div>
@@ -126,8 +128,8 @@ include __DIR__ . '/../components/navbar.php';
                                 <td>Sem <?= e((string)$sub['semester']) ?></td>
                                 <td><?= date('d M Y', strtotime($sub['created_at'])) ?></td>
                                 <td style="text-align: right;">
-                                    <a href="view-questions.php?subject_id=<?= $sub['id'] ?>" class="btn btn-secondary btn-sm">
-                                        View Questions
+                                    <a href="view-questions.php?subject_id=<?= $sub['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                        <span class="material-symbols-outlined icon-xs">quiz</span> View Questions
                                     </a>
                                 </td>
                             </tr>

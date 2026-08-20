@@ -132,7 +132,9 @@ include __DIR__ . '/../components/header.php';
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px;">Register</button>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">person_add</span> Register
+        </button>
     </form>
 
     <p class="footer">

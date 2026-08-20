@@ -85,7 +85,9 @@ include __DIR__ . '/../components/navbar.php';
                 <strong>Request Pending:</strong> You have a profile update waiting for instructor approval. You cannot make another change until the current request is reviewed.
             </div>
             <div style="margin-top: 16px;">
-                <a href="profile.php" class="btn btn-secondary">Back to My Profile</a>
+                <a href="profile.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to My Profile
+                </a>
             </div>
         <?php else: ?>
             <form method="POST">
@@ -127,9 +129,13 @@ include __DIR__ . '/../components/navbar.php';
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="submit" name="request_update" class="btn btn-primary">Request Update</button>
-                    <a href="profile.php" class="btn btn-secondary">Cancel</a>
+                <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+                    <button type="submit" name="request_update" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined icon-sm">send</span> Request Update
+                    </button>
+                    <a href="profile.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined icon-sm">close</span> Cancel
+                    </a>
                 </div>
             </form>
         <?php endif; ?>

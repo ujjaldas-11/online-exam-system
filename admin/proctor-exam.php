@@ -105,18 +105,22 @@ include __DIR__ . '/../components/navbar.php';
 
 <div class="container">
     <div style="margin-bottom: 16px;">
-        <a href="control-exams.php" class="btn btn-secondary btn-sm">← Back to Exam Controls</a>
+        <a href="control-exams.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to Exam Controls
+        </a>
     </div>
 
     <div class="page-header">
         <div>
-            <h1>👁️ Live Classroom Proctoring Panel</h1>
+            <h1 style="display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-outlined icon-lg">visibility</span> Live Classroom Proctoring Panel
+            </h1>
             <p>Monitoring: <strong><?= e($exam['title']) ?></strong> (<?= e($exam['subject_name']) ?> • <?= e($exam['department']) ?>, Sem <?= e((string)$exam['semester']) ?>)</p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
             <?php if (!empty($exam['access_pin'])): ?>
-                <div class="badge badge-pending" style="font-size: 1rem; padding: 8px 16px; font-family: var(--font-mono);">
-                    Classroom PIN: <strong><?= e($exam['access_pin']) ?></strong>
+                <div class="badge badge-pending" style="font-size: 1rem; padding: 8px 16px; font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">key</span> Classroom PIN: <strong><?= e($exam['access_pin']) ?></strong>
                 </div>
             <?php endif; ?>
         </div>
@@ -132,23 +136,23 @@ include __DIR__ . '/../components/navbar.php';
     <div class="stats">
         <div class="stat-card">
             <div class="stat-num"><?= $total_enrolled ?></div>
-            <div class="stat-label">Total Class Roster</div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">group</span> Total Class Roster</div>
         </div>
         <div class="stat-card" style="border-left: 4px solid var(--color-success);">
             <div class="stat-num" style="color: var(--color-success);"><?= $in_progress_count ?></div>
-            <div class="stat-label">🟢 Currently Answering</div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-success);">sensors</span> Currently Answering</div>
         </div>
         <div class="stat-card" style="border-left: 4px solid var(--color-info);">
             <div class="stat-num" style="color: var(--color-info);"><?= $completed_count ?></div>
-            <div class="stat-label">✅ Submitted / Done</div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-info);">check_circle</span> Submitted / Done</div>
         </div>
         <div class="stat-card">
             <div class="stat-num" style="color: var(--color-text-secondary);"><?= $not_started_count ?></div>
-            <div class="stat-label">⚪ Not Started</div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-text-secondary);">hourglass_empty</span> Not Started</div>
         </div>
         <div class="stat-card" style="border-left: 4px solid var(--color-error);">
             <div class="stat-num" style="color: var(--color-error);"><?= $total_violations ?></div>
-            <div class="stat-label">⚠️ Total Cheating Flags</div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-error);">warning</span> Total Cheating Flags</div>
         </div>
     </div>
 
@@ -207,11 +211,13 @@ include __DIR__ . '/../components/navbar.php';
                                 </td>
                                 <td>
                                     <?php if ((int)$st['violation_count'] > 0): ?>
-                                        <span class="badge badge-rejected" title="Tab switches or fullscreen exit recorded">
-                                            ⚠️ <?= (int)$st['violation_count'] ?>
+                                        <span class="badge badge-rejected" title="Tab switches or fullscreen exit recorded" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <span class="material-symbols-outlined icon-xs">warning</span> <?= (int)$st['violation_count'] ?>
                                         </span>
                                     <?php else: ?>
-                                        <span style="color: var(--color-success); font-weight: bold;">✓ 0</span>
+                                        <span style="color: var(--color-success); font-weight: bold; display: inline-flex; align-items: center; gap: 2px;">
+                                            <span class="material-symbols-outlined icon-xs">check</span> 0
+                                        </span>
                                     <?php endif; ?>
                                 </td>
                                 <td style="text-align: right;">

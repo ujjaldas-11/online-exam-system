@@ -102,11 +102,17 @@ include __DIR__ . '/../components/navbar.php';
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px;">
                             <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-dark);"><?= e($exam['title']) ?></h3>
                             <?php if ($status === 'active'): ?>
-                                <span class="badge badge-active">Live</span>
+                                <span class="badge badge-active" style="display: inline-flex; align-items: center; gap: 3px;">
+                                    <span class="material-symbols-outlined icon-xs">sensors</span> Live
+                                </span>
                             <?php elseif ($status === 'scheduled'): ?>
-                                <span class="badge badge-scheduled">Scheduled</span>
+                                <span class="badge badge-scheduled" style="display: inline-flex; align-items: center; gap: 3px;">
+                                    <span class="material-symbols-outlined icon-xs">schedule</span> Scheduled
+                                </span>
                             <?php else: ?>
-                                <span class="badge badge-ended">Ended</span>
+                                <span class="badge badge-ended" style="display: inline-flex; align-items: center; gap: 3px;">
+                                    <span class="material-symbols-outlined icon-xs">lock</span> Ended
+                                </span>
                             <?php endif; ?>
                         </div>
 
@@ -126,21 +132,28 @@ include __DIR__ . '/../components/navbar.php';
 
                     <div>
                         <?php if ($is_completed): ?>
-                            <div class="alert alert-success" style="margin-bottom: 0;">
-                                Completed • Score: <strong><?= e((string)$exam['score']) ?> / <?= e((string)($exam['total_questions'] ?? $exam['total_marks'])) ?></strong>
+                            <div class="alert alert-success" style="margin-bottom: 0; display: flex; align-items: center; gap: 6px;">
+                                <span class="material-symbols-outlined icon-sm">check_circle</span>
+                                <div>Completed • Score: <strong><?= e((string)$exam['score']) ?> / <?= e((string)($exam['total_questions'] ?? $exam['total_marks'])) ?></strong></div>
                             </div>
                         <?php elseif ($status === 'scheduled'): ?>
-                            <div class="alert alert-warning" style="margin-bottom: 0;">
-                                Starts on <?= date('d M Y, h:i A', strtotime($exam['start_time'])) ?>
+                            <div class="alert alert-warning" style="margin-bottom: 0; display: flex; align-items: center; gap: 6px;">
+                                <span class="material-symbols-outlined icon-sm">schedule</span>
+                                <div>Starts on <?= date('d M Y, h:i A', strtotime($exam['start_time'])) ?></div>
                             </div>
                         <?php elseif ($status === 'ended'): ?>
-                            <div class="alert" style="margin-bottom: 0; background: var(--color-gray-100); color: var(--color-text-secondary);">
-                                Examination Closed
+                            <div class="alert" style="margin-bottom: 0; background: var(--color-gray-100); color: var(--color-text-secondary); display: flex; align-items: center; gap: 6px;">
+                                <span class="material-symbols-outlined icon-sm">lock</span>
+                                <div>Examination Closed</div>
                             </div>
                         <?php elseif ($is_ongoing): ?>
-                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-warning btn-block">Resume Exam</a>
+                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-warning btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                                <span class="material-symbols-outlined icon-sm">play_circle</span> Resume Exam
+                            </a>
                         <?php else: ?>
-                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-primary btn-block">Start Exam</a>
+                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                                <span class="material-symbols-outlined icon-sm">play_arrow</span> Start Exam
+                            </a>
                         <?php endif; ?>
                     </div>
                 </div>

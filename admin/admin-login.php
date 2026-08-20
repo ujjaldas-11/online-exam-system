@@ -73,7 +73,9 @@ include __DIR__ . '/../components/header.php';
             <input type="password" name="password" required placeholder="••••••••">
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block">Login as Admin</button>
+        <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">lock_open</span> Login as Admin
+        </button>
     </form>
 
     <p class="footer">

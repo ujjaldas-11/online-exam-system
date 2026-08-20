@@ -20,7 +20,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <h1>
                     Hi, <span style="font-size: 1.5rem;"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?>!</span>
                 </h1>
-                <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+                <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Toggle Navigation"><span class="material-symbols-outlined">menu</span></button>
 
                 <div class="nav-links">
                     <a href="admin-dashboard.php">Dashboard</a>
@@ -40,7 +40,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     Hi, <?= htmlspecialchars($_SESSION['student_name'] ?? 'Student') ?>!
                 </span>
 
-                <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+                <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Toggle Navigation"><span class="material-symbols-outlined">menu</span></button>
 
                 <div class="nav-links">
                     <a href="dashboard.php">Dashboard</a>
