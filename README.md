@@ -145,18 +145,17 @@ Examify includes several browser-based mechanisms to improve examination securit
 Examify allows administrators to maintain a question bank containing more questions than are required for a particular examination.
 
 For example:
-```
-text
+```text
 Subject Question Bank
         50 Questions
-             ↓
+              ↓
 Exam Configuration
-     Select 20 Questions
-             ↓
+      Select 20 Questions
+              ↓
       Random Selection
-             ↓
-       Examination
-       20 Questions
+              ↓
+        Examination
+        20 Questions
 ```
 
 ## Examination Interface

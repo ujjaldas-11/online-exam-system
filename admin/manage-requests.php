@@ -1,4 +1,4 @@
-<?php 
+<?php
 require_once 'admin-guard.php';
 require_once '../config/database.php';
 
@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $req = $reqstmt->fetch();
 
         if ($req && $req['status'] === 'pending') {
-            $pdo->beginTransaction();   
+            $pdo->beginTransaction();
             try {
                 // 1. Update the student
                 $updatestmt = $pdo->prepare("UPDATE students SET name = ?, roll_number = ?, department = ?, semester = ? WHERE id = ?");
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Check if BOTH succeeded before committing
                 if ($updateSuccess && $statusSuccess) {
-                    $pdo->commit();     
+                    $pdo->commit();
                     $message = "Student profile updated successfully!";
                 } else {
                     $pdo->rollBack();
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Database Error: " . $e->getMessage();
             }
         }
-    }    
+    }
     elseif (isset($_POST['action']) && $_POST['action'] === 'reject') {
         $pdo->prepare("UPDATE profile_requests SET status ='rejected' WHERE id = ?")->execute([$request_id]);
         $message = "Request has been rejected.";
@@ -48,10 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // FIXED: Variable named $requests (plural) so your HTML loop works
 $requests = $pdo->query("
-    SELECT r.*, s.name as old_name, s.roll_number as old_roll, s.department as old_dept, s.semester as old_sem 
-    FROM profile_requests r 
-    JOIN students s ON r.student_id = s.id 
-    WHERE r.status = 'pending' 
+    SELECT r.*, s.name as old_name, s.roll_number as old_roll, s.department as old_dept, s.semester as old_sem
+    FROM profile_requests r
+    JOIN students s ON r.student_id = s.id
+    WHERE r.status = 'pending'
     ORDER BY r.request_date ASC
 ")->fetchAll();
 

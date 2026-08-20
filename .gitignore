@@ -28,6 +28,9 @@ php_errors.log
 vendor/
 composer.phar
 
+# Tools & caches
+.php-cs-fixer.cache
+
 # User uploaded files (if you add image/file uploads later)
 uploads/
-assets/uploads/ 
+assets/uploads/

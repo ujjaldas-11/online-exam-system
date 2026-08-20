@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
         } else {
             try {
                 $stmt = $pdo->prepare("
-                    INSERT INTO exams 
-                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, status) 
+                    INSERT INTO exams
+                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, status)
                     VALUES (?, ?, ?, ?, ?, 'inactive')
                 ");
                 $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions]);
@@ -113,7 +113,7 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
                         <option value="">-- Choose Subject --</option>
                         <?php foreach ($subjects as $sub): ?>
                             <option value="<?= $sub['id'] ?>">
-                                <?= htmlspecialchars($sub['name']) ?> 
+                                <?= htmlspecialchars($sub['name']) ?>
                                 (<?= htmlspecialchars($sub['department']) ?>, Sem <?= $sub['semester'] ?>)
                             </option>
                         <?php endforeach; ?>
@@ -129,7 +129,7 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
                     <label>Total Marks</label>
                     <input type="number" name="total_marks" id="calcTotalMarks">
                 </div>
-                
+
                 <div class="form-group">
                     <label>Marks per Question</label>
                     <input type="number" id="calcMarksPerQ" min="1" value="1" required>
@@ -137,8 +137,7 @@ $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
 
                 <div class="form-group">
                     <label>Questions to Ask (Auto-Calculated)</label>
-                    <input type="number" name="total_questions_to_ask" id="calcQuestions" min="1" readonly  style="background-color: #f1f5f9;
-                      font-weight: bold; color: var(--primary); cursor: not-allowed;">
+                    <input type="number" name="total_questions_to_ask" id="calcQuestions" min="1" readonly style="background-color: #f1f5f9; font-weight: bold; color: var(--primary); cursor: not-allowed;">
                 </div>
 
             </div>

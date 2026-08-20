@@ -10,37 +10,37 @@ $semester     = $_SESSION['semester'];
 $department   = $_SESSION['department'];
 
 try {
-    $sql = "SELECT 
-                e.id, 
-                e.title, 
-                e.description, 
-                e.duration_minutes, 
-                e.total_marks, 
+    $sql = "SELECT
+                e.id,
+                e.title,
+                e.description,
+                e.duration_minutes,
+                e.total_marks,
                 e.total_questions_to_ask,
                 e.status,
                 e.start_time,
-                s.name AS subject_name, 
-                ea.id AS attempt_id, 
-                ea.score, 
+                s.name AS subject_name,
+                ea.id AS attempt_id,
+                ea.score,
                 ea.total_questions
             FROM exams e
             JOIN subjects s ON e.subject_id = s.id
-            LEFT JOIN exam_attempts ea 
+            LEFT JOIN exam_attempts ea
                 ON e.id = ea.exam_id AND ea.student_id = :student_id
-            WHERE s.department = :department 
-              AND s.semester = :semester 
-              AND e.status IN ('active', 'scheduled', 'ended')
-            ORDER BY 
+            WHERE s.department = :department
+                AND s.semester = :semester
+                AND e.status IN ('active', 'scheduled', 'ended')
+            ORDER BY
                 FIELD(e.status, 'active', 'scheduled', 'ended'),
                 e.start_time DESC";
-            
+
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':semester'   => $semester,
         ':department' => $department,
         ':student_id' => $_SESSION['student_id']
     ]);
-    
+
     $available_exams = $stmt->fetchAll();
 
 } catch (PDOException $e) {
@@ -68,13 +68,13 @@ try {
             $start_timestamp = strtotime($exam['start_time']);
             $duration_seconds = $exam['duration_minutes'] * 60;
             $end_timestamp = $start_timestamp + $duration_seconds;
-            
+
             if (time() >= $end_timestamp) {
-                continue; 
+                continue;
             }
-            $active_count++; 
+            $active_count++;
         }
-        $filtered_exams[] = $exam; 
+        $filtered_exams[] = $exam;
     }
 ?>
 
@@ -83,7 +83,7 @@ try {
     <p class="subtitle">Exams for your department & semester</p>
 
     <?php if (empty($filtered_exams)): ?>
-        
+
         <div class="empty" id="empty-state" style="text-align: center; padding: 50px 20px; background: white; border-radius: 12px; border: 1px dashed var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
             <h3 style="color: var(--gray); margin-bottom: 15px;">No exams scheduled right now</h3>
             <p id="funny-quote" style="font-size: 1.8rem; font-style: italic; font-weight: 500; color: #334155;">
@@ -99,10 +99,10 @@ try {
                     $is_ongoing   = isset($_SESSION['exam_answers'][$exam['id']]);
                     $status       = $exam['status'];
                 ?>
-                
+
                 <div class="exam-card">
                     <h3><?= htmlspecialchars($exam['title']) ?></h3>
-                    
+
                     <?php if (!empty($exam['description'])): ?>
                         <p class="desc"><?= htmlspecialchars($exam['description']) ?></p>
                     <?php endif; ?>
@@ -147,8 +147,8 @@ try {
 <script>
     <?php if (empty($filtered_exams)): ?>
     document.addEventListener("DOMContentLoaded", async function() {
-        
-       try {
+
+        try {
         const response = await fetch('../utils/funny_quotes.json');
 
         if(!response.ok) {
@@ -176,7 +176,7 @@ try {
                     console.error('Element #funny-quote not found!');
                 }
 
-        } 
+        }
 
     } catch (e) {
         console.error('Failed to fetch quotes:', e);
@@ -199,7 +199,7 @@ try {
         } catch (error) {
             console.error("Auto-refresh ping failed.");
         }
-    }, 10000); 
+    }, 10000);
 </script>
 
 </body>

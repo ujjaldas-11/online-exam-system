@@ -19,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
         try {
             $pdo->beginTransaction();
 
-            $sql = "INSERT INTO questions 
-                    (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option) 
+            $sql = "INSERT INTO questions
+                    (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option)
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
 
@@ -276,7 +276,7 @@ $default_json = '';
         <div class="instructions">
             <strong>Instructions:</strong> Paste a valid JSON array.<br>
             Required keys: <code>question_text</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code>.<br>
-            Optional: <code>option_c</code>, <code>option_d</code>.  
+            Optional: <code>option_c</code>, <code>option_d</code>.
             <code>correct_option</code> must be <code>A</code>, <code>B</code>, <code>C</code> or <code>D</code>.
         </div>
 
@@ -287,7 +287,7 @@ $default_json = '';
                     <option value="">-- Choose Subject --</option>
                     <?php foreach ($subjects as $sub): ?>
                         <option value="<?= $sub['id'] ?>">
-                            <?= htmlspecialchars($sub['name']) ?> 
+                            <?= htmlspecialchars($sub['name']) ?>
                             (<?= htmlspecialchars($sub['department']) ?>, Sem <?= $sub['semester'] ?>)
                         </option>
                     <?php endforeach; ?>
@@ -335,12 +335,12 @@ $default_json = '';
 
 Each object must EXACTLY match this structure:
 {
-  "question_text": "Sample question?",
-  "option_a": "Option 1",
-  "option_b": "Option 2",
-  "option_c": "Option 3",
-  "option_d": "Option 4",
-  "correct_option": "A"
+    "question_text": "Sample question?",
+    "option_a": "Option 1",
+    "option_b": "Option 2",
+    "option_c": "Option 3",
+    "option_d": "Option 4",
+    "correct_option": "A"
 }
 
 Rules:

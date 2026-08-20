@@ -11,31 +11,31 @@ if (!isset($_SESSION['student_id'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
-    
+
     if ($input && isset($input['exam_id'], $input['question_id'])) {
         $exam_id = (int)$input['exam_id'];
         $question_id = (int)$input['question_id'];
-        
+
         if (!isset($_SESSION['exam_answers'])) $_SESSION['exam_answers'] = [];
         if (!isset($_SESSION['exam_answers'][$exam_id])) $_SESSION['exam_answers'][$exam_id] = [];
-        
+
         if (!isset($_SESSION['exam_reviews'])) $_SESSION['exam_reviews'] = [];
         if (!isset($_SESSION['exam_reviews'][$exam_id])) $_SESSION['exam_reviews'][$exam_id] = [];
-        
+
         // Save selected option
         if (isset($input['selected_option'])) {
             $_SESSION['exam_answers'][$exam_id][$question_id] = trim(strip_tags($input['selected_option']));
         }
-        
+
         // Save review status
         if (isset($input['marked_for_review'])) {
             $_SESSION['exam_reviews'][$exam_id][$question_id] = (bool)$input['marked_for_review'];
         }
-        
+
         echo json_encode(['success' => true]);
         exit();
     }
-    
+
     echo json_encode(['error' => 'Invalid input']);
     exit();
 }
@@ -71,16 +71,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         // Get the specific question by index from the student's assigned questions (REMOVED q.marks)
         $qSql = "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d
-                 FROM student_answers sa
-                 JOIN questions q ON sa.question_id = q.id
-                 WHERE sa.attempt_id = :attempt_id 
-                 ORDER BY sa.id ASC 
-                 LIMIT 1 OFFSET :index";
+            FROM student_answers sa
+            JOIN questions q ON sa.question_id = q.id
+            WHERE sa.attempt_id = :attempt_id
+            ORDER BY sa.id ASC
+            LIMIT 1 OFFSET :index";
         $qStmt = $pdo->prepare($qSql);
         $qStmt->bindValue(':attempt_id', $attempt_id, PDO::PARAM_INT);
         $qStmt->bindValue(':index', $index, PDO::PARAM_INT);
         $qStmt->execute();
-        
+
         $question = $qStmt->fetch(PDO::FETCH_ASSOC);
 
         // Fetch ordered list of all assigned question IDs for grid mapping

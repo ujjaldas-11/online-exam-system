@@ -18,7 +18,7 @@ try {
 
     echo "<h1>Credentials Generated</h1>";
     echo "<p>Successfully generated test credentials!</p>";
-    
+
     echo "<h3>Admin Login</h3>";
     echo "<ul>";
     echo "<li><strong>URL:</strong> <a href='admin/admin-login.php'>../admin/admin-login.php</a></li>";
@@ -32,7 +32,7 @@ try {
     echo "<li><strong>Email:</strong> student@example.com</li>";
     echo "<li><strong>Password:</strong> password123</li>";
     echo "</ul>";
-    
+
 } catch (PDOException $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();

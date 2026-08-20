@@ -13,22 +13,22 @@ $student_department = $_SESSION['department'];
 
 try {
     $examSql = "SELECT e.id, e.title, e.duration_minutes, e.subject_id, e.total_questions_to_ask, e.total_marks,
-                       TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
-                FROM exams e
-                JOIN subjects s ON e.subject_id = s.id
-                WHERE e.id = :id 
-                  AND s.semester = :semester 
-                  AND s.department = :department
-                  AND e.status = 'active' 
-                LIMIT 1";
-    
+        TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
+        FROM exams e
+        JOIN subjects s ON e.subject_id = s.id
+        WHERE e.id = :id
+            AND s.semester = :semester
+            AND s.department = :department
+            AND e.status = 'active'
+        LIMIT 1";
+
     $examStmt = $pdo->prepare($examSql);
     $examStmt->execute([
         ':id' => $exam_id,
         ':semester' => $student_semester,
         ':department' => $student_department
     ]);
-    
+
     $exam = $examStmt->fetch();
 
     if (!$exam) {
@@ -336,7 +336,7 @@ try {
         }
 
     </style>
-   
+
 </head>
 <body>
 
@@ -400,7 +400,7 @@ try {
     const examId = <?= $exam_id ?>;
     const totalQuestions = <?= $total_questions ?>;
     // ADDED POINTS PER QUESTION CONSTANT HERE
-    const pointsPerQuestion = <?= $points_per_question ?>; 
+    const pointsPerQuestion = <?= $points_per_question ?>;
     let currentIndex = 0;
     let currentQuestionId = null;
 

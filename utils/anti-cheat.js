@@ -1,6 +1,6 @@
 /**
  * Anti-Cheat Module for Online Exam System
- * 
+ *
  * Features:
  * - F11 Fullscreen Enforcement (Starts Exam)
  * - F12 & Context Menu (DevTools) Prevention
@@ -51,13 +51,13 @@ const AntiCheat = (function() {
             requestFullscreen.call(docElm).then(() => {
                 isExamActive = true;
                 console.log("Exam started. Anti-cheat measures activated.");
-                
+
                 // Hide any "Press F11 to Start" overlay if it exists
                 const startOverlay = document.getElementById('exam-start-overlay');
                 if (startOverlay) {
                     startOverlay.style.display = 'none';
                 }
-                
+
                 // Dispatch a custom event that main app can listen to
                 document.dispatchEvent(new CustomEvent('examStarted'));
             }).catch(err => {
@@ -72,7 +72,7 @@ const AntiCheat = (function() {
     // Check if fullscreen was exited
     function handleFullscreenChange() {
         const fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-        
+
         if (isExamActive && !fullscreenElement) {
             triggerViolation("Exited full-screen mode");
         }
@@ -95,7 +95,7 @@ const AntiCheat = (function() {
     // Handle a violation event
     function triggerViolation(reason) {
         violationCount++;
-        
+
         if (typeof violationCallback === 'function') {
             violationCallback(violationCount, reason);
         } else {
@@ -112,7 +112,7 @@ const AntiCheat = (function() {
     // Terminate the exam after max violations
     function terminateExam() {
         isExamActive = false;
-        
+
         if (typeof terminationCallback === 'function') {
             terminationCallback();
         } else {
@@ -159,7 +159,7 @@ const AntiCheat = (function() {
         document.getElementById('anti-cheat-resume-btn').addEventListener('click', () => {
             const docElm = document.documentElement;
             const requestFullscreen = docElm.requestFullscreen || docElm.mozRequestFullScreen || docElm.webkitRequestFullScreen || docElm.msRequestFullscreen;
-            
+
             if (requestFullscreen) {
                 requestFullscreen.call(docElm).then(() => {
                     document.body.removeChild(overlay);
@@ -183,20 +183,20 @@ const AntiCheat = (function() {
             if (options.onTerminate) terminationCallback = options.onTerminate;
 
             document.addEventListener('keydown', handleKeyDown);
-            
+
             // Disable Right Click
             document.addEventListener('contextmenu', e => e.preventDefault());
-            
+
             // Fullscreen change events for various browsers
             document.addEventListener('fullscreenchange', handleFullscreenChange);
             document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
             document.addEventListener('mozfullscreenchange', handleFullscreenChange);
             document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-            
+
             // Tab switch and focus loss events
             document.addEventListener('visibilitychange', handleVisibilityChange);
             window.addEventListener('blur', handleBlur);
-            
+
             console.log("Anti-cheat module initialized. Press F11 to start the exam.");
         },
         isActive: function() {

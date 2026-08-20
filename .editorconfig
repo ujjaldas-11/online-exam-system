@@ -53,3 +53,8 @@ indent_size = 2
 [*.{yml,yaml}]
 indent_style = space
 indent_size = 2
+
+# Shell and PowerShell scripts
+[*.{sh,bash,ps1}]
+indent_style = space
+indent_size = 4

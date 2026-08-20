@@ -13,7 +13,7 @@ $message = '';
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
+
     //  Delete all questions for this subject
     if (isset($_POST['delete_all'])) {
         $delStmt = $pdo->prepare("DELETE FROM questions WHERE subject_id = ?");
@@ -32,7 +32,7 @@ $subject = $subjectStmt->fetch();
 if (!$subject) die("Subject not found.");
 
 // Fetch All Questions for this specific subject
-$resultsSql = "SELECT question_text FROM questions WHERE subject_id = :subject_id ORDER BY id ASC"; 
+$resultsSql = "SELECT question_text FROM questions WHERE subject_id = :subject_id ORDER BY id ASC";
 $resultsStmt = $pdo->prepare($resultsSql);
 $resultsStmt->execute([':subject_id' => $subject_id]);
 $all_results = $resultsStmt->fetchAll();
@@ -57,7 +57,7 @@ $all_results = $resultsStmt->fetchAll();
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--light); color: var(--dark); line-height: 1.5; }
-        
+
         .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
         .header-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
         h1 { font-size: 1.6rem; margin-bottom: 4px; }
@@ -72,7 +72,7 @@ $all_results = $resultsStmt->fetchAll();
         .btn-outline { background: white; border: 1px solid var(--border); color: var(--dark); margin-bottom: 20px; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-danger:hover { background: var(--danger-hover); }
-        
+
         /* Action Bar for Bulk Updates */
         .action-bar { display: flex; gap: 15px; align-items: center; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
         .action-bar form { display: flex; align-items: center; gap: 10px; }
@@ -121,19 +121,19 @@ $all_results = $resultsStmt->fetchAll();
         </div>
     <?php else: ?>
 
-        
+
         <div class="card">
             <div class="header-flex" style="margin-bottom: 10px;">
                 <h2 style="border: none; margin: 0; padding: 0;"> Question Bank (<?= count($all_results) ?> Questions)</h2>
             </div>
-            
+
             <div class="action-bar no-print">
                 <a href="manage-questions.php">
                     <button  class="btn btn-primary" style="padding: 6px 12px;" >
                         Upload questions
                     </button>
                 </a>
-                
+
                 <form method="POST">
                     <button type="submit" name="delete_all" class="btn btn-danger" style="padding: 6px 12px;" onclick="return confirm('⚠️ WARNING: Are you sure you want to delete ALL questions? This action CANNOT be undone!');">
                         🗑️ Delete All Questions
@@ -146,7 +146,7 @@ $all_results = $resultsStmt->fetchAll();
                 include '../components/searchbar.php';
             ?>
 
-            
+
             <div class="table-wrap">
                 <table>
                     <thead>
@@ -156,9 +156,9 @@ $all_results = $resultsStmt->fetchAll();
                         </tr>
                     </thead>
                     <tbody>
-                        <?php 
+                        <?php
                         $counter = 1;
-                        foreach ($all_results as $row): 
+                        foreach ($all_results as $row):
                         ?>
                         <tr>
                             <td><strong><?= $counter++ ?></strong></td>

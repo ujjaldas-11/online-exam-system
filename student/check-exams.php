@@ -14,7 +14,7 @@ $department = $_SESSION['department'];
 
 try {
     $stmt = $pdo->prepare("
-        SELECT COUNT(e.id) as active_count 
+        SELECT COUNT(e.id) as active_count
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id
         WHERE s.semester = ? AND s.department = ? AND e.status = 'active'

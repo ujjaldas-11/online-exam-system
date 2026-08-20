@@ -1,5 +1,5 @@
-<?php 
-$placeholder = isset($search_placeholder) ? $search_placeholder : "Type to search..."; 
+<?php
+$placeholder = isset($search_placeholder) ? $search_placeholder : "Type to search...";
 ?>
 
 <link rel="stylesheet" href="../assets/css/components.css">

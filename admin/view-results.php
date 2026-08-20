@@ -20,10 +20,10 @@ if (!$exam) {
 
 // Fetch All Completed Attempts (Ordered by Score)
 $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.score, ea.total_questions, ea.submitted_at
-               FROM exam_attempts ea
-               JOIN students s ON ea.student_id = s.id
-               WHERE ea.exam_id = :exam_id AND ea.status = 'completed'
-               ORDER BY ea.score DESC, ea.submitted_at ASC";
+    FROM exam_attempts ea
+    JOIN students s ON ea.student_id = s.id
+    WHERE ea.exam_id = :exam_id AND ea.status = 'completed'
+    ORDER BY ea.score DESC, ea.submitted_at ASC";
 $resultsStmt = $pdo->prepare($resultsSql);
 $resultsStmt->execute([':exam_id' => $exam_id]);
 $all_results = $resultsStmt->fetchAll();

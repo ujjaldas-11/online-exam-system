@@ -9,8 +9,8 @@ $departments = $deptStmt->fetchAll(PDO::FETCH_COLUMN);
 
 $params = [];
 $sql = "SELECT e.id, e.title, e.total_marks, s.department, s.semester,
-               (SELECT COUNT(*) FROM exam_attempts
-                WHERE exam_id = e.id AND status = 'completed') AS total_attempts
+        (SELECT COUNT(*) FROM exam_attempts
+        WHERE exam_id = e.id AND status = 'completed') AS total_attempts
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id";
 
@@ -215,14 +215,12 @@ $exams = $stmt->fetchAll();
     <div class="card">
 
         <div class="filters">
-            <a href="results.php"
-               class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
+            <a href="results.php" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
                 All Departments
             </a>
 
             <?php foreach ($departments as $dept): ?>
-                <a href="results.php?department=<?= urlencode($dept) ?>"
-                   class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
+                <a href="results.php?department=<?= urlencode($dept) ?>" class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
                     <?= htmlspecialchars($dept) ?>
                 </a>
             <?php endforeach; ?>

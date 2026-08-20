@@ -23,7 +23,7 @@ session_start();
 <body>
 
     <!-- =========================
-         NAVIGATION
+        NAVIGATION
     ========================= -->
 
     <nav aria-label="College navigation">
@@ -58,7 +58,7 @@ session_start();
 
 
     <!-- =========================
-         HERO
+        HERO
     ========================= -->
 
     <header class="hero">
@@ -109,7 +109,7 @@ session_start();
 
 
     <!-- =========================
-         FEATURES
+        FEATURES
     ========================= -->
 
     <section
@@ -196,7 +196,7 @@ session_start();
 
 
     <!-- =========================
-         FOOTER
+        FOOTER
     ========================= -->
 
     <footer>
