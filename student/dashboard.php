@@ -149,7 +149,7 @@ try {
     document.addEventListener("DOMContentLoaded", async function() {
         
        try {
-        const response = await fetch('../funny_quotes.json');
+        const response = await fetch('../utils/funny_quotes.json');
 
         if(!response.ok) {
             throw new Error('Network response was not ok');

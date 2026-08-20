@@ -2,7 +2,7 @@
             --primary: #2563eb;
             --dark: #0f172a;
             --gray: #64748b;
-            --light: linear-gradient(135deg, #20a6ba 0%, #062826 50%, #9ad4ae 100%);
+            --light: rgb(122, 121, 121);
             --border: #e2e8f0;
             --error: #dc2626;
             --success: #16a34a;
