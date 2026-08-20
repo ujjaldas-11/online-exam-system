@@ -61,6 +61,7 @@ html {
     scroll-behavior: smooth;
 }
 
+
 body {
     min-height: 100vh;
 
@@ -240,6 +241,7 @@ nav {
     height: auto;
 
     object-fit: contain;
+    margin-bottom: 21px;
 
     filter:
         drop-shadow(
@@ -258,8 +260,10 @@ nav {
     font-size: 3.5rem;
     line-height: 1.1;
 
-    font-weight: 750;
+    font-weight: 650;
     letter-spacing: -1.8px;
+    color: rgb(222, 216, 226);
+    
 }
 
 
