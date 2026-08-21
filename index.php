@@ -1,5 +1,8 @@
 <?php
 // Landing page — public entry point, no session-gated content here
+require_once __DIR__ . '/utils/env.php';
+
+$assetVersion = asset_version();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -7,8 +10,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Examify — Online Exam platform</title>
-    <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/landing.css">
+    <link rel="stylesheet" href="assets/css/components.css?v=<?= $assetVersion ?>">
+    <link rel="stylesheet" href="assets/css/landing.css?v=<?= $assetVersion ?>">
 </head>
 <body class="landing-body">
 
@@ -39,8 +42,7 @@
 
     <header class="landing-hero">
         <div class="hero-bg" aria-hidden="true"></div>
-        
-            
+
         <div class="hero-content">
             <p class="eyebrow">
                 <img src="assets/images/examify_logo.png" alt="Examify">
@@ -51,7 +53,7 @@
                 <a href="admin/admin-login.php" class="btn btn-primary">Admin portal</a>
                 <a href="student/login.php" class="btn btn-outline">Student portal</a>
             </div>
-        </div>  
+        </div>
     </header>
 
     <section class="landing-features">
@@ -76,7 +78,7 @@
     <footer class="landing-footer">
         <a href="index.php" class="landing-logo landing-logo-sm">
             <img src="assets/images/examify_logo.png" alt="." class="footer-logo">
-            <span>Examify</span>    
+            <span>Examify</span>
         </a>
         <p class="footer-copy">&copy; <?php echo date('Y'); ?> examify. All rights reserved.</p>
     </footer>

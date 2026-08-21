@@ -17,12 +17,13 @@ To get the final build without any unnecessary files or development scripts:
 Once you have extracted the production build:
 
 1. Upload the contents of the extracted folder directly to your web server (e.g., inside `htdocs`, `www`, or `/var/www/html/`).
-2. Configure your `.env` file with the live database credentials.
+2. Configure your `.env` file with `APP_ENV=production` and your live database credentials.
 3. Initialize the database on your MySQL server using the database schema (`schema.sql` from the repository) as described in [Database Setup](README.md#3-initialize-database).
 
 ## ⚡ Production Optimizations
 
-The CI pipeline applies automated performance optimizations before creating the release archive:
+The CI pipeline and production environment apply automated performance optimizations:
+- **Environment Caching**: Setting `APP_ENV=production` enables static asset caching and HTTP expiration headers for high-performance LAN/WAN delivery.
 - **CSS Minification**: All stylesheets in `assets/css/` are processed with `clean-css-cli` to strip comments and collapse whitespace, reducing asset payload size.
 - **JavaScript Minification & Mangling**: All client scripts in `utils/` are optimized and minified with `terser` (`--compress --mangle`).
 - **Zero Build Tooling at Runtime**: Minification happens during GitHub Actions packaging, leaving the deployed application completely dependency-free Vanilla PHP.

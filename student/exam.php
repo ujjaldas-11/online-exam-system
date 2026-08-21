@@ -221,8 +221,8 @@ include __DIR__ . '/../components/header.php';
     </div>
 </div>
 
-<script src="../utils/anti-cheat.js"></script>
-<script src="../utils/timer.js"></script>
+<script src="../utils/anti-cheat.js?v=<?= asset_version() ?>"></script>
+<script src="../utils/timer.js?v=<?= asset_version() ?>"></script>
 <script>
     const examId = <?= $exam_id ?>;
     const attemptId = <?= $attempt_id ?>;

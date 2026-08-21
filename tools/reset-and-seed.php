@@ -4,11 +4,13 @@
  * Complete Database Reset & Seed Script with /tests questions
  */
 
-$host = 'localhost';
-$username = 'root';
-$password = '';
-$charset = 'utf8mb4';
-$dbname = 'examify';
+require_once __DIR__ . '/../utils/env.php';
+
+$host = get_env('DB_HOST', 'localhost');
+$username = get_env('DB_USERNAME', 'root');
+$password = get_env('DB_PASSWORD', '');
+$charset = get_env('DB_CHARSET', 'utf8mb4');
+$dbname = get_env('DB_DATABASE', 'examify');
 
 echo "=======================================================\n";
 echo "🔄 EXAMIFY DATABASE RESET & SEED TOOL\n";

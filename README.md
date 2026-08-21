@@ -119,6 +119,7 @@ online-exam-system/
 │   ├── anti-cheat.js            # Fullscreen, tab-switch, and DevTools detection
 │   ├── auth.php                 # Native role verification helpers
 │   ├── csrf.php                 # Native CSRF token generation and validation
+│   ├── env.php                  # Environment variables & browser cache control helper
 │   ├── funny_quotes.json        # Anti-cheat violation notice quotes
 │   ├── logger.php               # Safe exception logging
 │   ├── mailer.php               # Zero-dependency Vanilla PHP socket SMTP client
@@ -154,6 +155,9 @@ online-exam-system/
   ```
 2. Create a `.env` file in the root directory:
   ```env
+  # Set to 'development' (disables browser cache) or 'production' (enables caching)
+  APP_ENV=development
+
   DB_HOST=localhost
   DB_DATABASE=examify
   DB_USERNAME=root

@@ -1,9 +1,11 @@
 <?php
+require_once __DIR__ . '/../utils/env.php';
+
 $placeholder = isset($search_placeholder) ? $search_placeholder : "Type to search...";
+$assetVersion = asset_version();
 ?>
 
-<link rel="stylesheet" href="../assets/css/components.css">
-
+<link rel="stylesheet" href="../assets/css/components.css?v=<?= $assetVersion ?>">
 
 <div class="search-wrapper no-print">
     <span class="material-symbols-outlined search-icon" style="font-size: 18px;">search</span>

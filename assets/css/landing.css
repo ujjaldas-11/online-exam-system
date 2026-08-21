@@ -119,7 +119,7 @@
 }
 
 .eyebrow {
-  font-size: 0.8rem;  
+  font-size: 0.8rem;
   font-weight: 600;
   margin: 0 0 6px;
 }
@@ -134,7 +134,7 @@
 
 .landing-hero h1 {
   font-size: 2.1rem;
-  font-weight: 700; 
+  font-weight: 700;
   color: #f8fafc;
   margin: 0 0 14px;
   line-height: 1.25;
@@ -242,7 +242,6 @@
 }
 
 @media (width <= 740px) {
-  
   .landing-features {
     grid-template-columns: 1fr;
   }
