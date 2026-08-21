@@ -1,88 +1,262 @@
-/* =========================================================
-  EXAMIFY LANDING PAGE SPECIFIC STYLES
-========================================================= */
-
-:root {
-  --page-gradient: linear-gradient(60deg, #445195 0%, #afb179 100%);
-  --hero-gradient: linear-gradient(145deg, #0f172a 0%, #172554 45%, #1e40af 100%);
-  --feature-gradient: linear-gradient(135deg, #77779d 30%, #e0bd35 70%);
-}
-
 .landing-body {
-  background: var(--page-gradient);
+  margin: 0;
+  background: var(--color-header, #0F172A);
+  color: #E2E8F0;
 }
 
 .landing-nav {
-  background: transparent;
-  padding: 16px 24px;
+  display: grid;
+  place-items: center;
+  padding: 16px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+.landing-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.logo-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm, 8px);
+  background: #6366F1;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.landing-nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.landing-nav-links a {
+  color: #94A3B8;
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.15s ease;
+}
+
+.landing-nav-links a:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+
+/* College Brand */
+
+.college-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    text-decoration: none;
+}
+
+/* collage title */
+.college-brand img {
+    width: 50px;
+    height: 50px;
+    max-width: 180px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.college-name {
+    font-size: 2rem;
+    font-weight: 900;
+
+    color: #f8fafc;
+    white-space: nowrap;
+}
+
+.college-name span {
+    color: #3b82f6;
+    font-size: 2.3rem;
+}
+
+.college-name-mob {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 2.3rem;
+  display: none;
+}
+
 
 .landing-hero {
-  background: var(--hero-gradient);
-  color: white;
-  border-radius: var(--radius-lg);
-  padding: 60px 32px;
+  margin-top: -3rem;
+  position: relative;
+  padding: 72px 28px 60px;
   text-align: center;
-  margin-bottom: 40px;
-  box-shadow: var(--shadow-lg);
+  overflow: hidden;
 }
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(99, 102, 241, 0.35) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+  opacity: 0.35;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent);
+}
+
+.hero-content {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  font-size: 0.8rem;  
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.eyebrow img{
+  width: 13rem;
+  height: 8rem;
+}
+
+
+
 
 .landing-hero h1 {
-  font-size: 2.75rem;
-  font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: 16px;
-  letter-spacing: -0.5px;
+  font-size: 2.1rem;
+  font-weight: 700; 
+  color: #f8fafc;
+  margin: 0 0 14px;
+  line-height: 1.25;
 }
 
-.landing-hero p {
-  font-size: 1.15rem;
-  color: #cbd5e1;
-  max-width: 650px;
-  margin: 0 auto 32px;
+.hero-sub {
+  font-size: 0.95rem;
+  color: #94A3B8;
+  line-height: 1.6;
+  margin: 0 0 32px;
 }
 
 .hero-actions {
   display: flex;
+  gap: 12px;
   justify-content: center;
-  gap: 16px;
   flex-wrap: wrap;
 }
 
-.features-grid {
+.btn {
+  text-decoration: none;
+  padding: 11px 22px;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-primary {
+  background: #6366F1;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #4F46E5;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #E2E8F0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.btn-outline:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.landing-features {
+  margin-top: -10px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-bottom: 48px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .feature-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 32px 24px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+  background: var(--color-header, #0F172A);
+  padding: 22px 24px;
 }
 
-.feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+.feature-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 4px;
 }
 
-.feature-icon {
-  font-size: 2rem;
-  margin-bottom: 16px;
+.feature-desc {
+  font-size: 0.83rem;
+  color: #94A3B8;
+  line-height: 1.5;
+  margin: 0;
 }
 
-.feature-card h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: var(--color-dark);
+.landing-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 24px 28px;
 }
 
-.feature-card p {
-  color: var(--color-text-secondary);
-  font-size: 0.95rem;
+
+.footer-logo{
+  position: relative;
+  z-index: 10;
+  width: 50px;
+  height: 40px;
+  left: 20px;
+  top: -4px;
+}
+
+
+
+.footer-copy {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin: 0;
+}
+
+@media (width <= 740px) {
+  
+  .landing-features {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero h1 {
+    font-size: 1.6rem;
+  }
+
+  .college-name{
+    display: none;
+  }
+
+  .college-name-mob{
+      display: block;
+  }
+
 }

@@ -1,208 +1,90 @@
 <?php
-session_start();
+// Landing page — public entry point, no session-gated content here
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-    <link rel="shortcut icon" href="assets/images/examify_icon.ico" type="image/x-icon">
-    <title>Examify • Online Examination System</title>
-
-    <link
-        rel="stylesheet"
-        href="assets/css/style.css"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examify — Online Exam platform</title>
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/landing.css">
+    <!-- <link rel="stylesheet" href="assets/css/style.css"> -->
 </head>
+<body class="landing-body">
 
-<body>
+    <nav class="landing-nav">
+        <!-- <a href="index.php" class="landing-logo">
+            <span class="logo-mark" aria-hidden="true">&#10003;</span>
+            <span>Invigil</span>
+        </a> -->
 
-    <!-- =========================
-        NAVIGATION
-    ========================= -->
+        <a href="https://www.bistpurulia.org/"
+            class="college-brand"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Visit Bengal Institute of Science and Technology website"
+        >
 
-    <nav aria-label="College navigation">
-
-        <div class="nav-bar">
-
-            <a
-                href="https://www.bistpurulia.org/"
-                class="college-brand"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Visit Bengal Institute of Science and Technology website"
+            <img
+                src="assets/images/college_logo.png"
+                alt="Bengal Institute of Science and Technology logo"
             >
 
-                <img
-                    src="assets/images/college_logo.png"
-                    alt="Bengal Institute of Science and Technology logo"
-                >
+            <div class="college-name">
+                <span>B</span>engal
+                <span>I</span>nstitute of
+                <span>S</span>cience and
+                <span>T</span>echnology
+            </div>
 
-                <div class="college-name">
-                    <span>B</span>engal
-                    <span>I</span>nstitute of
-                    <span>S</span>cience and
-                    <span>T</span>echnology
-                </div>
-
-            </a>
-
-        </div>
-
+            <div class="college-name-mob">B.I.S.T</div>
+        </a>
     </nav>
 
-
-    <!-- =========================
-        HERO
-    ========================= -->
-
-    <header class="hero">
-
+    <header class="landing-hero">
+        <div class="hero-bg" aria-hidden="true"></div>
+        
+            
         <div class="hero-content">
-
-            <div class="examify-logo-wrapper">
-
-                <img
-                    src="assets/images/examify_logo.png"
-                    alt="Examify"
-                    class="examify-logo"
-                >
-
-            </div>
-
-
-            <h1>Examify</h1>
-
-
-            <p class="hero-description">
-                A modern and secure platform for conducting
-                online semester examinations.
+            <p class="eyebrow">
+                <img src="assets/images/examify_logo.png" alt="Examify">
             </p>
-
-
-            <div class="cta">
-
-                <a
-                    href="student/login.php"
-                    class="btn btn-primary"
-                >
-                    Student Portal
-                </a>
-
-                <a
-                    href="admin/admin-login.php"
-                    class="btn btn-outline"
-                >
-                    Admin Portal
-                </a>
-
+            <h1>Online exams that stay fair, end to end.</h1>
+            <p class="hero-sub">Build question banks, run timed and proctored exams, and get graded results the moment students submit.</p>
+            <div class="hero-actions">
+                <a href="admin/admin-login.php" class="btn btn-primary">Admin portal</a>
+                <a href="student/login.php" class="btn btn-outline">Student portal</a>
             </div>
-
-        </div>
-
+        </div>  
     </header>
 
-
-    <!-- =========================
-        FEATURES
-    ========================= -->
-
-    <section
-        class="features"
-        aria-label="Examify features"
-    >
-
-        <div class="card">
-
-            <div class="icon" aria-hidden="true">
-
-                <svg viewBox="0 0 24 24">
-                    <circle
-                        cx="12"
-                        cy="12"
-                        r="9"
-                    ></circle>
-
-                    <path d="M12 7v5l3 2"></path>
-                </svg>
-
-            </div>
-
-            <h3>Synchronized Timers</h3>
-
-            <p>
-                Server-side timers ensure every student starts
-                and ends at the exact same time.
-            </p>
-
+    <section class="landing-features">
+        <div class="feature-card">
+            <p class="feature-title">Question bank</p>
+            <p class="feature-desc">Organize questions by subject, ready to reuse across exams.</p>
         </div>
-
-
-        <div class="card">
-
-            <div class="icon" aria-hidden="true">
-
-                <svg viewBox="0 0 24 24">
-
-                    <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"></path>
-
-                    <path d="M9 12l2 2 4-4"></path>
-
-                </svg>
-
-            </div>
-
-            <h3>Secure Submissions</h3>
-
-            <p>
-                Transactions and unique constraints help prevent
-                lost answers and duplicate attempts.
-            </p>
-
+        <div class="feature-card">
+            <p class="feature-title">Timed and proctored</p>
+            <p class="feature-desc">Set exam windows and monitor sessions as students work through them.</p>
         </div>
-
-
-        <div class="card">
-
-            <div class="icon" aria-hidden="true">
-
-                <svg viewBox="0 0 24 24">
-
-                    <path d="M4 19V5"></path>
-
-                    <path d="M4 19h16"></path>
-
-                    <path d="M7 15l3-4 3 2 5-7"></path>
-
-                </svg>
-
-            </div>
-
-            <h3>Instant Auto-Grading</h3>
-
-            <p>
-                Objective questions are graded immediately and
-                results are available right after submission.
-            </p>
-
+        <div class="feature-card">
+            <p class="feature-title">Cheat-resistant exams</p>
+            <p class="feature-desc">Full-screen enforcement and tab-switch detection flag suspicious activity as it happens.</p>
         </div>
-
+        <div class="feature-card">
+            <p class="feature-title">Instant results</p>
+            <p class="feature-desc">Auto-graded scores and exportable reports as soon as exams close.</p>
+        </div>
     </section>
 
-
-    <!-- =========================
-        FOOTER
-    ========================= -->
-
-    <footer>
-        &copy; <?= date('Y') ?> Examify. All rights reserved.
+    <footer class="landing-footer">
+        <a href="index.php" class="landing-logo landing-logo-sm">
+            <img src="assets/images/examify_logo.png" alt="." class="footer-logo">
+            <span>Examify</span>    
+        </a>
+        <p class="footer-copy">&copy; <?php echo date('Y'); ?> examify. All rights reserved.</p>
     </footer>
 
 </body>
-
 </html>
