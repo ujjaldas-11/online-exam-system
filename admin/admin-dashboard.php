@@ -24,7 +24,7 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/navbar.php';
 ?>
 
-<div class="container">
+<div class="container main-content">
     <!-- Header -->
     <div class="page-header">
         <div>

@@ -44,7 +44,7 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/navbar.php';
 ?>
 
-<div class="container">
+<div class="container main-content">
     <div class="page-header">
         <div>
             <h1>Manage Subjects</h1>
