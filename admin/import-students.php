@@ -90,7 +90,7 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/navbar.php';
 ?>
 
-<div class="container" style="max-width: 750px;">
+<div class="container main-content" style="max-width: 750px;">
     <div class="page-header">
         <div>
             <h1>Batch Student CSV Roster Import</h1>

@@ -46,7 +46,7 @@ include __DIR__ . '/../components/header.php';
     <?php include __DIR__ . '/../components/navbar.php'; ?>
 </div>
 
-<div class="container">
+<div class="container main-content">
     <div style="margin-bottom: 16px;" class="no-print">
         <a href="results.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
             <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to All Exams

@@ -95,7 +95,7 @@
 
 
 .landing-hero {
-  margin-top: -3rem;
+  /* margin-top: -3rem; */
   position: relative;
   padding: 72px 28px 60px;
   text-align: center;
@@ -116,6 +116,8 @@
   position: relative;
   max-width: 480px;
   margin: 0 auto;
+  height: 100dvh;
+
 }
 
 .eyebrow {
@@ -128,9 +130,6 @@
   width: 13rem;
   height: 8rem;
 }
-
-
-
 
 .landing-hero h1 {
   font-size: 2.1rem;
@@ -186,11 +185,11 @@
 }
 
 .landing-features {
-  margin-top: -10px;
+  /* margin-top: -50px; */
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  /* background: rgba(255, 255, 255, 0.08); */
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }

@@ -103,7 +103,7 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/navbar.php';
 ?>
 
-<div class="container">
+<div class="container main-content">
     <div style="margin-bottom: 16px;">
         <a href="control-exams.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
             <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to Exam Controls
