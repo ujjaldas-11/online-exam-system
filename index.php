@@ -9,15 +9,10 @@
     <title>Examify — Online Exam platform</title>
     <link rel="stylesheet" href="assets/css/components.css">
     <link rel="stylesheet" href="assets/css/landing.css">
-    <!-- <link rel="stylesheet" href="assets/css/style.css"> -->
 </head>
 <body class="landing-body">
 
     <nav class="landing-nav">
-        <!-- <a href="index.php" class="landing-logo">
-            <span class="logo-mark" aria-hidden="true">&#10003;</span>
-            <span>Invigil</span>
-        </a> -->
 
         <a href="https://www.bistpurulia.org/"
             class="college-brand"

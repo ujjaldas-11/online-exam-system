@@ -53,8 +53,10 @@ include __DIR__ . '/../components/header.php';
 ?>
 
 <div class="auth-card">
-    <h2>Admin Login</h2>
-    <p class="subtitle">Instructor & Examination Control</p>
+    <img src="../assets/images/examify_logo.png" alt=".." height="50" width="50" style="background-color: black; border: none; border-radius: 8px;">
+
+    <h2 style="text-align: left;">Admin Login</h2>
+    <p class="subtitle" style="text-align: left;">Instructor & Examination Control</p>
 
     <?php if ($error): ?>
         <div class="alert alert-error"><?= e($error) ?></div>
