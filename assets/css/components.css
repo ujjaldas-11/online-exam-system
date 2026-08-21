@@ -125,8 +125,9 @@ nav.navbar {
   display: flex;
   gap: 6px;
   align-items: center;
-  display: none;
+  /* display: none; */
 }
+
 
 .nav-links a {
   color: #ede9d9;
@@ -659,6 +660,8 @@ tr:hover td {
     opacity: 0;
     transform: translateX(16px);
   }
+
+
 
   .nav-links.show a {
     animation: navLinkIn 0.35s ease forwards;
