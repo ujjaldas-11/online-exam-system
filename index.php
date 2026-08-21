@@ -10,6 +10,9 @@ $assetVersion = asset_version();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Examify — Online Exam platform</title>
+    <link rel="icon" type="image/x-icon" href="assets/images/examify_icon.ico?v=<?= $assetVersion ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/examify_logo.png?v=<?= $assetVersion ?>">
+    <link rel="apple-touch-icon" href="assets/images/examify_logo.png?v=<?= $assetVersion ?>">
     <link rel="stylesheet" href="assets/css/components.css?v=<?= $assetVersion ?>">
     <link rel="stylesheet" href="assets/css/landing.css?v=<?= $assetVersion ?>">
 </head>
