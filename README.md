@@ -3,7 +3,7 @@
 **Examify** is a high-performance, secure, and lightweight web-based online examination platform built with **Vanilla PHP 8.x, MySQL, HTML5, CSS3, and Vanilla JavaScript**. Designed specifically for educational institutions and college computer labs, Examify provides complete classroom control for **surprise quizzes, semester tests, and scheduled online exams** over local area networks (LAN).
 
 ---
-![CI Status](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml)
 
 
 ## 🎯 Primary Use Case & Architecture
