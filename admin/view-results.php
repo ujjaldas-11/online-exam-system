@@ -43,7 +43,7 @@ include __DIR__ . '/../components/header.php';
 ?>
 
 <div class="no-print">
-    <?php include __DIR__ . '/../components/navbar.php'; ?>
+    <?php include __DIR__ . '/../components/admin-sidebar.php'; ?>
 </div>
 
 <div class="container main-content">

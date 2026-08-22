@@ -1,0 +1,202 @@
+/* =========================================================
+   STUDENT NAVBAR
+   Uses the same theme vars as the admin sidebar so both panels
+   feel like one product: --color-header, --color-header-hover,
+   --color-error, --radius-sm, --shadow-sm.
+   ========================================================= */
+
+:root {
+    --nav-h: 54px;
+    --nav-deep: color-mix(in srgb, var(--color-header, #33422e) 82%, black 18%);
+    --nav-tint: color-mix(in srgb, var(--color-header-hover, #45573d) 70%, white 30%);
+    --nav-text: #ede9d9;
+    --nav-active-text: rgb(212, 232, 197);
+}
+
+.student-navbar {
+    background: var(--color-header, #33422e);
+    color: var(--nav-text);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.15));
+}
+
+.student-nav-inner {
+    /* max-width: 1100px; */
+    /* margin: 0 auto; */
+    padding: 0 20px;
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.student-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--nav-text);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.student-greeting-mobile-hidden {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    margin-right: 8px;
+}
+
+.avatar-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--nav-tint);
+    color: var(--nav-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.avatar-badge.lg { width: 42px; height: 42px; font-size: 1rem; }
+
+.student-greeting { font-weight: 600; font-size: 0.95rem; white-space: nowrap; }
+
+.drawer-profile { display: none; }
+
+.student-nav-links {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.student-nav-links a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #ede9d9;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm, 6px);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.student-nav-links a .material-symbols-outlined { font-size: 20px; }
+
+.student-nav-links a:hover,
+.student-nav-links a.active {
+    background: var(--color-header-hover, #45573d);
+    color: var(--nav-active-text);
+}
+
+.student-nav-links a.nav-logout {
+    background: var(--color-error, #dc2626);
+    color: white;
+}
+
+.student-nav-links a.nav-logout:hover {
+    background: color-mix(in srgb, var(--color-error, #dc2626) 82%, black 18%);
+}
+
+.menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm, 6px);
+    transition: background 0.15s ease;
+    flex-shrink: 0;
+}
+
+.menu-btn:hover { background: rgba(255,255,255,0.1); }
+
+.student-nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 90;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.student-nav-overlay.show { display: block; opacity: 1; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+    .student-greeting-mobile-hidden { display: none; }
+    .menu-btn { display: flex; }
+
+    .student-nav-links {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: 78%;
+        max-width: 300px;
+        background: var(--color-header, #33422e);
+        flex-direction: column;
+        align-items: stretch;
+        padding: 24px 18px;
+        gap: 4px;
+        z-index: 95;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+        display: flex;
+    }
+
+    .student-nav-links.show { transform: translateX(0); }
+
+    .drawer-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px 18px;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        margin-bottom: 10px;
+    }
+
+    .student-nav-links a {
+        padding: 12px 14px;
+        width: 100%;
+        opacity: 0;
+        transform: translateX(16px);
+    }
+
+    .student-nav-links.show a {
+        animation: navLinkIn 0.35s ease forwards;
+    }
+
+    .student-nav-links.show a:nth-child(2) { animation-delay: 0.05s; }
+    .student-nav-links.show a:nth-child(3) { animation-delay: 0.1s; }
+    .student-nav-links.show a:nth-child(4) { animation-delay: 0.15s; }
+
+    @keyframes navLinkIn {
+        to { opacity: 1; transform: translateX(0); }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .student-nav-links, .student-nav-overlay {
+        transition: none !important;
+        animation: none !important;
+    }
+}

@@ -33,7 +33,7 @@ try {
 
 $page_title = 'My Profile • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/student-navbar.php';
 ?>
 
 <div class="container">

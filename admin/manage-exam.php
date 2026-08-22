@@ -61,7 +61,7 @@ try {
 
 $page_title = 'Create Exam • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
 <div class="container main-content" style="max-width: 750px;">

@@ -87,7 +87,7 @@ try {
 
 $page_title = 'Exam Control Center • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
 <div class="container main-content">
