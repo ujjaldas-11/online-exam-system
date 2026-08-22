@@ -87,10 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_csv'])) {
 
 $page_title = 'Batch Student CSV Import • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<div class="container" style="max-width: 750px;">
+<div class="container main-content" style="max-width: 750px;">
     <div class="page-header">
         <div>
             <h1>Batch Student CSV Roster Import</h1>

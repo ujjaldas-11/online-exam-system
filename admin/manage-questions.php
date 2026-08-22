@@ -68,10 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
 
 $page_title = 'Manage Questions • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<div class="container">
+<div class="container main-content">
     <div class="page-header">
         <div>
             <h1>Manage Questions</h1>
