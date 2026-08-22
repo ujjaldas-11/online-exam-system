@@ -52,10 +52,10 @@ try {
 
 $page_title = 'Questions: ' . e($subject['name']) . ' • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<div class="container">
+<div class="container main-content">
     <div style="margin-bottom: 16px;">
         <a href="manage-subjects.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
             <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to All Subjects
@@ -90,6 +90,10 @@ include __DIR__ . '/../components/navbar.php';
 
     <div class="card">
         <div class="card-title">Question Bank (<?= count($all_questions) ?> Questions)</div>
+
+        <div style="margin-bottom: 10px;">
+            <?php include '../components/searchbar.php' ?>
+        </div>
 
         <?php if (empty($all_questions)): ?>
             <p style="color: var(--color-text-secondary); padding: 24px 0; text-align: center;">No questions have been added to this subject yet.</p>

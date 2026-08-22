@@ -60,7 +60,7 @@ if (!$student) {
 
 $page_title = 'Edit Profile • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/student-navbar.php';
 ?>
 
 <div class="container" style="max-width: 650px;">

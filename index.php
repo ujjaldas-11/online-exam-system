@@ -50,7 +50,7 @@ $assetVersion = asset_version();
             <p class="eyebrow">
                 <img src="assets/images/examify_logo.png" alt="Examify">
             </p>
-            <h1>Online exams that stay fair, end to end.</h1>
+            <h1>Examify</h1>
             <p class="hero-sub">Build question banks, run timed and proctored exams, and get graded results the moment students submit.</p>
             <div class="hero-actions">
                 <a href="admin/admin-login.php" class="btn btn-primary">Admin portal</a>

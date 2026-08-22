@@ -87,10 +87,10 @@ try {
 
 $page_title = 'Exam Control Center • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<div class="container">
+<div class="container main-content">
     <div class="page-header">
         <div>
             <h1>Exam Control & Proctoring Center</h1>
@@ -109,6 +109,10 @@ include __DIR__ . '/../components/navbar.php';
 
     <div class="card">
         <div class="card-title">All Examinations (<?= count($exams) ?>)</div>
+
+        <div style="margin-bottom: 10px;">
+            <?php include '../components/searchbar.php' ?>
+        </div>
 
         <div class="table-wrap">
             <table>

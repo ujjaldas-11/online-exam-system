@@ -41,10 +41,10 @@ try {
 
 $page_title = 'Manage Subjects • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<div class="container">
+<div class="container main-content">
     <div class="page-header">
         <div>
             <h1>Manage Subjects</h1>
@@ -101,6 +101,10 @@ include __DIR__ . '/../components/navbar.php';
     <!-- Existing Subjects Table -->
     <div class="card">
         <div class="card-title">Curriculum Subjects (<?= count($subjects) ?>)</div>
+
+        <div style="margin-bottom: 10px;">
+            <?php include '../components/searchbar.php' ?>
+        </div>
 
         <div class="table-wrap">
             <table>
