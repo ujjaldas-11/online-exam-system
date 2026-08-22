@@ -1,11 +1,4 @@
-/* =========================================================
-  EXAMIFY REUSABLE COMPONENT PRIMITIVES
-========================================================= */
-/* 
-.main-content{
-  margin-left: 23px;
-} */
-
+/* EXAMIFY REUSABLE COMPONENT PRIMITIVES */
 
 /* --- Search Bar --- */
 .search-container {
@@ -393,10 +386,9 @@ tr:hover td {
   color: var(--color-text-secondary);
 }
 
-
 /* --- Material Symbols & Icon Helpers --- */
 .material-symbols-outlined {
-  font-family: 'Material Symbols Outlined', sans-serif;
+  font-family: "Material Symbols Outlined", sans-serif;
   font-weight: normal;
   font-style: normal;
   font-size: 20px;
@@ -410,22 +402,42 @@ tr:hover td {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
-  -webkit-font-feature-settings: 'liga';
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
+  -webkit-font-feature-settings: "liga";
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
   -webkit-user-select: none;
   user-select: none;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
 
-.icon-xs { font-size: 14px; }
-.icon-sm { font-size: 16px; }
-.icon-md { font-size: 20px; }
-.icon-lg { font-size: 24px; }
-.icon-xl { font-size: 32px; }
-.icon-2xl { font-size: 40px; }
+.icon-xs {
+  font-size: 14px;
+}
+.icon-sm {
+  font-size: 16px;
+}
+.icon-md {
+  font-size: 20px;
+}
+.icon-lg {
+  font-size: 24px;
+}
+.icon-xl {
+  font-size: 32px;
+}
+.icon-2xl {
+  font-size: 40px;
+}
 
 .icon-filled {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }

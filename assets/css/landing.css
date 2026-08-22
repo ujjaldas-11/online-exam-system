@@ -10,9 +10,7 @@
   font-family: inherit;
 }
 
-/* ================================
-   Navigation
-   ================================ */
+/* Navigation */
 
 .landing-nav {
   display: flex;
@@ -56,9 +54,7 @@
   font-weight: 800;
 }
 
-/* ================================
-   Hero
-   ================================ */
+/* Hero */
 
 .landing-hero {
   position: relative;
@@ -74,11 +70,10 @@
 .hero-bg {
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(
-      rgba(99, 102, 241, 0.32) 1.5px,
-      transparent 1.5px
-    );
+  background-image: radial-gradient(
+    rgba(99, 102, 241, 0.32) 1.5px,
+    transparent 1.5px
+  );
   background-size: 22px 22px;
   opacity: 0.3;
   -webkit-mask-image: radial-gradient(
@@ -86,11 +81,7 @@
     black,
     transparent
   );
-  mask-image: radial-gradient(
-    ellipse 70% 65% at 50% 40%,
-    black,
-    transparent
-  );
+  mask-image: radial-gradient(ellipse 70% 65% at 50% 40%, black, transparent);
 }
 
 .hero-content {

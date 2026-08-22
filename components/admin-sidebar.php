@@ -43,8 +43,8 @@ $admin_nav = [
     <nav class="sidebar-links">
         <?php foreach ($admin_nav as $page => $meta): ?>
             <a href="<?= $page ?>"
-               class="<?= $current_page === $page ? 'active' : '' ?>"
-               data-tooltip="<?= htmlspecialchars($meta['label']) ?>">
+            class="<?= $current_page === $page ? 'active' : '' ?>"
+            data-tooltip="<?= htmlspecialchars($meta['label']) ?>">
                 <span class="material-symbols-outlined">
                     <?= $meta['icon'] ?>
                 </span>

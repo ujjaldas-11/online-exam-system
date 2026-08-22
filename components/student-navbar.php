@@ -48,7 +48,7 @@ $student_name = $_SESSION['student_name'] ?? 'Student';
 </nav>
 
 <link rel="stylesheet" href="../assets/css/student-navbar.css">
-<script defer>  
+<script defer>
 
 (function () {
     const menuBtn = document.getElementById('menuBtn');
