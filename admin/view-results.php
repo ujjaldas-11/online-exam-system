@@ -101,6 +101,10 @@ include __DIR__ . '/../components/header.php';
         <div class="card">
             <div class="card-title">All Student Submissions (<?= count($all_results) ?>)</div>
 
+            <div style="margin-bottom: 10px;">
+                <?php include '../components/searchbar.php' ?>
+            </div>
+
             <div class="table-wrap">
                 <table>
                     <thead>

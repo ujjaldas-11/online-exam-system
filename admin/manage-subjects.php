@@ -102,6 +102,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="card">
         <div class="card-title">Curriculum Subjects (<?= count($subjects) ?>)</div>
 
+        <div style="margin-bottom: 10px;">
+            <?php include '../components/searchbar.php' ?>
+        </div>
+
         <div class="table-wrap">
             <table>
                 <thead>

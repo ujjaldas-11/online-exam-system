@@ -8,7 +8,7 @@ require_once '../utils/logger.php';
 $selected_dept = clean_input($_GET['department'] ?? 'All');
 
 try {
-    $deptStmt = $pdo->query("SELECT DISTINCT department FROM subjects ORDER BY department");
+    $deptStmt = $pdo->query('SELECT DISTINCT department FROM subjects ORDER BY department');
     $departments = $deptStmt->fetchAll(PDO::FETCH_COLUMN);
 
     $params = [];
@@ -19,17 +19,17 @@ try {
             JOIN subjects s ON e.subject_id = s.id";
 
     if ($selected_dept !== 'All') {
-        $sql .= " WHERE s.department = :dept";
+        $sql .= ' WHERE s.department = :dept';
         $params[':dept'] = $selected_dept;
     }
 
-    $sql .= " ORDER BY e.created_at DESC";
+    $sql .= ' ORDER BY e.created_at DESC';
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $exams = $stmt->fetchAll();
 } catch (PDOException $e) {
-    log_error("Failed to fetch exam results list", $e);
+    log_error('Failed to fetch exam results list', $e);
     $departments = [];
     $exams = [];
 }
@@ -48,6 +48,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 
     <div class="card">
+        <div style="margin-bottom: 10px;">
+            <?php include '../components/searchbar.php' ?>
+        </div>
         <!-- Department Filters -->
         <div class="filters">
             <a href="results.php?department=All" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
@@ -84,11 +87,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             <tr>
                                 <td><strong><?= e($exam['title']) ?></strong></td>
                                 <td><span class="badge badge-inactive"><?= e($exam['department']) ?></span></td>
-                                <td>Sem <?= e((string)$exam['semester']) ?></td>
-                                <td><?= e((string)$exam['total_marks']) ?> marks</td>
+                                <td>Sem <?= e((string) $exam['semester']) ?></td>
+                                <td><?= e((string) $exam['total_marks']) ?> marks</td>
                                 <td>
                                     <span class="badge badge-active">
-                                        <?= e((string)$exam['total_attempts']) ?> submissions
+                                        <?= e((string) $exam['total_attempts']) ?> submissions
                                     </span>
                                 </td>
                                 <td style="text-align: right;">

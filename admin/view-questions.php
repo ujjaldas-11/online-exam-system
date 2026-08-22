@@ -91,6 +91,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="card">
         <div class="card-title">Question Bank (<?= count($all_questions) ?> Questions)</div>
 
+        <div style="margin-bottom: 10px;">
+            <?php include '../components/searchbar.php' ?>
+        </div>
+
         <?php if (empty($all_questions)): ?>
             <p style="color: var(--color-text-secondary); padding: 24px 0; text-align: center;">No questions have been added to this subject yet.</p>
         <?php else: ?>

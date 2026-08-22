@@ -110,6 +110,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="card">
         <div class="card-title">All Examinations (<?= count($exams) ?>)</div>
 
+        <div style="margin-bottom: 10px;">
+            <?php include '../components/searchbar.php' ?>
+        </div>
+
         <div class="table-wrap">
             <table>
                 <thead>
