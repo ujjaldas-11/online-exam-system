@@ -26,7 +26,7 @@ $admin_nav = [
         </div>
 
         <div class="topbar-right">
-           <a href="manage-requests.php"
+            <a href="manage-requests.php"
             class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="Notifications">
                 <span class="material-symbols-outlined">notifications</span>
                 <?php if (!empty($pending_requests_count)): ?>

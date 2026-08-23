@@ -90,7 +90,7 @@ try {
         WHERE r.status = 'pending'
         ORDER BY r.request_date ASC
     ")->fetchAll();
-    
+
     $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
 } catch (PDOException $e) {
     log_error("Failed to fetch profile requests", $e);
