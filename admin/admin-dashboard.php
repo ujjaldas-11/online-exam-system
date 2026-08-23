@@ -14,10 +14,15 @@ try {
     $total_questions = (int) $pdo->query("SELECT COUNT(*) FROM questions")->fetchColumn();
     $total_students = (int) $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
     $total_attempts = (int) $pdo->query("SELECT COUNT(*) FROM exam_attempts")->fetchColumn();
+
+    // notification count
+    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
 } catch (PDOException $e) {
     log_error("Admin dashboard database error", $e);
     die("Database Error. Please try again later.");
 }
+
+
 
 $page_title = 'Admin Dashboard • Examify';
 include __DIR__ . '/../components/header.php';

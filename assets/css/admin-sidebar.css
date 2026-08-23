@@ -67,10 +67,38 @@ body.sidebar-collapsed .main-content {
   letter-spacing: 0.2px;
 }
 
+/* notification icon - topbar */
+
 .topbar-right {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.topbar-shortcut {
+    position: relative;
+    text-decoration: none;
+}
+
+.topbar-shortcut.active {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.topbar-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--color-error, #dc2626);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 15px;
+    text-align: center;
+    border: 2px solid var(--color-header, #4338ca);
 }
 
 .admin-name {

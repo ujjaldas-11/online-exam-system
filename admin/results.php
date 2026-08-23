@@ -11,6 +11,8 @@ try {
     $deptStmt = $pdo->query('SELECT DISTINCT department FROM subjects ORDER BY department');
     $departments = $deptStmt->fetchAll(PDO::FETCH_COLUMN);
 
+    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
+
     $params = [];
     $sql = "SELECT e.id, e.title, e.total_marks, s.department, s.semester,
             (SELECT COUNT(*) FROM exam_attempts

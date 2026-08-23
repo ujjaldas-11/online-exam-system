@@ -35,10 +35,14 @@ try {
     $subjectStmt = $pdo->prepare("SELECT * FROM subjects WHERE id = ?");
     $subjectStmt->execute([$subject_id]);
     $subject = $subjectStmt->fetch();
-
+    
     if (!$subject) {
         die("Subject not found.");
     }
+
+    //fetch notification count
+    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
+    
 
     // Fetch All Questions for this specific subject
     $resultsSql = "SELECT id, question_text, option_a, option_b, option_c, option_d, correct_option FROM questions WHERE subject_id = :subject_id ORDER BY id ASC";

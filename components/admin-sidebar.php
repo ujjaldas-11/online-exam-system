@@ -2,14 +2,14 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 
 $admin_nav = [
-    'admin-dashboard.php'   => ['label' => 'Dashboard',  'icon' => 'space_dashboard'],
-    'manage-subjects.php'   => ['label' => 'Subjects',   'icon' => 'menu_book'],
-    'manage-questions.php'  => ['label' => 'Questions',  'icon' => 'quiz'],
-    'control-exams.php'     => ['label' => 'Exams',      'icon' => 'fact_check'],
-    'results.php'           => ['label' => 'Results',    'icon' => 'bar_chart'],
-    'manage-requests.php'   => ['label' => 'Requests',   'icon' => 'mail'],
-    'proctor-exam.php'      => ['label' => 'Proctor',    'icon' => 'visibility'],
-    'import-students.php'   => ['label' => 'Import',     'icon' => 'upload_file'],
+    'admin-dashboard.php' => ['label' => 'Dashboard', 'icon' => 'space_dashboard'],
+    'manage-subjects.php' => ['label' => 'Subjects', 'icon' => 'menu_book'],
+    'manage-questions.php' => ['label' => 'Questions', 'icon' => 'quiz'],
+    'control-exams.php' => ['label' => 'Exams', 'icon' => 'fact_check'],
+    'results.php' => ['label' => 'Results', 'icon' => 'bar_chart'],
+    'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications'],
+    // 'proctor-exam.php' => ['label' => 'Proctor', 'icon' => 'visibility'],
+    'import-students.php' => ['label' => 'Import', 'icon' => 'upload_file'],
 ];
 ?>
 
@@ -26,6 +26,14 @@ $admin_nav = [
         </div>
 
         <div class="topbar-right">
+           <a href="manage-requests.php"
+            class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="Notifications">
+                <span class="material-symbols-outlined">notifications</span>
+                <?php if (!empty($pending_requests_count)): ?>
+                    <span class="topbar-badge"><?= (int) $pending_requests_count ?></span>
+                <?php endif; ?>
+            </a>
+
             <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?></span>
             <span class="material-symbols-outlined profile-icon" aria-hidden="true">account_circle</span>
         </div>

@@ -8,6 +8,9 @@ require_once '../utils/logger.php';
 
 try {
     $subjects = $pdo->query("SELECT id, name, department, semester FROM subjects ORDER BY name ASC")->fetchAll();
+
+    //fetch notification count
+    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
 } catch (PDOException $e) {
     log_error("Failed to fetch subjects in manage-questions", $e);
     $subjects = [];
