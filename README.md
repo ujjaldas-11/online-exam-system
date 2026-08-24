@@ -93,6 +93,12 @@ online-exam-system/
 │   └── searchbar.php            # Instant table search component
 ├── config/
 │   └── database.php             # Native .env parser and PDO connection
+├── docs/
+│   ├── dev/
+│   │   └── README.md            # Developer documentation (ASD-STE100)
+│   ├── user/
+│   │   └── README.md            # User & instructor documentation (ASD-STE100)
+│   └── README.md                # Documentation index
 ├── student/
 │   ├── check-exams.php          # Non-blocking polling endpoint for live exams
 │   ├── dashboard.php            # Active student examinations
@@ -229,7 +235,17 @@ php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
 
 ---
 
+## 📚 Documentation
+
+Complete project documentation is available under the [`docs/`](docs/README.md) directory, written in **ASD-STE100 Simplified Technical English**:
+
+- [**User Documentation (`docs/user/README.md`)**](docs/user/README.md): Step-by-step guides for students, instructors, and administrators.
+- [**Developer Documentation (`docs/dev/README.md`)**](docs/dev/README.md): Architecture specifications, database models, security modules, APIs, and CI/CD pipelines.
+
+---
+
 ## 🤝 Contributing
 
 Contributions and improvements are welcome! Please read [**CONTRIBUTING.md**](CONTRIBUTING.md) for code style guidelines and pull request instructions.
+
 
