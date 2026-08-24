@@ -40,6 +40,9 @@ try {
         die("Subject not found.");
     }
 
+    //registration requests
+    $pending_registration_requests_count = $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
+
     //fetch notification count
     $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
 

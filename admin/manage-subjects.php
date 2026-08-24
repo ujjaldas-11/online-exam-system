@@ -34,6 +34,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
 
 try {
     $subjects = $pdo->query("SELECT * FROM subjects ORDER BY id DESC")->fetchAll();
+
+    //registration requests
+    $pending_registration_requests_count = $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
+
     $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
 } catch (PDOException $e) {
     log_error("Failed to fetch subjects", $e);

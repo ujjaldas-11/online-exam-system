@@ -72,6 +72,13 @@ try {
         WHERE st.department = ? AND st.semester = ?
         ORDER BY st.roll_number ASC
     ");
+
+    //registration requests
+    $pending_registration_requests_count = $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
+
+    //notification
+    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
+
     $rosterStmt->execute([$exam_id, $exam['department'], $exam['semester']]);
     $students = $rosterStmt->fetchAll();
 

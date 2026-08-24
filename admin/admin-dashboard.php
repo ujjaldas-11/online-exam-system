@@ -15,6 +15,9 @@ try {
     $total_students = (int) $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
     $total_attempts = (int) $pdo->query("SELECT COUNT(*) FROM exam_attempts")->fetchColumn();
 
+    //registration requests
+    $pending_registration_requests_count = $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
+
     // notification count
     $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
 } catch (PDOException $e) {

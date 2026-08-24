@@ -85,6 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_csv'])) {
     }
 }
 
+    //registration requests
+    $pending_registration_requests_count = $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
+
+    //notification
+    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
+
 $page_title = 'Batch Student CSV Import • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
