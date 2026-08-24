@@ -141,16 +141,17 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             <tr>
                                 <td><strong><?= e($req['old_roll']) ?></strong></td>
                                 <td>
-                                    <strong><?= e($req['old_name']) ?></strong><br>
-                                    <small style="color: var(--color-text-secondary);">
+                                    <strong><?= e($req['old_name']) ?></strong>
+                                    (Roll: <?= e($req['new_roll_no']) ?>) <br>
+                                    <p style="color: var(--color-text-secondary);">
                                         <?= e($req['old_dept']) ?> • Sem <?= e((string)$req['old_sem']) ?>
-                                    </small>
+                                    </p>
                                 </td>
                                 <td>
-                                    <strong style="color: var(--color-primary);"><?= e($req['new_name']) ?></strong> (Roll: <?= e($req['new_roll_no']) ?>)<br>
-                                    <small style="color: var(--color-primary);">
+                                    <strong style="color: red"><?= e($req['new_name']) ?> (Roll: <?= e($req['new_roll_no']) ?>)</strong><br>
+                                    <p style="color: red;">
                                         <?= e($req['new_department']) ?> • Sem <?= e((string)$req['new_semester']) ?>
-                                    </small>
+                                    </p>
                                 </td>
                                 <td><?= date('d M Y, h:i A', strtotime($req['request_date'])) ?></td>
                                 <td style="text-align: right;">
