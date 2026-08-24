@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->beginTransaction();
 
                     $insertStmt = $pdo->prepare("
-                        INSERT INTO students (name, email, password, roll_number, department,semester, phone_number, gender) 
+                        INSERT INTO students (name, email, password, roll_number, department,semester, phone_number, gender)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
 
