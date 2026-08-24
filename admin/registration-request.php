@@ -25,14 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->beginTransaction();
 
                     $insertStmt = $pdo->prepare("
-                        INSERT INTO students (name, email, password, roll_number, department, semester, phone_number, gender) 
+                        INSERT INTO students (name, email, password, roll_number, department,semester, phone_number, gender) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
-                    
+
                     $updateSuccess = $insertStmt->execute([
                         $req['name'],
                         $req['email'],
-                        $req['password'], 
+                        $req['password'],
                         $req['roll_number'],
                         $req['department'],
                         $req['semester'],
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = safe_db_error($e, "Failed to reject request.");
             }
         }
-    } 
+    }
 }
 
 try {

@@ -37,29 +37,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Passwords do not match.";
     } elseif (strlen($pass) < 6) {
         $error = "Password must be at least 6 characters.";
-    } elseif (strlen($phone) !== 10) { 
+    } elseif (strlen($phone) !== 10) {
         $error = "Phone number must be exactly 10 digits.";
     } elseif ($sem < 1 || $sem > 8) {
         $error = "Semester must be between 1 and 8.";
     } else {
         try {
             $stmt = $pdo->prepare("
-                SELECT id FROM students WHERE email = ? 
-                UNION 
+                SELECT id FROM students WHERE email = ?
+                UNION
                 SELECT id FROM registration_request WHERE email = ?
             ");
             $stmt->execute([$email, $email]);
-            
+
             if ($stmt->rowCount() > 0) {
                 $error = "Email is already registered or pending approval.";
             } else {
                 $stmt = $pdo->prepare("
-                    SELECT id FROM students WHERE roll_number = ? 
-                    UNION 
+                    SELECT id FROM students WHERE roll_number = ?
+                    UNION
                     SELECT id FROM registration_request WHERE roll_number = ?
                 ");
                 $stmt->execute([$roll, $roll]);
-                
+
                 if ($stmt->rowCount() > 0) {
                     $error = "Roll number is already registered or pending approval.";
                 } else {
@@ -67,9 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $stmt = $pdo->prepare("INSERT INTO registration_request (name, email, password, roll_number, department, semester, phone_number, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone, $gender]);
-                    
+
                     $success = "Registration requested! Please wait for admin approval to log in.";
-                    
+
                     $_POST = [];
                 }
             }

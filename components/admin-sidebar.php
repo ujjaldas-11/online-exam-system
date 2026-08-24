@@ -41,7 +41,6 @@ $admin_nav = [
                     <span class="topbar-badge"><?= (int) $pending_requests_count ?></span>
                 <?php endif; ?>
             </a>
-            
 
             <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?></span>
             <span class="material-symbols-outlined profile-icon" aria-hidden="true">account_circle</span>
