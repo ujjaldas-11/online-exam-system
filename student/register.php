@@ -74,8 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } catch (PDOException $e) {
-            $error = safe_db_error($e, "Registration failed. Please check your information.");
-        }
+            //$error = safe_db_error($e, "Registration failed. Please check your information.");
+            $error = $e->getMessage();
+            }
     }
 }
 
@@ -100,17 +101,17 @@ include __DIR__ . '/../components/header.php';
 
         <div class="form-group">
             <label>Full Name</label>
-            <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Alex Johnson">
+            <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Tulasi Das">
         </div>
 
         <div class="form-group">
-            <label>College Email</label>
+            <label>Student Email</label>
             <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
         </div>
 
         <div class="form-group">
             <label>Roll Number / Student ID</label>
-            <input type="text" name="roll_number" required value="<?= e($_POST['roll_number'] ?? '') ?>" placeholder="e.g. BCA2401">
+            <input type="text" name="roll_number" required value="<?= e($_POST['roll_number'] ?? '') ?>" placeholder="e.g. B26BCA01">
         </div>
 
         <div class="form-grid">
@@ -137,7 +138,17 @@ include __DIR__ . '/../components/header.php';
 
             <div class="form-group">
                 <label>Phone Number</label>
-                <input type="tel" name="phone_number" required pattern="[0-9]{10}" value="<?= e($_POST['phone_number'] ?? '') ?>" placeholder="10 digit number">
+                <input type="text"
+                name="phone_number"
+                inputmode="numeric"
+                pattern="[0-9]{10}"
+                maxlength="10"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                value="<?= e($_POST['phone_number'] ?? '') ?>"
+                placeholder="10 digit number"
+                required
+                >    
+            
             </div>
 
             <div class="form-group">
