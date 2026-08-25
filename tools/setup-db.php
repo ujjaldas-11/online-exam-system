@@ -47,6 +47,14 @@ if (file_exists($schemaFile)) {
         $sql = file_get_contents($schemaFile);
         $pdo->exec($sql);
         out("Master schema (archive/schema.sql) applied successfully.", $isCli);
+
+        // Ensure new columns exist on existing students table
+        try {
+            $pdo->exec("ALTER TABLE `students` ADD COLUMN `phone_number` varchar(20) DEFAULT NULL AFTER `semester`");
+        } catch (PDOException) {}
+        try {
+            $pdo->exec("ALTER TABLE `students` ADD COLUMN `gender` enum('male','female','others') DEFAULT NULL AFTER `phone_number`");
+        } catch (PDOException) {}
     } catch (PDOException $e) {
         out("Failed applying schema.sql: " . $e->getMessage(), $isCli, true);
     }

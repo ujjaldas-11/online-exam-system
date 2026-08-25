@@ -90,11 +90,6 @@ try {
         WHERE r.status = 'pending'
         ORDER BY r.request_date ASC
     ")->fetchAll();
-
-    //registration requests
-    $pending_registration_requests_count = $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
-
-    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
 } catch (PDOException $e) {
     log_error("Failed to fetch profile requests", $e);
     $requests = [];
@@ -145,7 +140,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td><strong><?= e($req['old_roll']) ?></strong></td>
                                 <td>
                                     <strong><?= e($req['old_name']) ?></strong>
-                                    (Roll: <?= e($req['new_roll_no']) ?>) <br>
+                                    (Roll: <?= e($req['old_roll']) ?>) <br>
                                     <p style="color: var(--color-text-secondary);">
                                         <?= e($req['old_dept']) ?> • Sem <?= e((string)$req['old_sem']) ?>
                                     </p>

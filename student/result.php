@@ -121,7 +121,7 @@ try {
 $percentage = ($total_marks > 0) ? round(($score / $total_marks) * 100) : 0;
 $page_title = 'Exam Result • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/student-navbar.php';
 ?>
 
 <div class="container" style="max-width: 700px;">

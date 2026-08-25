@@ -7,6 +7,7 @@
  * Zero external Composer dependencies.
  */
 
+require_once __DIR__ . '/env.php';
 require_once __DIR__ . '/logger.php';
 
 class VanillaMailer
@@ -21,12 +22,12 @@ class VanillaMailer
 
     public function __construct(array $config = [])
     {
-        $this->host = $config['host'] ?? (getenv('SMTP_HOST') ?: 'localhost');
-        $this->port = (int) ($config['port'] ?? (getenv('SMTP_PORT') ?: 587));
-        $this->username = $config['username'] ?? (getenv('SMTP_USER') ?: '');
-        $this->password = $config['password'] ?? (getenv('SMTP_PASS') ?: '');
-        $this->fromEmail = $config['from_email'] ?? (getenv('SMTP_FROM') ?: 'no-reply@college.edu');
-        $this->fromName = $config['from_name'] ?? (getenv('SMTP_FROM_NAME') ?: 'Examify System');
+        $this->host = $config['host'] ?? (string) get_env('SMTP_HOST', 'localhost');
+        $this->port = (int) ($config['port'] ?? get_env('SMTP_PORT', 587));
+        $this->username = $config['username'] ?? (string) get_env('SMTP_USER', '');
+        $this->password = $config['password'] ?? (string) get_env('SMTP_PASS', '');
+        $this->fromEmail = $config['from_email'] ?? (string) get_env('SMTP_FROM', 'no-reply@college.edu');
+        $this->fromName = $config['from_name'] ?? (string) get_env('SMTP_FROM_NAME', 'Examify System');
         $this->useTls = (bool) ($config['use_tls'] ?? true);
     }
 
@@ -38,32 +39,38 @@ class VanillaMailer
 
         try {
             $timeout = 10;
-            $socket = @fsockopen($this->host, $this->port, $errno, $errstr, $timeout);
+            $connectHost = ($this->port === 465) ? "ssl://{$this->host}" : $this->host;
+            $socket = @fsockopen($connectHost, $this->port, $errno, $errstr, $timeout);
 
             if (!$socket) {
-                log_error("SMTP Connection failed: $errstr ($errno)");
+                log_error("SMTP Connection failed to {$this->host}:{$this->port} - $errstr ($errno)");
                 return false;
             }
 
-            $this->readResponse($socket);
+            stream_set_timeout($socket, $timeout);
 
-            $this->sendCommand($socket, "EHLO " . gethostname());
+            $this->expectResponse($socket, [220]);
+
+            $hostname = gethostname() ?: 'localhost';
+            $this->sendCommand($socket, "EHLO $hostname", [250]);
 
             if ($this->useTls && $this->port === 587) {
-                $this->sendCommand($socket, "STARTTLS");
-                stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-                $this->sendCommand($socket, "EHLO " . gethostname());
+                $this->sendCommand($socket, "STARTTLS", [220]);
+                if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                    throw new Exception("TLS encryption handshake failed.");
+                }
+                $this->sendCommand($socket, "EHLO $hostname", [250]);
             }
 
             if (!empty($this->username) && !empty($this->password)) {
-                $this->sendCommand($socket, "AUTH LOGIN");
-                $this->sendCommand($socket, base64_encode($this->username));
-                $this->sendCommand($socket, base64_encode($this->password));
+                $this->sendCommand($socket, "AUTH LOGIN", [334]);
+                $this->sendCommand($socket, base64_encode($this->username), [334]);
+                $this->sendCommand($socket, base64_encode($this->password), [235]);
             }
 
-            $this->sendCommand($socket, "MAIL FROM: <{$this->fromEmail}>");
-            $this->sendCommand($socket, "RCPT TO: <{$toEmail}>");
-            $this->sendCommand($socket, "DATA");
+            $this->sendCommand($socket, "MAIL FROM: <{$this->fromEmail}>", [250]);
+            $this->sendCommand($socket, "RCPT TO: <{$toEmail}>", [250, 251]);
+            $this->sendCommand($socket, "DATA", [354]);
 
             $boundary = "----=_Part_" . md5(uniqid((string) time(), true));
 
@@ -82,10 +89,14 @@ class VanillaMailer
             $body .= "--$boundary\r\n";
             $body .= "Content-Type: text/html; charset=UTF-8\r\n\r\n";
             $body .= $htmlBody . "\r\n\r\n";
-            $body .= "--$boundary--\r\n.";
+            $body .= "--$boundary--";
 
-            $this->sendCommand($socket, $body);
-            $this->sendCommand($socket, "QUIT");
+            // RFC 5321 dot-stuffing (prepend dot to any line beginning with a dot)
+            $body = preg_replace('/^\./m', '..', $body);
+            $body .= "\r\n.";
+
+            $this->sendCommand($socket, $body, [250]);
+            $this->sendCommand($socket, "QUIT", [221]);
 
             fclose($socket);
             return true;
@@ -95,21 +106,31 @@ class VanillaMailer
         }
     }
 
-    private function sendCommand($socket, string $command): string
+    private function sendCommand($socket, string $command, array $expectedCodes = []): string
     {
         fwrite($socket, $command . "\r\n");
-        return $this->readResponse($socket);
+        return $this->expectResponse($socket, $expectedCodes);
     }
 
-    private function readResponse($socket): string
+    private function expectResponse($socket, array $expectedCodes = []): string
     {
         $response = '';
+        $code = 0;
+
         while ($line = fgets($socket, 515)) {
             $response .= $line;
+            if (preg_match('/^(\d{3})[ -]/', $line, $matches)) {
+                $code = (int) $matches[1];
+            }
             if (substr($line, 3, 1) === ' ') {
                 break;
             }
         }
+
+        if (!empty($expectedCodes) && !in_array($code, $expectedCodes, true)) {
+            throw new Exception("Unexpected SMTP response code $code (expected " . implode(',', $expectedCodes) . "): " . trim($response));
+        }
+
         return $response;
     }
 }

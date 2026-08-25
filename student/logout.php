@@ -1,7 +1,5 @@
 <?php
-session_start();
-session_unset();
-session_destroy();
-header("Location: login.php");
-exit();
-?>
+
+require_once __DIR__ . '/../utils/session.php';
+
+destroy_user_session('login.php');

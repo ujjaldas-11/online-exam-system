@@ -21,9 +21,6 @@ try {
         die("Exam not found.");
     }
 
-    //fetch notification count
-    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
-
     // Fetch All Completed Attempts (Ordered by Score)
     $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.score, ea.total_questions, ea.submitted_at
         FROM exam_attempts ea

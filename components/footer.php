@@ -14,7 +14,10 @@ $assetVersion = asset_version();
 ?>
     <?php if (!empty($extra_js)): ?>
         <?php foreach ((array) $extra_js as $jsFile): ?>
-            <script src="<?= $assetsPath ?>/js/<?= htmlspecialchars($jsFile) ?>?v=<?= $assetVersion ?>"></script>
+            <?php
+            $jsSrc = (strpos($jsFile, '/') !== false) ? $jsFile : "$assetsPath/js/$jsFile";
+            ?>
+            <script src="<?= htmlspecialchars($jsSrc) ?>?v=<?= $assetVersion ?>"></script>
         <?php endforeach; ?>
     <?php endif; ?>
 </body>

@@ -1,6 +1,22 @@
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
 
+if (!isset($pending_registration_requests_count) && isset($pdo)) {
+    try {
+        $pending_registration_requests_count = (int) $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
+    } catch (PDOException) {
+        $pending_registration_requests_count = 0;
+    }
+}
+
+if (!isset($pending_requests_count) && isset($pdo)) {
+    try {
+        $pending_requests_count = (int) $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
+    } catch (PDOException) {
+        $pending_requests_count = 0;
+    }
+}
+
 $admin_nav = [
     'admin-dashboard.php' => ['label' => 'Dashboard', 'icon' => 'space_dashboard'],
     'manage-subjects.php' => ['label' => 'Subjects', 'icon' => 'menu_book'],
@@ -27,7 +43,7 @@ $admin_nav = [
 
         <div class="topbar-right">
             <a href="registration-request.php"
-            class="icon-btn topbar-shortcut <?= $current_page === 'registration-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="Notifications">
+            class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Notifications" title="Notifications">
                 <span class="material-symbols-outlined">person</span>
                 <?php if (!empty($pending_registration_requests_count)): ?>
                     <span class="topbar-badge"><?= (int) $pending_registration_requests_count ?></span>

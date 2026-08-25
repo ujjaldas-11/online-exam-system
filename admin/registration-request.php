@@ -72,15 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 try {
     $requests = $pdo->query("
         SELECT * FROM registration_request WHERE status = 'pending'")->fetchAll();
-
-    //registration requests
-    $pending_registration_requests_count = $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
-
-    //notification
-    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
-
-
-
 } catch (PDOException $e) {
     log_error("Failed to fetch registration requests", $e);
     $requests = [];

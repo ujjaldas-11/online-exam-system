@@ -93,13 +93,15 @@ const AntiCheat = (function() {
         }
     }
 
+    let logEndpoint = 'log-violation.php';
+
     // Handle a violation event
     function triggerViolation(reason) {
         violationCount++;
 
         // Asynchronously log violation to server
         if (attemptId) {
-            fetch('../student/log-violation.php', {
+            fetch(logEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -187,6 +189,9 @@ const AntiCheat = (function() {
         init: function(options = {}) {
             if (options.attemptId) {
                 attemptId = options.attemptId;
+            }
+            if (options.endpoint) {
+                logEndpoint = options.endpoint;
             }
             if (options.onViolation) {
                 violationCallback = options.onViolation;

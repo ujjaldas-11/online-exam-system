@@ -74,9 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } catch (PDOException $e) {
-            //$error = safe_db_error($e, "Registration failed. Please check your information.");
-            $error = $e->getMessage();
-            }
+            $error = safe_db_error($e, "Registration failed. Please check your information.");
+        }
     }
 }
 
