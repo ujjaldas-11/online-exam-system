@@ -147,8 +147,7 @@ include __DIR__ . '/../components/header.php';
                 value="<?= e($_POST['phone_number'] ?? '') ?>"
                 placeholder="10 digit number"
                 required
-                >    
-            
+            >
             </div>
 
             <div class="form-group">

@@ -2,6 +2,9 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+05:30";
 
+-- --------------------------------------------------------
+-- Table: admins
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `admins` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
@@ -10,8 +13,11 @@ CREATE TABLE IF NOT EXISTS `admins` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Table: students
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `students` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
@@ -25,18 +31,26 @@ CREATE TABLE IF NOT EXISTS `students` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
-  UNIQUE KEY `roll_number` (`roll_number`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  UNIQUE KEY `roll_number` (`roll_number`),
+  KEY `idx_students_department_semester` (`department`, `semester`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Table: subjects
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `subjects` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(200) NOT NULL,
   `department` varchar(50) NOT NULL,
   `semester` tinyint(4) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  PRIMARY KEY (`id`),
+  KEY `idx_subjects_dept_sem` (`department`, `semester`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Table: exams
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `exams` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `subject_id` int(11) NOT NULL,
@@ -51,9 +65,14 @@ CREATE TABLE IF NOT EXISTS `exams` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `subject_id` (`subject_id`),
+  KEY `idx_exams_subject_status` (`subject_id`, `status`),
+  KEY `idx_exams_start_time` (`start_time`),
   CONSTRAINT `fk_exams_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Table: questions
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `questions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `subject_id` int(11) NOT NULL,
@@ -67,8 +86,11 @@ CREATE TABLE IF NOT EXISTS `questions` (
   PRIMARY KEY (`id`),
   KEY `subject_id` (`subject_id`),
   CONSTRAINT `fk_questions_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Table: exam_attempts
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `exam_attempts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
@@ -80,12 +102,17 @@ CREATE TABLE IF NOT EXISTS `exam_attempts` (
   `option_order_map` longtext DEFAULT NULL,
   `status` enum('in_progress','completed') DEFAULT 'in_progress',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_attempt` (`student_id`,`exam_id`),
+  UNIQUE KEY `unique_attempt` (`student_id`, `exam_id`),
   KEY `exam_id` (`exam_id`),
+  KEY `idx_exam_attempts_status` (`status`),
+  KEY `idx_exam_attempts_submitted` (`submitted_at`),
   CONSTRAINT `fk_exam_attempts_exam` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_exam_attempts_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Table: student_answers
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `student_answers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `attempt_id` int(11) NOT NULL,
@@ -99,7 +126,9 @@ CREATE TABLE IF NOT EXISTS `student_answers` (
   CONSTRAINT `fk_student_answers_question` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Exam Violations Table for Real-time Proctoring Audit
+-- --------------------------------------------------------
+-- Table: exam_violations (Real-time Proctoring Audit Trail)
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `exam_violations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `attempt_id` int(11) NOT NULL,
@@ -111,7 +140,9 @@ CREATE TABLE IF NOT EXISTS `exam_violations` (
   CONSTRAINT `fk_violations_attempt` FOREIGN KEY (`attempt_id`) REFERENCES `exam_attempts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Profile Edit Requests Table
+-- --------------------------------------------------------
+-- Table: profile_requests
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `profile_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
@@ -126,25 +157,25 @@ CREATE TABLE IF NOT EXISTS `profile_requests` (
   CONSTRAINT `fk_profile_requests_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
---register account request table
-
+-- --------------------------------------------------------
+-- Table: registration_request
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `registration_request` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `password` varchar(100) NOT NULL,
-  `roll_number` varchar(10) NOT NULL,
-  `department` varchar(20) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `roll_number` varchar(50) NOT NULL,
+  `department` varchar(50) NOT NULL,
   `semester` tinyint(4) NOT NULL,
-  `phone_number` varchar(10) NOT NULL,
-  `gender` ENUM('male', 'female','others'),
+  `phone_number` varchar(20) DEFAULT NULL,
+  `gender` enum('male','female','others') DEFAULT NULL,
   `status` enum('approved','pending','rejected') DEFAULT 'pending',
   `active_session_id` varchar(128) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `roll_number` (`roll_number`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 COMMIT;
