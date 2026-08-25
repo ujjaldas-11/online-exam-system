@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS `students` (
   `roll_number` varchar(50) NOT NULL,
   `department` varchar(50) NOT NULL,
   `semester` tinyint(4) NOT NULL,
+  `phone_number` varchar(20) DEFAULT NULL,
+  `gender` enum('male','female','others') DEFAULT NULL,
   `status` enum('active','pending','blocked') DEFAULT 'active',
   `active_session_id` varchar(128) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
