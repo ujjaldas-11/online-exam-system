@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS `registration_request` (
   `roll_number` varchar(10) NOT NULL,
   `department` varchar(20) NOT NULL,
   `semester` tinyint(4) NOT NULL,
-  `phone_number` INT(10) NOT NULL,
+  `phone_number` varchar(10) NOT NULL,
   `gender` ENUM('male', 'female','others'),
   `status` enum('approved','pending','rejected') DEFAULT 'pending',
   `active_session_id` varchar(128) DEFAULT NULL,
