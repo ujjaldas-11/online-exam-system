@@ -8,16 +8,16 @@ require_once '../utils/logger.php';
 $student_id = (int) $_SESSION['student_id'];
 
 try {
-    $stmt = $pdo->prepare("SELECT name, email, roll_number, department, semester FROM students WHERE id = ?");
+    $stmt = $pdo->prepare('SELECT name, email, roll_number, department, semester FROM students WHERE id = ?');
     $stmt->execute([$student_id]);
     $student = $stmt->fetch();
 
     if (!$student) {
-        die("Student record not found.");
+        die('Student record not found.');
     }
 
     $resultStmt = $pdo->prepare("
-        SELECT e.title, ea.score, ea.total_questions, ea.submitted_at
+        SELECT e.title, e.total_marks, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at
         FROM exam_attempts ea
         JOIN exams e ON ea.exam_id = e.id
         WHERE ea.student_id = ? AND ea.status = 'completed'
@@ -28,7 +28,7 @@ try {
 
 } catch (PDOException $e) {
     log_error("Failed to load profile for student $student_id", $e);
-    die("Database Error. Please try again later.");
+    die('Database Error. Please try again later.');
 }
 
 $page_title = 'My Profile • Examify';
@@ -84,6 +84,7 @@ include __DIR__ . '/../components/student-navbar.php';
                             <th>Exam Title</th>
                             <th>Score</th>
                             <th>Submitted On</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,11 +93,17 @@ include __DIR__ . '/../components/student-navbar.php';
                                 <td><strong><?= e($result['title']) ?></strong></td>
                                 <td>
                                     <span class="badge badge-active" style="font-size: 0.85rem;">
-                                        <?= e($result['score']) ?> / <?= e($result['total_questions']) ?>
+                                        <?= e($result['score']) ?> / <?= e($result['total_marks']) ?>
                                     </span>
                                 </td>
                                 <td>
                                     <?= $result['submitted_at'] ? date('d M Y, h:i A', strtotime($result['submitted_at'])) : '—' ?>
+                                </td>
+
+                                <td>
+                                    <a href="review-exam.php?attempt_id=<?= $result['attempt_id'] ?>" class="btn btn-outline">
+                                        Review Answers
+                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -105,6 +112,8 @@ include __DIR__ . '/../components/student-navbar.php';
             </div>
         <?php endif; ?>
     </div>
+
+    
 </div>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

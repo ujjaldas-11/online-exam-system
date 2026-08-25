@@ -45,10 +45,9 @@ try {
     ]);
 
     $available_exams = $stmt->fetchAll();
-
 } catch (PDOException $e) {
     log_error("Dashboard loading error for student $student_id", $e);
-    die("Database error. Please try again later.");
+    die('Database error. Please try again later.');
 }
 
 $filtered_exams = [];
@@ -77,7 +76,7 @@ include __DIR__ . '/../components/student-navbar.php';
     <div class="page-header">
         <div>
             <h1>Available Examinations</h1>
-            <p>Department: <strong><?= e($department) ?></strong> • Semester: <strong><?= e((string)$semester) ?></strong></p>
+            <p>Department: <strong><?= e($department) ?></strong> • Semester: <strong><?= e((string) $semester) ?></strong></p>
         </div>
     </div>
 
@@ -124,9 +123,9 @@ include __DIR__ . '/../components/student-navbar.php';
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; font-size: 0.88rem; background: var(--color-gray-100); padding: 12px; border-radius: var(--radius-md);">
                             <div><span style="color: var(--color-text-secondary);">Subject:</span> <strong><?= e($exam['subject_name']) ?></strong></div>
-                            <div><span style="color: var(--color-text-secondary);">Duration:</span> <strong><?= e((string)$exam['duration_minutes']) ?> mins</strong></div>
-                            <div><span style="color: var(--color-text-secondary);">Questions:</span> <strong><?= e((string)$exam['total_questions_to_ask']) ?> Qs</strong></div>
-                            <div><span style="color: var(--color-text-secondary);">Total Marks:</span> <strong><?= e((string)$exam['total_marks']) ?></strong></div>
+                            <div><span style="color: var(--color-text-secondary);">Duration:</span> <strong><?= e((string) $exam['duration_minutes']) ?> mins</strong></div>
+                            <div><span style="color: var(--color-text-secondary);">Questions:</span> <strong><?= e((string) $exam['total_questions_to_ask']) ?> Qs</strong></div>
+                            <div><span style="color: var(--color-text-secondary);">Total Marks:</span> <strong><?= e((string) $exam['total_marks']) ?></strong></div>
                         </div>
                     </div>
 
@@ -134,7 +133,7 @@ include __DIR__ . '/../components/student-navbar.php';
                         <?php if ($is_completed): ?>
                             <div class="alert alert-success" style="margin-bottom: 0; display: flex; align-items: center; gap: 6px;">
                                 <span class="material-symbols-outlined icon-sm">check_circle</span>
-                                <div>Completed • Score: <strong><?= e((string)$exam['score']) ?> / <?= e((string)($exam['total_questions'] ?? $exam['total_marks'])) ?></strong></div>
+                                <div>Completed • Score: <strong><?= e((string) $exam['score']) ?> / <?= e((string) ($exam['total_questions'] ?? $exam['total_marks'])) ?></strong></div>
                             </div>
                         <?php elseif ($status === 'scheduled'): ?>
                             <div class="alert alert-warning" style="margin-bottom: 0; display: flex; align-items: center; gap: 6px;">
