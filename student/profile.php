@@ -112,8 +112,6 @@ include __DIR__ . '/../components/student-navbar.php';
             </div>
         <?php endif; ?>
     </div>
-
-    
 </div>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

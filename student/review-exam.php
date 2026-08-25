@@ -15,15 +15,15 @@ $attempt_id = $_GET['attempt_id'];
 
 try {
     $examStmt = $pdo->prepare("
-        SELECT e.title, e.total_marks, ea.score, ea.total_questions, ea.submitted_at 
-        FROM exam_attempts ea 
-        JOIN exams e ON ea.exam_id = e.id 
+        SELECT e.title, e.total_marks, ea.score, ea.total_questions, ea.submitted_at
+        FROM exam_attempts ea
+        JOIN exams e ON ea.exam_id = e.id
         WHERE ea.id = ? AND ea.student_id = ? AND ea.status = 'completed'
     ");
 
     $examStmt->execute([$attempt_id, $student_id]);
     $examOverview = $examStmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if (!$examOverview) {
         die('Exam not found or you do not have permission to view this.');
     }
@@ -66,9 +66,9 @@ try {
     </div>
 
     <!-- Questions Loop -->
-    <?php 
+    <?php
     $qNumber = 1;
-    foreach ($questions as $q): 
+    foreach ($questions as $q):
     ?>
         <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px;">
 
@@ -88,16 +88,16 @@ try {
             <?php endif; ?>
 
             <div style="display: flex; flex-direction: column; gap: 10px; padding-left: 50px;">
-                <?php 
+                <?php
                 $options = [
-                    'A' => $q['option_a'], 
-                    'B' => $q['option_b'], 
-                    'C' => $q['option_c'], 
+                    'A' => $q['option_a'],
+                    'B' => $q['option_b'],
+                    'C' => $q['option_c'],
                     'D' => $q['option_d']
                 ];
 
-                foreach ($options as $letter => $text): 
-                    
+                foreach ($options as $letter => $text):
+
                     $bgColor = '#f8fafc';
                     $borderColor = '#e2e8f0';
                     $textColor = '#475569';
@@ -115,10 +115,10 @@ try {
                         $icon = '✗';
                     }
                 ?>
-                    
+
                     <div style="padding: 12px 16px; border-radius: 8px; border: 1px solid <?= $borderColor ?>; background: <?= $bgColor ?>; color: <?= $textColor ?>; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="margin-right: 8px; opacity: 0.7;"><?= $letter ?>.</strong> 
+                            <strong style="margin-right: 8px; opacity: 0.7;"><?= $letter ?>.</strong>
                             <?= htmlspecialchars($text) ?>
                         </div>
                         <?php if ($icon): ?>
