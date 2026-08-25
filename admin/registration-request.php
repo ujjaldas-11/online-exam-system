@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->beginTransaction();
 
                     $insertStmt = $pdo->prepare("
-                        INSERT INTO students (name, email, password, roll_number, department,semester, phone_number, gender)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO students (name, email, password, roll_number, department,semester, phone_number, gender, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
 
                     $updateSuccess = $insertStmt->execute([
@@ -37,7 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $req['department'],
                         $req['semester'],
                         $req['phone_number'],
-                        $req['gender']
+                        $req['gender'],
+                        $req['created_at']
                     ]);
 
                     $statusStmt = $pdo->prepare("UPDATE registration_request SET status = 'approved' WHERE id = ?");
@@ -144,7 +145,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         Semester <?= e((string)$req['semester']) ?>
                                     </span>
                                 </td>
-                                <td><?= date('d M Y, h:i A', strtotime($req['request_date'])) ?></td>
+                                <td><?= date('d M Y, h:i A', strtotime($req['created_at'])) ?></td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 6px; justify-content: flex-end;">
                                         <form method="POST" style="display: inline;">
