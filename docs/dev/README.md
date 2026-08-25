@@ -195,7 +195,7 @@ The `tools/` directory contains two setup scripts:
   ```
 
 - `tools/setup-db.php`:
-  Runs `archive/schema.sql` and applies migration files (`archive/*.sql`) on production systems.
+  Runs `archive/schema.sql` on production systems.
   Run with:
   ```bash
   php tools/setup-db.php
