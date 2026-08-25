@@ -28,7 +28,8 @@ try {
     }
 
     $qStmt = $pdo->prepare('SELECT q.question_text, q.option_a, q.option_b, q.option_c,
-     q.option_d, q.correct_option, sa.selected_option, sa.is_correct FROM student_answers sa JOIN questions q ON sa.question_id = q.id WHERE sa.attempt_id = ?');
+    q.option_d, q.correct_option, sa.selected_option, sa.is_correct 
+    FROM student_answers sa JOIN questions q ON sa.question_id = q.id WHERE sa.attempt_id = ?');
 
     $qStmt->execute([$attempt_id]);
     $questions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
