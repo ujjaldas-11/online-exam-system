@@ -126,4 +126,25 @@ CREATE TABLE IF NOT EXISTS `profile_requests` (
   CONSTRAINT `fk_profile_requests_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+--register account request table
+
+CREATE TABLE IF NOT EXISTS `registration_request` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `roll_number` varchar(10) NOT NULL,
+  `department` varchar(20) NOT NULL,
+  `semester` tinyint(4) NOT NULL,
+  `phone_number` INT(10) NOT NULL,
+  `gender` ENUM('male', 'female','others'),
+  `status` enum('approved','pending','rejected') DEFAULT 'pending',
+  `active_session_id` varchar(128) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `roll_number` (`roll_number`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 COMMIT;
