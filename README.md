@@ -73,9 +73,7 @@ online-exam-system/
 │   ├── view-questions.php       # Question bank browser and management
 │   └── view-results.php         # Top 3 podium, leaderboard, and printable report
 ├── archive/
-│   ├── 001_add_indexes.sql      # Database query performance optimization indexes
-│   ├── 002_security_and_surprise_test.sql # Security & proctoring migration
-│   └── schema.sql               # Master MySQL schema
+│   └── schema.sql               # Consolidated master MySQL schema
 ├── assets/
 │   ├── css/
 │   │   ├── app.css              # Consolidated master application stylesheet
@@ -187,7 +185,7 @@ php tools/reset-and-seed.php
 ```bash
 php tools/setup-db.php
 ```
-*Executes `archive/schema.sql`, applies pending migrations, and initializes the default administrator account:*
+*Executes `archive/schema.sql` and initializes the default administrator account:*
 - **Admin Email**: `admin@college.edu`
 - **Default Password**: `Admin@123`
 
