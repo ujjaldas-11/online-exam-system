@@ -7,9 +7,8 @@ $student_name = $_SESSION['student_name'] ?? 'Student';
 $dept = $_SESSION['department'];
 $roll = $_SESSION['roll_number'];
 
-
 if (!isset($_GET['attempt_id'])) {
-    die("Invalid request. No exam attempt specified.");
+    die('Invalid request. No exam attempt specified.');
 }
 $attempt_id = $_GET['attempt_id'];
 
@@ -28,10 +27,11 @@ try {
         die('Exam not found or you do not have permission to view this.');
     }
 
-    $qStmt = $pdo->prepare('SELECT q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option, sa.selected_option, sa.is_correct FROM student_answers sa JOIN questions q ON sa.question_id = q.id WHERE sa.attempt_id = ?');
+    $qStmt = $pdo->prepare('SELECT q.question_text, q.option_a, q.option_b, q.option_c,
+     q.option_d, q.correct_option, sa.selected_option, sa.is_correct FROM student_answers sa JOIN questions q ON sa.question_id = q.id WHERE sa.attempt_id = ?');
 
     $qStmt->execute([$attempt_id]);
-    $questions=$qStmt->fetchAll(PDO::FETCH_ASSOC);
+    $questions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
 
     $page_title = 'Review exam . Examify';
     include __DIR__ . '/../components/header.php';
@@ -69,7 +69,7 @@ try {
     <?php
     $qNumber = 1;
     foreach ($questions as $q):
-    ?>
+        ?>
         <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px;">
 
             <div style="display: flex; gap: 15px; margin-bottom: 16px;">
@@ -97,7 +97,6 @@ try {
                 ];
 
                 foreach ($options as $letter => $text):
-
                     $bgColor = '#f8fafc';
                     $borderColor = '#e2e8f0';
                     $textColor = '#475569';
@@ -114,7 +113,7 @@ try {
                         $textColor = '#991b1b';
                         $icon = '✗';
                     }
-                ?>
+                    ?>
 
                     <div style="padding: 12px 16px; border-radius: 8px; border: 1px solid <?= $borderColor ?>; background: <?= $bgColor ?>; color: <?= $textColor ?>; display: flex; justify-content: space-between; align-items: center;">
                         <div>
