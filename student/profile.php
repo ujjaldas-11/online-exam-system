@@ -73,6 +73,7 @@ include __DIR__ . '/../components/student-navbar.php';
     <!-- Exam History Card -->
     <div class="card">
         <div class="card-title">Exam History</div>
+        <?php include '../components/searchbar.php' ?>
 
         <?php if (empty($past_results)): ?>
             <p style="color: var(--color-text-secondary); padding: 12px 0;">You haven't completed any examinations yet.</p>
