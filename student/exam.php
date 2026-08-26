@@ -17,7 +17,7 @@ $student_department = (string) $_SESSION['department'];
 
 try {
     $examSql = "SELECT e.id, e.title, e.duration_minutes, e.subject_id, e.total_questions_to_ask, e.total_marks,
-        e.access_pin, TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
+        e.access_pin, e.target_units, TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id
         WHERE e.id = :id
@@ -110,8 +110,17 @@ try {
             $stmt->execute([$student_id, $exam_id, $exam['total_questions_to_ask']]);
             $attempt_id = (int) $pdo->lastInsertId();
 
-            $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? ORDER BY RAND() LIMIT " . (int) $exam['total_questions_to_ask']);
-            $qStmt->execute([$exam['subject_id']]);
+            $limit = (int) $exam['total_question_to_ask'];
+
+            if($exam['target_units'] === 'all') {
+                $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? ORDER BY RAND() LIMIT " . (int) $exam['total_questions_to_ask']);
+                $qStmt->execute([$exam['subject_id']]);
+            }
+            else {
+                $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? AND unit_number = ? ORDER BY RAND() LIMIT " . (int) $exam['total_questions_to_ask']);
+                $qStmt->execute([$exam['subject_id'], $exam['target_units']]);
+            }
+                
             $random_questions = $qStmt->fetchAll(PDO::FETCH_COLUMN);
 
             if (count($random_questions) < $exam['total_questions_to_ask']) {
