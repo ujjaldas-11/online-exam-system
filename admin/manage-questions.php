@@ -33,19 +33,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
             $pdo->beginTransaction();
 
             $sql = "INSERT INTO questions
-                    (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
 
             $count = 0;
             foreach ($questions as $q) {
-                if (empty($q['question_text']) || empty($q['option_a']) || empty($q['option_b']) || empty($q['correct_option'])) {
+                if (empty($q['question_text']) || empty($q['unit_number']) || empty($q['option_a']) || empty($q['option_b']) || empty($q['correct_option'])) {
                     throw new Exception("Missing required fields in one or more questions.");
                 }
 
                 $stmt->execute([
                     $subject_id,
                     clean_input($q['question_text']),
+                    clean_input($q['unit_number']),
                     clean_input($q['option_a']),
                     clean_input($q['option_b']),
                     isset($q['option_c']) ? clean_input($q['option_c']) : '',
@@ -92,7 +93,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
         <div class="alert alert-info" style="text-align: left; margin-bottom: 20px;">
             <strong>Instructions:</strong> Paste a valid JSON array.<br>
-            • Required keys: <code>question_text</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code>.<br>
+            • Required keys: <code>question_text</code>,<code>unit_number(eg : 1)</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code>.<br>
             • Optional keys: <code>option_c</code>, <code>option_d</code>.<br>
             • <code>correct_option</code> must be <code>A</code>, <code>B</code>, <code>C</code>, or <code>D</code>.
         </div>
