@@ -120,7 +120,7 @@ try {
                 $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? AND unit_number = ? ORDER BY RAND() LIMIT " . (int) $exam['total_questions_to_ask']);
                 $qStmt->execute([$exam['subject_id'], $exam['target_units']]);
             }
-                
+
             $random_questions = $qStmt->fetchAll(PDO::FETCH_COLUMN);
 
             if (count($random_questions) < $exam['total_questions_to_ask']) {

@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
         // Check available questions in question bank
         if ($target_units == 'all') {
             $stmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ?');
-            $stmt->execute([$subject_id]);    
+            $stmt->execute([$subject_id]);
         } else{
             $stmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ? AND unit_number = ? ');
             $stmt->execute([$subject_id, $target_units]);
@@ -113,7 +113,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <label>Target Unit</label>
                 <select name="target_units" required class="form-control">
                     <option value="">Select Target Unit</option>
-                    
+
                     <option value="all" <?= (($_POST['target_units'] ?? '') === 'all') ? 'selected' : '' ?>>All Units (Combined Exam)</option>
                     <option value="1" <?= (($_POST['target_units'] ?? '') == '1') ? 'selected' : '' ?>>Unit 1</option>
                     <option value="2" <?= (($_POST['target_units'] ?? '') == '2') ? 'selected' : '' ?>>Unit 2</option>
@@ -121,7 +121,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <option value="4" <?= (($_POST['target_units'] ?? '') == '4') ? 'selected' : '' ?>>Unit 4</option>
                     <option value="5" <?= (($_POST['target_units'] ?? '') == '5') ? 'selected' : '' ?>>Unit 5</option>
                     <option value="6" <?= (($_POST['target_units'] ?? '') == '6') ? 'selected' : '' ?>>Unit 6</option>
-                    
+
                 </select>
                 <small style="color: var(--color-text-secondary);">If the selected unit lacks enough questions, the system will notify you.</small>
             </div>
