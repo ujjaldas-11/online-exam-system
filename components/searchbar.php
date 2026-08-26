@@ -8,7 +8,7 @@ $assetVersion = asset_version();
 <link rel="stylesheet" href="../assets/css/components.css?v=<?= $assetVersion ?>">
 
 <div class="search-wrapper no-print">
-    <span class="material-symbols-outlined search-icon" style="font-size: 18px;">search</span>
+    <!-- <span class="material-symbols-outlined search-icon" style="font-size: 18px;">search</span>-->
     <input type="text" id="globalTableSearch" class="search-input" placeholder="<?= htmlspecialchars($placeholder) ?>">
 </div>
 

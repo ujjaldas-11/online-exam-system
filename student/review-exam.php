@@ -50,16 +50,16 @@ try {
         <div>
             <h1 style="margin: 0 0 8px 0; color: #1e293b; font-size: 24px;"><?= htmlspecialchars($examOverview['title']) ?></h1>
             <p style="margin: 0; color: #64748b;">Submitted on: <?= date('d M Y, h:i A', strtotime($examOverview['submitted_at'])) ?></p>
-
-            <p>Name: <strong> <?= htmlspecialchars($student_name) ?> </strong></p>
+            <p>Name: <strong> <?= htmlspecialchars($student_name) ?></strong></p>
             <p>Roll: <?= htmlspecialchars($roll) ?></p>
             <p>Dpartment: <?= htmlspecialchars($dept) ?></p>
         </div>
         <div style="text-align: right;">
-            <div style="font-size: 32px; font-weight: bold; color: #4f46e5;">
+            <div style="display:grid; place-content: center; font-size: 32px; font-weight: bold; color: #4f46e5;
+            border:2px solid gray; height: 21vh; text-align: center; border-radius: 50%;">
                 <?= $examOverview['score'] ?> / <?= $examOverview['total_marks'] ?>
+                <p style="margin: 0; color: black; font-weight: 500; font-size: 18px;">Total Score</p>
             </div>
-            <p style="margin: 0; color: #64748b; font-weight: 500;">Total Score</p>
             <p><?= $marks_each = $examOverview['total_marks'] / $examOverview['total_questions'] ?> Marks for each</p>
             <p>Total quesions - <?= $examOverview['total_questions'] ?></p>
             <button onclick="window.print();" class="btn btn-primary">Download</button>
