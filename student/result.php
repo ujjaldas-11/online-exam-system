@@ -121,7 +121,7 @@ try {
 $percentage = ($total_marks > 0) ? round(($score / $total_marks) * 100) : 0;
 $page_title = 'Exam Result • Examify';
 include __DIR__ . '/../components/header.php';
-include __DIR__ . '/../components/navbar.php';
+include __DIR__ . '/../components/student-navbar.php';
 ?>
 
 <div class="container" style="max-width: 700px;">
@@ -170,8 +170,8 @@ include __DIR__ . '/../components/navbar.php';
             <a href="dashboard.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">dashboard</span> Return to Dashboard
             </a>
-            <a href="profile.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">history</span> View Profile History
+            <a href="review-exam.php?attempt_id=<?= $attempt_id ?>" class="btn btn-outline">
+                <span class="material-symbols-outlined icon-sm">analytics</span> Review Answers
             </a>
         </div>
     </div>

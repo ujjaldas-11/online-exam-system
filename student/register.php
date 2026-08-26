@@ -74,9 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } catch (PDOException $e) {
-            //$error = safe_db_error($e, "Registration failed. Please check your information.");
-            $error = $e->getMessage();
-            }
+            $error = safe_db_error($e, "Registration failed. Please check your information.");
+        }
     }
 }
 
@@ -147,8 +146,7 @@ include __DIR__ . '/../components/header.php';
                 value="<?= e($_POST['phone_number'] ?? '') ?>"
                 placeholder="10 digit number"
                 required
-                >    
-            
+            >
             </div>
 
             <div class="form-group">

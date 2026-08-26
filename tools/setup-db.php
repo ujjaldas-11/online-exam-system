@@ -47,25 +47,20 @@ if (file_exists($schemaFile)) {
         $sql = file_get_contents($schemaFile);
         $pdo->exec($sql);
         out("Master schema (archive/schema.sql) applied successfully.", $isCli);
+
+        // Ensure new columns exist on existing students table
+        try {
+            $pdo->exec("ALTER TABLE `students` ADD COLUMN `phone_number` varchar(20) DEFAULT NULL AFTER `semester`");
+        } catch (PDOException) {}
+        try {
+            $pdo->exec("ALTER TABLE `students` ADD COLUMN `gender` enum('male','female','others') DEFAULT NULL AFTER `phone_number`");
+        } catch (PDOException) {}
     } catch (PDOException $e) {
         out("Failed applying schema.sql: " . $e->getMessage(), $isCli, true);
     }
 }
 
-// 3. Execute Migration 002 if exists
-$migFile = __DIR__ . '/../archive/002_security_and_surprise_test.sql';
-if (file_exists($migFile)) {
-    try {
-        $sql = file_get_contents($migFile);
-        $pdo->exec($sql);
-        out("Migration 002 applied successfully.", $isCli);
-    } catch (PDOException $e) {
-        // May fail if columns already exist
-        out("Migration 002 already up to date.", $isCli);
-    }
-}
-
-// 4. Verify / Create Default Administrator
+// 3. Verify / Create Default Administrator
 try {
     $adminStmt = $pdo->query("SELECT COUNT(*) FROM admins");
     $adminCount = (int) $adminStmt->fetchColumn();
@@ -85,8 +80,8 @@ try {
     out("Failed checking admins table: " . $e->getMessage(), $isCli, true);
 }
 
-// 5. Final Diagnostic Summary
-out("Database tables verified: admins, students, subjects, exams, questions, exam_attempts, student_answers, exam_violations, profile_requests.", $isCli);
+// 4. Final Diagnostic Summary
+out("Database tables verified: admins, students, subjects, exams, questions, exam_attempts, student_answers, exam_violations, profile_requests, registration_request.", $isCli);
 out("Examify Database is 100% READY for deployment!", $isCli);
 
 if (!$isCli) {

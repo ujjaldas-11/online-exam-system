@@ -14,7 +14,29 @@ $message_type = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
-    if (isset($_POST['delete_exam'])) {
+    if (isset($_POST['start_exam'])) {
+        $exam_id = int_param($_POST['exam_id'] ?? 0);
+        try {
+            $stmt = $pdo->prepare("SELECT status FROM exams WHERE id = ?");
+            $stmt->execute([$exam_id]);
+            $status = $stmt->fetchColumn();
+
+            if (!$status) {
+                $message = "Exam not found.";
+                $message_type = 'error';
+            } elseif (in_array($status, ['inactive', 'scheduled'], true)) {
+                $pdo->prepare("UPDATE exams SET status = 'active', start_time = NOW() WHERE id = ?")->execute([$exam_id]);
+                $message = "Exam has been started successfully. Students can now access and join.";
+                $message_type = 'success';
+            } else {
+                $message = "Exam cannot be started in its current status: $status.";
+                $message_type = 'error';
+            }
+        } catch (PDOException $e) {
+            $message = safe_db_error($e, "Failed to start exam.");
+            $message_type = 'error';
+        }
+    } elseif (isset($_POST['delete_exam'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         try {
             $pdo->prepare("DELETE FROM exams WHERE id = ?")->execute([$exam_id]);
@@ -49,29 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (isset($_GET['action']) && isset($_GET['id'])) {
-    $exam_id = int_param($_GET['id']);
-    $action = $_GET['action'];
-
-    try {
-        $stmt = $pdo->prepare("SELECT status FROM exams WHERE id = ?");
-        $stmt->execute([$exam_id]);
-        $status = $stmt->fetchColumn();
-
-        if (!$status) {
-            $message = "Exam not found.";
-            $message_type = 'error';
-        } elseif ($action === 'start' && $status === 'inactive') {
-            $pdo->prepare("UPDATE exams SET status = 'active', start_time = NOW() WHERE id = ?")->execute([$exam_id]);
-            $message = "Exam has been started successfully. Students can now access and join.";
-            $message_type = 'success';
-        }
-    } catch (PDOException $e) {
-        $message = safe_db_error($e, "Action failed.");
-        $message_type = 'error';
-    }
-}
-
 try {
     $exams = $pdo->query("
         SELECT e.*, s.name AS subject_name, s.department, s.semester,
@@ -80,13 +79,6 @@ try {
         JOIN subjects s ON e.subject_id = s.id
         ORDER BY e.id DESC
     ")->fetchAll();
-
-    //registration requests
-    $pending_registration_requests_count = $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
-
-
-    // fetch notification count
-    $pending_requests_count = $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
 } catch (PDOException $e) {
     log_error("Failed to fetch exams in control-exams", $e);
     $exams = [];
@@ -201,10 +193,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;">
                                         <?php if ($display_status === 'NOT STARTED'): ?>
-                                            <a href="?action=start&id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;"
-                                                onclick="return confirm('Start this examination now? Students will be able to join immediately.')">
-                                                <span class="material-symbols-outlined icon-xs">play_arrow</span> Start Exam
-                                            </a>
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Start this examination now? Students will be able to join immediately.');">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
+                                                <button type="submit" name="start_exam" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span class="material-symbols-outlined icon-xs">play_arrow</span> Start Exam
+                                                </button>
+                                            </form>
                                         <?php elseif ($display_status === 'RUNNING'): ?>
                                             <a href="proctor-exam.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                                                 <span class="material-symbols-outlined icon-xs">visibility</span> Live Proctor

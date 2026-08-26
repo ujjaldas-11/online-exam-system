@@ -62,3 +62,33 @@ function has_flash(string $type): bool
     }
     return !empty($_SESSION['flash'][$type]);
 }
+
+/**
+ * Terminate current session securely and redirect
+ */
+function destroy_user_session(string $redirectUrl): void
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        init_secure_session();
+    }
+
+    $_SESSION = [];
+
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
+        );
+    }
+
+    session_destroy();
+
+    header("Location: $redirectUrl");
+    exit;
+}

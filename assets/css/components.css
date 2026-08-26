@@ -10,14 +10,14 @@
   width: 100%;
 }
 
-.search-icon {
+/* .search-icon {
   position: absolute;
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--color-text-muted);
   pointer-events: none;
-}
+} */
 
 .search-box input {
   width: 100%;

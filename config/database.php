@@ -1,11 +1,12 @@
 <?php
 
 require_once __DIR__ . '/../utils/env.php';
+require_once __DIR__ . '/../utils/logger.php';
 
 $envPath = __DIR__ . '/../.env';
 
 if (!file_exists($envPath)) {
-    die("Error: .env file not found at $envPath");
+    die("Configuration Error: .env file not found at $envPath");
 }
 
 $host = get_env('DB_HOST', 'localhost');
@@ -19,5 +20,9 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+    log_error("Database connection failed", $e);
+    if (is_development() || php_sapi_name() === 'cli') {
+        die("Database connection failed: " . $e->getMessage());
+    }
+    die("Database connection failed. Please contact the system administrator.");
 }
