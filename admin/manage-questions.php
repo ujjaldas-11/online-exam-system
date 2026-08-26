@@ -131,7 +131,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <div class="alert alert-info" style="text-align: left; margin-bottom: 20px;">
             <strong>Instructions:</strong> Upload a CSV file OR paste comma-separated text.<br>
             • 7 columns required: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option</code><br>
-             • <code>Correct Option</code> must be A, B, C, or D.
+            • <code>Correct Option</code> must be A, B, C, or D.
         </div>
 
         <form method="POST" enctype="multipart/form-data">
