@@ -7,16 +7,16 @@ require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 
 try {
-    $subjects = $pdo->query("SELECT id, name, department, semester FROM subjects ORDER BY name ASC")->fetchAll();
+    $subjects = $pdo->query('SELECT id, name, department, semester FROM subjects ORDER BY name ASC')->fetchAll();
 } catch (PDOException $e) {
-    log_error("Failed to fetch subjects in manage-questions", $e);
+    log_error('Failed to fetch subjects in manage-questions', $e);
     $subjects = [];
 }
 
 $success_message = '';
 $error_message = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
     verify_csrf();
 
     $subject_id = int_param($_POST['subject_id'] ?? 0);
@@ -88,10 +88,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
                 }
                 $error_message = "Error: " . $e->getMessage();
             }
+    $csv_text = trim($_POST['csv_text'] ?? '');
+    $has_file = isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK;
+
+    if (empty($subject_id)) {
+        $error_message = 'Please select a subject.';
+    } elseif (!$has_file && empty($csv_text)) {
+        $error_message = 'Please either upload a CSV file OR paste CSV content.';
+    } else {
+        try {
+            $pdo->beginTransaction();
+
+            $sql = 'INSERT INTO questions
+                    (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+            $stmt = $pdo->prepare($sql);
+
+
+            if ($has_file) {
+                $handle = fopen($_FILES['csv_file']['tmp_name'], 'r');
+            } else {
+                $handle = fopen('php://memory', 'r+');
+                fwrite($handle, $csv_text);
+                rewind($handle);
+            }
+
+            if ($handle !== FALSE) {
+                $count = 0;
+                $is_header = true;
+
+                while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
+                    if (empty(array_filter($data)))
+                        continue;
+
+                    if ($is_header) {
+                        if (strtolower(trim($data[0])) === 'question text' || !is_numeric(trim($data[1] ?? ''))) {
+                            $is_header = false;
+                            continue;
+                        }
+                        $is_header = false;  // It wasn't a header row, process it as data
+                    }
+
+                    $q_text = $data[0] ?? '';
+                    $u_num = $data[1] ?? '';
+                    $opt_a = $data[2] ?? '';
+                    $opt_b = $data[3] ?? '';
+                    $opt_c = $data[4] ?? '';
+                    $opt_d = $data[5] ?? '';
+                    $correct = $data[6] ?? '';
+
+                    if (empty($q_text) || empty($u_num) || empty($opt_a) || empty($opt_b) || empty($correct)) {
+                        throw new Exception('Row ' . ($count + 1) . ' is missing required fields. Transaction aborted.');
+                    }
+
+                    $stmt->execute([
+                        $subject_id,
+                        clean_input($q_text),
+                        clean_input($u_num),
+                        clean_input($opt_a),
+                        clean_input($opt_b),
+                        clean_input($opt_c),
+                        clean_input($opt_d),
+                        strtoupper(clean_input($correct))
+                    ]);
+                    $count++;
+                }
+                fclose($handle);
+
+                if ($count === 0) {
+                    throw new Exception('No valid questions found in the CSV data.');
+                }
+
+                $pdo->commit();
+                $success_message = "$count questions imported successfully!";
+            } else {
+                throw new Exception('Failed to process the CSV data.');
+            }
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $error_message = 'Error: ' . $e->getMessage();
         }
     }
 }
-
 $page_title = 'Manage Questions • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
@@ -114,49 +194,48 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php endif; ?>
 
     <div class="card">
-        <div class="card-title">Bulk Insert Questions (JSON)</div>
+        <div class="card-title">Bulk Insert Questions (CSV)</div>
 
         <div class="alert alert-info" style="text-align: left; margin-bottom: 20px;">
-            <strong>Instructions:</strong> Paste a valid JSON array.<br>
-            • Required keys: <code>question_text</code>, <code>option_a</code>, <code>option_b</code>, <code>correct_option</code>.<br>
-            • Optional keys: <code>option_c</code>, <code>option_d</code>.<br>
-            • <code>correct_option</code> must be <code>A</code>, <code>B</code>, <code>C</code>, or <code>D</code>.
+            <strong>Instructions:</strong> Upload a CSV file OR paste comma-separated text.<br>
+            • 7 columns required: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option</code><br>
+            • <code>Correct Option</code> must be A, B, C, or D.
         </div>
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <?= csrf_field() ?>
 
             <div class="form-group">
-                <label>Select Subject</label>
+                <label>Select Subject <span style="color:red;">*</span></label>
                 <select name="subject_id" id="subject_id" required>
                     <option value="">-- Choose Target Subject --</option>
                     <?php foreach ($subjects as $sub): ?>
                         <option value="<?= $sub['id'] ?>">
-                            <?= e($sub['name']) ?> (<?= e($sub['department']) ?>, Sem <?= e((string)$sub['semester']) ?>)
+                            <?= e($sub['name']) ?> (<?= e($sub['department']) ?>, Sem <?= e((string) $sub['semester']) ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
 
             <div class="form-group">
-                <label>JSON Data Array</label>
-                <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn" disabled style="display: inline-flex; align-items: center; gap: 4px;">
-                        <span class="material-symbols-outlined icon-xs">content_copy</span> Copy LLM Prompt
-                    </button>
-                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn" style="display: inline-flex; align-items: center; gap: 4px;">
-                        <span class="material-symbols-outlined icon-xs">content_paste</span> Paste from Clipboard
-                    </button>
-                </div>
-                <textarea name="json_data" id="json_data" required rows="10"
-                    placeholder='[{"question_text":"What is an operating system?","option_a":"System software","option_b":"Application","option_c":"Hardware","option_d":"Malware","correct_option":"A"}]'></textarea>
+                <label>Option 1: Upload .CSV File</label>
+                <input type="file" name="csv_file" accept=".csv,text/csv" class="form-control">
             </div>
 
-            <button type="submit" name="add_bulk_questions" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">upload</span> Upload All Questions
+            <div style="text-align: center; margin: 15px 0; color: #64748b; font-weight: bold;">OR</div>
+
+            <div class="form-group">
+                <label>Option 2: Paste CSV Text</label>
+                <textarea name="csv_text" id="csv_text" rows="8" class="form-control"
+                placeholder='What is a CPU?,1,Central Processing Unit,Computer Power Unit,Core Process Utility,None,A&#10;Is HTML a programming language?,2,Yes,No,,,B'></textarea>
+            </div>
+
+            <button type="submit" name="add_bulk_csv" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 15px;">
+                <span class="material-symbols-outlined icon-sm">upload</span> Upload Questions
             </button>
         </form>
     </div>
+
 </div>
 
 <script>

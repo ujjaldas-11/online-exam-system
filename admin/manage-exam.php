@@ -20,32 +20,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
     $total_marks = int_param($_POST['total_marks'] ?? 0);
     $total_questions = int_param($_POST['total_questions_to_ask'] ?? 0);
     $access_pin = clean_input($_POST['access_pin'] ?? '');
+    $target_units = clean_input($_POST['target_units'] ?? '');
 
-    if (empty($title) || $subject_id <= 0 || $duration <= 0 || $total_marks <= 0 || $total_questions <= 0) {
-        $message = "Please fill all required fields correctly.";
+    if (empty($title) || $subject_id <= 0 || $duration <= 0 || $total_marks <= 0 || $total_questions <= 0 || empty($target_units)) {
+        $message = 'Please fill all required fields correctly.';
         $message_type = 'error';
     } else {
         // Check available questions in question bank
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE subject_id = ?");
-        $stmt->execute([$subject_id]);
+        if ($target_units == 'all') {
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ?');
+            $stmt->execute([$subject_id]);
+        } else{
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ? AND unit_number = ? ');
+            $stmt->execute([$subject_id, $target_units]);
+
+        }
+
         $available = (int) $stmt->fetchColumn();
 
         if ($available < $total_questions) {
-            $message = "This subject only has $available questions. You cannot configure an exam for $total_questions questions.";
+            $unit_text = ($target_units === 'all') ? "This subject" : "Unit $target_units";
+            $message = "$unit_text only has $available questions. You cannot configure an exam for $total_questions questions.";
             $message_type = 'error';
         } else {
             try {
                 $stmt = $pdo->prepare("
                     INSERT INTO exams
-                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, access_pin, status)
-                    VALUES (?, ?, ?, ?, ?, ?, 'inactive')
+                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, access_pin, target_units,  status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'inactive')
                 ");
-                $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions, $access_pin ?: null]);
+                $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions, $access_pin ?: null, $target_units]);
 
                 $message = "Exam created successfully! Navigate to 'Control Exams' to start and monitor it.";
                 $message_type = 'success';
             } catch (Exception $e) {
-                $message = safe_db_error($e, "Failed to create examination.");
+                $message = safe_db_error($e, 'Failed to create examination.');
                 $message_type = 'error';
             }
         }
@@ -53,12 +62,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
 }
 
 try {
-    $subjects = $pdo->query("SELECT * FROM subjects ORDER BY name ASC")->fetchAll();
+    $subjects = $pdo->query('SELECT * FROM subjects ORDER BY name ASC')->fetchAll();
 } catch (PDOException $e) {
-    log_error("Failed to fetch subjects in manage-exam", $e);
+    log_error('Failed to fetch subjects in manage-exam', $e);
     $subjects = [];
 }
-
 
 
 $page_title = 'Create Exam • Examify';
@@ -91,14 +99,31 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <div class="form-group">
                 <label>Subject</label>
-                <select name="subject_id" required>
+                <select name="subject_id" id="subject_dropdown" required>
                     <option value="">-- Choose Subject --</option>
                     <?php foreach ($subjects as $sub): ?>
                         <option value="<?= $sub['id'] ?>" <?= (($_POST['subject_id'] ?? '') == $sub['id']) ? 'selected' : '' ?>>
-                            <?= e($sub['name']) ?> (<?= e($sub['department']) ?>, Sem <?= e((string)$sub['semester']) ?>)
+                            <?= e($sub['name']) ?> (<?= e($sub['department']) ?>, Sem <?= e((string) $sub['semester']) ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label>Target Unit</label>
+                <select name="target_units" required class="form-control">
+                    <option value="">Select Target Unit</option>
+
+                    <option value="all" <?= (($_POST['target_units'] ?? '') === 'all') ? 'selected' : '' ?>>All Units (Combined Exam)</option>
+                    <option value="1" <?= (($_POST['target_units'] ?? '') == '1') ? 'selected' : '' ?>>Unit 1</option>
+                    <option value="2" <?= (($_POST['target_units'] ?? '') == '2') ? 'selected' : '' ?>>Unit 2</option>
+                    <option value="3" <?= (($_POST['target_units'] ?? '') == '3') ? 'selected' : '' ?>>Unit 3</option>
+                    <option value="4" <?= (($_POST['target_units'] ?? '') == '4') ? 'selected' : '' ?>>Unit 4</option>
+                    <option value="5" <?= (($_POST['target_units'] ?? '') == '5') ? 'selected' : '' ?>>Unit 5</option>
+                    <option value="6" <?= (($_POST['target_units'] ?? '') == '6') ? 'selected' : '' ?>>Unit 6</option>
+
+                </select>
+                <small style="color: var(--color-text-secondary);">If the selected unit lacks enough questions, the system will notify you.</small>
             </div>
 
             <div class="form-grid">
@@ -139,4 +164,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 </div>
 
+
+
 <?php include __DIR__ . '/../components/footer.php'; ?>
+
+
+

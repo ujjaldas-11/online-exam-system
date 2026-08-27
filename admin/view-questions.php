@@ -41,7 +41,7 @@ try {
     }
 
     // Fetch All Questions for this specific subject
-    $resultsSql = "SELECT id, question_text, option_a, option_b, option_c, option_d, correct_option FROM questions WHERE subject_id = :subject_id ORDER BY id ASC";
+    $resultsSql = "SELECT id, unit_number, question_text,  option_a, option_b, option_c, option_d, correct_option FROM questions WHERE subject_id = :subject_id ORDER BY id ASC";
     $resultsStmt = $pdo->prepare($resultsSql);
     $resultsStmt->execute([':subject_id' => $subject_id]);
     $all_questions = $resultsStmt->fetchAll();
@@ -127,6 +127,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 </td>
                                 <td style="text-align: center;">
                                     <span class="badge badge-active" style="font-size: 0.9rem;">Option <?= e($row['correct_option']) ?></span>
+                                </td>
+                                <td>
+                                    <div>unit - <?= e($row['unit_number']) ?></div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

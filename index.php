@@ -38,7 +38,6 @@ $assetVersion = asset_version();
                 <span>S</span>cience and
                 <span>T</span>echnology
             </div>
-
             <div class="college-name-mob">B.I.S.T</div>
         </a>
     </nav>
@@ -52,7 +51,10 @@ $assetVersion = asset_version();
             </p>
             <h1>Examify</h1>
             <p class="hero-sub">Build question banks, run timed and proctored exams, and get graded results the moment students submit.</p>
-            <div class="hero-actions">
+            <a href="docs/user/user_doc.html">
+                <button class="btn btn-primary">User Documentation</button>
+            </a>
+            <div class="hero-actions"  style="margin-top:10px;">
                 <a href="admin/admin-login.php" class="btn btn-primary">Admin portal</a>
                 <a href="student/login.php" class="btn btn-outline">Student portal</a>
             </div>
