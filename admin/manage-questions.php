@@ -21,70 +21,119 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
 
     $subject_id = int_param($_POST['subject_id'] ?? 0);
     $csv_text = trim($_POST['csv_text'] ?? '');
-    $has_file = isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK;
+    $maxFileSize = 5 * 1024 * 1024; // 5MB max
+    $allowedExtensions = ['csv', 'txt'];
+    $allowedMimes = [
+        'text/plain',
+        'text/csv',
+        'application/csv',
+        'text/x-csv',
+        'application/vnd.ms-excel',
+        'text/comma-separated-values',
+        'application/octet-stream',
+    ];
+
+    $has_file = !empty($_FILES['csv_file']['name']);
 
     if (empty($subject_id)) {
         $error_message = 'Please select a subject.';
     } elseif (!$has_file && empty($csv_text)) {
         $error_message = 'Please either upload a CSV file OR paste CSV content.';
+    } elseif ($has_file && $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+        $error_message = 'File upload error code: ' . $_FILES['csv_file']['error'];
+    } elseif ($has_file && $_FILES['csv_file']['size'] > $maxFileSize) {
+        $error_message = 'Uploaded file too large. Maximum size allowed is 5MB.';
+    } elseif (!$has_file && strlen($csv_text) > $maxFileSize) {
+        $error_message = 'Pasted CSV content too large. Maximum size allowed is 5MB.';
     } else {
-        try {
-            $pdo->beginTransaction();
+        $handle = false;
 
-            $sql = 'INSERT INTO questions
-                    (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-            $stmt = $pdo->prepare($sql);
+        if ($has_file) {
+            $tmpPath = $_FILES['csv_file']['tmp_name'];
+            $fileExt = strtolower(pathinfo($_FILES['csv_file']['name'], PATHINFO_EXTENSION));
 
-
-            if ($has_file) {
-                $handle = fopen($_FILES['csv_file']['tmp_name'], 'r');
+            if (!in_array($fileExt, $allowedExtensions, true)) {
+                $error_message = 'Invalid file extension. Only .csv and .txt files are allowed.';
+            } elseif (!is_uploaded_file($tmpPath)) {
+                $error_message = 'Uploaded file verification failed.';
             } else {
-                $handle = fopen('php://memory', 'r+');
-                fwrite($handle, $csv_text);
-                rewind($handle);
-            }
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, $tmpPath);
+                finfo_close($finfo);
 
-            if ($handle !== FALSE) {
+                if (!in_array($mimeType, $allowedMimes, true)) {
+                    $error_message = "Invalid file type ($mimeType). Only CSV files are allowed.";
+                } else {
+                    $handle = fopen($tmpPath, 'r');
+                }
+            }
+        } else {
+            $handle = fopen('php://memory', 'r+');
+            fwrite($handle, $csv_text);
+            rewind($handle);
+        }
+
+        if ($handle !== false) {
+            try {
+                $pdo->beginTransaction();
+
+                $sql = 'INSERT INTO questions
+                        (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+                $stmt = $pdo->prepare($sql);
+
                 $count = 0;
                 $is_header = true;
+                $allowedOptions = ['A', 'B', 'C', 'D'];
 
-                while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
-                    if (empty(array_filter($data)))
+                while (($data = fgetcsv($handle, 2000, ',')) !== false) {
+                    if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) {
                         continue;
+                    }
 
                     if ($is_header) {
-                        if (strtolower(trim($data[0])) === 'question text' || !is_numeric(trim($data[1] ?? ''))) {
+                        $col0 = strtolower(trim((string)($data[0] ?? '')));
+                        $col1 = trim((string)($data[1] ?? ''));
+                        if (str_contains($col0, 'question') || !is_numeric($col1)) {
                             $is_header = false;
                             continue;
                         }
-                        $is_header = false;  // It wasn't a header row, process it as data
+                        $is_header = false;
                     }
 
-                    $q_text = $data[0] ?? '';
-                    $u_num = $data[1] ?? '';
-                    $opt_a = $data[2] ?? '';
-                    $opt_b = $data[3] ?? '';
-                    $opt_c = $data[4] ?? '';
-                    $opt_d = $data[5] ?? '';
-                    $correct = $data[6] ?? '';
+                    if ($count >= 1000) {
+                        throw new Exception('Too many questions. Maximum 1,000 questions per import.');
+                    }
+
+                    $q_text  = clean_input($data[0] ?? '');
+                    $u_num   = clean_input($data[1] ?? '');
+                    $opt_a   = clean_input($data[2] ?? '');
+                    $opt_b   = clean_input($data[3] ?? '');
+                    $opt_c   = isset($data[4]) ? clean_input($data[4]) : '';
+                    $opt_d   = isset($data[5]) ? clean_input($data[5]) : '';
+                    $correct = strtoupper(clean_input($data[6] ?? ''));
 
                     if (empty($q_text) || empty($u_num) || empty($opt_a) || empty($opt_b) || empty($correct)) {
-                        throw new Exception('Row ' . ($count + 1) . ' is missing required fields. Transaction aborted.');
+                        throw new Exception('Row ' . ($count + 1) . ' is missing required fields (Question Text, Unit Number, Option A, Option B, Correct Option). Transaction aborted.');
+                    }
+
+                    if (!in_array($correct, $allowedOptions, true)) {
+                        throw new Exception("Row " . ($count + 1) . " has invalid Correct Option '$correct'. Must be A, B, C, or D.");
                     }
 
                     $stmt->execute([
                         $subject_id,
-                        clean_input($q_text),
-                        clean_input($u_num),
-                        clean_input($opt_a),
-                        clean_input($opt_b),
-                        clean_input($opt_c),
-                        clean_input($opt_d),
-                        strtoupper(clean_input($correct))
+                        $q_text,
+                        $u_num,
+                        $opt_a,
+                        $opt_b,
+                        $opt_c,
+                        $opt_d,
+                        $correct
                     ]);
                     $count++;
                 }
+
                 fclose($handle);
 
                 if ($count === 0) {
@@ -93,17 +142,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
 
                 $pdo->commit();
                 $success_message = "$count questions imported successfully!";
-            } else {
-                throw new Exception('Failed to process the CSV data.');
+            } catch (Exception $e) {
+                if (is_resource($handle)) {
+                    fclose($handle);
+                }
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $error_message = 'Error: ' . $e->getMessage();
             }
-        } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            $error_message = 'Error: ' . $e->getMessage();
         }
     }
 }
+
 $page_title = 'Manage Questions • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
@@ -158,6 +209,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <div class="form-group">
                 <label>Option 2: Paste CSV Text</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn" disabled style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-xs">content_copy</span> Copy LLM Prompt
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-xs">content_paste</span> Paste from Clipboard
+                    </button>
+                </div>
                 <textarea name="csv_text" id="csv_text" rows="8" class="form-control"
                 placeholder='What is a CPU?,1,Central Processing Unit,Computer Power Unit,Core Process Utility,None,A&#10;Is HTML a programming language?,2,Yes,No,,,B'></textarea>
             </div>
@@ -174,52 +233,54 @@ include __DIR__ . '/../components/admin-sidebar.php';
     const subjectSelect = document.getElementById('subject_id');
     const copyPromptBtn = document.getElementById('copy-prompt-btn');
     const pasteBtn = document.getElementById('paste-btn');
-    const jsonTextarea = document.getElementById('json_data');
+    const csvTextarea = document.getElementById('csv_text');
 
-    subjectSelect.addEventListener('change', function () {
-        copyPromptBtn.disabled = !this.value;
-    });
+    if (subjectSelect && copyPromptBtn) {
+        subjectSelect.addEventListener('change', function () {
+            copyPromptBtn.disabled = !this.value;
+        });
 
-    copyPromptBtn.addEventListener('click', function () {
-        if (!subjectSelect.value) return;
+        copyPromptBtn.addEventListener('click', function () {
+            if (!subjectSelect.value) return;
 
-        let subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
-        subjectText = subjectText.split('(')[0].trim();
+            let subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
+            subjectText = subjectText.split('(')[0].trim();
 
-        const prompt = `Please generate 10 multiple-choice questions about ${subjectText} suitable for university students. Return the output STRICTLY as a JSON array of objects with no markdown code blocks and no extra text.
+            const prompt = `Please generate 10 multiple-choice questions about ${subjectText} suitable for university students. Return the output STRICTLY as CSV text with no markdown code blocks and no extra text.
 
-Each object must EXACTLY match this structure:
-{
-    "question_text": "Sample question?",
-    "option_a": "Option 1",
-    "option_b": "Option 2",
-    "option_c": "Option 3",
-    "option_d": "Option 4",
-    "correct_option": "A"
-}
+Columns format:
+Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
+
+Example:
+What is an operating system?,1,System software,Application,Hardware,Malware,A
 
 Rules:
-- "correct_option" must be exactly "A", "B", "C", or "D".
-- Do NOT wrap the JSON in backticks or markdown. Start directly with [ and end with ].`;
+- "Unit Number" must be an integer (e.g. 1, 2, 3, 4).
+- "Correct Option" must be exactly "A", "B", "C", or "D".
+- Do NOT wrap the output in backticks or markdown code blocks.`;
 
-        navigator.clipboard.writeText(prompt).then(() => {
-            const original = copyPromptBtn.innerHTML;
-            copyPromptBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">check</span> Copied Prompt!';
-            setTimeout(() => copyPromptBtn.innerHTML = original, 2000);
+            navigator.clipboard.writeText(prompt).then(() => {
+                const original = copyPromptBtn.innerHTML;
+                copyPromptBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">check</span> Copied Prompt!';
+                setTimeout(() => copyPromptBtn.innerHTML = original, 2000);
+            });
         });
-    });
+    }
 
-    pasteBtn.addEventListener('click', async function () {
-        try {
-            const text = await navigator.clipboard.readText();
-            jsonTextarea.value = text;
-            const original = pasteBtn.innerHTML;
-            pasteBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">check</span> Pasted!';
-            setTimeout(() => pasteBtn.innerHTML = original, 2000);
-        } catch (err) {
-            alert('Could not read clipboard automatically. Please press Ctrl+V to paste manually.');
-        }
-    });
+    if (pasteBtn && csvTextarea) {
+        pasteBtn.addEventListener('click', async function () {
+            try {
+                const text = await navigator.clipboard.readText();
+                csvTextarea.value = text;
+                const original = pasteBtn.innerHTML;
+                pasteBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">check</span> Pasted!';
+                setTimeout(() => pasteBtn.innerHTML = original, 2000);
+            } catch (err) {
+                alert('Could not read clipboard automatically. Please press Ctrl+V to paste manually.');
+            }
+        });
+    }
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
+
