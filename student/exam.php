@@ -110,14 +110,13 @@ try {
             $stmt->execute([$student_id, $exam_id, $exam['total_questions_to_ask']]);
             $attempt_id = (int) $pdo->lastInsertId();
 
-            $limit = (int) $exam['total_question_to_ask'];
+            $qCount = (int) $exam['total_questions_to_ask'];
 
-            if($exam['target_units'] === 'all') {
-                $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? ORDER BY RAND() LIMIT " . (int) $exam['total_questions_to_ask']);
+            if ($exam['target_units'] === 'all') {
+                $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? ORDER BY RAND() LIMIT " . $qCount);
                 $qStmt->execute([$exam['subject_id']]);
-            }
-            else {
-                $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? AND unit_number = ? ORDER BY RAND() LIMIT " . (int) $exam['total_questions_to_ask']);
+            } else {
+                $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? AND unit_number = ? ORDER BY RAND() LIMIT " . $qCount);
                 $qStmt->execute([$exam['subject_id'], $exam['target_units']]);
             }
 
@@ -358,14 +357,18 @@ include __DIR__ . '/../components/header.php';
         const payload = {
             exam_id: examId,
             question_id: currentQuestionId,
-            marked_for_review: isMarked
+            marked_for_review: isMarked,
+            csrf_token: '<?= csrf_token() ?>'
         };
         if (selected) payload.selected_option = selected;
 
         try {
             await fetch('question.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': '<?= csrf_token() ?>'
+                },
                 body: JSON.stringify(payload)
             });
         } catch (e) {

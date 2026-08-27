@@ -25,6 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_update']) && 
 
     if (empty($name) || empty($roll_number) || empty($department) || $semester < 1 || $semester > 8) {
         $error = "All fields are required and must be valid.";
+    } elseif (strlen($name) > 100) {
+        $error = "Name cannot exceed 100 characters.";
+    } elseif (strlen($roll_number) > 50) {
+        $error = "Roll number cannot exceed 50 characters.";
+    } elseif (!in_array($department, ['BCA', 'BBA'], true)) {
+        $error = "Invalid department selected.";
     } else {
         try {
             // Check if roll number is already used by another student

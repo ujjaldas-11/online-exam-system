@@ -31,14 +31,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$name || !$email || !$pass || !$roll || !$sem || !$dept || !$phone || !$gender) {
         $error = "All fields are required.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Invalid email format.";
+    } elseif (strlen($name) > 100) {
+        $error = "Name cannot exceed 100 characters.";
+    } elseif (strlen($email) > 100 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Invalid email address format.";
+    } elseif (strlen($roll) > 50) {
+        $error = "Roll number cannot exceed 50 characters.";
+    } elseif (!in_array($dept, ['BCA', 'BBA'], true)) {
+        $error = "Invalid department selected.";
+    } elseif (!in_array($gender, ['male', 'female', 'others'], true)) {
+        $error = "Invalid gender selected.";
     } elseif ($pass !== $cpass) {
         $error = "Passwords do not match.";
     } elseif (strlen($pass) < 6) {
         $error = "Password must be at least 6 characters.";
-    } elseif (strlen($phone) !== 10) {
-        $error = "Phone number must be exactly 10 digits.";
+    } elseif (!preg_match('/^[0-9]{10}$/', $phone)) {
+        $error = "Phone number must be exactly 10 numeric digits.";
     } elseif ($sem < 1 || $sem > 8) {
         $error = "Semester must be between 1 and 8.";
     } else {

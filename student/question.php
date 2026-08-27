@@ -37,7 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Save selected option in session and database
         if (isset($input['selected_option'])) {
-            $selected = clean_input($input['selected_option']);
+            $selected = strtoupper(clean_input((string) $input['selected_option']));
+            if (!in_array($selected, ['A', 'B', 'C', 'D', ''], true)) {
+                session_write_close();
+                json_response(['error' => 'Invalid option choice'], 400);
+            }
+
+            if ($selected === '') {
+                $selected = null;
+            }
+
             $_SESSION['exam_answers'][$exam_id][$question_id] = $selected;
 
             // Direct database backup to prevent data loss on browser crash
