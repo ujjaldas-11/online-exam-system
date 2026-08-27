@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS `exams` (
   `total_marks` int(11) DEFAULT 0,
   `status` enum('scheduled','active','ended','inactive') NOT NULL DEFAULT 'active',
   `access_pin` varchar(10) DEFAULT NULL,
+  `target_units` varchar(50) NOT NULL DEFAULT 'all',
   `start_time` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
@@ -79,6 +80,7 @@ CREATE TABLE IF NOT EXISTS `questions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `subject_id` int(11) NOT NULL,
   `question_text` text NOT NULL,
+  `unit_number` int(11) NOT NULL DEFAULT 1,
   `option_a` varchar(255) NOT NULL,
   `option_b` varchar(255) NOT NULL,
   `option_c` varchar(255) NOT NULL,
@@ -87,6 +89,7 @@ CREATE TABLE IF NOT EXISTS `questions` (
   `marks` int(11) DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `subject_id` (`subject_id`),
+  KEY `idx_questions_subject_unit` (`subject_id`, `unit_number`),
   CONSTRAINT `fk_questions_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
