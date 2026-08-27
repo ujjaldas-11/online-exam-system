@@ -24,6 +24,9 @@ class VanillaMailer
     {
         $this->host = $config['host'] ?? (string) get_env('SMTP_HOST', 'localhost');
         $this->port = (int) ($config['port'] ?? get_env('SMTP_PORT', 587));
+        if (!in_array($this->port, [25, 465, 587, 2525], true)) {
+            $this->port = 587;
+        }
         $this->username = $config['username'] ?? (string) get_env('SMTP_USER', '');
         $this->password = $config['password'] ?? (string) get_env('SMTP_PASS', '');
         $this->fromEmail = $config['from_email'] ?? (string) get_env('SMTP_FROM', 'no-reply@college.edu');

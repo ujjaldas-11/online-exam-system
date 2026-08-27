@@ -31,14 +31,17 @@ function int_param(mixed $value, int $default = 0): int
  */
 function sanitize_csv_value(?string $value): string
 {
-    $value = clean_input($value);
-    if ($value !== '') {
-        $firstChar = $value[0];
-        if (in_array($firstChar, ['=', '+', '-', '@', "\t", "\r", '%'], true)) {
-            $value = "'" . $value;
+    if ($value === null) {
+        return '';
+    }
+    $trimmed = trim(strip_tags($value));
+    if ($trimmed !== '') {
+        $firstChar = $trimmed[0];
+        if (in_array($firstChar, ['=', '+', '-', '@', '%'], true)) {
+            return "'" . $trimmed;
         }
     }
-    return $value;
+    return $trimmed;
 }
 
 /**

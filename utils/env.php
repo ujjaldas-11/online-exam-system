@@ -129,6 +129,23 @@ function send_cache_control_headers(): void
     }
 }
 
-// Auto-load .env and apply cache control headers on include
+/**
+ * Send standard HTTP security headers across all environments.
+ */
+function send_security_headers(): void
+{
+    if (php_sapi_name() === 'cli' || headers_sent()) {
+        return;
+    }
+
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('X-XSS-Protection: 1; mode=block');
+}
+
+// Auto-load .env and apply security and cache control headers on include
 load_env();
+date_default_timezone_set((string) get_env('APP_TIMEZONE', 'Asia/Kolkata'));
+send_security_headers();
 send_cache_control_headers();
