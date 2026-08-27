@@ -54,18 +54,21 @@ foreach ($json_files as $file) {
     try {
         $pdo->beginTransaction();
 
-        $sql = "INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks)
-                VALUES (:subject_id, :q_text, :opt_a, :opt_b, :opt_c, :opt_d, :correct, :marks)";
+        $sql = "INSERT INTO questions (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option, marks)
+                VALUES (:subject_id, :q_text, :unit_number, :opt_a, :opt_b, :opt_c, :opt_d, :correct, :marks)";
         $insertStmt = $pdo->prepare($sql);
 
-        foreach ($questions as $q) {
+        foreach ($questions as $idx => $q) {
             if (empty($q['question_text']) || empty($q['option_a']) || empty($q['option_b']) || empty($q['correct_option'])) {
                 continue; // Skip invalid questions
             }
 
+            $unitNum = isset($q['unit_number']) ? (int) $q['unit_number'] : (($idx % 5) + 1);
+
             $insertStmt->execute([
                 ':subject_id' => $subject_id,
                 ':q_text' => trim(strip_tags($q['question_text'])),
+                ':unit_number' => $unitNum,
                 ':opt_a' => trim(strip_tags($q['option_a'])),
                 ':opt_b' => trim(strip_tags($q['option_b'])),
                 ':opt_c' => isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
