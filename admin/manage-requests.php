@@ -71,9 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = "No student found with Roll Number: $roll_number";
                 } else {
                     $hashed = password_hash($new_password, PASSWORD_DEFAULT);
-                    $upStmt = $pdo->prepare("UPDATE students SET password = ? WHERE id = ?");
+                    $upStmt = $pdo->prepare("UPDATE students SET password = ?, active_session_id = NULL WHERE id = ?");
                     $upStmt->execute([$hashed, $student['id']]);
-                    $message = "Password successfully reset for " . e($student['name']) . " ($roll_number)!";
+                    $message = "Password successfully reset for " . e($student['name']) . " ($roll_number)! Active sessions invalidated.";
                 }
             } catch (PDOException $e) {
                 $error = safe_db_error($e, "Failed to reset student password.");

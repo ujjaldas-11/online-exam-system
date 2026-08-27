@@ -225,15 +225,15 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <?php if (!empty($st['attempt_id'])): ?>
                                         <div style="display: flex; gap: 6px; justify-content: flex-end;">
                                             <?php if ($st['attempt_status'] === 'completed'): ?>
-                                                <form method="POST" style="display: inline;" onsubmit="return confirm('Allow student <?= e($st['name']) ?> to resume and continue their attempt?');">
+                                                <form method="POST" style="display: inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode('Allow student ' . $st['name'] . ' to resume and continue their attempt?'), ENT_QUOTES, 'UTF-8') ?>);">
                                                     <?= csrf_field() ?>
-                                                    <input type="hidden" name="student_id" value="<?= $st['student_id'] ?>">
+                                                    <input type="hidden" name="student_id" value="<?= (int) $st['student_id'] ?>">
                                                     <button type="submit" name="reset_student_attempt" class="btn btn-secondary btn-sm">Unlock / Resume</button>
                                                 </form>
                                             <?php else: ?>
-                                                <form method="POST" style="display: inline;" onsubmit="return confirm('Force submit examination for <?= e($st['name']) ?>?');">
+                                                <form method="POST" style="display: inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode('Force submit examination for ' . $st['name'] . '?'), ENT_QUOTES, 'UTF-8') ?>);">
                                                     <?= csrf_field() ?>
-                                                    <input type="hidden" name="attempt_id" value="<?= $st['attempt_id'] ?>">
+                                                    <input type="hidden" name="attempt_id" value="<?= (int) $st['attempt_id'] ?>">
                                                     <button type="submit" name="force_submit_attempt" class="btn btn-warning btn-sm">Force Submit</button>
                                                 </form>
                                             <?php endif; ?>

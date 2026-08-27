@@ -49,14 +49,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (isset($_POST['add_time'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         $extra_minutes = int_param($_POST['extra_minutes'] ?? 5);
-        try {
-            $upStmt = $pdo->prepare("UPDATE exams SET duration_minutes = duration_minutes + ? WHERE id = ?");
-            $upStmt->execute([$extra_minutes, $exam_id]);
-            $message = "Added +$extra_minutes minutes to exam duration.";
-            $message_type = 'success';
-        } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to extend exam time.");
+
+        if ($extra_minutes < 1 || $extra_minutes > 120) {
+            $message = "Time extension must be between 1 and 120 minutes.";
             $message_type = 'error';
+        } else {
+            try {
+                $upStmt = $pdo->prepare("UPDATE exams SET duration_minutes = duration_minutes + ? WHERE id = ?");
+                $upStmt->execute([$extra_minutes, $exam_id]);
+                $message = "Added +$extra_minutes minutes to exam duration.";
+                $message_type = 'success';
+            } catch (PDOException $e) {
+                $message = safe_db_error($e, "Failed to extend exam time.");
+                $message_type = 'error';
+            }
         }
     } elseif (isset($_POST['end_exam'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);

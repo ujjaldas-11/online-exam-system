@@ -22,8 +22,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
     $access_pin = clean_input($_POST['access_pin'] ?? '');
     $target_units = clean_input($_POST['target_units'] ?? '');
 
-    if (empty($title) || $subject_id <= 0 || $duration <= 0 || $total_marks <= 0 || $total_questions <= 0 || empty($target_units)) {
-        $message = 'Please fill all required fields correctly.';
+    $allowed_units = ['all', '1', '2', '3', '4', '5', '6'];
+
+    if (empty($title) || $subject_id <= 0 || $duration <= 0 || $duration > 1440 || $total_marks <= 0 || $total_marks > 10000 || $total_questions <= 0 || $total_questions > 1000 || empty($target_units)) {
+        $message = 'Please fill all required fields with valid values.';
+        $message_type = 'error';
+    } elseif (strlen($title) > 200) {
+        $message = 'Exam title cannot exceed 200 characters.';
+        $message_type = 'error';
+    } elseif (strlen($access_pin) > 10) {
+        $message = 'Access PIN cannot exceed 10 characters.';
+        $message_type = 'error';
+    } elseif (!in_array($target_units, $allowed_units, true)) {
+        $message = 'Invalid target unit selection.';
         $message_type = 'error';
     } else {
         // Check available questions in question bank

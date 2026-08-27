@@ -105,6 +105,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             <th style="width: 50px;">#</th>
                             <th>Question Text</th>
                             <th style="width: 140px; text-align: center;">Correct Option</th>
+                            <th style="width: 100px; text-align: center;">Unit</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,8 +129,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td style="text-align: center;">
                                     <span class="badge badge-active" style="font-size: 0.9rem;">Option <?= e($row['correct_option']) ?></span>
                                 </td>
-                                <td>
-                                    <div>unit - <?= e($row['unit_number']) ?></div>
+                                <td style="text-align: center;">
+                                    <span class="badge badge-inactive">Unit <?= e((string)$row['unit_number']) ?></span>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

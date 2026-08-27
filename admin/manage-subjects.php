@@ -19,6 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     if (empty($name) || empty($department) || $semester < 1 || $semester > 8) {
         $message = "Please fill all fields correctly.";
         $message_type = 'error';
+    } elseif (strlen($name) > 200) {
+        $message = "Subject name cannot exceed 200 characters.";
+        $message_type = 'error';
+    } elseif (!in_array($department, ['BCA', 'BBA'], true)) {
+        $message = "Invalid department selected.";
+        $message_type = 'error';
     } else {
         try {
             $stmt = $pdo->prepare("INSERT INTO subjects (name, department, semester) VALUES (?, ?, ?)");
