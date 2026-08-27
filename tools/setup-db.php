@@ -55,6 +55,13 @@ if (file_exists($schemaFile)) {
         try {
             $pdo->exec("ALTER TABLE `students` ADD COLUMN `gender` enum('male','female','others') DEFAULT NULL AFTER `phone_number`");
         } catch (PDOException) {}
+        // Ensure unit_number and target_units exist on existing tables
+        try {
+            $pdo->exec("ALTER TABLE `questions` ADD COLUMN `unit_number` int(11) NOT NULL DEFAULT 1 AFTER `question_text`");
+        } catch (PDOException) {}
+        try {
+            $pdo->exec("ALTER TABLE `exams` ADD COLUMN `target_units` varchar(50) NOT NULL DEFAULT 'all' AFTER `access_pin`");
+        } catch (PDOException) {}
     } catch (PDOException $e) {
         out("Failed applying schema.sql: " . $e->getMessage(), $isCli, true);
     }

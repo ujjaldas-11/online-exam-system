@@ -101,8 +101,8 @@ $testFiles = [
 ];
 
 $insQ = $pdo->prepare("
-    INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO questions (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option, marks)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
 $totalImported = 0;
@@ -130,14 +130,17 @@ foreach ($testFiles as $jsonFile => $subjectName) {
 
     $fileCount = 0;
     $pdo->beginTransaction();
-    foreach ($questions as $q) {
+    foreach ($questions as $idx => $q) {
         if (empty($q['question_text']) || empty($q['option_a']) || empty($q['option_b']) || empty($q['correct_option'])) {
             continue;
         }
 
+        $unitNum = isset($q['unit_number']) ? (int) $q['unit_number'] : (($idx % 5) + 1);
+
         $insQ->execute([
             $subjectId,
             trim(strip_tags($q['question_text'])),
+            $unitNum,
             trim(strip_tags($q['option_a'])),
             trim(strip_tags($q['option_b'])),
             isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
@@ -156,8 +159,8 @@ echo "   Total Questions in Bank: $totalImported\n\n";
 // 7. Create Sample Live & Scheduled Exams
 echo "7. Creating sample examinations...\n";
 $insExam = $pdo->prepare("
-    INSERT INTO exams (subject_id, title, description, duration_minutes, total_questions_to_ask, total_marks, status, access_pin, start_time)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO exams (subject_id, title, description, duration_minutes, total_questions_to_ask, total_marks, status, access_pin, target_units, start_time)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
 // 1 Active Surprise Test with Classroom PIN
@@ -170,6 +173,7 @@ $insExam->execute([
     20,
     'active',
     '4821',
+    'all',
     date('Y-m-d H:i:s')
 ]);
 $exam1Id = $pdo->lastInsertId();
@@ -184,6 +188,7 @@ $insExam->execute([
     30,
     'active',
     null,
+    'all',
     date('Y-m-d H:i:s')
 ]);
 
@@ -197,6 +202,7 @@ $insExam->execute([
     20,
     'scheduled',
     '1234',
+    'all',
     date('Y-m-d H:i:s', strtotime('+2 days 10:00:00'))
 ]);
 
