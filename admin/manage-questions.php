@@ -21,47 +21,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_questions'])
 
     $subject_id = int_param($_POST['subject_id'] ?? 0);
     $json_input = trim($_POST['json_data'] ?? '');
-
-    $questions = json_decode($json_input, true);
+    $maxJsonSize = 2 * 1024 * 1024; // 2MB max payload
 
     if (empty($subject_id)) {
         $error_message = "Please select a subject.";
-    } elseif (json_last_error() !== JSON_ERROR_NONE || !is_array($questions)) {
-        $error_message = "Invalid JSON format! Error: " . json_last_error_msg();
+    } elseif (strlen($json_input) > $maxJsonSize) {
+        $error_message = "JSON payload too large. Maximum 2MB allowed.";
     } else {
-        try {
-            $pdo->beginTransaction();
+        $questions = json_decode($json_input, true, 10);
 
-            $sql = "INSERT INTO questions
-                    (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
-            $stmt = $pdo->prepare($sql);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($questions)) {
+            $error_message = "Invalid JSON format! Error: " . json_last_error_msg();
+        } elseif (empty($questions)) {
+            $error_message = "JSON array is empty. Please provide at least one question.";
+        } elseif (count($questions) > 1000) {
+            $error_message = "Too many questions. Maximum 1,000 questions per import.";
+        } else {
+            try {
+                $pdo->beginTransaction();
 
-            $count = 0;
-            foreach ($questions as $q) {
-                if (empty($q['question_text']) || empty($q['option_a']) || empty($q['option_b']) || empty($q['correct_option'])) {
-                    throw new Exception("Missing required fields in one or more questions.");
+                $sql = "INSERT INTO questions
+                        (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)";
+                $stmt = $pdo->prepare($sql);
+
+                $count = 0;
+                $allowedOptions = ['A', 'B', 'C', 'D'];
+
+                foreach ($questions as $index => $q) {
+                    if (!is_array($q)) {
+                        throw new Exception("Invalid question entry at index " . ($index + 1) . ".");
+                    }
+
+                    $qText = clean_input($q['question_text'] ?? '');
+                    $optA  = clean_input($q['option_a'] ?? '');
+                    $optB  = clean_input($q['option_b'] ?? '');
+                    $optC  = isset($q['option_c']) ? clean_input($q['option_c']) : '';
+                    $optD  = isset($q['option_d']) ? clean_input($q['option_d']) : '';
+                    $correctOpt = strtoupper(clean_input($q['correct_option'] ?? ''));
+
+                    if ($qText === '' || $optA === '' || $optB === '' || $correctOpt === '') {
+                        throw new Exception("Question #" . ($index + 1) . " is missing required fields (question_text, option_a, option_b, correct_option).");
+                    }
+
+                    if (!in_array($correctOpt, $allowedOptions, true)) {
+                        throw new Exception("Question #" . ($index + 1) . " has invalid correct_option '$correctOpt'. Must be A, B, C, or D.");
+                    }
+
+                    $stmt->execute([
+                        $subject_id,
+                        $qText,
+                        $optA,
+                        $optB,
+                        $optC,
+                        $optD,
+                        $correctOpt,
+                    ]);
+                    $count++;
                 }
 
-                $stmt->execute([
-                    $subject_id,
-                    clean_input($q['question_text']),
-                    clean_input($q['option_a']),
-                    clean_input($q['option_b']),
-                    isset($q['option_c']) ? clean_input($q['option_c']) : '',
-                    isset($q['option_d']) ? clean_input($q['option_d']) : '',
-                    strtoupper(clean_input($q['correct_option'])),
-                ]);
-                $count++;
+                $pdo->commit();
+                $success_message = "$count questions added successfully!";
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $error_message = "Error: " . $e->getMessage();
             }
-
-            $pdo->commit();
-            $success_message = "$count questions added successfully!";
-        } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            $error_message = "Error: " . $e->getMessage();
         }
     }
 }

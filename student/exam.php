@@ -269,22 +269,34 @@ include __DIR__ . '/../components/header.php';
             .catch(err => console.error("Error loading question:", err));
     }
 
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     function renderQuestion(q, selected, marked) {
         const container = document.getElementById('question-container');
+        const safeQuestionText = escapeHtml(q.question_text);
         let html = `
             <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''}</div>
-            <div class="question-text">${q.question_text}</div>
+            <div class="question-text">${safeQuestionText}</div>
             <div class="options-list">
         `;
 
         ['A', 'B', 'C', 'D'].forEach(opt => {
             const text = q['option_' + opt.toLowerCase()];
-            if (text && text.trim() !== '') {
+            if (text !== null && text !== undefined && String(text).trim() !== '') {
                 const isSelected = selected === opt;
+                const safeText = escapeHtml(text);
                 html += `
                     <label class="option-item ${isSelected ? 'selected' : ''}">
                         <input type="radio" name="answer" value="${opt}" ${isSelected ? 'checked' : ''}>
-                        <span><strong>${opt}.</strong> ${text}</span>
+                        <span><strong>${opt}.</strong> ${safeText}</span>
                     </label>
                 `;
             }

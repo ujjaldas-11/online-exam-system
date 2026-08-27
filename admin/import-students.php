@@ -15,73 +15,136 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_csv'])) {
     verify_csrf();
 
     $csv_content = '';
+    $maxFileSize = 5 * 1024 * 1024; // 5MB limit
+    $allowedExtensions = ['csv', 'txt'];
+    $allowedMimes = [
+        'text/plain',
+        'text/csv',
+        'application/csv',
+        'text/x-csv',
+        'application/vnd.ms-excel',
+        'text/comma-separated-values',
+        'application/octet-stream',
+    ];
 
-    if (!empty($_FILES['csv_file']['tmp_name']) && is_uploaded_file($_FILES['csv_file']['tmp_name'])) {
-        $csv_content = file_get_contents($_FILES['csv_file']['tmp_name']);
-    } elseif (!empty($_POST['csv_raw'])) {
-        $csv_content = trim($_POST['csv_raw']);
-    }
+    if (!empty($_FILES['csv_file']['name'])) {
+        $fileError = $_FILES['csv_file']['error'];
+        if ($fileError !== UPLOAD_ERR_OK) {
+            $errors[] = "File upload failed with error code: " . $fileError;
+        } elseif ($_FILES['csv_file']['size'] > $maxFileSize) {
+            $errors[] = "File too large. Maximum size allowed is 5MB.";
+        } else {
+            $tmpPath = $_FILES['csv_file']['tmp_name'];
+            $fileExt = strtolower(pathinfo($_FILES['csv_file']['name'], PATHINFO_EXTENSION));
 
-    if (empty($csv_content)) {
-        $errors[] = "Please upload a valid CSV file or paste CSV text.";
-    } else {
-        $lines = explode("\n", str_replace("\r", "", $csv_content));
-        $header_skipped = false;
+            if (!in_array($fileExt, $allowedExtensions, true)) {
+                $errors[] = "Invalid file extension. Only .csv files are permitted.";
+            } elseif (!is_uploaded_file($tmpPath)) {
+                $errors[] = "Uploaded file validation failed.";
+            } else {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, $tmpPath);
+                finfo_close($finfo);
 
-        $checkStmt = $pdo->prepare("SELECT id FROM students WHERE email = ? OR roll_number = ?");
-        $insertStmt = $pdo->prepare("INSERT INTO students (name, email, password, roll_number, department, semester) VALUES (?, ?, ?, ?, ?, ?)");
-
-        $pdo->beginTransaction();
-
-        foreach ($lines as $lineIndex => $line) {
-            $line = trim($line);
-            if (empty($line)) {
-                continue;
-            }
-
-            $row = str_getcsv($line);
-            if (count($row) < 5) {
-                continue;
-            }
-
-            // Skip header if present
-            if (!$header_skipped && (stripos($row[0], 'name') !== false || stripos($row[1], 'email') !== false)) {
-                $header_skipped = true;
-                continue;
-            }
-
-            $name = clean_input($row[0] ?? '');
-            $email = clean_input($row[1] ?? '');
-            $roll = clean_input($row[2] ?? '');
-            $dept = clean_input($row[3] ?? '');
-            $sem = int_param($row[4] ?? 0);
-            $raw_pass = !empty($row[5]) ? trim($row[5]) : $roll; // Default password is Roll Number if omitted
-
-            if (!$name || !$email || !$roll || !$dept || $sem < 1 || $sem > 8) {
-                $errors[] = "Row " . ($lineIndex + 1) . ": Invalid or missing fields for $name ($roll).";
-                $skip_count++;
-                continue;
-            }
-
-            // Check duplicate
-            $checkStmt->execute([$email, $roll]);
-            if ($checkStmt->rowCount() > 0) {
-                $skip_count++;
-                continue;
-            }
-
-            try {
-                $hashed = password_hash($raw_pass, PASSWORD_DEFAULT);
-                $insertStmt->execute([$name, $email, $hashed, $roll, $dept, $sem]);
-                $success_count++;
-            } catch (PDOException $e) {
-                $skip_count++;
-                log_error("Failed to import student $name", $e);
+                if (!in_array($mimeType, $allowedMimes, true)) {
+                    $errors[] = "Invalid file format ($mimeType). Only plain CSV files are allowed.";
+                } else {
+                    $csv_content = file_get_contents($tmpPath);
+                }
             }
         }
+    } elseif (!empty($_POST['csv_raw'])) {
+        if (strlen($_POST['csv_raw']) > $maxFileSize) {
+            $errors[] = "CSV text payload too large. Maximum 5MB allowed.";
+        } else {
+            $csv_content = trim($_POST['csv_raw']);
+        }
+    }
 
-        $pdo->commit();
-        $message = "Import complete: $success_count new students added, $skip_count duplicates/invalid skipped.";
+    if (empty($csv_content) && empty($errors)) {
+        $errors[] = "Please upload a valid CSV file or paste CSV text.";
+    } elseif (!empty($csv_content)) {
+        $lines = explode("\n", str_replace("\r", "", $csv_content));
+        if (count($lines) > 5000) {
+            $errors[] = "Too many rows. Maximum 5,000 students per import.";
+        } else {
+            $header_skipped = false;
+
+            try {
+                $checkStmt = $pdo->prepare("SELECT id FROM students WHERE email = ? OR roll_number = ?");
+                $insertStmt = $pdo->prepare("INSERT INTO students (name, email, password, roll_number, department, semester) VALUES (?, ?, ?, ?, ?, ?)");
+
+                $pdo->beginTransaction();
+
+                foreach ($lines as $lineIndex => $line) {
+                    $line = trim($line);
+                    if (empty($line)) {
+                        continue;
+                    }
+
+                    $row = str_getcsv($line);
+                    if (count($row) < 5) {
+                        continue;
+                    }
+
+                    // Skip header if present
+                    if (!$header_skipped && (stripos($row[0], 'name') !== false || stripos($row[1], 'email') !== false)) {
+                        $header_skipped = true;
+                        continue;
+                    }
+
+                    $name = sanitize_csv_value($row[0] ?? '');
+                    $email = clean_input($row[1] ?? '');
+                    $roll = sanitize_csv_value($row[2] ?? '');
+                    $dept = sanitize_csv_value($row[3] ?? '');
+                    $sem = int_param($row[4] ?? 0);
+                    $raw_pass = !empty($row[5]) ? trim($row[5]) : $roll; // Default password is Roll Number if omitted
+
+                    if (!$name || !$email || !$roll || !$dept || $sem < 1 || $sem > 8) {
+                        $errors[] = "Row " . ($lineIndex + 1) . ": Invalid or missing fields for $name ($roll).";
+                        $skip_count++;
+                        continue;
+                    }
+
+                    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 150) {
+                        $errors[] = "Row " . ($lineIndex + 1) . ": Invalid email format ($email).";
+                        $skip_count++;
+                        continue;
+                    }
+
+                    if (strlen($name) > 100 || strlen($roll) > 50 || strlen($dept) > 50) {
+                        $errors[] = "Row " . ($lineIndex + 1) . ": Field values exceed maximum allowed character length.";
+                        $skip_count++;
+                        continue;
+                    }
+
+                    // Check duplicate
+                    $checkStmt->execute([$email, $roll]);
+                    if ($checkStmt->rowCount() > 0) {
+                        $skip_count++;
+                        continue;
+                    }
+
+                    try {
+                        $hashed = password_hash($raw_pass, PASSWORD_DEFAULT);
+                        $insertStmt->execute([$name, $email, $hashed, $roll, $dept, $sem]);
+                        $success_count++;
+                    } catch (PDOException $e) {
+                        $skip_count++;
+                        log_error("Failed to import student $name", $e);
+                    }
+                }
+
+                $pdo->commit();
+                $message = "Import complete: $success_count new students added, $skip_count duplicates/invalid skipped.";
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                log_error("Failed during CSV batch transaction", $e);
+                $errors[] = "Database error occurred during import.";
+            }
+        }
     }
 }
 

@@ -132,13 +132,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
 
         if ($question) {
-            $q_id = $question['id'];
+            $q_id = (int) $question['id'];
             $selected = $sessionAnswers[$q_id] ?? null;
             $marked = $sessionReviews[$q_id] ?? false;
 
             json_response([
                 'success' => true,
-                'question' => $question,
+                'question' => [
+                    'id' => $q_id,
+                    'question_text' => clean_input($question['question_text'] ?? ''),
+                    'option_a' => clean_input($question['option_a'] ?? ''),
+                    'option_b' => clean_input($question['option_b'] ?? ''),
+                    'option_c' => clean_input($question['option_c'] ?? ''),
+                    'option_d' => clean_input($question['option_d'] ?? ''),
+                ],
                 'total' => $total_questions,
                 'currentIndex' => $index,
                 'question_ids' => $all_ids,
