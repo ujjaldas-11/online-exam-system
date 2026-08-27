@@ -2,8 +2,8 @@
 # EXAMIFY HIGH-PERFORMANCE & SECURITY HTACCESS RULES
 # =========================================================
 
-# 1. Block Direct Access to Sensitive Files
-<FilesMatch "(\.env|\.sql|\.log|\.git|composer\.json|\.editorconfig)$">
+# 1. Block Direct Access to Sensitive Files & Scripts
+<FilesMatch "(\.env|\.sql|\.log|\.git|composer\.json|\.editorconfig|\.yml|\.sh|\.ps1)$">
     Require all denied
 </FilesMatch>
 
