@@ -80,7 +80,7 @@ class HttpClient
 
         $parts = explode("\n---HTTP_META---\n", $rawOutput);
         $this->lastBody = $parts[0] ?? '';
-        
+
         $meta = explode("\n", $parts[1] ?? '');
         $this->lastStatusCode = (int) ($meta[0] ?? 0);
         $this->lastUrl = trim($meta[1] ?? $url);
