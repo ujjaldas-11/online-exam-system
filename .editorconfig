@@ -15,13 +15,13 @@ trim_trailing_whitespace = true
 [*.php]
 indent_style = space
 indent_size = 4
-max_line_length = 120
+max_line_length = off
 
 # JavaScript files
 [*.js]
 indent_style = space
 indent_size = 2
-max_line_length = 100
+max_line_length = off
 
 # CSS files
 [*.css]

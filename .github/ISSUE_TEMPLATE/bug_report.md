@@ -20,9 +20,9 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Environment details (please complete the following information):**
- - OS: [e.g. Windows, macOS]
- - Browser [e.g. Chrome, Firefox]
- - PHP Version [e.g. 8.1]
+- OS: [e.g. Windows, macOS]
+- Browser [e.g. Chrome, Firefox]
+- PHP Version [e.g. 8.1]
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
