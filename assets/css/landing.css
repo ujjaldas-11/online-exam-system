@@ -1,10 +1,9 @@
-/* Core Layout - Flexible Single Screen (Scrolls only if necessary) */
 .landing-body {
   margin: 0;
-  min-height: 100vh; /* Allows growing beyond 1 screen if needed */
+  min-height: 100vh;
   width: 100vw;
-  overflow-x: hidden; /* Prevents horizontal scroll */
-  overflow-y: auto;   /* Enables vertical scroll on tiny screens */
+  overflow-x: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   background: #121212;
@@ -12,7 +11,6 @@
   font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* Navigation */
 .landing-nav {
   flex-shrink: 0;
   display: flex;
@@ -22,7 +20,7 @@
   background: rgba(18, 18, 18, 0.8);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  position: sticky; /* Keeps nav at top if user scrolls */
+  position: sticky;
   top: 0;
   z-index: 50;
 }
@@ -65,13 +63,12 @@
   font-weight: 800;
 }
 
-/* Main Content */
 .landing-main {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-evenly;
-  padding: 40px 5%; /* Added vertical padding to protect content on short screens */
+  padding: 40px 5%;
   position: relative;
   gap: 40px;
 }
@@ -87,7 +84,6 @@
   z-index: 0;
 }
 
-/* Left: Hero Section */
 .hero-section {
   position: relative;
   z-index: 1;
@@ -124,7 +120,6 @@
   margin-bottom: 24px;
 }
 
-/* Interactive Buttons */
 .hero-actions {
   display: flex;
   gap: 12px;
@@ -185,7 +180,6 @@
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
-/* Right: Features Section (2x2 Grid) */
 .features-section {
   position: relative;
   z-index: 1;
@@ -196,7 +190,6 @@
   gap: 16px;
 }
 
-/* Interactive Feature Cards */
 .feature-card {
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -241,7 +234,6 @@
   line-height: 1.5;
 }
 
-/* Footer */
 .landing-footer {
   flex-shrink: 0;
   display: flex;
@@ -281,7 +273,6 @@
   font-size: 0.75rem;
 }
 
-/* Responsive adjustments */
 @media (max-width: 950px) {
   .landing-main {
     flex-direction: column;
@@ -344,7 +335,7 @@
   }
 
   .feature-desc {
-    display: none; /* Keeps cards small on mobile to favor a 1-screen fit */
+    display: none;
   }
 
   .feature-title {
