@@ -8,7 +8,7 @@ $assetVersion = asset_version();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Examify — Online Exam platform</title>
     <link rel="icon" type="image/x-icon" href="assets/images/examify_icon.ico?v=<?= $assetVersion ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/examify_logo.png?v=<?= $assetVersion ?>">
@@ -19,73 +19,68 @@ $assetVersion = asset_version();
 <body class="landing-body">
 
     <nav class="landing-nav">
-
-        <a href="https://www.bistpurulia.org/"
-            class="college-brand"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Visit Bengal Institute of Science and Technology website"
-        >
-
-            <img
-                src="assets/images/college_logo.png"
-                alt="Bengal Institute of Science and Technology logo"
-            >
-
-            <div class="college-name">
-                <span>B</span>engal
-                <span>I</span>nstitute of
-                <span>S</span>cience and
-                <span>T</span>echnology
-            </div>
+        <a href="https://www.bistpurulia.org/" class="college-brand" target="_blank" rel="noopener noreferrer" aria-label="Visit Bengal Institute of Science and Technology website">
+            <img src="assets/images/college_logo.png" alt="Bengal Institute of Science and Technology logo">
+            <div class="college-name"><span>B</span>engal <span>I</span>nstitute of <span>S</span>cience and <span>T</span>echnology</div>
             <div class="college-name-mob">B.I.S.T</div>
         </a>
     </nav>
 
-    <header class="landing-hero">
+    <main class="landing-main">
         <div class="hero-bg" aria-hidden="true"></div>
 
-        <div class="hero-content">
-            <p class="eyebrow">
+        <section class="hero-section">
+            <div class="eyebrow">
                 <img src="assets/images/examify_logo.png" alt="Examify">
-            </p>
-            <h1>Examify</h1>
-            <p class="hero-sub">Build question banks, run timed and proctored exams, and get graded results the moment students submit.</p>
-            <a href="docs/user/user_doc.html">
-                <button class="btn btn-primary">User Documentation</button>
-            </a>
-            <div class="hero-actions"  style="margin-top:10px;">
-                <a href="admin/admin-login.php" class="btn btn-primary">Admin portal</a>
-                <a href="student/login.php" class="btn btn-outline">Student portal</a>
             </div>
-        </div>
-    </header>
+            <h1>Examify</h1>
+            <p class="hero-sub">Build question banks, run timed and proctored exams, and get graded results instantly.</p>
+            
+            <div class="hero-actions">
+                <a href="admin/admin-login.php" class="btn btn-primary interactive-btn">Admin Portal</a>
+                <a href="student/login.php" class="btn btn-outline interactive-btn">Student Portal</a>
+                <a href="docs/user/user_doc.html" class="btn btn-text interactive-btn">Documentation &rarr;</a>
+            </div>
+        </section>
 
-    <section class="landing-features">
-        <div class="feature-card">
-            <p class="feature-title">Question bank</p>
-            <p class="feature-desc">Organize questions by subject, ready to reuse across exams.</p>
-        </div>
-        <div class="feature-card">
-            <p class="feature-title">Timed and proctored</p>
-            <p class="feature-desc">Set exam windows and monitor sessions as students work through them.</p>
-        </div>
-        <div class="feature-card">
-            <p class="feature-title">Cheat-resistant exams</p>
-            <p class="feature-desc">Full-screen enforcement and tab-switch detection flag suspicious activity as it happens.</p>
-        </div>
-        <div class="feature-card">
-            <p class="feature-title">Instant results</p>
-            <p class="feature-desc">Auto-graded scores and exportable reports as soon as exams close.</p>
-        </div>
-    </section>
+        <section class="features-section">
+            <div class="feature-card interactive-card">
+                <div class="feature-icon">📚</div>
+                <div class="feature-text">
+                    <p class="feature-title">Question Bank</p>
+                    <p class="feature-desc">Organize and reuse subjects effortlessly.</p>
+                </div>
+            </div>
+            <div class="feature-card interactive-card">
+                <div class="feature-icon">⏱️</div>
+                <div class="feature-text">
+                    <p class="feature-title">Timed & Proctored</p>
+                    <p class="feature-desc">Set windows and monitor live sessions.</p>
+                </div>
+            </div>
+            <div class="feature-card interactive-card">
+                <div class="feature-icon">🛡️</div>
+                <div class="feature-text">
+                    <p class="feature-title">Cheat-Resistant</p>
+                    <p class="feature-desc">Full-screen enforcement & tab tracking.</p>
+                </div>
+            </div>
+            <div class="feature-card interactive-card">
+                <div class="feature-icon">📊</div>
+                <div class="feature-text">
+                    <p class="feature-title">Instant Results</p>
+                    <p class="feature-desc">Auto-graded scores available immediately.</p>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <footer class="landing-footer">
-        <a href="index.php" class="landing-logo landing-logo-sm">
+        <a href="index.php" class="landing-logo-sm interactive-link">
             <img src="assets/images/examify_logo.png" alt="." class="footer-logo">
             <span>Examify</span>
         </a>
-        <p class="footer-copy">&copy; <?php echo date('Y'); ?> examify. All rights reserved.</p>
+        <p class="footer-copy">&copy; <?php echo date('Y'); ?> Examify. All rights reserved.</p>
     </footer>
 
 </body>
