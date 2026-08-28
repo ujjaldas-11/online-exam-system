@@ -1,8 +1,10 @@
+/* Core Layout - Flexible Single Screen (Scrolls only if necessary) */
 .landing-body {
   margin: 0;
-  height: 100vh;
+  min-height: 100vh; /* Allows growing beyond 1 screen if needed */
   width: 100vw;
-  overflow: hidden;
+  overflow-x: hidden; /* Prevents horizontal scroll */
+  overflow-y: auto;   /* Enables vertical scroll on tiny screens */
   display: flex;
   flex-direction: column;
   background: #121212;
@@ -10,6 +12,7 @@
   font-family: system-ui, -apple-system, sans-serif;
 }
 
+/* Navigation */
 .landing-nav {
   flex-shrink: 0;
   display: flex;
@@ -19,7 +22,9 @@
   background: rgba(18, 18, 18, 0.8);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  z-index: 10;
+  position: sticky; /* Keeps nav at top if user scrolls */
+  top: 0;
+  z-index: 50;
 }
 
 .college-brand {
@@ -60,12 +65,13 @@
   font-weight: 800;
 }
 
+/* Main Content */
 .landing-main {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-evenly;
-  padding: 0 5%;
+  padding: 40px 5%; /* Added vertical padding to protect content on short screens */
   position: relative;
   gap: 40px;
 }
@@ -81,6 +87,7 @@
   z-index: 0;
 }
 
+/* Left: Hero Section */
 .hero-section {
   position: relative;
   z-index: 1;
@@ -117,6 +124,7 @@
   margin-bottom: 24px;
 }
 
+/* Interactive Buttons */
 .hero-actions {
   display: flex;
   gap: 12px;
@@ -177,6 +185,7 @@
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
+/* Right: Features Section (2x2 Grid) */
 .features-section {
   position: relative;
   z-index: 1;
@@ -187,6 +196,7 @@
   gap: 16px;
 }
 
+/* Interactive Feature Cards */
 .feature-card {
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -231,6 +241,7 @@
   line-height: 1.5;
 }
 
+/* Footer */
 .landing-footer {
   flex-shrink: 0;
   display: flex;
@@ -239,6 +250,8 @@
   padding: 12px 28px;
   background: rgba(18, 18, 18, 0.9);
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  z-index: 10;
 }
 
 .landing-logo-sm {
@@ -268,12 +281,13 @@
   font-size: 0.75rem;
 }
 
+/* Responsive adjustments */
 @media (max-width: 950px) {
   .landing-main {
     flex-direction: column;
     justify-content: center;
-    gap: 20px;
-    padding: 20px;
+    gap: 30px;
+    padding: 40px 20px;
   }
 
   .hero-section {
@@ -312,25 +326,25 @@
   }
 
   .hero-section h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
   .hero-sub {
-    font-size: 0.85rem;
-    margin-bottom: 16px;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
   }
 
   .features-section {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 10px;
   }
 
   .feature-card {
-    padding: 10px 14px;
+    padding: 12px 16px;
   }
 
   .feature-desc {
-    display: none;
+    display: none; /* Keeps cards small on mobile to favor a 1-screen fit */
   }
 
   .feature-title {
@@ -338,7 +352,7 @@
   }
 
   .landing-footer {
-    padding: 10px 16px;
+    padding: 12px 16px;
     flex-direction: column;
     gap: 8px;
   }
