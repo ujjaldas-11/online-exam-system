@@ -80,7 +80,7 @@ $assetVersion = asset_version();
             <img src="assets/images/examify_logo.png" alt="." class="footer-logo">
             <span>Examify</span>
         </a>
-        <p class="footer-copy">&copy; <?php echo date('Y'); ?> Examify. All rights reserved.</p>
+        <p class="footer-copy">&copy; <?= date('Y') ?> Examify. All rights reserved.</p>
     </footer>
 
 </body>
