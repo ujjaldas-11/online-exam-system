@@ -68,9 +68,13 @@ include __DIR__ . '/../components/header.php';
 ?>
 
 <div class="auth-card">
-        <img src="../assets/images/examify_logo.png" alt=".." height="50" width="50" style="background-color: black; border: none; border-radius: 8px;">
-        <h1 style="text-align:left;">Student Login</h1>
-        <p class="subtitle" style="text-align:left;">Sign in to start your examination</p>
+    <div class="auth-header">
+        <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+        <div class="auth-header-text">
+            <h1>Student Login</h1>
+            <p class="subtitle">Sign in to start your examination</p>
+        </div>
+    </div>
 
     <?php if ($error): ?>
         <div class="alert alert-error"><?= e($error) ?></div>

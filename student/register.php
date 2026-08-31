@@ -92,9 +92,14 @@ $body_class = 'auth-body';
 include __DIR__ . '/../components/header.php';
 ?>
 
-<div class="auth-card" style="max-width: 480px;">
-    <h1>Create Account</h1>
-    <p class="subtitle">Request to Register as a student for classroom examinations</p>
+<div class="auth-card auth-card-wide">
+    <div class="auth-header">
+        <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+        <div class="auth-header-text">
+            <h1>Create Account</h1>
+            <p class="subtitle">Request registration for classroom examinations</p>
+        </div>
+    </div>
 
     <?php if ($error): ?>
         <div class="alert alert-error"><?= e($error) ?></div>
@@ -106,22 +111,40 @@ include __DIR__ . '/../components/header.php';
     <form method="POST">
         <?= csrf_field() ?>
 
-        <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Tulasi Das">
+        <div class="auth-row-2">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Tulasi Benjamin Khan">
+            </div>
+
+            <div class="form-group">
+                <label>Student Email</label>
+                <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Student Email</label>
-            <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
+        <div class="auth-row-2">
+            <div class="form-group">
+                <label>Roll Number / Student ID</label>
+                <input type="text" name="roll_number" required value="<?= e($_POST['roll_number'] ?? '') ?>" placeholder="e.g. B26BCA01">
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text"
+                    name="phone_number"
+                    inputmode="numeric"
+                    pattern="[0-9]{10}"
+                    maxlength="10"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                    value="<?= e($_POST['phone_number'] ?? '') ?>"
+                    placeholder="10 digit number"
+                    required
+                >
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Roll Number / Student ID</label>
-            <input type="text" name="roll_number" required value="<?= e($_POST['roll_number'] ?? '') ?>" placeholder="e.g. B26BCA01">
-        </div>
-
-        <div class="form-grid">
+        <div class="auth-row-3">
             <div class="form-group">
                 <label>Department</label>
                 <select name="department" required>
@@ -144,20 +167,6 @@ include __DIR__ . '/../components/header.php';
             </div>
 
             <div class="form-group">
-                <label>Phone Number</label>
-                <input type="text"
-                name="phone_number"
-                inputmode="numeric"
-                pattern="[0-9]{10}"
-                maxlength="10"
-                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
-                value="<?= e($_POST['phone_number'] ?? '') ?>"
-                placeholder="10 digit number"
-                required
-            >
-            </div>
-
-            <div class="form-group">
                 <label>Gender</label>
                 <select name="gender" required>
                     <option value="">Select Gender</option>
@@ -167,7 +176,8 @@ include __DIR__ . '/../components/header.php';
                 </select>
             </div>
         </div>
-        <div class="form-grid">
+
+        <div class="auth-row-2">
             <div class="form-group">
                 <label>Password</label>
                 <input type="password" name="password" required placeholder="Min 6 characters">
@@ -178,7 +188,8 @@ include __DIR__ . '/../components/header.php';
                 <input type="password" name="confirm_password" required placeholder="Re-enter password">
             </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+
+        <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
             <span class="material-symbols-outlined icon-sm">person_add</span> Request Registration
         </button>
     </form>
