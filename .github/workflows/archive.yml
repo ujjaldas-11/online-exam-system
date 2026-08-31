@@ -49,6 +49,7 @@ jobs:
             config/ \
             student/ \
             utils/ \
+            docs/user/user_doc.html \
             .htaccess \
             index.php
 
