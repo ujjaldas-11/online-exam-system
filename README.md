@@ -114,16 +114,15 @@ online-exam-system/
 │   ├── result.php               # Instant score evaluation and performance breakdown
 │   └── student-guard.php        # Student authorization gate
 ├── tests/
-│   ├── create-credentials.php   # Test credential generator
 │   ├── daa-questions.json       # Question bank for Algorithms
 │   ├── networking-questions.json# Question bank for Computer Networks
 │   ├── os-questions.json        # Question bank for Operating Systems
-│   └── prepare-question.php     # CLI question importer from JSON
+│   ├── security_and_unit_tests.php # Security & unit test suite
+│   └── e2e_automation.php       # End-to-end browser automation suite
 ├── tools/
 │   ├── check-editorconfig.ps1   # PowerShell EditorConfig runner
-│   ├── check-editorconfig.sh    # Bash EditorConfig runner
-│   ├── reset-and-seed.php       # Complete database reset & full demo seeder
-│   └── setup-db.php             # One-command database installer and health check
+│   └── check-editorconfig.sh    # Bash EditorConfig runner
+├── init-db.php                  # Consolidated database initializer, schema installer & seeder
 ├── utils/
 │   ├── anti-cheat.js            # Fullscreen, tab-switch, and DevTools detection
 │   ├── auth.php                 # Native role verification helpers
@@ -176,21 +175,22 @@ online-exam-system/
 
 ### 3. Initialize Database
 
-#### Option A: Quick Full Demo with Sample Data (Recommended for Development)
-```bash
-php tools/reset-and-seed.php
-```
-*This automatically creates the database, loads the schema, seeds subjects, imports 50+ test questions, and sets up sample exams with default accounts:*
-- **Admin Email**: `admin@college.edu` | **Password**: `Admin@123`
-- **Student Email**: `student@college.edu` | **Password**: `Student@123` *(BCA, Semester 4)*
+Run the consolidated database initialization tool:
 
-#### Option B: Clean Setup (Production & Clean Installs)
 ```bash
-php tools/setup-db.php
+php init-db.php
 ```
-*Executes `archive/schema.sql` and initializes the default administrator account:*
-- **Admin Email**: `admin@college.edu`
-- **Default Password**: `Admin@123`
+
+*This automatically creates the database, applies `archive/schema.sql`, and seeds initial accounts and curriculum questions:*
+- **Superadmin Email**: `admin@college.edu` | **Password**: `Admin@123`
+- **Active Teacher Email**: `teacher@college.edu` | **Password**: `Teacher@123`
+- **Retired Teacher Email**: `grace.hopper@college.edu` *(Records Preserved)*
+- **Student Email**: `student@college.edu` | **Password**: `Student@123` *(BCA, Semester 4)*
+- **Live Test Exam**: *OS Surprise Quiz* (Classroom Access PIN: `4821`)
+
+#### Advanced CLI Options
+- `php init-db.php --fresh` — Drops existing database, recreates it from scratch, and seeds clean demo data.
+- `php init-db.php --schema-only` — Applies database tables without seeding (for pristine production environments).
 
 ### 4. Launch Application
 - **Via Local Web Server (XAMPP / WampServer / Apache)**:

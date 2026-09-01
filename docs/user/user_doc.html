@@ -861,6 +861,21 @@
                                         >3.10 Results & Reports</a
                                     >
                                 </li>
+                                <li>
+                                    <a class="toc-link" href="#sec-3-11"
+                                        >3.11 Teacher Accounts & Record Retention</a
+                                    >
+                                </li>
+                                <li>
+                                    <a class="toc-link" href="#sec-3-12"
+                                        >3.12 System Activity Audit Trail</a
+                                    >
+                                </li>
+                                <li>
+                                    <a class="toc-link" href="#sec-3-13"
+                                        >3.13 First-Time Setup Wizard</a
+                                    >
+                                </li>
                             </ul>
                         </li>
                     </ul>
@@ -1906,6 +1921,112 @@
                                     official score sheet
                                 </li>
                             </ul>
+                        </div>
+                    </details>
+
+                    <details id="sec-3-11" class="subsection">
+                        <summary>
+                            3.11 Teacher Accounts, Author Attribution &amp; Permanent Record Retention
+                        </summary>
+                        <div class="content">
+                            <p>
+                                Examify provides full Role-Based Access Control (RBAC) that distinguishes the <strong>Master Superadmin</strong> from individual <strong>Departmental Teachers / Instructors</strong>.
+                            </p>
+
+                            <div class="admonition">
+                                <span class="adm-label">Key Institutional Guarantee</span>
+                                When a teacher leaves or retires, their authored content (question banks, examinations, student attempts, and grading history) is <strong>never deleted or broken</strong>. Foreign keys preserve author attribution permanently.
+                            </div>
+
+                            <h4>1. Account Roles &amp; Capabilities</h4>
+                            <ul>
+                                <li>
+                                    <strong>Superadmin:</strong> Institutional administrator with full control. Can provision teacher accounts, retire or reactivate staff, reset instructor credentials, and inspect the institution-wide audit trail.
+                                </li>
+                                <li>
+                                    <strong>Teacher / Instructor:</strong> Departmental faculty member. Can create curriculum subjects, author questions, design exams, proctor live sessions, grade results, and manage student roster requests.
+                                </li>
+                            </ul>
+
+                            <h4>2. Provisioning New Teacher Accounts</h4>
+                            <ol>
+                                <li>Log in as Superadmin and navigate to <strong>Teachers</strong> in the navigation sidebar (or click "Manage Teachers" on the dashboard).</li>
+                                <li>In the <strong>Provision New Instructor Account</strong> form, enter the teacher's Full Name, Institutional Email, Department (BCA, BBA, etc.), and Initial Password (minimum 6 characters).</li>
+                                <li>Click <strong>Provision Teacher Account</strong>. The instructor can now immediately log in with their credentials.</li>
+                            </ol>
+
+                            <h4>3. Permanent Record Retention upon Teacher Retirement</h4>
+                            <p>
+                                To protect historical academic records, Examify does not offer a destructive "Delete Teacher" button. Instead, administrators use the <strong>Retire Teacher</strong> workflow:
+                            </p>
+                            <ul>
+                                <li>
+                                    <strong>Revocation of Access:</strong> Marking a teacher as <em>Retired</em> immediately revokes login permissions and terminates any active sessions.
+                                </li>
+                                <li>
+                                    <strong>Preservation of Content:</strong> All questions, curriculum subjects, exams, and student submissions authored by the teacher remain completely active and queryable.
+                                </li>
+                                <li>
+                                    <strong>Transparent Attribution:</strong> Across exam tables, question banks, and gradebooks, the author is clearly displayed as <code>Prof. Name [Retired]</code> so that the institutional history remains pristine.
+                                </li>
+                                <li>
+                                    <strong>Reactivation:</strong> If an instructor returns or needs temporary access, the Superadmin can click <strong>Reactivate Account</strong> with a single click.
+                                </li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details id="sec-3-12" class="subsection">
+                        <summary>
+                            3.12 System Activity Audit Trail
+                        </summary>
+                        <div class="content">
+                            <p>
+                                The <strong>Institutional Audit Trail</strong> provides immutable accountability by recording every administrative and exam-control action across all faculty members.
+                            </p>
+
+                            <h4>What Gets Logged?</h4>
+                            <ul>
+                                <li><strong>Exam Management:</strong> Creating exams, launching/starting live exams, adding emergency time extensions, and ending exam sessions.</li>
+                                <li><strong>Question Banks:</strong> Importing questions from CSV or adding questions to curriculum subjects.</li>
+                                <li><strong>Student Roster Actions:</strong> Approving or rejecting registration requests, approving profile changes, and resetting student passwords.</li>
+                                <li><strong>Faculty Governance:</strong> Provisioning new teachers, retiring or reactivating instructor accounts, and credential resets.</li>
+                            </ul>
+
+                            <h4>Accessing and Filtering the Audit Trail</h4>
+                            <ol>
+                                <li>Click <strong>Audit Trail</strong> in the admin navigation sidebar.</li>
+                                <li>Superadmins can filter logs by individual instructor, specific action type, or free-text keywords (e.g., student roll number, entity ID, or IP address).</li>
+                                <li>Teachers can inspect their own activity history to verify all actions taken on their account.</li>
+                            </ol>
+                        </div>
+                    </details>
+
+                    <details id="sec-3-13" class="subsection">
+                        <summary>
+                            3.13 First-Time Superadmin Password Setup Wizard
+                        </summary>
+                        <div class="content">
+                            <p>
+                                When Examify is freshly deployed on a campus server or computer lab, it automatically initiates the <strong>One-Time Superadmin Initialization Setup</strong>:
+                            </p>
+
+                            <div class="admonition">
+                                <span class="adm-label">Setup Security Lock</span>
+                                The initialization wizard runs only once. Once the Master Superadmin password is created, the setup screen is permanently locked against further execution to prevent privilege hijacking.
+                            </div>
+
+                            <ol>
+                                <li>On first launch, navigating to the portal or <code>admin/admin-login.php</code> detects that no superadmin exists and redirects to <code>admin/setup.php</code>.</li>
+                                <li>The wizard prompts for:
+                                    <ul>
+                                        <li><strong>Superadmin Full Name</strong> (e.g., Dean or Head of Exams)</li>
+                                        <li><strong>Master Admin Email</strong> (e.g., <code>admin@college.edu</code>)</li>
+                                        <li><strong>One-Time Superadmin Password</strong> (minimum 8 characters) and Confirmation</li>
+                                    </ul>
+                                </li>
+                                <li>Upon submission, the master credentials are encrypted using <code>PASSWORD_BCRYPT</code>, an initial audit log is recorded, and the administrator is logged in directly to the Superadmin Dashboard.</li>
+                            </ol>
                         </div>
                     </details>
                 </section>

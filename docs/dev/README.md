@@ -99,7 +99,12 @@ Stores instructor and administrator user accounts.
 - `name` (VARCHAR(100))
 - `email` (VARCHAR(150), UNIQUE)
 - `password` (VARCHAR(255))
+- `role` (ENUM('superadmin', 'teacher'), DEFAULT 'teacher')
+- `status` (ENUM('active', 'retired'), DEFAULT 'active')
+- `department` (VARCHAR(50), NULLABLE)
+- `created_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `created_at` (TIMESTAMP)
+- `updated_at` (TIMESTAMP)
 
 #### 2. `students`
 Stores registered student user accounts.
@@ -110,6 +115,8 @@ Stores registered student user accounts.
 - `roll_number` (VARCHAR(50), UNIQUE)
 - `department` (VARCHAR(50))
 - `semester` (INT)
+- `phone_number` (VARCHAR(20), NULLABLE)
+- `gender` (ENUM('Male', 'Female', 'Other'), NULLABLE)
 - `status` (ENUM('active', 'blocked'))
 - `created_at` (TIMESTAMP)
 
@@ -119,18 +126,22 @@ Stores academic curriculum subjects organized by department and semester.
 - `name` (VARCHAR(100))
 - `department` (VARCHAR(50))
 - `semester` (INT)
+- `created_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `created_at` (TIMESTAMP)
 
 #### 4. `questions`
 Stores multiple-choice questions belonging to subjects.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
-- `subject_id` (INT, FOREIGN KEY -> `subjects.id`)
+- `subject_id` (INT, FOREIGN KEY -> `subjects.id` ON DELETE CASCADE)
+- `unit_number` (INT, DEFAULT 1)
 - `question_text` (TEXT)
 - `option_a` (TEXT)
 - `option_b` (TEXT)
 - `option_c` (TEXT)
 - `option_d` (TEXT)
 - `correct_option` (CHAR(1))
+- `marks` (INT, DEFAULT 1)
+- `created_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 
 #### 5. `exams`
 Stores examination configurations and live status.
@@ -141,8 +152,10 @@ Stores examination configurations and live status.
 - `total_marks` (INT)
 - `total_questions_to_ask` (INT)
 - `access_pin` (VARCHAR(10), NULLABLE)
+- `target_units` (VARCHAR(50), DEFAULT 'all')
 - `status` (ENUM('inactive', 'active', 'ended'))
 - `start_time` (DATETIME, NULLABLE)
+- `created_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `created_at` (TIMESTAMP)
 
 #### 6. `exam_attempts`
@@ -181,24 +194,52 @@ Stores pending student profile change requests.
 - `new_department` (VARCHAR(50))
 - `new_semester` (INT)
 - `status` (ENUM('pending', 'approved', 'rejected'))
+- `reviewed_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `request_date` (TIMESTAMP)
 
-### 3.2 Database Initialization Tools
+#### 10. `registration_request`
+Stores self-registered student accounts waiting for teacher/admin verification.
+- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
+- `name` (VARCHAR(100))
+- `email` (VARCHAR(150), UNIQUE)
+- `password` (VARCHAR(255))
+- `roll_number` (VARCHAR(50), UNIQUE)
+- `department` (VARCHAR(50))
+- `semester` (INT)
+- `phone_number` (VARCHAR(20), NULLABLE)
+- `gender` (ENUM('Male', 'Female', 'Other'), NULLABLE)
+- `status` (ENUM('pending', 'approved', 'rejected'))
+- `reviewed_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
+- `created_at` (TIMESTAMP)
 
-The `tools/` directory contains two setup scripts:
+#### 11. `admin_audit_logs`
+Stores immutable chronological audit records of all administrative actions.
+- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
+- `admin_id` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
+- `admin_name` (VARCHAR(100))
+- `admin_role` (VARCHAR(50))
+- `action` (VARCHAR(80))
+- `entity_type` (VARCHAR(50), NULLABLE)
+- `entity_id` (INT, NULLABLE)
+- `details` (TEXT, NULLABLE)
+- `ip_address` (VARCHAR(45), NULLABLE)
+- `created_at` (TIMESTAMP)
 
-- `tools/reset-and-seed.php`:
-  Drops existing tables, recreates the schema, and seeds demo subjects, questions, and accounts.
-  Run with:
+### 3.2 Database Initialization Tool (`init-db.php`)
+
+Examify uses a single consolidated database initialization script located at the repository root:
+
+- `init-db.php`:
+  Initializes the MySQL database, applies `archive/schema.sql`, and seeds initial accounts and curriculum questions.
   ```bash
-  php tools/reset-and-seed.php
-  ```
+  # Standard initialization with demo data
+  php init-db.php
 
-- `tools/setup-db.php`:
-  Runs `archive/schema.sql` on production systems.
-  Run with:
-  ```bash
-  php tools/setup-db.php
+  # Fresh drop and recreate with seed data
+  php init-db.php --fresh
+
+  # Schema tables only without seeds (Production)
+  php init-db.php --schema-only
   ```
 
 ---
@@ -270,9 +311,43 @@ On successful login, scripts call `session_regenerate_id(true)` to prevent sessi
 ### 5.5 Authentication and Authorization (`utils/auth.php`)
 
 - `is_admin_logged_in()`: Returns `true` if the session contains a valid `admin_id`.
-- `is_student_logged_in()`: Returns `true` if the session contains a valid `student_id`.
-- `admin/admin-guard.php`: Guard file included at the top of all admin pages.
+- `is_superadmin()`: Returns `true` if the logged-in administrator possesses `role === 'superadmin'`.
+- `is_teacher()`: Returns `true` if the logged-in administrator possesses `role === 'teacher'`.
+- `get_admin_role()`: Returns `'superadmin'`, `'teacher'`, or empty string.
+- `require_admin()`: Redirects unauthenticated visitors to `admin-login.php`.
+- `require_superadmin()`: Restricts access to Superadmin-only modules (`manage-teachers.php`), redirecting teachers with an error.
+- `is_system_initialized(PDO $pdo)`: Checks whether the `admins` table contains at least one Superadmin account.
+- `admin/admin-guard.php`: Guard file included at the top of all admin pages. Syncs active role and terminates sessions if an account is marked `retired`.
 - `student/student-guard.php`: Guard file included at the top of all student pages.
+
+### 5.6 First-Time Master Superadmin Password Setup (`admin/setup.php`)
+
+When Examify is freshly deployed or initialized:
+1. `is_system_initialized($pdo)` evaluates to `false` because zero `superadmin` rows exist.
+2. Any visit to `admin/admin-login.php` or administrative areas automatically redirects to `admin/setup.php`.
+3. The setup wizard requests the Superadmin's Full Name, Institutional Email, and Master Password (minimum 8 characters with confirmation).
+4. Upon form submission, the Superadmin record is provisioned with `role = 'superadmin'`, `status = 'active'`, and a secure `PASSWORD_BCRYPT` hash.
+5. An immutable initialization record is written to `admin_audit_logs`.
+6. Once a Superadmin exists, `admin/setup.php` is **permanently locked** and redirects to `admin-login.php`, preventing administrative hijacking.
+
+### 5.7 Teacher Account Provisioning, Retirement & Record Retention
+
+To maintain institutional integrity when teachers leave or retire:
+- **Separation of Accounts**: Each teacher receives their own distinct administrative login with departmental affiliation.
+- **Account Provisioning**: The Superadmin provisions teacher accounts via `admin/manage-teachers.php`.
+- **Foreign Key Preservation**: All authored entities (`subjects.created_by`, `exams.created_by`, `questions.created_by`, `profile_requests.reviewed_by`, `registration_request.reviewed_by`) use `FOREIGN KEY ... ON DELETE SET NULL` rather than `CASCADE`.
+- **Retirement Mechanism**: Teachers are **never hard-deleted** from the system. Instead, their status is set to `retired`:
+  - `admin-guard.php` and `admin-login.php` immediately reject retired instructor logins.
+  - Active sessions are immediately invalidated.
+  - All questions, examinations, student attempts, and historical grading records created by the retired instructor are **100% retained**.
+  - All interfaces (`control-exams.php`, `view-questions.php`, `results.php`, `view-results.php`, `manage-subjects.php`) display the author's name alongside an explicit `[Retired]` badge.
+
+### 5.8 Institutional Audit Trail (`admin/audit-logs.php` & `utils/logger.php`)
+
+All significant administrative actions are tracked via `log_admin_action()`:
+- **Events Logged**: Exam creation, launch/start, extension, deletion; question imports; subject creation; student registrations; profile approvals; student password resets; teacher provisioning, retirement, and password changes.
+- **Immutable Log Entry**: Records `admin_id`, `admin_name`, `admin_role`, `action`, `entity_type`, `entity_id`, `details`, client `ip_address`, and `created_at`.
+- **Access Control**: Superadmins can filter and review activity across all instructors; teachers can inspect their own activity history.
 
 ---
 
