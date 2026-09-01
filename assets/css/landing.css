@@ -1,11 +1,4 @@
-/* =========================================================
-   LANDING PAGE
-   Reuses global tokens from variables.css where they genuinely
-   match (muted/secondary text). The dark background + indigo
-   accent are landing-specific — this page intentionally uses a
-   different visual identity than the olive-branded admin app —
-   so they're declared here as their own set of variables.
-   ========================================================= */
+/*LANDING PAGE*/
 
 :root {
     --landing-bg: #121212;
@@ -23,7 +16,7 @@
     --landing-accent: var(--color-primary, #33422e);
     --landing-accent-hover: var(--color-primary-hover, #263320);
     --landing-accent-text: #b7cda3;
-    --landing-accent-dots: rgba(51, 66, 46, 0.35);
+    --landing-accent-dots: rgba(159, 189, 138, 0.35);
     --landing-accent-soft: rgba(51, 66, 46, 0.14);
     --landing-accent-soft-border: rgba(51, 66, 46, 0.28);
     --landing-accent-shadow: rgba(51, 66, 46, 0.55);
@@ -87,7 +80,7 @@
 }
 
 .college-name span {
-    color: rgba(254, 160, 8, 0.918);
+    color: var(--landing-accent);
     font-size: 1.4rem;
 }
 
