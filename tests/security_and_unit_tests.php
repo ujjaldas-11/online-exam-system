@@ -158,6 +158,7 @@ $t->runTest('sanitize_asset_name() blocks directory traversal and malicious payl
     $t->assertSame(null, sanitize_asset_name('exam.php', 'css'));
     $t->assertSame('app.css', sanitize_asset_name('app.css', 'css'));
     $t->assertSame('exam.css', sanitize_asset_name('exam.css', 'css'));
+    $t->assertSame('material-symbols.css', sanitize_asset_name('material-symbols.css', 'css'));
     $t->assertSame('anti-cheat.js', sanitize_asset_name('anti-cheat.js', 'js'));
 });
 

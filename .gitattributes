@@ -23,3 +23,8 @@
 *.ico binary
 *.zip binary
 *.tar.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
