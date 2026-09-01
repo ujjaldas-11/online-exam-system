@@ -10,9 +10,17 @@ CREATE TABLE IF NOT EXISTS `admins` (
   `name` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `role` enum('superadmin','teacher') NOT NULL DEFAULT 'teacher',
+  `status` enum('active','retired') NOT NULL DEFAULT 'active',
+  `department` varchar(50) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `email` (`email`),
+  KEY `idx_admins_role_status` (`role`, `status`),
+  KEY `fk_admins_created_by` (`created_by`),
+  CONSTRAINT `fk_admins_created_by` FOREIGN KEY (`created_by`) REFERENCES `admins` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -45,9 +53,12 @@ CREATE TABLE IF NOT EXISTS `subjects` (
   `name` varchar(200) NOT NULL,
   `department` varchar(50) NOT NULL,
   `semester` tinyint(4) NOT NULL,
+  `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `idx_subjects_dept_sem` (`department`, `semester`)
+  KEY `idx_subjects_dept_sem` (`department`, `semester`),
+  KEY `fk_subjects_admin` (`created_by`),
+  CONSTRAINT `fk_subjects_admin` FOREIGN KEY (`created_by`) REFERENCES `admins` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -65,12 +76,15 @@ CREATE TABLE IF NOT EXISTS `exams` (
   `access_pin` varchar(10) DEFAULT NULL,
   `target_units` varchar(50) NOT NULL DEFAULT 'all',
   `start_time` datetime DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `subject_id` (`subject_id`),
   KEY `idx_exams_subject_status` (`subject_id`, `status`),
   KEY `idx_exams_start_time` (`start_time`),
-  CONSTRAINT `fk_exams_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE
+  KEY `fk_exams_admin` (`created_by`),
+  CONSTRAINT `fk_exams_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_exams_admin` FOREIGN KEY (`created_by`) REFERENCES `admins` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -87,10 +101,13 @@ CREATE TABLE IF NOT EXISTS `questions` (
   `option_d` varchar(255) NOT NULL,
   `correct_option` enum('A','B','C','D') NOT NULL,
   `marks` int(11) DEFAULT 1,
+  `created_by` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `subject_id` (`subject_id`),
   KEY `idx_questions_subject_unit` (`subject_id`, `unit_number`),
-  CONSTRAINT `fk_questions_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE
+  KEY `fk_questions_admin` (`created_by`),
+  CONSTRAINT `fk_questions_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_questions_admin` FOREIGN KEY (`created_by`) REFERENCES `admins` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -156,10 +173,13 @@ CREATE TABLE IF NOT EXISTS `profile_requests` (
   `new_department` varchar(50) NOT NULL,
   `new_semester` tinyint(4) NOT NULL,
   `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `reviewed_by` int(11) DEFAULT NULL,
   `request_date` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `student_id` (`student_id`),
-  CONSTRAINT `fk_profile_requests_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
+  KEY `fk_profile_requests_admin` (`reviewed_by`),
+  CONSTRAINT `fk_profile_requests_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_profile_requests_admin` FOREIGN KEY (`reviewed_by`) REFERENCES `admins` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -177,10 +197,35 @@ CREATE TABLE IF NOT EXISTS `registration_request` (
   `gender` enum('male','female','others') DEFAULT NULL,
   `status` enum('approved','pending','rejected') DEFAULT 'pending',
   `active_session_id` varchar(128) DEFAULT NULL,
+  `reviewed_by` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
-  UNIQUE KEY `roll_number` (`roll_number`)
+  UNIQUE KEY `roll_number` (`roll_number`),
+  KEY `fk_registration_request_admin` (`reviewed_by`),
+  CONSTRAINT `fk_registration_request_admin` FOREIGN KEY (`reviewed_by`) REFERENCES `admins` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table: admin_audit_logs (Immutable activity tracking for Superadmin & Teachers)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `admin_audit_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `admin_id` int(11) DEFAULT NULL,
+  `admin_name` varchar(100) NOT NULL,
+  `admin_role` varchar(50) NOT NULL,
+  `action` varchar(100) NOT NULL,
+  `entity_type` varchar(50) DEFAULT NULL,
+  `entity_id` int(11) DEFAULT NULL,
+  `details` text DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_audit_admin` (`admin_id`, `created_at`),
+  KEY `idx_audit_action` (`action`),
+  KEY `idx_audit_entity` (`entity_type`, `entity_id`),
+  CONSTRAINT `fk_audit_admin` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 COMMIT;
+
