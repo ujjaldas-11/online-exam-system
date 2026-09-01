@@ -35,7 +35,7 @@ $assetVersion = asset_version();
             </div>
             <h1>Examify</h1>
             <p class="hero-sub">Build question banks, run timed and proctored exams, and get graded results instantly.</p>
-            
+
             <div class="hero-actions">
                 <a href="admin/admin-login.php" class="btn btn-primary interactive-btn">Admin Portal</a>
                 <a href="student/login.php" class="btn btn-outline interactive-btn">Student Portal</a>

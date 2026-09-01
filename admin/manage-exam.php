@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
 
                 $message = "Exam created successfully! Navigate to 'Control Exams' to start and monitor it.";
                 $message_type = 'success';
-            } catch (Exception $e) {
+            } catch (PDOException $e) {
                 $message = safe_db_error($e, 'Failed to create examination.');
                 $message_type = 'error';
             }
