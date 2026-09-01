@@ -9,11 +9,30 @@ require_once __DIR__ . '/../utils/sanitize.php';
 
 init_secure_session();
 
+// Check if database requires initial superadmin setup
+if (!is_system_initialized($pdo)) {
+    redirect('setup.php');
+}
+
 if (is_admin_logged_in()) {
     redirect('admin-dashboard.php');
 }
 
 $error = '';
+$success = '';
+
+if (isset($_GET['error']) && $_GET['error'] === 'retired') {
+    $error = "This instructor account has been marked as retired/deactivated. Access is disabled.";
+} elseif (isset($_GET['msg']) && $_GET['msg'] === 'setup_complete') {
+    $success = "Superadmin setup completed successfully! Please log in.";
+}
+
+if (has_flash('error')) {
+    $error = get_flash('error');
+}
+if (has_flash('success')) {
+    $success = get_flash('success');
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -25,19 +44,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter both email and password.";
     } else {
         try {
-            $stmt = $pdo->prepare("SELECT id, name, password FROM admins WHERE email = :email LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, name, password, role, status, department FROM admins WHERE email = :email LIMIT 1");
             $stmt->execute([':email' => $email]);
             $admin = $stmt->fetch();
 
             if ($admin && password_verify($password, $admin['password'])) {
-                // Prevent session fixation
-                session_regenerate_id(true);
+                if (($admin['status'] ?? 'active') === 'retired') {
+                    $error = "This instructor account has been marked as retired/deactivated. Access is disabled.";
+                } else {
+                    // Prevent session fixation
+                    session_regenerate_id(true);
 
-                $_SESSION['admin_id'] = $admin['id'];
-                $_SESSION['admin_name'] = $admin['name'];
-                $_SESSION['role'] = 'admin';
+                    $_SESSION['admin_id'] = $admin['id'];
+                    $_SESSION['admin_name'] = $admin['name'];
+                    $_SESSION['admin_role'] = $admin['role'] ?? 'teacher';
+                    $_SESSION['role'] = $admin['role'] ?? 'teacher';
+                    $_SESSION['admin_dept'] = $admin['department'] ?? '';
 
-                redirect('admin-dashboard.php');
+                    log_admin_action($pdo, 'login', 'admin', $admin['id'], "Admin/Teacher logged in: {$admin['name']}");
+
+                    redirect('admin-dashboard.php');
+                }
             } else {
                 $error = "Invalid email or password.";
             }
@@ -63,6 +90,10 @@ include __DIR__ . '/../components/header.php';
 
     <?php if ($error): ?>
         <div class="alert alert-error"><?= e($error) ?></div>
+    <?php endif; ?>
+
+    <?php if ($success): ?>
+        <div class="alert alert-success"><?= e($success) ?></div>
     <?php endif; ?>
 
     <form method="POST" action="">

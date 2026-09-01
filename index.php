@@ -1,8 +1,11 @@
 <?php
 // Landing page — public entry point, no session-gated content here
 require_once __DIR__ . '/utils/env.php';
+require_once __DIR__ . '/utils/auth.php';
+require_once __DIR__ . '/config/database.php';
 
 $assetVersion = asset_version();
+$isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,6 +20,13 @@ $assetVersion = asset_version();
     <link rel="stylesheet" href="assets/css/landing.css?v=<?= $assetVersion ?>">
 </head>
 <body class="landing-body">
+    <?php if (!$isInitialized): ?>
+        <div style="background: #1e3a8a; color: #f8fafc; text-align: center; padding: 10px 16px; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.2);">
+            <span style="background: #eab308; color: #1e293b; font-weight: 700; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Setup</span>
+            System requires first-time initialization.
+            <a href="admin/setup.php" style="color: #67e8f9; font-weight: 600; text-decoration: underline;">Configure Superadmin Password &rarr;</a>
+        </div>
+    <?php endif; ?>
 
     <nav class="landing-nav">
         <a href="https://www.bistpurulia.org/" class="college-brand" target="_blank" rel="noopener noreferrer" aria-label="Visit Bengal Institute of Science and Technology website">
