@@ -77,9 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
             try {
                 $pdo->beginTransaction();
 
+                $creator_id = $_SESSION['admin_id'] ?? null;
                 $sql = 'INSERT INTO questions
-                        (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+                        (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option, created_by)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
                 $stmt = $pdo->prepare($sql);
 
                 $count = 0;
@@ -129,7 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                         $opt_b,
                         $opt_c,
                         $opt_d,
-                        $correct
+                        $correct,
+                        $creator_id
                     ]);
                     $count++;
                 }
@@ -141,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                 }
 
                 $pdo->commit();
+                log_admin_action($pdo, 'import_questions', 'questions', $subject_id, "Imported $count questions into subject #$subject_id");
                 $success_message = "$count questions imported successfully!";
             } catch (Exception $e) {
                 if (is_resource($handle)) {

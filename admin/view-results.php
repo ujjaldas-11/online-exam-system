@@ -13,7 +13,12 @@ $exam_id = int_param($_GET['exam_id']);
 
 try {
     // Fetch Exam Details
-    $examStmt = $pdo->prepare("SELECT title, total_marks FROM exams WHERE id = ?");
+    $examStmt = $pdo->prepare("
+        SELECT e.title, e.total_marks, a.name as creator_name, a.status as creator_status
+        FROM exams e
+        LEFT JOIN admins a ON e.created_by = a.id
+        WHERE e.id = ?
+    ");
     $examStmt->execute([$exam_id]);
     $exam = $examStmt->fetch();
 
@@ -56,7 +61,14 @@ include __DIR__ . '/../components/header.php';
     <div class="page-header">
         <div>
             <h1><?= e($exam['title']) ?></h1>
-            <p>Total Examination Marks: <strong><?= e((string)$exam['total_marks']) ?></strong> • Total Submissions: <strong><?= count($all_results) ?></strong></p>
+            <p>
+                Total Examination Marks: <strong><?= e((string)$exam['total_marks']) ?></strong> •
+                Total Submissions: <strong><?= count($all_results) ?></strong> •
+                Author: <strong><?= e($exam['creator_name'] ?? 'System') ?></strong>
+                <?php if (($exam['creator_status'] ?? '') === 'retired'): ?>
+                    <span class="badge badge-warning" style="font-size: 0.65rem; padding: 1px 4px; vertical-align: middle;">Retired</span>
+                <?php endif; ?>
+            </p>
         </div>
         <button onclick="window.print()" class="btn btn-primary no-print" style="display: inline-flex; align-items: center; gap: 6px;">
             <span class="material-symbols-outlined icon-sm">print</span> Print / Save PDF

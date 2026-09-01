@@ -6,6 +6,9 @@ require_once '../utils/logger.php';
 require_once '../utils/sanitize.php';
 
 $admin_name = $_SESSION['admin_name'] ?? 'Admin';
+$admin_role = get_admin_role();
+$isAdminSuper = is_superadmin();
+$admin_id = (int) ($_SESSION['admin_id'] ?? 0);
 
 try {
     $total_exams = (int) $pdo->query("SELECT COUNT(*) FROM exams")->fetchColumn();
@@ -14,12 +17,22 @@ try {
     $total_questions = (int) $pdo->query("SELECT COUNT(*) FROM questions")->fetchColumn();
     $total_students = (int) $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
     $total_attempts = (int) $pdo->query("SELECT COUNT(*) FROM exam_attempts")->fetchColumn();
+
+    $my_exams = 0;
+    $my_questions = 0;
+    if (!$isAdminSuper && $admin_id > 0) {
+        $stmtMyE = $pdo->prepare("SELECT COUNT(*) FROM exams WHERE created_by = ?");
+        $stmtMyE->execute([$admin_id]);
+        $my_exams = (int) $stmtMyE->fetchColumn();
+
+        $stmtMyQ = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE created_by = ?");
+        $stmtMyQ->execute([$admin_id]);
+        $my_questions = (int) $stmtMyQ->fetchColumn();
+    }
 } catch (PDOException $e) {
     log_error("Admin dashboard database error", $e);
     die("Database Error. Please try again later.");
 }
-
-
 
 $page_title = 'Admin Dashboard • Examify';
 include __DIR__ . '/../components/header.php';
@@ -27,11 +40,25 @@ include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
 <div class="container main-content">
+    <?php if (has_flash('success')): ?>
+        <div class="alert alert-success"><?= e(get_flash('success')) ?></div>
+    <?php endif; ?>
+    <?php if (has_flash('error')): ?>
+        <div class="alert alert-error"><?= e(get_flash('error')) ?></div>
+    <?php endif; ?>
+
     <!-- Header -->
     <div class="page-header">
         <div>
-            <h1>Admin & Instructor Dashboard</h1>
-            <p>System overview, live exams, and classroom controls</p>
+            <h1><?= $isAdminSuper ? 'Superadmin Dashboard' : 'Instructor Dashboard' ?></h1>
+            <p>Admin & Instructor Dashboard • Signed in as <strong><?= e($admin_name) ?></strong>
+                <span class="badge <?= $isAdminSuper ? 'badge-active' : 'badge-inactive' ?>" style="margin-left: 6px; font-size: 0.75rem; text-transform: uppercase;">
+                    <?= $isAdminSuper ? 'Superadmin' : 'Teacher' ?>
+                </span>
+                <?php if (!empty($_SESSION['admin_dept'])): ?>
+                    <span style="color: var(--color-text-secondary); font-size: 0.88rem;">• <?= e($_SESSION['admin_dept']) ?> Department</span>
+                <?php endif; ?>
+            </p>
         </div>
         <div class="badge badge-active" style="padding: 8px 14px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
             <span class="material-symbols-outlined icon-sm">calendar_today</span> <?= date('l, d M Y') ?>
@@ -117,6 +144,32 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <small style="color: var(--color-text-secondary); font-weight: normal;">Profile edits & password resets</small>
                 </div>
             </a>
+
+            <?php if ($isAdminSuper): ?>
+                <a href="manage-teachers.php" class="btn btn-primary" style="justify-content: flex-start; padding: 16px; gap: 12px; background: #1e3a8a; border-color: #1e3a8a;">
+                    <span class="material-symbols-outlined icon-xl">school</span>
+                    <div style="text-align: left;">
+                        <div><strong>Manage Teachers</strong></div>
+                        <small style="opacity: 0.85; font-weight: normal;">Provision accounts & retire staff</small>
+                    </div>
+                </a>
+
+                <a href="audit-logs.php" class="btn btn-secondary" style="justify-content: flex-start; padding: 16px; gap: 12px;">
+                    <span class="material-symbols-outlined icon-xl">receipt_long</span>
+                    <div style="text-align: left;">
+                        <div><strong>System Audit Trail</strong></div>
+                        <small style="color: var(--color-text-secondary); font-weight: normal;">Review teacher & record history</small>
+                    </div>
+                </a>
+            <?php else: ?>
+                <a href="audit-logs.php" class="btn btn-secondary" style="justify-content: flex-start; padding: 16px; gap: 12px;">
+                    <span class="material-symbols-outlined icon-xl">history</span>
+                    <div style="text-align: left;">
+                        <div><strong>My Activity Trail</strong></div>
+                        <small style="color: var(--color-text-secondary); font-weight: normal;">View your authored actions</small>
+                    </div>
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </div>

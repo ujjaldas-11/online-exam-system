@@ -29,11 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $updateSuccess = $updatestmt->execute([$req['new_name'], $req['new_roll_no'], $req['new_department'], $req['new_semester'], $req['student_id']]);
 
                     // 2. Update the request status
-                    $statusStmt = $pdo->prepare("UPDATE profile_requests SET status = 'approved' WHERE id = ?");
-                    $statusSuccess = $statusStmt->execute([$request_id]);
+                    $reviewer_id = $_SESSION['admin_id'] ?? null;
+                    $statusStmt = $pdo->prepare("UPDATE profile_requests SET status = 'approved', reviewed_by = ? WHERE id = ?");
+                    $statusSuccess = $statusStmt->execute([$reviewer_id, $request_id]);
 
                     if ($updateSuccess && $statusSuccess) {
                         $pdo->commit();
+                        log_admin_action($pdo, 'approve_profile_edit', 'profile_request', $request_id, "Approved profile edit for student #{$req['student_id']}: {$req['new_name']} ({$req['new_roll_no']})");
                         $message = "Student profile updated successfully!";
                     } else {
                         $pdo->rollBack();
@@ -48,7 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } elseif ($_POST['action'] === 'reject') {
             try {
-                $pdo->prepare("UPDATE profile_requests SET status ='rejected' WHERE id = ?")->execute([$request_id]);
+                $reviewer_id = $_SESSION['admin_id'] ?? null;
+                $pdo->prepare("UPDATE profile_requests SET status ='rejected', reviewed_by = ? WHERE id = ?")->execute([$reviewer_id, $request_id]);
+                log_admin_action($pdo, 'reject_profile_edit', 'profile_request', $request_id, "Rejected profile edit request #$request_id");
                 $message = "Request has been rejected.";
             } catch (PDOException $e) {
                 $error = safe_db_error($e, "Failed to reject request.");
@@ -73,7 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $hashed = password_hash($new_password, PASSWORD_DEFAULT);
                     $upStmt = $pdo->prepare("UPDATE students SET password = ?, active_session_id = NULL WHERE id = ?");
                     $upStmt->execute([$hashed, $student['id']]);
-                    $message = "Password successfully reset for " . e($student['name']) . " ($roll_number)! Active sessions invalidated.";
+
+                    log_admin_action($pdo, 'reset_student_password', 'student', (int)$student['id'], "Reset password for student {$student['name']} ($roll_number)");
+
+                    $message = "Password for student " . e($student['name']) . " ($roll_number) has been updated successfully. Any active student session was revoked.";
                 }
             } catch (PDOException $e) {
                 $error = safe_db_error($e, "Failed to reset student password.");

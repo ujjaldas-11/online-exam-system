@@ -136,6 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_csv'])) {
                 }
 
                 $pdo->commit();
+                log_admin_action($pdo, 'import_students', 'student', null, "Batch imported $success_count students ($skip_count skipped)");
                 $message = "Import complete: $success_count new students added, $skip_count duplicates/invalid skipped.";
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) {

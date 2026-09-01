@@ -55,12 +55,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
             $message_type = 'error';
         } else {
             try {
+                $creator_id = $_SESSION['admin_id'] ?? null;
                 $stmt = $pdo->prepare("
                     INSERT INTO exams
-                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, access_pin, target_units,  status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'inactive')
+                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, access_pin, target_units, status, created_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'inactive', ?)
                 ");
-                $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions, $access_pin ?: null, $target_units]);
+                $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions, $access_pin ?: null, $target_units, $creator_id]);
+                $newExamId = (int) $pdo->lastInsertId();
+
+                log_admin_action($pdo, 'create_exam', 'exam', $newExamId, "Created exam: $title (Duration: {$duration}m, Marks: $total_marks, Qs: $total_questions)");
 
                 $message = "Exam created successfully! Navigate to 'Control Exams' to start and monitor it.";
                 $message_type = 'success';

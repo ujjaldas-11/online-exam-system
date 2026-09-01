@@ -13,10 +13,12 @@ try {
 
     $params = [];
     $sql = "SELECT e.id, e.title, e.total_marks, s.department, s.semester,
+            a.name as creator_name, a.status as creator_status,
             (SELECT COUNT(*) FROM exam_attempts
             WHERE exam_id = e.id AND status = 'completed') AS total_attempts
             FROM exams e
-            JOIN subjects s ON e.subject_id = s.id";
+            JOIN subjects s ON e.subject_id = s.id
+            LEFT JOIN admins a ON e.created_by = a.id";
 
     if ($selected_dept !== 'All') {
         $sql .= ' WHERE s.department = :dept';
@@ -85,7 +87,15 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <?php else: ?>
                         <?php foreach ($exams as $exam): ?>
                             <tr>
-                                <td><strong><?= e($exam['title']) ?></strong></td>
+                                <td>
+                                    <strong><?= e($exam['title']) ?></strong>
+                                    <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 2px;">
+                                        Author: <strong><?= e($exam['creator_name'] ?? 'System') ?></strong>
+                                        <?php if (($exam['creator_status'] ?? '') === 'retired'): ?>
+                                            <span class="badge badge-warning" style="font-size: 0.65rem; padding: 1px 4px;">Retired</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
                                 <td><span class="badge badge-inactive"><?= e($exam['department']) ?></span></td>
                                 <td>Sem <?= e((string) $exam['semester']) ?></td>
                                 <td><?= e((string) $exam['total_marks']) ?> marks</td>

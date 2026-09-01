@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
             } elseif (in_array($status, ['inactive', 'scheduled'], true)) {
                 $pdo->prepare("UPDATE exams SET status = 'active', start_time = NOW() WHERE id = ?")->execute([$exam_id]);
+                log_admin_action($pdo, 'start_exam', 'exam', $exam_id, "Launched/Started exam #$exam_id");
                 $message = "Exam has been started successfully. Students can now access and join.";
                 $message_type = 'success';
             } else {
@@ -40,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         try {
             $pdo->prepare("DELETE FROM exams WHERE id = ?")->execute([$exam_id]);
+            log_admin_action($pdo, 'delete_exam', 'exam', $exam_id, "Deleted exam #$exam_id");
             $message = "Exam deleted successfully.";
             $message_type = 'success';
         } catch (PDOException $e) {
@@ -57,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $upStmt = $pdo->prepare("UPDATE exams SET duration_minutes = duration_minutes + ? WHERE id = ?");
                 $upStmt->execute([$extra_minutes, $exam_id]);
+                log_admin_action($pdo, 'extend_exam_time', 'exam', $exam_id, "Added +$extra_minutes mins to exam #$exam_id duration");
                 $message = "Added +$extra_minutes minutes to exam duration.";
                 $message_type = 'success';
             } catch (PDOException $e) {
@@ -68,6 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         try {
             $pdo->prepare("UPDATE exams SET status = 'ended' WHERE id = ?")->execute([$exam_id]);
+            log_admin_action($pdo, 'end_exam', 'exam', $exam_id, "Ended exam #$exam_id for all students");
             $message = "Exam has been ended for all students.";
             $message_type = 'success';
         } catch (PDOException $e) {
@@ -80,9 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 try {
     $exams = $pdo->query("
         SELECT e.*, s.name AS subject_name, s.department, s.semester,
+            a.name AS creator_name, a.role AS creator_role, a.status AS creator_status,
             (SELECT COUNT(*) FROM exam_attempts WHERE exam_id = e.id) AS total_attempts
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id
+        LEFT JOIN admins a ON e.created_by = a.id
         ORDER BY e.id DESC
     ")->fetchAll();
 } catch (PDOException $e) {
@@ -169,6 +175,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <small style="color: var(--color-text-secondary);">
                                         <?= e($exam['subject_name']) ?> (<?= e($exam['department']) ?>, Sem <?= e((string)$exam['semester']) ?>)
                                     </small>
+                                    <div style="font-size: 0.76rem; color: var(--color-text-secondary); margin-top: 2px;">
+                                        By: <strong><?= e($exam['creator_name'] ?? 'System') ?></strong>
+                                        <?php if (($exam['creator_status'] ?? '') === 'retired'): ?>
+                                            <span class="badge badge-warning" style="font-size: 0.65rem; padding: 1px 4px;">Retired</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                                 <td>
                                     <div><?= e((string)$exam['total_questions_to_ask']) ?> Qs • <?= e((string)$exam['duration_minutes']) ?> mins</div>

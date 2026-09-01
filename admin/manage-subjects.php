@@ -27,8 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
         $message_type = 'error';
     } else {
         try {
-            $stmt = $pdo->prepare("INSERT INTO subjects (name, department, semester) VALUES (?, ?, ?)");
-            $stmt->execute([$name, $department, $semester]);
+            $stmt = $pdo->prepare("INSERT INTO subjects (name, department, semester, created_by) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$name, $department, $semester, $_SESSION['admin_id'] ?? null]);
+            $newSubId = (int) $pdo->lastInsertId();
+
+            log_admin_action($pdo, 'create_subject', 'subject', $newSubId, "Created subject $name ($department, Sem $semester)");
+
             $message = "Subject created successfully!";
             $message_type = 'success';
         } catch (PDOException $e) {
@@ -39,7 +43,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
 }
 
 try {
-    $subjects = $pdo->query("SELECT * FROM subjects ORDER BY id DESC")->fetchAll();
+    $subjects = $pdo->query("
+        SELECT
+            s.*,
+            a.name as creator_name,
+            a.role as creator_role,
+            a.status as creator_status
+        FROM subjects s
+        LEFT JOIN admins a ON s.created_by = a.id
+        ORDER BY s.id DESC
+    ")->fetchAll();
 } catch (PDOException $e) {
     log_error("Failed to fetch subjects", $e);
     $subjects = [];
@@ -120,6 +133,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <th>Subject Name</th>
                         <th>Department</th>
                         <th>Semester</th>
+                        <th>Created By</th>
                         <th>Date Created</th>
                         <th style="text-align: right;">Action</th>
                     </tr>
@@ -127,7 +141,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <tbody>
                     <?php if (empty($subjects)): ?>
                         <tr>
-                            <td colspan="6" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">No subjects created yet.</td>
+                            <td colspan="7" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">No subjects created yet.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($subjects as $sub): ?>
@@ -136,6 +150,16 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td><strong><?= e($sub['name']) ?></strong></td>
                                 <td><span class="badge badge-inactive"><?= e($sub['department']) ?></span></td>
                                 <td>Sem <?= e((string)$sub['semester']) ?></td>
+                                <td>
+                                    <?php if (!empty($sub['creator_name'])): ?>
+                                        <strong><?= e($sub['creator_name']) ?></strong>
+                                        <?php if (($sub['creator_status'] ?? '') === 'retired'): ?>
+                                            <span class="badge badge-warning" style="font-size: 0.68rem; margin-left: 2px;">Retired</span>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <span style="color: var(--color-text-secondary);">System</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?= date('d M Y', strtotime($sub['created_at'])) ?></td>
                                 <td style="text-align: right;">
                                     <a href="view-questions.php?subject_id=<?= $sub['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">

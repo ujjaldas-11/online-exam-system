@@ -41,11 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $req['created_at']
                     ]);
 
-                    $statusStmt = $pdo->prepare("UPDATE registration_request SET status = 'approved' WHERE id = ?");
-                    $statusSuccess = $statusStmt->execute([$request_id]);
+                    $reviewer_id = $_SESSION['admin_id'] ?? null;
+                    $statusStmt = $pdo->prepare("UPDATE registration_request SET status = 'approved', reviewed_by = ? WHERE id = ?");
+                    $statusSuccess = $statusStmt->execute([$reviewer_id, $request_id]);
 
                     if ($updateSuccess && $statusSuccess) {
+                        $newStudentId = (int) $pdo->lastInsertId();
                         $pdo->commit();
+                        log_admin_action($pdo, 'approve_student_reg', 'student', $newStudentId, "Approved registration for {$req['name']} (Roll: {$req['roll_number']}, Dept: {$req['department']})");
                         $message = "Student profile created and approved successfully!";
                     } else {
                         $pdo->rollBack();
@@ -60,7 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } elseif ($_POST['action'] === 'reject') {
             try {
-                $pdo->prepare("UPDATE registration_request SET status = 'rejected' WHERE id = ?")->execute([$request_id]);
+                $reviewer_id = $_SESSION['admin_id'] ?? null;
+                $pdo->prepare("UPDATE registration_request SET status = 'rejected', reviewed_by = ? WHERE id = ?")->execute([$reviewer_id, $request_id]);
+                log_admin_action($pdo, 'reject_student_reg', 'registration_request', $request_id, "Rejected registration request #$request_id");
                 $message = "Registration request has been rejected.";
             } catch (PDOException $e) {
                 $error = safe_db_error($e, "Failed to reject request.");

@@ -17,6 +17,9 @@ if (!isset($pending_requests_count) && isset($pdo)) {
     }
 }
 
+require_once __DIR__ . '/../utils/auth.php';
+$isAdminSuper = is_superadmin();
+
 $admin_nav = [
     'admin-dashboard.php' => ['label' => 'Dashboard', 'icon' => 'space_dashboard'],
     'manage-subjects.php' => ['label' => 'Subjects', 'icon' => 'menu_book'],
@@ -27,6 +30,13 @@ $admin_nav = [
     'registration-request.php' => ['label' => 'registration request', 'icon' => 'person'],
     'import-students.php' => ['label' => 'Import', 'icon' => 'upload_file'],
 ];
+
+if ($isAdminSuper) {
+    $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school'];
+    $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long'];
+} else {
+    $admin_nav['audit-logs.php'] = ['label' => 'My Activity', 'icon' => 'history'];
+}
 ?>
 
 <!-- ===================== ADMIN TOPBAR ===================== -->
@@ -58,7 +68,12 @@ $admin_nav = [
                 <?php endif; ?>
             </a>
 
-            <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?></span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2;">
+                <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?></span>
+                <span style="font-size: 0.72rem; color: #e2e8f0; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+                    <?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher') ?>
+                </span>
+            </div>
             <span class="material-symbols-outlined profile-icon" aria-hidden="true">account_circle</span>
         </div>
     </div>

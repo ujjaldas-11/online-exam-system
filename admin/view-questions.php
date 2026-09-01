@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $delStmt = $pdo->prepare("DELETE FROM questions WHERE subject_id = ?");
             $delStmt->execute([$subject_id]);
+            log_admin_action($pdo, 'delete_questions', 'subject', $subject_id, "Deleted all questions for subject ID #$subject_id");
             $message = "All questions for this subject have been deleted.";
             $message_type = 'success';
         } catch (PDOException $e) {
@@ -40,8 +41,15 @@ try {
         die("Subject not found.");
     }
 
-    // Fetch All Questions for this specific subject
-    $resultsSql = "SELECT id, unit_number, question_text,  option_a, option_b, option_c, option_d, correct_option FROM questions WHERE subject_id = :subject_id ORDER BY id ASC";
+    // Fetch All Questions for this specific subject with creator attribution
+    $resultsSql = "
+        SELECT q.id, q.unit_number, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
+               a.name as creator_name, a.status as creator_status
+        FROM questions q
+        LEFT JOIN admins a ON q.created_by = a.id
+        WHERE q.subject_id = :subject_id
+        ORDER BY q.id ASC
+    ";
     $resultsStmt = $pdo->prepare($resultsSql);
     $resultsStmt->execute([':subject_id' => $subject_id]);
     $all_questions = $resultsStmt->fetchAll();
@@ -125,6 +133,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             <div><strong>D:</strong> <?= e($row['option_d']) ?></div>
                                         <?php endif; ?>
                                     </div>
+                                    <?php if (!empty($row['creator_name'])): ?>
+                                        <div style="font-size: 0.74rem; color: var(--color-text-secondary); margin-top: 6px;">
+                                            Added by: <strong><?= e($row['creator_name']) ?></strong>
+                                            <?php if (($row['creator_status'] ?? '') === 'retired'): ?>
+                                                <span class="badge badge-warning" style="font-size: 0.62rem; padding: 1px 3px;">Retired</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                                 <td style="text-align: center;">
                                     <span class="badge badge-active" style="font-size: 0.9rem;">Option <?= e($row['correct_option']) ?></span>
