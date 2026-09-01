@@ -1,7 +1,7 @@
 /*LANDING PAGE*/
 
 :root {
-    --landing-bg: #121212;
+    --landing-bg:   #121212;
     --landing-nav-bg: rgba(18, 18, 18, 0.8);
     --landing-footer-bg: rgba(18, 18, 18, 0.9);
 
@@ -13,7 +13,7 @@
     --landing-border-soft: rgba(255, 255, 255, 0.05);
     --landing-border-strong: rgba(255, 255, 255, 0.2);
 
-    --landing-accent: var(--color-primary, #33422e);
+    --landing-accent: var(--color-primary, #5aa2f4);
     --landing-accent-hover: var(--color-primary-hover, #263320);
     --landing-accent-text: #b7cda3;
     --landing-accent-dots: rgba(159, 189, 138, 0.35);
