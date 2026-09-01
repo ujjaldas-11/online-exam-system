@@ -217,7 +217,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .sidebar-logout {
-  background: var(--color-error, #dc2626);
+  background: transparent;
   color: white;
   justify-content: flex-start;
   margin-top: 10px;
@@ -226,6 +226,7 @@ body.sidebar-collapsed .main-content {
 
 .sidebar-logout:hover {
   background: color-mix(in srgb, var(--color-error, #dc2626) 82%, black 18%);
+  color: white;
 }
 
 .sidebar-overlay {

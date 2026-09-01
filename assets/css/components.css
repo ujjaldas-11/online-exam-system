@@ -242,8 +242,8 @@
 }
 
 .btn-danger {
-  background: var(--color-error);
-  color: white;
+  background: transparent;
+  color: var(--color-primay-soft);
 }
 
 .btn-danger:hover {

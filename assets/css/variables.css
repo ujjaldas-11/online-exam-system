@@ -1,13 +1,13 @@
 /* =========================================================
-  EXAMIFY DESIGN TOKENS & SYSTEM VARIABLES
+   EXAMIFY DESIGN TOKENS & SYSTEM VARIABLES
+   Unified theme — deep olive green brand color.
 ========================================================= */
 
 :root {
-  /* Brand Palette */
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-light: #3b82f6;
-  --color-primary-soft: #eff6ff;
+  --color-primary: #33422e;
+  --color-primary-hover: #263320;
+  --color-primary-light: #5c7350;
+  --color-primary-soft: #eef2ea;
 
   /* Neutral Surface & Background Colors */
   --color-bg: #f8fafc;
@@ -19,8 +19,8 @@
   --color-border: #e2e8f0;
 
   /* Accent & Header Colors */
-  --color-header: rgb(79, 79, 138);
-  --color-header-hover: rgb(134, 134, 177);
+  --color-header: #33422e;
+  --color-header-hover: #45573d;
 
   /* Status Colors */
   --color-success: #16a34a;
