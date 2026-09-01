@@ -34,3 +34,6 @@ composer.phar
 # User uploaded files (if you add image/file uploads later)
 uploads/
 assets/uploads/
+
+# Test artifacts
+tests/screenshots/

@@ -187,18 +187,35 @@ $t->runTest('csrf_field() outputs a valid HTML hidden input', function () use ($
 // =========================================================
 echo "\n5. Testing Authentication & Session Helpers...\n";
 
-$t->runTest('Role check helpers distinguish admin and student sessions', function () use ($t) {
+$t->runTest('Role check helpers distinguish admin, superadmin, teacher, and student sessions', function () use ($t) {
     $_SESSION = [];
     $t->assertSame(false, is_admin_logged_in());
     $t->assertSame(false, is_student_logged_in());
+    $t->assertSame(false, is_superadmin());
+    $t->assertSame(false, is_teacher());
 
-    $_SESSION['admin_id'] = 1;
+    // Superadmin session
+    $_SESSION = ['admin_id' => 1, 'admin_role' => 'superadmin', 'role' => 'superadmin'];
     $t->assertSame(true, is_admin_logged_in());
+    $t->assertSame(true, is_superadmin());
+    $t->assertSame(false, is_teacher());
+    $t->assertSame('superadmin', get_admin_role());
     $t->assertSame(false, is_student_logged_in());
 
+    // Teacher session
+    $_SESSION = ['admin_id' => 2, 'admin_role' => 'teacher', 'role' => 'teacher'];
+    $t->assertSame(true, is_admin_logged_in());
+    $t->assertSame(false, is_superadmin());
+    $t->assertSame(true, is_teacher());
+    $t->assertSame('teacher', get_admin_role());
+    $t->assertSame(false, is_student_logged_in());
+
+    // Student session
     $_SESSION = ['student_id' => 5];
     $t->assertSame(false, is_admin_logged_in());
     $t->assertSame(true, is_student_logged_in());
+    $t->assertSame(false, is_superadmin());
+    $t->assertSame(false, is_teacher());
     $_SESSION = [];
 });
 
@@ -226,7 +243,7 @@ $t->runTest('All required database tables exist in examify database', function (
     $expectedTables = [
         'admins', 'students', 'subjects', 'exams', 'questions',
         'exam_attempts', 'student_answers', 'exam_violations',
-        'profile_requests', 'registration_request'
+        'profile_requests', 'registration_request', 'admin_audit_logs'
     ];
 
     $stmt = $pdo->query("SHOW TABLES");
@@ -235,6 +252,24 @@ $t->runTest('All required database tables exist in examify database', function (
     foreach ($expectedTables as $tbl) {
         $t->assert(in_array($tbl, $tables, true), "Table `$tbl` must exist in database");
     }
+});
+
+$t->runTest('admins table has role, status, department, and created_by columns', function () use ($t, $pdo) {
+    $cols = $pdo->query("SHOW COLUMNS FROM admins")->fetchAll(PDO::FETCH_COLUMN);
+    $t->assert(in_array('role', $cols, true), "Column `role` must exist in `admins` table");
+    $t->assert(in_array('status', $cols, true), "Column `status` must exist in `admins` table");
+    $t->assert(in_array('department', $cols, true), "Column `department` must exist in `admins` table");
+    $t->assert(in_array('created_by', $cols, true), "Column `created_by` must exist in `admins` table");
+});
+
+$t->runTest('subjects, exams, and questions tables have created_by columns', function () use ($t, $pdo) {
+    $subCols = $pdo->query("SHOW COLUMNS FROM subjects")->fetchAll(PDO::FETCH_COLUMN);
+    $examCols = $pdo->query("SHOW COLUMNS FROM exams")->fetchAll(PDO::FETCH_COLUMN);
+    $qCols = $pdo->query("SHOW COLUMNS FROM questions")->fetchAll(PDO::FETCH_COLUMN);
+
+    $t->assert(in_array('created_by', $subCols, true), "Column `created_by` must exist in `subjects`");
+    $t->assert(in_array('created_by', $examCols, true), "Column `created_by` must exist in `exams`");
+    $t->assert(in_array('created_by', $qCols, true), "Column `created_by` must exist in `questions`");
 });
 
 $t->runTest('questions table has unit_number column with index', function () use ($t, $pdo) {
@@ -356,6 +391,88 @@ $t->runTest('Anti-cheat violation logging tracks and records cheating events', f
         // Clean up test violation
         $pdo->prepare("DELETE FROM exam_violations WHERE id = ?")->execute([$violId]);
     }
+});
+
+// =========================================================
+// SECTION 8: Superadmin & Teacher RBAC, Retirement & Record Retention
+// =========================================================
+echo "\n8. Testing Superadmin & Teacher Roles, Retirement & Record Retention...\n";
+
+$t->runTest('is_system_initialized detects superadmin presence correctly', function () use ($t, $pdo) {
+    $t->assertSame(true, is_system_initialized($pdo), 'Database with seeded superadmin must be reported as initialized');
+});
+
+$t->runTest('Superadmin and Teacher roles are distinguished in database', function () use ($t, $pdo) {
+    $superStmt = $pdo->query("SELECT role, status FROM admins WHERE email = 'admin@college.edu'");
+    $super = $superStmt->fetch();
+    $t->assert($super !== false, 'Superadmin record must exist');
+    $t->assertSame('superadmin', $super['role']);
+    $t->assertSame('active', $super['status']);
+
+    $teacherStmt = $pdo->query("SELECT role, status, department FROM admins WHERE email = 'teacher@college.edu'");
+    $teacher = $teacherStmt->fetch();
+    $t->assert($teacher !== false, 'Active teacher record must exist');
+    $t->assertSame('teacher', $teacher['role']);
+    $t->assertSame('active', $teacher['status']);
+    $t->assertSame('BCA', $teacher['department']);
+});
+
+$t->runTest('Retired teacher account has retired status and records are preserved', function () use ($t, $pdo) {
+    // 1. Verify retired teacher account exists
+    $retiredStmt = $pdo->query("SELECT id, role, status FROM admins WHERE email = 'grace.hopper@college.edu'");
+    $retiredTeacher = $retiredStmt->fetch();
+    $t->assert($retiredTeacher !== false, 'Retired teacher record must exist in database');
+    $t->assertSame('retired', $retiredTeacher['status'], 'Status must be retired');
+    $t->assertSame('teacher', $retiredTeacher['role']);
+    $retiredId = (int) $retiredTeacher['id'];
+
+    // 2. Verify exams created by retired teacher STILL EXIST and are intact
+    $examStmt = $pdo->prepare("SELECT COUNT(*) FROM exams WHERE created_by = ?");
+    $examStmt->execute([$retiredId]);
+    $examsCount = (int) $examStmt->fetchColumn();
+    $t->assert($examsCount > 0, "Exams authored by retired teacher must be retained (found $examsCount exams)");
+
+    // 3. Verify questions created by retired teacher STILL EXIST and are intact
+    $qStmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE created_by = ?");
+    $qStmt->execute([$retiredId]);
+    $questionsCount = (int) $qStmt->fetchColumn();
+    $t->assert($questionsCount > 0, "Questions authored by retired teacher must be retained (found $questionsCount questions)");
+
+    // 4. Verify joining with exams correctly shows creator name and retired status
+    $joinStmt = $pdo->prepare("
+        SELECT e.title, a.name as creator_name, a.status as creator_status
+        FROM exams e
+        JOIN admins a ON e.created_by = a.id
+        WHERE e.created_by = ?
+        LIMIT 1
+    ");
+    $joinStmt->execute([$retiredId]);
+    $row = $joinStmt->fetch();
+    $t->assert(!empty($row), 'Query joining exams and retired teacher must return rows');
+    $t->assertSame('retired', $row['creator_status'], 'Creator status must reflect retired');
+    $t->assertSame('Prof. Grace Hopper', $row['creator_name']);
+});
+
+$t->runTest('Immutable audit logging logs administrative actions accurately', function () use ($t, $pdo) {
+    $_SESSION['admin_id'] = 1;
+    $_SESSION['admin_name'] = 'Dr. Sarah Admin';
+    $_SESSION['admin_role'] = 'superadmin';
+
+    $testAction = 'unit_test_audit_event_' . bin2hex(random_bytes(4));
+    $success = log_admin_action($pdo, $testAction, 'test_entity', 999, 'Unit test audit event details');
+    $t->assertSame(true, $success, 'log_admin_action must succeed');
+
+    $chk = $pdo->prepare("SELECT admin_name, admin_role, action, details FROM admin_audit_logs WHERE action = ?");
+    $chk->execute([$testAction]);
+    $logEntry = $chk->fetch();
+
+    $t->assert(!empty($logEntry), 'Audit log entry must exist in database');
+    $t->assertSame('Dr. Sarah Admin', $logEntry['admin_name']);
+    $t->assertSame('superadmin', $logEntry['admin_role']);
+    $t->assertSame('Unit test audit event details', $logEntry['details']);
+
+    // Clean up test audit log
+    $pdo->prepare("DELETE FROM admin_audit_logs WHERE action = ?")->execute([$testAction]);
 });
 
 // Exit with status code

@@ -26,7 +26,7 @@ echo "=======================================================\n\n";
 
 // Reset and seed database for a clean state
 echo "1. Seeding fresh database state for automated test run...\n";
-exec('php ' . escapeshellarg(__DIR__ . '/../tools/reset-and-seed.php') . ' 2>&1', $seedOutput, $seedRet);
+exec('php ' . escapeshellarg(__DIR__ . '/../init-db.php') . ' --fresh 2>&1', $seedOutput, $seedRet);
 if ($seedRet !== 0) {
     die("Database reset failed: " . implode("\n", $seedOutput));
 }
@@ -38,11 +38,14 @@ class HttpClient
     public string $lastUrl = '';
     public int $lastStatusCode = 0;
     public string $lastBody = '';
+    private string $fmtFile;
 
     public function __construct(string $cookieFile)
     {
         $this->cookieFile = $cookieFile;
         @unlink($cookieFile);
+        $this->fmtFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'curl_meta_fmt.txt';
+        file_put_contents($this->fmtFile, '###HTTP_META###%{http_code}:::%{url_effective}');
     }
 
     public function request(string $method, string $url, array $data = [], array $headers = []): string
@@ -52,7 +55,7 @@ class HttpClient
             '-c', $this->cookieFile,
             '-b', $this->cookieFile,
             '-L', '--max-redirs', '5',
-            '-w', "\n---HTTP_META---\n%{http_code}\n%{url_effective}\n",
+            '-w', '@' . $this->fmtFile,
             '-A', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         ];
 
@@ -61,27 +64,32 @@ class HttpClient
             $args[] = "$k: $v";
         }
 
+        $tmpPostFile = null;
         if (strtoupper($method) === 'POST') {
             $args[] = '-X';
             $args[] = 'POST';
+            $tmpPostFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'curl_post_' . uniqid() . '.txt';
             if (isset($headers['Content-Type']) && str_contains($headers['Content-Type'], 'application/json')) {
-                $args[] = '--data-raw';
-                $args[] = json_encode($data);
+                file_put_contents($tmpPostFile, json_encode($data));
             } else {
-                $args[] = '--data';
-                $args[] = http_build_query($data);
+                file_put_contents($tmpPostFile, http_build_query($data));
             }
+            $args[] = '--data';
+            $args[] = '@' . $tmpPostFile;
         }
 
         $args[] = $url;
 
         $cmd = implode(' ', array_map('escapeshellarg', $args));
         $rawOutput = (string) shell_exec($cmd);
+        if ($tmpPostFile) {
+            @unlink($tmpPostFile);
+        }
 
-        $parts = explode("\n---HTTP_META---\n", $rawOutput);
+        $parts = explode('###HTTP_META###', $rawOutput);
         $this->lastBody = $parts[0] ?? '';
 
-        $meta = explode("\n", $parts[1] ?? '');
+        $meta = explode(':::', $parts[1] ?? '');
         $this->lastStatusCode = (int) ($meta[0] ?? 0);
         $this->lastUrl = trim($meta[1] ?? $url);
 
@@ -112,27 +120,46 @@ function captureScreenshot(string $url, ?string $sessionId, string $outputFilena
 {
     global $screenshotsDir, $baseUrl;
     $outputPath = $screenshotsDir . '/' . $outputFilename;
-    $tmpDir = sys_get_temp_dir() . '/chrome_shot_' . uniqid();
+    $chrome = 'google-chrome';
+    if (PHP_OS_FAMILY === 'Windows') {
+        $paths = [
+            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+            (getenv('LOCALAPPDATA') ?: '') . '\\Google\\Chrome\\Application\\chrome.exe',
+        ];
+        $chrome = null;
+        foreach ($paths as $p) {
+            if (!empty($p) && file_exists($p)) {
+                $chrome = $p;
+                break;
+            }
+        }
+        if (!$chrome) {
+            return;
+        }
+    }
+
+    $tmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'chrome_shot_' . uniqid();
     @mkdir($tmpDir, 0777, true);
 
     if ($renderedHtml !== null) {
-        $htmlFile = $tmpDir . '/page.html';
+        $htmlFile = $tmpDir . DIRECTORY_SEPARATOR . 'page.html';
         $injected = preg_replace('/<head>/i', "<head><base href=\"$baseUrl/\">", $renderedHtml, 1);
         file_put_contents($htmlFile, $injected ?: $renderedHtml);
-        $target = "file://$htmlFile";
+        $target = "file:///" . str_replace('\\', '/', $htmlFile);
     } else {
         $target = $url;
     }
 
     $cmd = sprintf(
-        'google-chrome --headless=new --no-sandbox --disable-gpu --window-size=1280,800 --user-data-dir=%s --screenshot=%s %s 2>&1',
+        '%s --headless=new --no-sandbox --disable-gpu --window-size=1280,800 --user-data-dir=%s --screenshot=%s %s 2>&1',
+        escapeshellarg($chrome),
         escapeshellarg($tmpDir),
         escapeshellarg($outputPath),
         escapeshellarg($target)
     );
 
     shell_exec($cmd);
-    shell_exec('rm -rf ' . escapeshellarg($tmpDir));
 }
 
 $passedCount = 0;
@@ -155,7 +182,7 @@ function step(string $name, callable $fn): void {
 // PART 1: STUDENT USER JOURNEY
 // ---------------------------------------------------------
 echo "--- PART 1: STUDENT PORTAL AUTOMATION ---\n";
-$studentClient = new HttpClient('/tmp/student_cookie.txt');
+$studentClient = new HttpClient(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'student_cookie.txt');
 $attemptId = 0;
 $firstQuestionId = 0;
 
@@ -302,7 +329,7 @@ step('Access Exam Review Page (student/review-exam.php)', function () use ($stud
 // PART 2: ADMIN / INSTRUCTOR USER JOURNEY
 // ---------------------------------------------------------
 echo "\n--- PART 2: ADMIN & PROCTOR PORTAL AUTOMATION ---\n";
-$adminClient = new HttpClient('/tmp/admin_cookie.txt');
+$adminClient = new HttpClient(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'admin_cookie.txt');
 
 // Step 12: Admin Login
 step('Authenticate Admin (admin@college.edu / Admin@123)', function () use ($adminClient, $baseUrl) {
