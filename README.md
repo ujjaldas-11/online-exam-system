@@ -81,8 +81,11 @@ online-exam-system/
 │   │   ├── components.css       # Buttons, cards, tables, badges, and alerts
 │   │   ├── exam.css             # Isolated exam room and question palette
 │   │   ├── landing.css          # Isolated marketing landing styles
+│   │   ├── material-symbols.css # Self-hosted Material Symbols font stylesheet
 │   │   ├── style.css            # Legacy & landing page styles
 │   │   └── variables.css        # Unified CSS custom property design tokens
+│   ├── fonts/                   # Self-hosted web fonts for zero-CDN offline labs
+│   │   └── material-symbols-outlined.woff2
 │   └── images/                  # Logos and branding assets
 ├── components/
 │   ├── footer.php               # Shared footer layout partial

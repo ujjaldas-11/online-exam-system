@@ -208,8 +208,9 @@ The `tools/` directory contains two setup scripts:
 ```text
 online-exam-system/
 ├── admin/               # Administrator views and backend control endpoints
-├── assets/              # CSS styles, images, and brand assets
+├── assets/              # CSS styles, web fonts, images, and brand assets
 │   ├── css/             # Consolidated and modular stylesheets
+│   ├── fonts/           # Self-hosted web fonts for offline campus deployment
 │   └── images/          # Logo and icon graphics
 ├── components/          # Shared PHP UI partials (header, navbar, footer, searchbar)
 ├── config/              # Database connection and environment loader
@@ -330,13 +331,14 @@ Examify uses a consolidated CSS architecture under `assets/css/`:
 - `variables.css`: Defines colors, fonts, spacing, shadows, and border-radius tokens.
 - `base.css`: Global HTML resets, typography defaults, and form field baselines.
 - `components.css`: Buttons, cards, tables, badges, alert boxes, and Material Symbols styling.
+- `material-symbols.css`: Self-hosted `@font-face` definitions for offline campus deployment.
 - `app.css`: Master stylesheet that imports `variables.css`, `base.css`, and `components.css`.
 - `exam.css`: Isolated stylesheet for the examination room, split-view layout, and question palette.
 - `landing.css` & `style.css`: Styles for the portal landing page.
 
 ### Material Symbols Icons
 
-The project loads the `Material Symbols Outlined` web font in `components/header.php`.
+The project self-hosts the `Material Symbols Outlined` web font in `assets/fonts/` and loads it via `assets/css/material-symbols.css` in `components/header.php` for completely offline, zero-CDN campus deployment.
 Use icons in HTML with this syntax:
 
 ```html

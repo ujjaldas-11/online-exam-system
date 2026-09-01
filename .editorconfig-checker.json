@@ -12,12 +12,15 @@
     "\\.vscode",
     "vendor",
     "assets/images",
+    "assets/fonts",
     "node_modules",
     "\\.png$",
     "\\.jpg$",
     "\\.jpeg$",
     "\\.ico$",
-    "\\.zip$"
+    "\\.zip$",
+    "\\.woff2?$",
+    "\\.ttf$"
   ],
   "AllowedContentTypes": [],
   "PassedFiles": [],
