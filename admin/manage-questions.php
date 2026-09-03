@@ -213,10 +213,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <div class="form-group">
                 <label>Option 2: Paste CSV Text</label>
                 <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn" disabled style="display: inline-flex; align-items: center; gap: 4px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn" disabled style="display: inline-flex; align-items: center; gap: 4px; cursor: not-allowed;">
                         <span class="material-symbols-outlined icon-xs">content_copy</span> Copy LLM Prompt
                     </button>
-                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn" style="display: inline-flex; align-items: center; gap: 4px; cursor: not-allowed;">
                         <span class="material-symbols-outlined icon-xs">content_paste</span> Paste from Clipboard
                     </button>
                 </div>
