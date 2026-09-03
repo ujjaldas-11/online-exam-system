@@ -29,11 +29,13 @@ $admin_nav = [
     'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications'],
     'registration-request.php' => ['label' => 'registration request', 'icon' => 'person'],
     'import-students.php' => ['label' => 'Import', 'icon' => 'upload_file'],
+    
 ];
 
 if ($isAdminSuper) {
     $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school'];
     $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long'];
+    $admin_nav['manage-students.php'] = ['label' => 'students', 'icon' => 'group'];
 } else {
     $admin_nav['audit-logs.php'] = ['label' => 'My Activity', 'icon' => 'history'];
 }
