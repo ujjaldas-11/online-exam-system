@@ -9,7 +9,7 @@ require_once __DIR__ . '/../utils/sanitize.php';
 
 init_secure_session();
 
-// If system is already initialized with a superadmin, lock this page permanently
+// If system is already initialized with a superadmin, lock this page
 if (is_system_initialized($pdo)) {
     redirect('admin-login.php');
 }
@@ -34,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Passwords do not match.";
     } else {
         try {
-            // Concurrency guard: double-check if another session initialized
             $checkStmt = $pdo->query("SELECT COUNT(*) FROM admins WHERE role = 'superadmin'");
             if ((int)$checkStmt->fetchColumn() > 0) {
                 redirect('admin-login.php');
@@ -42,13 +41,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $hashed = password_hash($password, PASSWORD_DEFAULT);
 
-            // Check if this email already exists in admins table (e.g. from prior test)
             $existing = $pdo->prepare("SELECT id FROM admins WHERE email = ?");
             $existing->execute([$email]);
             $existingId = $existing->fetchColumn();
 
             if ($existingId) {
-                // Elevate to superadmin and update credentials
                 $stmt = $pdo->prepare("UPDATE admins SET name = ?, password = ?, role = 'superadmin', status = 'active' WHERE id = ?");
                 $stmt->execute([$name, $hashed, $existingId]);
                 $superadminId = (int) $existingId;
@@ -61,50 +58,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $superadminId = (int) $pdo->lastInsertId();
             }
 
-            // Record initial audit trail event
             log_admin_action(
                 $pdo,
-                'system_initialized',
-                'system',
+                'system_setup',
+                'admin',
                 $superadminId,
-                "Master Superadmin initialized the system ($name / $email).",
+                "Initial Superadmin ($name) setup completed via setup.php",
                 $superadminId,
                 $name,
                 'superadmin'
             );
 
-            // Establish authenticated Superadmin session immediately
-            session_regenerate_id(true);
-            $_SESSION['admin_id'] = $superadminId;
-            $_SESSION['admin_name'] = $name;
-            $_SESSION['admin_role'] = 'superadmin';
-            $_SESSION['role'] = 'superadmin';
-
-            set_flash('success', 'System initialized successfully! Welcome, ' . $name . '.');
-            redirect('admin-dashboard.php');
+            redirect('admin-login.php?msg=setup_complete');
         } catch (PDOException $e) {
-            $error = safe_db_error($e, "System initialization failed. Please verify database connection.");
+            $error = safe_db_error($e, "System setup failed. Please check your database connection.");
         }
     }
 }
 
-$page_title = 'Initial System Setup • Examify';
+$page_title = 'First-Time Setup • Examify';
 $body_class = 'auth-body';
 include __DIR__ . '/../components/header.php';
 ?>
 
-<div class="auth-card" style="max-width: 500px;">
+<div class="auth-card">
     <div class="auth-header">
         <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
         <div class="auth-header-text">
-            <h2>System Initialization</h2>
-            <p class="subtitle">Master Superadmin One-Time Configuration</p>
+            <h1>First-Time Setup</h1>
+            <p class="subtitle">Create Root Superadmin Account</p>
         </div>
     </div>
 
-    <div class="alert alert-info" style="font-size: 0.88rem; line-height: 1.5; margin-bottom: 20px;">
-        <span class="material-symbols-outlined icon-sm" style="vertical-align: text-bottom;">info</span>
-        <strong>Welcome to Examify!</strong> The system is initializing for the first time. Set your primary <strong>Superadmin password</strong> below. Once configured, this setup locks permanently, and you can create separate accounts for teachers and instructors.
+    <div class="alert alert-warning" style="margin-bottom: 20px; font-size: 0.85rem;">
+        <strong>Initial System Provisioning:</strong> No administrator account was detected in the database. Please configure your master administrative credentials below.
     </div>
 
     <?php if ($error): ?>
@@ -116,35 +103,38 @@ include __DIR__ . '/../components/header.php';
 
         <div class="form-group">
             <label>Superadmin Full Name</label>
-            <input type="text" name="name" required value="<?= e($_POST['name'] ?? 'System Administrator') ?>" placeholder="e.g. Dr. Sarah Admin">
+            <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Dr. Administrator">
         </div>
 
         <div class="form-group">
-            <label>Superadmin Email Address</label>
-            <input type="email" name="email" required value="<?= e($_POST['email'] ?? 'admin@college.edu') ?>" placeholder="admin@college.edu">
+            <label>Master Email Address</label>
+            <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="admin@college.edu">
         </div>
 
         <div class="form-group">
-            <label>Master Superadmin Password</label>
-            <input type="password" name="password" required placeholder="Minimum 8 characters" minlength="8" autocomplete="new-password">
-            <small style="color: var(--color-text-secondary); font-size: 0.8rem; display: block; margin-top: 4px;">
-                Choose a strong master password (letters, numbers & symbols recommended).
-            </small>
+            <label>Password (Min 8 characters)</label>
+            <div class="password-wrapper">
+                <input type="password" name="password" required minlength="8" placeholder="••••••••••••">
+                <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                    <span class="material-symbols-outlined">visibility</span>
+                </button>
+            </div>
         </div>
 
         <div class="form-group">
             <label>Confirm Password</label>
-            <input type="password" name="confirm_password" required placeholder="Re-enter password" minlength="8" autocomplete="new-password">
+            <div class="password-wrapper">
+                <input type="password" name="confirm_password" required minlength="8" placeholder="••••••••••••">
+                <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                    <span class="material-symbols-outlined">visibility</span>
+                </button>
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; padding: 12px;">
-            <span class="material-symbols-outlined icon-sm">verified_user</span> Initialize System &amp; Proceed
+        <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">admin_panel_settings</span> Initialize System
         </button>
     </form>
-
-    <p class="footer" style="margin-top: 20px;">
-        Protected setup protocol • Executed once on deployment
-    </p>
 </div>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

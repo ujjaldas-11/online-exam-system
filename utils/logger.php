@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Application Logger
+ * Application Logger & Tamper-Evident Audit Logging
  */
 
 function log_error(string $message, ?Throwable $exception = null): void
@@ -30,9 +30,6 @@ function safe_db_error(PDOException $e, string $userMessage = "A database error 
     return $userMessage;
 }
 
-/**
- * Immutable Admin & Teacher Activity Tracking
- */
 function log_admin_action(
     PDO $pdo,
     string $action,
@@ -62,4 +59,3 @@ function log_admin_action(
         return false;
     }
 }
-

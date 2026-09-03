@@ -6,18 +6,15 @@ require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 
-if (empty($_GET['subject_id'])) {
-    die("No subject selected.");
-}
+$subjects = $pdo->query("SELECT id, name, department, semester FROM subjects ORDER BY name ASC")->fetchAll();
 
-$subject_id = int_param($_GET['subject_id']);
+$subject_id = int_param($_GET['subject_id'] ?? ($subjects[0]['id'] ?? 0));
 $message = '';
 $message_type = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
     verify_csrf();
 
-    // Delete all questions for this subject
     if (isset($_POST['delete_all'])) {
         try {
             $delStmt = $pdo->prepare("DELETE FROM questions WHERE subject_id = ?");
@@ -32,33 +29,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-try {
-    $subjectStmt = $pdo->prepare("SELECT * FROM subjects WHERE id = ?");
-    $subjectStmt->execute([$subject_id]);
-    $subject = $subjectStmt->fetch();
+$subject = null;
+$all_questions = [];
 
-    if (!$subject) {
-        die("Subject not found.");
+if ($subject_id > 0) {
+    try {
+        $subjectStmt = $pdo->prepare("SELECT * FROM subjects WHERE id = ?");
+        $subjectStmt->execute([$subject_id]);
+        $subject = $subjectStmt->fetch();
+
+        if ($subject) {
+            $resultsSql = "
+                SELECT q.id, q.unit_number, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
+                       a.name as creator_name, a.status as creator_status
+                FROM questions q
+                LEFT JOIN admins a ON q.created_by = a.id
+                WHERE q.subject_id = :subject_id
+                ORDER BY q.id ASC
+            ";
+            $resultsStmt = $pdo->prepare($resultsSql);
+            $resultsStmt->execute([':subject_id' => $subject_id]);
+            $all_questions = $resultsStmt->fetchAll();
+        }
+    } catch (PDOException $e) {
+        log_error("Failed to fetch subject questions", $e);
     }
-
-    // Fetch All Questions for this specific subject with creator attribution
-    $resultsSql = "
-        SELECT q.id, q.unit_number, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
-               a.name as creator_name, a.status as creator_status
-        FROM questions q
-        LEFT JOIN admins a ON q.created_by = a.id
-        WHERE q.subject_id = :subject_id
-        ORDER BY q.id ASC
-    ";
-    $resultsStmt = $pdo->prepare($resultsSql);
-    $resultsStmt->execute([':subject_id' => $subject_id]);
-    $all_questions = $resultsStmt->fetchAll();
-} catch (PDOException $e) {
-    log_error("Failed to fetch subject questions", $e);
-    die("Database error. Please try again.");
 }
 
-$page_title = 'Questions: ' . e($subject['name']) . ' • Examify';
+$page_title = 'Question Bank • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
@@ -72,18 +70,35 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
     <div class="page-header">
         <div>
-            <h1><?= e($subject['name']) ?></h1>
-            <p>Department: <strong><?= e($subject['department']) ?></strong> • Semester: <strong><?= e((string)$subject['semester']) ?></strong></p>
+            <h1><?= $subject ? e($subject['name']) : 'Curriculum Question Bank' ?></h1>
+            <p>
+                <?php if ($subject): ?>
+                    Department: <strong><?= e($subject['department']) ?></strong> • Semester: <strong><?= e((string)$subject['semester']) ?></strong>
+                <?php else: ?>
+                    Select a subject to view its questions
+                <?php endif; ?>
+            </p>
         </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <!-- Subject Switcher Dropdown -->
+            <form method="GET" style="display: inline-flex; align-items: center; gap: 6px;">
+                <select name="subject_id" onchange="this.form.submit()" class="form-control" style="padding: 6px 12px; font-size: 0.9rem;">
+                    <?php foreach ($subjects as $s): ?>
+                        <option value="<?= $s['id'] ?>" <?= $s['id'] == $subject_id ? 'selected' : '' ?>>
+                            <?= e($s['name']) ?> (<?= e($s['department']) ?> Sem <?= e((string)$s['semester']) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
+
             <a href="manage-questions.php" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                 <span class="material-symbols-outlined icon-sm">upload</span> Upload Questions
             </a>
             <?php if (!empty($all_questions)): ?>
                 <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!');">
                     <?= csrf_field() ?>
-                    <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px; cursor: not-allowed;">
-                        <span class="material-symbols-outlined icon-sm">delete</span> Delete All Questions
+                    <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-sm">delete</span> Delete All
                     </button>
                 </form>
             <?php endif; ?>

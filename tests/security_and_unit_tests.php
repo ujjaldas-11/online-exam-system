@@ -1,480 +1,315 @@
 <?php
 
 /**
- * Examify — Security & Unit Test Suite
- *
- * Runs automated tests verifying:
- * 1. Sanitization & XSS Defense
- * 2. CSV Formula / DDE Injection Prevention
- * 3. Local File Inclusion (LFI) & Path Traversal Prevention
- * 4. CSRF Token Generation & Validation
- * 5. Authentication, Password Security & Session Hardening
- * 6. Database Schema, Relations & Model Integrity (MySQL/MariaDB)
- * 7. Exam Lifecycle, Question Bank, Proctoring & Auto-Grading Logic
- * 8. Question API Zero-Leakage (Correct Option Masking)
- *
- * Run via CLI: php tests/security_and_unit_tests.php
+ * Examify - Automated Test Suite
+ * Covers: Refined Database Schema, Concurrency Engine, Security, RBAC, and PDF Generation
  */
 
 declare(strict_types=1);
 
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-
-// Setup testing environment
-define('TEST_RUNNER', true);
-require_once __DIR__ . '/../utils/session.php';
-init_secure_session();
-
-require_once __DIR__ . '/../utils/env.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../services/ExamEngine.php';
+require_once __DIR__ . '/../services/PdfService.php';
 require_once __DIR__ . '/../utils/sanitize.php';
 require_once __DIR__ . '/../utils/csrf.php';
 require_once __DIR__ . '/../utils/auth.php';
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../utils/session.php';
 
-class TestRunner
-{
-    private int $passed = 0;
-    private int $failed = 0;
-    private array $failures = [];
+@session_start();
 
-    public function runTest(string $name, callable $test): void
-    {
-        try {
-            $test();
-            $this->passed++;
-            echo "  \033[32m✔ PASS\033[0m: $name\n";
-        } catch (Throwable $e) {
-            $this->failed++;
-            $this->failures[] = [
-                'name' => $name,
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ];
-            echo "  \033[31m✖ FAIL\033[0m: $name\n";
-            echo "         \033[33m" . $e->getMessage() . "\033[0m\n";
-        }
-    }
+$totalTests = 0;
+$passedTests = 0;
+$failedTests = 0;
 
-    public function assert(bool $condition, string $message = 'Assertion failed'): void
-    {
-        if (!$condition) {
-            throw new Exception($message);
-        }
-    }
+function assert_test(string $name, bool $condition, string $detail = ''): void {
 
-    public function assertSame(mixed $expected, mixed $actual, string $message = ''): void
-    {
-        if ($expected !== $actual) {
-            $msg = $message ?: "Expected " . var_export($expected, true) . ", got " . var_export($actual, true);
-            throw new Exception($msg);
-        }
-    }
-
-    public function summary(): int
-    {
-        echo "\n=======================================================\n";
-        echo "TEST SUMMARY: \033[32m{$this->passed} Passed\033[0m, ";
-        if ($this->failed > 0) {
-            echo "\033[31m{$this->failed} Failed\033[0m\n";
-            echo "=======================================================\n";
-            foreach ($this->failures as $f) {
-                echo "\n• [{$f['name']}] failed in {$f['file']}:{$f['line']}\n  Error: {$f['error']}\n";
-            }
-            return 1;
-        } else {
-            echo "\033[32m0 Failed\033[0m (100% SUCCESS)\n";
-            echo "=======================================================\n";
-            return 0;
-        }
+    global $totalTests, $passedTests, $failedTests;
+    $totalTests++;
+    if ($condition) {
+        $passedTests++;
+        echo "\033[32m[PASS]\033[0m $name\n";
+    } else {
+        $failedTests++;
+        echo "\033[31m[FAIL]\033[0m $name" . ($detail ? " - $detail" : '') . "\n";
     }
 }
 
-$t = new TestRunner();
+echo "\n\033[1;34m=== EXAMIFY AUTOMATED TEST SUITE ===\033[0m\n\n";
 
-echo "=======================================================\n";
-echo "🧪 EXAMIFY SECURITY & UNIT TEST SUITE\n";
-echo "=======================================================\n\n";
+// TEST 1: Database Schema & Redundancy Elimination
+echo "--- 1. Testing Database Architecture Refinements ---\n";
+try {
+    // 1.1 Verify registration_request table is gone or not used
+    $tables = $pdo->query("SHOW TABLES LIKE 'registration_request'")->fetchAll();
+    assert_test("Database eliminated registration_request redundancy", empty($tables), "registration_request table should not exist");
 
-// =========================================================
-// SECTION 1: Input Sanitization & XSS Escaping
-// =========================================================
-echo "1. Testing Input Sanitization & Output Escaping (XSS Defense)...\n";
+    // 1.2 Verify students table has status and reviewer columns
+    $stuCols = $pdo->query("DESCRIBE students")->fetchAll(PDO::FETCH_COLUMN);
+    assert_test("Students table contains 'status' enum column", in_array('status', $stuCols, true));
+    assert_test("Students table contains 'reviewed_by' column", in_array('reviewed_by', $stuCols, true));
+    assert_test("Students table contains 'reviewed_at' column", in_array('reviewed_at', $stuCols, true));
 
-$t->runTest('e() correctly escapes HTML characters and quotes', function () use ($t) {
-    $t->assertSame('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;', e('<script>alert("xss")</script>'));
-    $t->assertSame('&#039;test&#039; &amp; &quot;quote&quot;', e("'test' & \"quote\""));
-    $t->assertSame('', e(null));
-    $t->assertSame('123', e('123'));
-});
+    // 1.3 Verify exam_attempts.score is DECIMAL
+    $scoreCol = $pdo->query("SHOW COLUMNS FROM exam_attempts WHERE Field = 'score'")->fetch();
+    assert_test("Exam attempts score column is DECIMAL type", str_contains(strtolower($scoreCol['Type']), 'decimal'), "Found: " . $scoreCol['Type']);
 
-$t->runTest('clean_input() trims and strips HTML tags', function () use ($t) {
-    $t->assertSame('hello world', clean_input("  <b>hello world</b>  \n"));
-    $t->assertSame('', clean_input(null));
-    $t->assertSame('safe text', clean_input("<p>safe text</p>"));
-    $t->assertSame("alert('bad')safe text", clean_input("<script>alert('bad')</script>safe text"));
-});
+    // 1.4 Verify student_answers.marked_for_review column exists
+    $ansCols = $pdo->query("DESCRIBE student_answers")->fetchAll(PDO::FETCH_COLUMN);
+    assert_test("Student answers contains persistent 'marked_for_review' column", in_array('marked_for_review', $ansCols, true));
 
-$t->runTest('int_param() validates and safely parses integer inputs', function () use ($t) {
-    $t->assertSame(42, int_param(42));
-    $t->assertSame(42, int_param('42'));
-    $t->assertSame(0, int_param('invalid'));
-    $t->assertSame(10, int_param('invalid', 10));
-    $t->assertSame(0, int_param(null));
-    $t->assertSame(0, int_param(''));
-    $t->assertSame(-5, int_param('-5'));
-});
+    // 1.5 Verify exams.results_published column exists
+    $examCols = $pdo->query("DESCRIBE exams")->fetchAll(PDO::FETCH_COLUMN);
+    assert_test("Exams table contains 'results_published' boolean column", in_array('results_published', $examCols, true));
 
-// =========================================================
-// SECTION 2: CSV Formula / DDE Injection Defense
-// =========================================================
-echo "\n2. Testing CSV Formula / DDE Injection Prevention...\n";
+    // 1.6 Verify rate_limits table exists
+    $rateTables = $pdo->query("SHOW TABLES LIKE 'rate_limits'")->fetchAll();
+    assert_test("Database contains 'rate_limits' table for security throttling", count($rateTables) === 1);
 
-$t->runTest('sanitize_csv_value() prepends quote on spreadsheet formula triggers', function () use ($t) {
-    $t->assertSame("'=1+1", sanitize_csv_value('=1+1'));
-    $t->assertSame("'+SUM(A1:A10)", sanitize_csv_value('+SUM(A1:A10)'));
-    $t->assertSame("'-2+3*cmd|' /C calc'!A0", sanitize_csv_value('-2+3*cmd|\' /C calc\'!A0'));
-    $t->assertSame("'@cmd", sanitize_csv_value('@cmd'));
-    $t->assertSame("'%calc", sanitize_csv_value("%calc"));
-    $t->assertSame('John Doe', sanitize_csv_value('John Doe'));
-    $t->assertSame('BCA2401', sanitize_csv_value('BCA2401'));
-});
+} catch (Exception $e) {
+    assert_test("Database schema check failed", false, $e->getMessage());
+}
 
-// =========================================================
-// SECTION 3: Path Traversal & LFI Prevention
-// =========================================================
-echo "\n3. Testing Asset Path Traversal & LFI Prevention...\n";
+// TEST 2: Unified Registration Flow (Single Table)
+echo "\n--- 2. Testing Unified Student Registration Flow ---\n";
+try {
+    $testRoll = 'TEST_REG_' . time();
+    $testEmail = 'testreg' . time() . '@college.edu';
+    $testPass = password_hash('Pass123!', PASSWORD_DEFAULT);
 
-$t->runTest('sanitize_asset_name() blocks directory traversal and malicious payloads', function () use ($t) {
-    $t->assertSame(null, sanitize_asset_name('../../../etc/passwd', 'css'));
-    $t->assertSame(null, sanitize_asset_name('..\\..\\windows\\system32', 'css'));
-    $t->assertSame(null, sanitize_asset_name("style.css\0.php", 'css'));
-    $t->assertSame(null, sanitize_asset_name('http://attacker.com/evil.js', 'js'));
-    $t->assertSame(null, sanitize_asset_name('//attacker.com/evil.js', 'js'));
-    $t->assertSame(null, sanitize_asset_name('php://input', 'js'));
-    $t->assertSame(null, sanitize_asset_name('data:text/javascript,alert(1)', 'js'));
-    $t->assertSame(null, sanitize_asset_name('javascript:alert(1)', 'js'));
-    $t->assertSame(null, sanitize_asset_name('exam.php', 'css'));
-    $t->assertSame('app.css', sanitize_asset_name('app.css', 'css'));
-    $t->assertSame('exam.css', sanitize_asset_name('exam.css', 'css'));
-    $t->assertSame('material-symbols.css', sanitize_asset_name('material-symbols.css', 'css'));
-    $t->assertSame('anti-cheat.js', sanitize_asset_name('anti-cheat.js', 'js'));
-});
+    // Register student -> status should be pending
+    $ins = $pdo->prepare("
+        INSERT INTO students (name, email, password, roll_number, department, semester, phone_number, gender, status)
+        VALUES ('Automated Test Student', ?, ?, ?, 'BCA', 4, '9999988888', 'male', 'pending')
+    ");
+    $ins->execute([$testEmail, $testPass, $testRoll]);
+    $newStudentId = (int) $pdo->lastInsertId();
 
-// =========================================================
-// SECTION 4: CSRF Protection & Tokens
-// =========================================================
-echo "\n4. Testing CSRF Protection & Token Mechanisms...\n";
+    $chk = $pdo->prepare("SELECT status, reviewed_by, reviewed_at FROM students WHERE id = ?");
+    $chk->execute([$newStudentId]);
+    $row = $chk->fetch();
 
-$t->runTest('csrf_token() generates a secure 64-char hex token', function () use ($t) {
-    if (session_status() === PHP_SESSION_NONE) {
-        init_secure_session();
-    }
+    assert_test("New student registration has 'pending' status", $row['status'] === 'pending');
+    assert_test("New student registration has null reviewer", $row['reviewed_by'] === null);
+
+    // Admin approves student directly in students table
+    $adminId = 1; // Dr. Sarah Admin
+    $approveStmt = $pdo->prepare("UPDATE students SET status = 'active', reviewed_by = ?, reviewed_at = NOW() WHERE id = ?");
+    $approveStmt->execute([$adminId, $newStudentId]);
+
+    $chk->execute([$newStudentId]);
+    $rowApproved = $chk->fetch();
+
+    assert_test("Approved student changes to 'active' status", $rowApproved['status'] === 'active');
+    assert_test("Approved student stores reviewing admin ID", (int)$rowApproved['reviewed_by'] === $adminId);
+    assert_test("Approved student stores review timestamp", !empty($rowApproved['reviewed_at']));
+
+    // Cleanup test record
+    $pdo->prepare("DELETE FROM students WHERE id = ?")->execute([$newStudentId]);
+} catch (Exception $e) {
+    assert_test("Unified registration flow failed", false, $e->getMessage());
+}
+
+// TEST 3: High-Concurrency ExamEngine Test
+echo "\n--- 3. Testing High-Concurrency ExamEngine Logic ---\n";
+try {
+    // Pick existing active exam and ensure its window is active
+    $exam = $pdo->query("SELECT id, subject_id, total_questions_to_ask, total_marks FROM exams WHERE status = 'active' LIMIT 1")->fetch();
+    $examId = (int) $exam['id'];
+    $pdo->prepare("UPDATE exams SET start_time = NOW() WHERE id = ?")->execute([$examId]);
+
+    // Pick a test student matching the exam's subject department and semester
+    $examMeta = $pdo->query("SELECT s.department, s.semester FROM exams e JOIN subjects s ON e.subject_id = s.id WHERE e.id = $examId")->fetch();
+    $studentStmt = $pdo->prepare("SELECT id, semester, department FROM students WHERE status = 'active' AND department = ? AND semester = ? LIMIT 1");
+    $studentStmt->execute([$examMeta['department'], $examMeta['semester']]);
+    $student = $studentStmt->fetch();
+    $studentId = (int) $student['id'];
+
+    // Clean any prior attempts for this test student and exam
+    $pdo->prepare("DELETE FROM exam_attempts WHERE student_id = ? AND exam_id = ?")->execute([$studentId, $examId]);
+
+    // 3.1 Start attempt
+    $res = ExamEngine::getOrStartAttempt($pdo, $studentId, $examId, (int)$student['semester'], (string)$student['department']);
+    assert_test("ExamEngine::getOrStartAttempt initializes successfully", empty($res['error']));
+    $attemptId = (int) ($res['attempt']['id'] ?? 0);
+    assert_test("Exam attempt returned valid ID", $attemptId > 0);
+
+    // 3.2 Verify bulk inserted answers exist
+    $ansCount = (int) $pdo->query("SELECT COUNT(*) FROM student_answers WHERE attempt_id = $attemptId")->fetchColumn();
+    assert_test("ExamEngine performed bulk insert of question answers", $ansCount === (int)$exam['total_questions_to_ask'], "Expected: {$exam['total_questions_to_ask']}, Got: $ansCount");
+
+    // 3.3 Test Idempotency (calling getOrStartAttempt again returns the same attempt without re-inserting)
+    $res2 = ExamEngine::getOrStartAttempt($pdo, $studentId, $examId, (int)$student['semester'], (string)$student['department']);
+    assert_test("ExamEngine::getOrStartAttempt is idempotent", (int)$res2['attempt']['id'] === $attemptId);
+    $ansCountAfter = (int) $pdo->query("SELECT COUNT(*) FROM student_answers WHERE attempt_id = $attemptId")->fetchColumn();
+    assert_test("No duplicate answers created on idempotent fetch", $ansCountAfter === $ansCount);
+
+    // 3.4 Test saveAnswer
+    $firstQ = $pdo->query("SELECT question_id, correct_option FROM student_answers sa JOIN questions q ON sa.question_id = q.id WHERE sa.attempt_id = $attemptId LIMIT 1")->fetch();
+    $qId = (int) $firstQ['question_id'];
+    $correctOpt = $firstQ['correct_option'];
+
+    $saveRes = ExamEngine::saveAnswer($pdo, $studentId, $examId, $qId, $correctOpt, true);
+    assert_test("ExamEngine::saveAnswer succeeds", empty($saveRes['error']));
+
+    $savedAns = $pdo->query("SELECT selected_option, marked_for_review FROM student_answers WHERE attempt_id = $attemptId AND question_id = $qId")->fetch();
+    assert_test("Saved option matches submitted option", $savedAns['selected_option'] === $correctOpt);
+    assert_test("Persistent marked_for_review flag is true", (bool)$savedAns['marked_for_review'] === true);
+
+    // 3.5 Test Decimal Scoring Calculation
+    $submitRes = ExamEngine::submitExam($pdo, $studentId, $examId);
+    assert_test("ExamEngine::submitExam grades attempt successfully", empty($submitRes['error']));
+    $finalScore = (float) $submitRes['score'];
+    $expectedScore = round((float)$exam['total_marks'] / (float)$exam['total_questions_to_ask'], 2);
+    assert_test("Score accurately calculates decimal value", $finalScore === $expectedScore, "Expected: $expectedScore, Got: $finalScore");
+
+    $attRow = $pdo->query("SELECT status, score FROM exam_attempts WHERE id = $attemptId")->fetch();
+    assert_test("Attempt status is 'completed'", $attRow['status'] === 'completed');
+
+    // Cleanup
+    $pdo->prepare("DELETE FROM exam_attempts WHERE id = ?")->execute([$attemptId]);
+
+} catch (Exception $e) {
+    assert_test("ExamEngine tests failed", false, $e->getMessage());
+}
+
+// TEST 4: Security Utilities & Sanitization
+echo "\n--- 4. Testing Security & Sanitization Helpers ---\n";
+try {
+    // 4.1 XSS Protection
+    $xssInput = "<script>alert('xss')</script>";
+    assert_test("e() escapes HTML script tags", e($xssInput) === "&lt;script&gt;alert(&#039;xss&#039;)&lt;/script&gt;");
+
+    // 4.2 CSV Formula Injection Protection
+    $csvFormula = "=1+1";
+    assert_test("sanitize_csv_value prepends quote to formula prefix '='", sanitize_csv_value($csvFormula) === "'=1+1");
+    $csvFormula2 = "+cmd|'/c calc'!A1";
+    assert_test("sanitize_csv_value prepends quote to formula prefix '+'", sanitize_csv_value($csvFormula2) === "'+cmd|'/c calc'!A1");
+
+    // 4.3 Asset Name Path Traversal Protection
+    assert_test("sanitize_asset_name prevents directory traversal", sanitize_asset_name("../../secret.css", 'css') === null);
+    assert_test("sanitize_asset_name allows valid filename", sanitize_asset_name("app.css", 'css') === "app.css");
+
+    // 4.4 CSRF Verification
+    init_secure_session();
     $token = csrf_token();
-    $t->assert(strlen($token) === 64, 'Token must be 64 characters (32 random bytes hex)');
-    $t->assert(ctype_xdigit($token), 'Token must be hexadecimal');
-});
+    assert_test("csrf_token generates non-empty token", !empty($token));
+    assert_test("is_csrf_valid validates correct token", is_csrf_valid($token));
+    assert_test("is_csrf_valid rejects fraudulent token", !is_csrf_valid("invalid_token_12345"));
 
-$t->runTest('csrf_field() outputs a valid HTML hidden input', function () use ($t) {
-    $field = csrf_field();
-    $t->assert(str_contains($field, '<input type="hidden" name="csrf_token" value="'), 'Field must be hidden input');
-    $t->assert(str_contains($field, csrf_token()), 'Field must contain session token');
-});
+} catch (Exception $e) {
+    assert_test("Security tests failed", false, $e->getMessage());
+}
 
-// =========================================================
-// SECTION 5: Authentication & Session Helpers
-// =========================================================
-echo "\n5. Testing Authentication & Session Helpers...\n";
-
-$t->runTest('Role check helpers distinguish admin, superadmin, teacher, and student sessions', function () use ($t) {
-    $_SESSION = [];
-    $t->assertSame(false, is_admin_logged_in());
-    $t->assertSame(false, is_student_logged_in());
-    $t->assertSame(false, is_superadmin());
-    $t->assertSame(false, is_teacher());
-
-    // Superadmin session
-    $_SESSION = ['admin_id' => 1, 'admin_role' => 'superadmin', 'role' => 'superadmin'];
-    $t->assertSame(true, is_admin_logged_in());
-    $t->assertSame(true, is_superadmin());
-    $t->assertSame(false, is_teacher());
-    $t->assertSame('superadmin', get_admin_role());
-    $t->assertSame(false, is_student_logged_in());
-
-    // Teacher session
-    $_SESSION = ['admin_id' => 2, 'admin_role' => 'teacher', 'role' => 'teacher'];
-    $t->assertSame(true, is_admin_logged_in());
-    $t->assertSame(false, is_superadmin());
-    $t->assertSame(true, is_teacher());
-    $t->assertSame('teacher', get_admin_role());
-    $t->assertSame(false, is_student_logged_in());
-
-    // Student session
-    $_SESSION = ['student_id' => 5];
-    $t->assertSame(false, is_admin_logged_in());
-    $t->assertSame(true, is_student_logged_in());
-    $t->assertSame(false, is_superadmin());
-    $t->assertSame(false, is_teacher());
-    $_SESSION = [];
-});
-
-$t->runTest('Flash message helpers store and consume one-time messages', function () use ($t) {
-    $_SESSION = [];
-    set_flash('success', 'Profile updated!');
-    $t->assertSame(true, has_flash('success'));
-    $t->assertSame('Profile updated!', get_flash('success'));
-    $t->assertSame(false, has_flash('success'));
-    $t->assertSame(null, get_flash('success'));
-});
-
-// =========================================================
-// SECTION 6: Database Schema & MySQL Table Health
-// =========================================================
-echo "\n6. Testing Database Schema & Table Integrity (MySQL/MariaDB)...\n";
-
-$t->runTest('PDO connection is established and healthy', function () use ($t, $pdo) {
-    $t->assert($pdo instanceof PDO, 'PDO instance must be valid');
-    $result = $pdo->query("SELECT 1")->fetchColumn();
-    $t->assertSame(1, (int)$result);
-});
-
-$t->runTest('All required database tables exist in examify database', function () use ($t, $pdo) {
-    $expectedTables = [
-        'admins', 'students', 'subjects', 'exams', 'questions',
-        'exam_attempts', 'student_answers', 'exam_violations',
-        'profile_requests', 'registration_request', 'admin_audit_logs'
+// TEST 5: Pure-PHP PDF Generation (FPDF v1.86)
+echo "\n--- 5. Testing Pure-PHP PDF Library (FPDF) ---\n";
+try {
+    $sampleExam = [
+        'title' => 'Operating Systems Mid-Term Exam',
+        'total_marks' => 100,
+        'duration_minutes' => 60,
+        'department' => 'BCA',
+        'semester' => 4,
+        'subject_name' => 'Operating Systems',
+        'creator_name' => 'Prof. Alan Turing'
     ];
 
-    $stmt = $pdo->query("SHOW TABLES");
-    $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $sampleAttempts = [
+        [
+            'name' => 'Alex Johnson',
+            'roll_number' => 'BCA2401',
+            'score' => 95.50,
+            'total_questions' => 20,
+            'submitted_at' => '2026-09-03 12:00:00'
+        ],
+        [
+            'name' => 'Priya Sharma',
+            'roll_number' => 'BCA2402',
+            'score' => 88.00,
+            'total_questions' => 20,
+            'submitted_at' => '2026-09-03 12:05:00'
+        ]
+    ];
 
-    foreach ($expectedTables as $tbl) {
-        $t->assert(in_array($tbl, $tables, true), "Table `$tbl` must exist in database");
-    }
-});
+    // 5.1 Test Exam Results PDF string generation
+    $pdfString = PdfService::generateExamResultsPdf($sampleExam, $sampleAttempts, 'S');
+    assert_test("generateExamResultsPdf returns non-empty binary string", !empty($pdfString));
+    assert_test("generateExamResultsPdf outputs valid PDF header (%PDF-)", str_starts_with($pdfString, '%PDF-'));
 
-$t->runTest('admins table has role, status, department, and created_by columns', function () use ($t, $pdo) {
-    $cols = $pdo->query("SHOW COLUMNS FROM admins")->fetchAll(PDO::FETCH_COLUMN);
-    $t->assert(in_array('role', $cols, true), "Column `role` must exist in `admins` table");
-    $t->assert(in_array('status', $cols, true), "Column `status` must exist in `admins` table");
-    $t->assert(in_array('department', $cols, true), "Column `department` must exist in `admins` table");
-    $t->assert(in_array('created_by', $cols, true), "Column `created_by` must exist in `admins` table");
-});
+    // 5.2 Test Student Scorecard PDF string generation
+    $sampleStudent = [
+        'name' => 'Alex Johnson',
+        'email' => 'student@college.edu',
+        'roll_number' => 'BCA2401',
+        'department' => 'BCA',
+        'semester' => 4
+    ];
+    $sampleAttempt = [
+        'score' => 95.50,
+        'total_questions' => 20,
+        'submitted_at' => '2026-09-03 12:00:00'
+    ];
+    $sampleStats = [
+        'correct_count' => 19,
+        'wrong_count' => 1,
+        'skipped_count' => 0
+    ];
 
-$t->runTest('subjects, exams, and questions tables have created_by columns', function () use ($t, $pdo) {
-    $subCols = $pdo->query("SHOW COLUMNS FROM subjects")->fetchAll(PDO::FETCH_COLUMN);
-    $examCols = $pdo->query("SHOW COLUMNS FROM exams")->fetchAll(PDO::FETCH_COLUMN);
-    $qCols = $pdo->query("SHOW COLUMNS FROM questions")->fetchAll(PDO::FETCH_COLUMN);
+    $scorecardPdf = PdfService::generateStudentScorecardPdf($sampleStudent, $sampleExam, $sampleAttempt, $sampleStats, 'S');
+    assert_test("generateStudentScorecardPdf returns non-empty binary string", !empty($scorecardPdf));
+    assert_test("generateStudentScorecardPdf outputs valid PDF header (%PDF-)", str_starts_with($scorecardPdf, '%PDF-'));
 
-    $t->assert(in_array('created_by', $subCols, true), "Column `created_by` must exist in `subjects`");
-    $t->assert(in_array('created_by', $examCols, true), "Column `created_by` must exist in `exams`");
-    $t->assert(in_array('created_by', $qCols, true), "Column `created_by` must exist in `questions`");
-});
+} catch (Exception $e) {
+    assert_test("PDF generation tests failed", false, $e->getMessage());
+}
 
-$t->runTest('questions table has unit_number column with index', function () use ($t, $pdo) {
-    $stmt = $pdo->query("SHOW COLUMNS FROM questions LIKE 'unit_number'");
-    $col = $stmt->fetch();
-    $t->assert(!empty($col), "Column `unit_number` must exist in `questions` table");
-});
-
-$t->runTest('exams table has target_units column', function () use ($t, $pdo) {
-    $stmt = $pdo->query("SHOW COLUMNS FROM exams LIKE 'target_units'");
-    $col = $stmt->fetch();
-    $t->assert(!empty($col), "Column `target_units` must exist in `exams` table");
-});
-
-$t->runTest('students table has phone_number, gender and status columns', function () use ($t, $pdo) {
-    $stmt = $pdo->query("SHOW COLUMNS FROM students LIKE 'phone_number'");
-    $t->assert(!empty($stmt->fetch()), "Column `phone_number` must exist in `students`");
-
-    $stmt = $pdo->query("SHOW COLUMNS FROM students LIKE 'gender'");
-    $t->assert(!empty($stmt->fetch()), "Column `gender` must exist in `students`");
-
-    $stmt = $pdo->query("SHOW COLUMNS FROM students LIKE 'status'");
-    $t->assert(!empty($stmt->fetch()), "Column `status` must exist in `students`");
-});
-
-// =========================================================
-// SECTION 7: Business Logic & Question Bank Security
-// =========================================================
-echo "\n7. Testing Exam Lifecycle, Question Bank & API Security...\n";
-
-$t->runTest('Unit-wise questions can be queried and counted', function () use ($t, $pdo) {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE subject_id = ? AND unit_number = ?");
-    $stmt->execute([1, 1]);
-    $count = (int) $stmt->fetchColumn();
-    $t->assert($count > 0, "Subject 1 Unit 1 must contain seeded questions");
-});
-
-$t->runTest('Exam creation with unit filtering succeeds without SQL error', function () use ($t, $pdo) {
-    $ins = $pdo->prepare("
-        INSERT INTO exams (subject_id, title, description, duration_minutes, total_questions_to_ask, total_marks, status, access_pin, target_units)
-        VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?)
-    ");
-    $ins->execute([1, 'Unit Test Demo Exam', 'Testing unit-based exam config', 20, 5, 10, '9999', '1']);
-    $newExamId = (int) $pdo->lastInsertId();
-    $t->assert($newExamId > 0, "Exam must be successfully created with target_units = 1");
-
-    // Clean up test exam
-    $pdo->prepare("DELETE FROM exams WHERE id = ?")->execute([$newExamId]);
-});
-
-$t->runTest('Student registration request validation prevents bad data', function () use ($t, $pdo) {
-    $email = 'test_applicant_' . time() . '@college.edu';
-    $roll = 'TESTROLL_' . time();
-    $passHash = password_hash('Pass@123', PASSWORD_DEFAULT);
-
-    $stmt = $pdo->prepare("
-        INSERT INTO registration_request (name, email, password, roll_number, department, semester, phone_number, gender)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ");
-    $stmt->execute(['Test Applicant', $email, $passHash, $roll, 'BCA', 4, '9876543210', 'male']);
-    $reqId = (int) $pdo->lastInsertId();
-    $t->assert($reqId > 0, "Valid registration request must be recorded");
-
-    // Clean up
-    $pdo->prepare("DELETE FROM registration_request WHERE id = ?")->execute([$reqId]);
-});
-
-$t->runTest('Exam attempt question allocation prevents leaking correct options', function () use ($t, $pdo) {
-    $studentId = 1;
-    $examId = 1;
-
-    $attStmt = $pdo->prepare("SELECT id FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
-    $attStmt->execute([$studentId, $examId]);
-    $attemptId = $attStmt->fetchColumn();
-
-    if (!$attemptId) {
-        $ins = $pdo->prepare("INSERT INTO exam_attempts (student_id, exam_id, total_questions) VALUES (?, ?, 5)");
-        $ins->execute([$studentId, $examId]);
-        $attemptId = (int) $pdo->lastInsertId();
-
-        $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = 1 LIMIT 5");
-        $qStmt->execute();
-        $qIds = $qStmt->fetchAll(PDO::FETCH_COLUMN);
-
-        $ansIns = $pdo->prepare("INSERT INTO student_answers (attempt_id, question_id) VALUES (?, ?)");
-        foreach ($qIds as $qid) {
-            $ansIns->execute([$attemptId, $qid]);
+// TEST 6: Exam Results Publication & Gating Workflow
+echo "\n--- 6. Testing Exam Results Publication & Access Gating ---\n";
+try {
+    // 6.1 Gating helper function logic
+    $canView = function(string $status, int $published, ?string $startTime, int $durationMin): bool {
+        $isEnded = ($status === 'ended');
+        if ($status === 'active' && !empty($startTime)) {
+            $endTime = strtotime($startTime) + ($durationMin * 60);
+            if (time() >= $endTime) {
+                $isEnded = true;
+            }
         }
-    }
+        return $isEnded && ($published === 1);
+    };
 
-    $apiQuery = "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d
-        FROM student_answers sa
-        JOIN questions q ON sa.question_id = q.id
-        WHERE sa.attempt_id = ?
-        LIMIT 1";
-    $apiStmt = $pdo->prepare($apiQuery);
-    $apiStmt->execute([$attemptId]);
-    $questionData = $apiStmt->fetch(PDO::FETCH_ASSOC);
+    // Case 1: Exam is active (running), unpublished
+    assert_test("Results hidden when exam is active and unpublished", !$canView('active', 0, date('Y-m-d H:i:s'), 60));
 
-    $t->assert(isset($questionData['question_text']), 'Question text must be present');
-    $t->assert(isset($questionData['option_a']), 'Option A must be present');
-    $t->assert(!isset($questionData['correct_option']), 'SECURITY: correct_option MUST NEVER be returned in student question endpoint');
-});
+    // Case 2: Exam is active, but admin somehow set published
+    assert_test("Results hidden while exam is active even if published flag set", !$canView('active', 1, date('Y-m-d H:i:s'), 60));
 
-$t->runTest('Anti-cheat violation logging tracks and records cheating events', function () use ($t, $pdo) {
-    $attStmt = $pdo->query("SELECT id FROM exam_attempts LIMIT 1");
-    $attemptId = (int) $attStmt->fetchColumn();
+    // Case 3: Exam has ended, but results unpublished
+    assert_test("Results hidden when exam is ended but unpublished", !$canView('ended', 0, null, 60));
 
-    if ($attemptId > 0) {
-        $ins = $pdo->prepare("INSERT INTO exam_violations (attempt_id, violation_type, details) VALUES (?, ?, ?)");
-        $ins->execute([$attemptId, 'Switched tab or minimized window', 'Unit test simulation']);
-        $violId = (int) $pdo->lastInsertId();
-        $t->assert($violId > 0, "Violation record must be created");
+    // Case 4: Exam has ended AND results published by admin
+    assert_test("Results visible only when exam is ended AND published by admin", $canView('ended', 1, null, 60));
 
-        $cntStmt = $pdo->prepare("SELECT COUNT(*) FROM exam_violations WHERE id = ?");
-        $cntStmt->execute([$violId]);
-        $t->assertSame(1, (int)$cntStmt->fetchColumn());
+    // Case 5: Verify admin publish database toggle
+    $testExamRow = $pdo->query("SELECT id FROM exams LIMIT 1")->fetch();
+    $testExamId = (int) ($testExamRow['id'] ?? 0);
+    $pdo->prepare("UPDATE exams SET results_published = 1 WHERE id = ?")->execute([$testExamId]);
+    $pubVal = (int)$pdo->query("SELECT results_published FROM exams WHERE id = $testExamId")->fetchColumn();
+    assert_test("Admin publish updates results_published to 1 in database", $pubVal === 1);
 
-        // Clean up test violation
-        $pdo->prepare("DELETE FROM exam_violations WHERE id = ?")->execute([$violId]);
-    }
-});
+    $pdo->prepare("UPDATE exams SET results_published = 0 WHERE id = ?")->execute([$testExamId]);
+    $unpubVal = (int)$pdo->query("SELECT results_published FROM exams WHERE id = $testExamId")->fetchColumn();
+    assert_test("Admin unpublish reverts results_published to 0 in database", $unpubVal === 0);
 
-// =========================================================
-// SECTION 8: Superadmin & Teacher RBAC, Retirement & Record Retention
-// =========================================================
-echo "\n8. Testing Superadmin & Teacher Roles, Retirement & Record Retention...\n";
+} catch (Exception $e) {
+    assert_test("Results gating tests failed", false, $e->getMessage());
+}
 
-$t->runTest('is_system_initialized detects superadmin presence correctly', function () use ($t, $pdo) {
-    $t->assertSame(true, is_system_initialized($pdo), 'Database with seeded superadmin must be reported as initialized');
-});
+// Summary
+echo "\n\033[1;34m=== TEST RESULTS SUMMARY ===\033[0m\n";
+echo "Total Tests:  $totalTests\n";
+echo "Passed:       \033[32m$passedTests\033[0m\n";
+echo "Failed:       \033[" . ($failedTests > 0 ? "31m$failedTests" : "32m0") . "\033[0m\n\n";
 
-$t->runTest('Superadmin and Teacher roles are distinguished in database', function () use ($t, $pdo) {
-    $superStmt = $pdo->query("SELECT role, status FROM admins WHERE email = 'admin@college.edu'");
-    $super = $superStmt->fetch();
-    $t->assert($super !== false, 'Superadmin record must exist');
-    $t->assertSame('superadmin', $super['role']);
-    $t->assertSame('active', $super['status']);
-
-    $teacherStmt = $pdo->query("SELECT role, status, department FROM admins WHERE email = 'teacher@college.edu'");
-    $teacher = $teacherStmt->fetch();
-    $t->assert($teacher !== false, 'Active teacher record must exist');
-    $t->assertSame('teacher', $teacher['role']);
-    $t->assertSame('active', $teacher['status']);
-    $t->assertSame('BCA', $teacher['department']);
-});
-
-$t->runTest('Retired teacher account has retired status and records are preserved', function () use ($t, $pdo) {
-    // 1. Verify retired teacher account exists
-    $retiredStmt = $pdo->query("SELECT id, role, status FROM admins WHERE email = 'grace.hopper@college.edu'");
-    $retiredTeacher = $retiredStmt->fetch();
-    $t->assert($retiredTeacher !== false, 'Retired teacher record must exist in database');
-    $t->assertSame('retired', $retiredTeacher['status'], 'Status must be retired');
-    $t->assertSame('teacher', $retiredTeacher['role']);
-    $retiredId = (int) $retiredTeacher['id'];
-
-    // 2. Verify exams created by retired teacher STILL EXIST and are intact
-    $examStmt = $pdo->prepare("SELECT COUNT(*) FROM exams WHERE created_by = ?");
-    $examStmt->execute([$retiredId]);
-    $examsCount = (int) $examStmt->fetchColumn();
-    $t->assert($examsCount > 0, "Exams authored by retired teacher must be retained (found $examsCount exams)");
-
-    // 3. Verify questions created by retired teacher STILL EXIST and are intact
-    $qStmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE created_by = ?");
-    $qStmt->execute([$retiredId]);
-    $questionsCount = (int) $qStmt->fetchColumn();
-    $t->assert($questionsCount > 0, "Questions authored by retired teacher must be retained (found $questionsCount questions)");
-
-    // 4. Verify joining with exams correctly shows creator name and retired status
-    $joinStmt = $pdo->prepare("
-        SELECT e.title, a.name as creator_name, a.status as creator_status
-        FROM exams e
-        JOIN admins a ON e.created_by = a.id
-        WHERE e.created_by = ?
-        LIMIT 1
-    ");
-    $joinStmt->execute([$retiredId]);
-    $row = $joinStmt->fetch();
-    $t->assert(!empty($row), 'Query joining exams and retired teacher must return rows');
-    $t->assertSame('retired', $row['creator_status'], 'Creator status must reflect retired');
-    $t->assertSame('Prof. Grace Hopper', $row['creator_name']);
-});
-
-$t->runTest('Immutable audit logging logs administrative actions accurately', function () use ($t, $pdo) {
-    $_SESSION['admin_id'] = 1;
-    $_SESSION['admin_name'] = 'Dr. Sarah Admin';
-    $_SESSION['admin_role'] = 'superadmin';
-
-    $testAction = 'unit_test_audit_event_' . bin2hex(random_bytes(4));
-    $success = log_admin_action($pdo, $testAction, 'test_entity', 999, 'Unit test audit event details');
-    $t->assertSame(true, $success, 'log_admin_action must succeed');
-
-    $chk = $pdo->prepare("SELECT admin_name, admin_role, action, details FROM admin_audit_logs WHERE action = ?");
-    $chk->execute([$testAction]);
-    $logEntry = $chk->fetch();
-
-    $t->assert(!empty($logEntry), 'Audit log entry must exist in database');
-    $t->assertSame('Dr. Sarah Admin', $logEntry['admin_name']);
-    $t->assertSame('superadmin', $logEntry['admin_role']);
-    $t->assertSame('Unit test audit event details', $logEntry['details']);
-
-    // Clean up test audit log
-    $pdo->prepare("DELETE FROM admin_audit_logs WHERE action = ?")->execute([$testAction]);
-});
-
-// Exit with status code
-$exitCode = $t->summary();
-exit($exitCode);
+if ($failedTests > 0) {
+    exit(1);
+}

@@ -2,12 +2,13 @@
 
 /**
  * Session Security & Management Helper
+ * Non-blocking session management for high-concurrency exam environments.
  */
 
 function init_secure_session(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
-        if (!headers_sent()) {
+        if (!headers_sent() && ini_get('session.use_cookies')) {
             $isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
                 || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
                 || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443);
@@ -25,14 +26,25 @@ function init_secure_session(): void
         session_start();
     }
 
-    // Check for idle session timeout (30 minutes)
-    $timeout = 1800; // 30 mins
+    // Idle session timeout check (default 30 minutes)
+    $timeout = (int) (function_exists('get_env') ? get_env('SESSION_LIFETIME', 1800) : 1800);
     if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout)) {
         session_unset();
         session_destroy();
         session_start();
     }
     $_SESSION['last_activity'] = time();
+}
+
+/**
+ * Release the PHP session lock immediately to prevent blocking
+ * parallel AJAX requests from the same student browser.
+ */
+function release_session_lock(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
 }
 
 /**

@@ -1,19 +1,22 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Propose a new feature for Examify
 title: "[FEATURE] "
 labels: enhancement
 assignees: ''
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+**Problem Description**
+Explain the problem that needs a solution.
+Write clear and direct sentences.
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+**Proposed Solution**
+Describe your desired solution clearly.
+Explain how the feature should behave.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+**Alternative Solutions**
+Describe any alternative solutions or workarounds you considered.
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+**Additional Context**
+Add relevant diagrams, mockups, or extra information here.
+

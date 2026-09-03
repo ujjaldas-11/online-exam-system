@@ -16,6 +16,7 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
     <link rel="icon" type="image/x-icon" href="assets/images/examify_icon.ico?v=<?= $assetVersion ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/examify_logo.png?v=<?= $assetVersion ?>">
     <link rel="apple-touch-icon" href="assets/images/examify_logo.png?v=<?= $assetVersion ?>">
+    <link rel="stylesheet" href="assets/css/material-symbols.css?v=<?= $assetVersion ?>">
     <link rel="stylesheet" href="assets/css/components.css?v=<?= $assetVersion ?>">
     <link rel="stylesheet" href="assets/css/landing.css?v=<?= $assetVersion ?>">
 </head>
@@ -49,34 +50,42 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
             <div class="hero-actions">
                 <a href="admin/admin-login.php" class="btn btn-primary interactive-btn">Admin Portal</a>
                 <a href="student/login.php" class="btn btn-outline interactive-btn">Student Portal</a>
-                <a href="docs/user/user_doc.html" class="btn btn-text interactive-btn">Documentation &rarr;</a>
+                <a href="docs/user/user-doc.php" class="btn btn-text interactive-btn">Documentation &rarr;</a>
             </div>
         </section>
 
         <section class="features-section">
             <div class="feature-card interactive-card">
-                <div class="feature-icon">📚</div>
+                <div class="feature-icon">
+                    <span class="material-symbols-outlined">quiz</span>
+                </div>
                 <div class="feature-text">
                     <p class="feature-title">Question Bank</p>
                     <p class="feature-desc">Organize and reuse subjects effortlessly.</p>
                 </div>
             </div>
             <div class="feature-card interactive-card">
-                <div class="feature-icon">⏱️</div>
+                <div class="feature-icon">
+                    <span class="material-symbols-outlined">timer</span>
+                </div>
                 <div class="feature-text">
                     <p class="feature-title">Timed & Proctored</p>
                     <p class="feature-desc">Set windows and monitor live sessions.</p>
                 </div>
             </div>
             <div class="feature-card interactive-card">
-                <div class="feature-icon">🛡️</div>
+                <div class="feature-icon">
+                    <span class="material-symbols-outlined">shield</span>
+                </div>
                 <div class="feature-text">
                     <p class="feature-title">Cheat-Resistant</p>
                     <p class="feature-desc">Full-screen enforcement & tab tracking.</p>
                 </div>
             </div>
             <div class="feature-card interactive-card">
-                <div class="feature-icon">📊</div>
+                <div class="feature-icon">
+                    <span class="material-symbols-outlined">analytics</span>
+                </div>
                 <div class="feature-text">
                     <p class="feature-title">Instant Results</p>
                     <p class="feature-desc">Auto-graded scores available immediately.</p>
@@ -90,6 +99,17 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
             <img src="assets/images/examify_logo.png" alt="." class="footer-logo">
             <span>Examify</span>
         </a>
+        <div class="footer-center">
+            <a href="developers.php" class="footer-nav-link">
+                <span class="material-symbols-outlined icon-xs">group</span>
+                <span>Meet the Developers</span>
+            </a>
+            <span class="footer-sep">&bull;</span>
+            <a href="docs/user/user-doc.php" class="footer-nav-link">
+                <span class="material-symbols-outlined icon-xs">menu_book</span>
+                <span>Documentation</span>
+            </a>
+        </div>
         <p class="footer-copy">&copy; <?= date('Y') ?> Examify. All rights reserved.</p>
     </footer>
 

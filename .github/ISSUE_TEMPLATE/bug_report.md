@@ -1,31 +1,34 @@
 ---
 name: Bug report
-about: Create a report to help us improve the Online Exam System
+about: Create a report to help us improve Examify
 title: "[BUG] "
 labels: bug
 assignees: ''
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**Describe the Bug**
+Write a clear and direct description of the problem.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Log in as '...' (Admin/Student)
-3. Click on '....'
-4. See error
+**Steps to Reproduce**
+Follow these steps to reproduce the issue:
+1. Navigate to '...'
+2. Log in as '...' (Admin or Student).
+3. Click on '...'
+4. Observe the error.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Expected Behavior**
+Describe what you expected to happen.
 
-**Environment details (please complete the following information):**
-- OS: [e.g. Windows, macOS]
-- Browser [e.g. Chrome, Firefox]
-- PHP Version [e.g. 8.1]
+**Environment Details**
+Complete the following system information:
+- Operating System: [for example: Windows 11, Ubuntu 22.04]
+- Web Browser: [for example: Chrome 120, Firefox 121]
+- PHP Version: [for example: 8.1, 8.2]
+- Database: [for example: MySQL 8.0, MariaDB 10.4]
 
 **Screenshots**
-If applicable, add screenshots to help explain your problem.
+Attach screenshots to explain the issue clearly.
 
-**Additional context**
-Add any other context about the problem here (e.g., specific error messages from the PHP log).
+**Additional Context**
+Add relevant log excerpts from `logs/app_errors.log` or browser developer tools.
+

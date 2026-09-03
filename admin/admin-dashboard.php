@@ -15,7 +15,7 @@ try {
     $total_subjects = (int) $pdo->query("SELECT COUNT(*) FROM subjects")->fetchColumn();
     $active_exams = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'active'")->fetchColumn();
     $total_questions = (int) $pdo->query("SELECT COUNT(*) FROM questions")->fetchColumn();
-    $total_students = (int) $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
+    $total_students = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'active'")->fetchColumn();
     $total_attempts = (int) $pdo->query("SELECT COUNT(*) FROM exam_attempts")->fetchColumn();
 
     $my_exams = 0;
@@ -83,10 +83,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <div class="stat-num"><?= $total_questions ?></div>
             <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">quiz</span> Question Bank</div>
         </div>
-        <div class="stat-card">
+        <a href="manage-students.php" class="stat-card" style="text-decoration: none; color: inherit; display: block; cursor: pointer;" title="View Student Directory">
             <div class="stat-num"><?= $total_students ?></div>
-            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">school</span> Enrolled Students</div>
-        </div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">school</span> Active Students</div>
+        </a>
         <div class="stat-card">
             <div class="stat-num"><?= $total_attempts ?></div>
             <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">analytics</span> Exam Attempts</div>
@@ -97,6 +97,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="card">
         <div class="card-title">Quick Actions</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+            <a href="manage-students.php" class="btn btn-primary" style="justify-content: flex-start; padding: 16px; gap: 12px; background: #0f766e; border-color: #0f766e;">
+                <span class="material-symbols-outlined icon-xl">school</span>
+                <div style="text-align: left;">
+                    <div><strong>Manage Students</strong></div>
+                    <small style="opacity: 0.9; font-weight: normal;">Roster, edits, password & status</small>
+                </div>
+            </a>
+
             <a href="control-exams.php" class="btn btn-primary" style="justify-content: flex-start; padding: 16px; gap: 12px;">
                 <span class="material-symbols-outlined icon-xl">tune</span>
                 <div style="text-align: left;">

@@ -48,7 +48,8 @@ try {
             s.*,
             a.name as creator_name,
             a.role as creator_role,
-            a.status as creator_status
+            a.status as creator_status,
+            (SELECT COUNT(*) FROM questions WHERE subject_id = s.id) as question_count
         FROM subjects s
         LEFT JOIN admins a ON s.created_by = a.id
         ORDER BY s.id DESC
@@ -66,8 +67,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
 <div class="container main-content">
     <div class="page-header">
         <div>
-            <h1>Manage Subjects</h1>
-            <p>Create and organize curriculum subjects by department & semester</p>
+            <h1>Manage Curriculum Subjects</h1>
+            <p>Add department subjects and configure question banks</p>
         </div>
     </div>
 
@@ -77,22 +78,22 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
     <?php endif; ?>
 
-    <!-- Create Subject Form -->
-    <div class="card">
-        <div class="card-title">Create New Subject</div>
-        <form method="POST">
-            <?= csrf_field() ?>
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: start;">
+        <!-- Create Subject Form -->
+        <div class="card">
+            <div class="card-title">Add New Subject</div>
+            <form method="POST">
+                <?= csrf_field() ?>
 
-            <div class="form-group">
-                <label>Subject Name</label>
-                <input type="text" name="name" required placeholder="e.g. Operating Systems" value="<?= e($_POST['name'] ?? '') ?>">
-            </div>
+                <div class="form-group">
+                    <label>Subject Name</label>
+                    <input type="text" name="name" required placeholder="e.g. Cloud Computing" value="<?= e($_POST['name'] ?? '') ?>">
+                </div>
 
-            <div class="form-grid">
                 <div class="form-group">
                     <label>Department</label>
                     <select name="department" required>
-                        <option value="">-- Select Department --</option>
+                        <option value="">Select Department</option>
                         <option value="BCA" <?= (($_POST['department'] ?? '') === 'BCA') ? 'selected' : '' ?>>BCA</option>
                         <option value="BBA" <?= (($_POST['department'] ?? '') === 'BBA') ? 'selected' : '' ?>>BBA</option>
                     </select>
@@ -101,76 +102,73 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div class="form-group">
                     <label>Semester</label>
                     <select name="semester" required>
-                        <option value="">-- Select Semester --</option>
+                        <option value="">Select Semester</option>
                         <?php for ($i = 1; $i <= 8; $i++): ?>
-                            <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>Semester <?= $i ?></option>
+                            <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>
+                                Semester <?= $i ?>
+                            </option>
                         <?php endfor; ?>
                     </select>
                 </div>
-            </div>
 
-            <div style="margin-top: 16px;">
-                <button type="submit" name="create_subject" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">add</span> Create Subject
+                <button type="submit" name="create_subject" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">add_circle</span> Add Subject
                 </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Existing Subjects Table -->
-    <div class="card">
-        <div class="card-title">Curriculum Subjects (<?= count($subjects) ?>)</div>
-
-        <div style="margin-bottom: 10px;">
-            <?php include '../components/searchbar.php' ?>
+            </form>
         </div>
 
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 60px;">ID</th>
-                        <th>Subject Name</th>
-                        <th>Department</th>
-                        <th>Semester</th>
-                        <th>Created By</th>
-                        <th>Date Created</th>
-                        <th style="text-align: right;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($subjects)): ?>
+        <!-- Subjects List Table -->
+        <div class="card">
+            <div class="card-title">Curriculum Subjects (<?= count($subjects) ?>)</div>
+
+            <div style="margin-bottom: 10px;">
+                <?php include '../components/searchbar.php' ?>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
                         <tr>
-                            <td colspan="7" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">No subjects created yet.</td>
+                            <th>Subject</th>
+                            <th>Department</th>
+                            <th>Semester</th>
+                            <th>Questions</th>
+                            <th style="text-align: right;">Action</th>
                         </tr>
-                    <?php else: ?>
-                        <?php foreach ($subjects as $sub): ?>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($subjects)): ?>
                             <tr>
-                                <td>#<?= e((string)$sub['id']) ?></td>
-                                <td><strong><?= e($sub['name']) ?></strong></td>
-                                <td><span class="badge badge-inactive"><?= e($sub['department']) ?></span></td>
-                                <td>Sem <?= e((string)$sub['semester']) ?></td>
-                                <td>
-                                    <?php if (!empty($sub['creator_name'])): ?>
-                                        <strong><?= e($sub['creator_name']) ?></strong>
-                                        <?php if (($sub['creator_status'] ?? '') === 'retired'): ?>
-                                            <span class="badge badge-warning" style="font-size: 0.68rem; margin-left: 2px;">Retired</span>
-                                        <?php endif; ?>
-                                    <?php else: ?>
-                                        <span style="color: var(--color-text-secondary);">System</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><?= date('d M Y', strtotime($sub['created_at'])) ?></td>
-                                <td style="text-align: right;">
-                                    <a href="view-questions.php?subject_id=<?= $sub['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-                                        <span class="material-symbols-outlined icon-xs">quiz</span> View Questions
-                                    </a>
-                                </td>
+                                <td colspan="5" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">No subjects created yet.</td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                        <?php else: ?>
+                            <?php foreach ($subjects as $sub): ?>
+                                <tr>
+                                    <td>
+                                        <strong><?= e($sub['name']) ?></strong>
+                                        <div style="font-size: 0.74rem; color: var(--color-text-secondary); margin-top: 2px;">
+                                            By: <strong><?= e($sub['creator_name'] ?? 'System') ?></strong>
+                                            <?php if (($sub['creator_status'] ?? '') === 'retired'): ?>
+                                                <span class="badge badge-warning" style="font-size: 0.62rem; padding: 1px 3px;">Retired</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge badge-inactive"><?= e($sub['department']) ?></span></td>
+                                    <td>Sem <?= e((string)$sub['semester']) ?></td>
+                                    <td>
+                                        <span class="badge badge-active"><?= (int)$sub['question_count'] ?> Qs</span>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <a href="view-questions.php?subject_id=<?= $sub['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <span class="material-symbols-outlined icon-xs">visibility</span> View Qs
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

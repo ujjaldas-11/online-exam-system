@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_update']) && 
     verify_csrf();
 
     $name = clean_input($_POST['name'] ?? '');
-    $roll_number = clean_input($_POST['roll_number'] ?? '');
+    $roll_number = strtoupper(clean_input($_POST['roll_number'] ?? ''));
     $department = clean_input($_POST['department'] ?? '');
     $semester = int_param($_POST['semester'] ?? 0);
 
@@ -69,82 +69,85 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/student-navbar.php';
 ?>
 
-<div class="container" style="max-width: 650px;">
-    <div class="card">
-        <div class="page-header">
-            <div>
-                <h1>Edit Student Profile</h1>
-                <p>Request changes to your academic information</p>
-            </div>
+<div class="container" style="max-width: 600px;">
+    <div class="page-header">
+        <div>
+            <h1>Request Profile Change</h1>
+            <p>Updates must be reviewed by your course coordinator</p>
         </div>
+    </div>
 
-        <?php if ($message): ?>
-            <div class="alert alert-success"><?= e($message) ?></div>
-        <?php endif; ?>
+    <?php if ($message): ?>
+        <div class="alert alert-success"><?= e($message) ?></div>
+    <?php endif; ?>
 
-        <?php if ($error): ?>
-            <div class="alert alert-error"><?= e($error) ?></div>
-        <?php endif; ?>
+    <?php if ($error): ?>
+        <div class="alert alert-error"><?= e($error) ?></div>
+    <?php endif; ?>
 
-        <?php if ($has_pending_request): ?>
-            <div class="alert alert-warning">
-                <strong>Request Pending:</strong> You have a profile update waiting for instructor approval. You cannot make another change until the current request is reviewed.
+    <?php if ($has_pending_request): ?>
+        <div class="alert alert-warning" style="display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined icon-sm">hourglass_top</span>
+            <div>You have a pending profile change request awaiting administrator review.</div>
+        </div>
+    <?php endif; ?>
+
+    <div class="card">
+        <form method="POST">
+            <?= csrf_field() ?>
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="name" required value="<?= e($student['name']) ?>" <?= $has_pending_request ? 'disabled' : '' ?>>
             </div>
-            <div style="margin-top: 16px;">
-                <a href="profile.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to My Profile
-                </a>
+
+            <div class="form-group">
+                <label>Student Email (Fixed)</label>
+                <input type="email" value="<?= e($student['email']) ?>" disabled style="background: var(--color-gray-100); cursor: not-allowed;">
+                <small style="color: var(--color-text-secondary);">Email cannot be changed directly.</small>
             </div>
-        <?php else: ?>
-            <form method="POST">
-                <?= csrf_field() ?>
+
+            <div class="form-group">
+                <label>Roll Number / Student ID</label>
+                <input type="text"
+                    name="roll_number"
+                    style="text-transform: uppercase;"
+                    oninput="this.value = this.value.toUpperCase()"
+                    required
+                    value="<?= e($student['roll_number']) ?>"
+                    <?= $has_pending_request ? 'disabled' : '' ?>>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="department" required <?= $has_pending_request ? 'disabled' : '' ?>>
+                        <option value="BCA" <?= $student['department'] === 'BCA' ? 'selected' : '' ?>>BCA</option>
+                        <option value="BBA" <?= $student['department'] === 'BBA' ? 'selected' : '' ?>>BBA</option>
+                    </select>
+                </div>
 
                 <div class="form-group">
-                    <label>Email Address (read-only)</label>
-                    <input type="email" value="<?= e($student['email']) ?>" readonly style="background-color: var(--color-gray-100); cursor: not-allowed;">
+                    <label>Semester</label>
+                    <select name="semester" required <?= $has_pending_request ? 'disabled' : '' ?>>
+                        <?php for ($i = 1; $i <= 8; $i++): ?>
+                            <option value="<?= $i ?>" <?= (int)$student['semester'] === $i ? 'selected' : '' ?>>
+                                Semester <?= $i ?>
+                            </option>
+                        <?php endfor; ?>
+                    </select>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" name="name" required value="<?= e($student['name']) ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Roll Number / Student ID</label>
-                    <input type="text" name="roll_number" required value="<?= e($student['roll_number']) ?>">
-                </div>
-
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Department</label>
-                        <select name="department" required>
-                            <option value="BCA" <?= $student['department'] === 'BCA' ? 'selected' : '' ?>>BCA</option>
-                            <option value="BBA" <?= $student['department'] === 'BBA' ? 'selected' : '' ?>>BBA</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Current Semester</label>
-                        <select name="semester" required>
-                            <?php for ($i = 1; $i <= 8; $i++): ?>
-                                <option value="<?= $i ?>" <?= $student['semester'] == $i ? 'selected' : '' ?>>
-                                    Semester <?= $i ?>
-                                </option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+            <div style="margin-top: 24px; display: flex; gap: 12px;">
+                <?php if (!$has_pending_request): ?>
                     <button type="submit" name="request_update" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-                        <span class="material-symbols-outlined icon-sm">send</span> Request Update
+                        <span class="material-symbols-outlined icon-sm">send</span> Submit Change Request
                     </button>
-                    <a href="profile.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
-                        <span class="material-symbols-outlined icon-sm">close</span> Cancel
-                    </a>
-                </div>
-            </form>
-        <?php endif; ?>
+                <?php endif; ?>
+                <a href="profile.php" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
     </div>
 </div>
 

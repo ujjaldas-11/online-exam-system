@@ -8,8 +8,7 @@ $assetVersion = asset_version();
 <link rel="stylesheet" href="../assets/css/components.css?v=<?= $assetVersion ?>">
 
 <div class="search-wrapper no-print">
-    <!-- <span class="material-symbols-outlined search-icon" style="font-size: 18px;">search</span>-->
-    <input type="text" id="globalTableSearch" class="search-input" placeholder="<?= htmlspecialchars($placeholder) ?>">
+    <input type="text" id="globalTableSearch" class="search-input" placeholder="<?= htmlspecialchars($placeholder, ENT_QUOTES, 'UTF-8') ?>">
 </div>
 
 <script>
@@ -17,8 +16,6 @@ $assetVersion = asset_version();
         const searchInput = document.getElementById('globalTableSearch');
         if (!searchInput) return;
 
-        // Generic debounce helper: delays calling fn until `delay` ms
-        // have passed since the last time it was invoked.
         function debounce(fn, delay) {
             let timeoutId;
             return function (...args) {
@@ -29,7 +26,6 @@ $assetVersion = asset_version();
 
         function filterTableRows() {
             const filter = searchInput.value.toLowerCase();
-            // Find the table body on whatever page this is included in
             const tableRows = document.querySelectorAll('tbody tr');
 
             tableRows.forEach(row => {
@@ -39,7 +35,6 @@ $assetVersion = asset_version();
         }
 
         const debouncedFilter = debounce(filterTableRows, 300);
-
         searchInput.addEventListener('keyup', debouncedFilter);
     });
 </script>

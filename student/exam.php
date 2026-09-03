@@ -5,6 +5,12 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../utils/device.php';
+require_once '../services/ExamEngine.php';
+require_once '../utils/rate-limiter.php';
+
+// Enforce desktop PC / laptop environment for active examinations
+require_desktop_for_exam();
 
 if (empty($_GET['id'])) {
     die("Error: No exam selected.");
@@ -15,49 +21,71 @@ $student_id = (int) $_SESSION['student_id'];
 $student_semester = (int) $_SESSION['semester'];
 $student_department = (string) $_SESSION['department'];
 
+// 1. Fetch Exam Meta to check PIN requirements & access
 try {
-    $examSql = "SELECT e.id, e.title, e.duration_minutes, e.subject_id, e.total_questions_to_ask, e.total_marks,
-        e.access_pin, e.target_units, TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
+    $examMetaStmt = $pdo->prepare("
+        SELECT e.id, e.title, e.duration_minutes, e.total_questions_to_ask, e.total_marks,
+               e.access_pin, e.target_units, e.status,
+               s.department, s.semester, s.name AS subject_name,
+               TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id
-        WHERE e.id = :id
-            AND s.semester = :semester
-            AND s.department = :department
-            AND e.status = 'active'
-        LIMIT 1";
-
-    $examStmt = $pdo->prepare($examSql);
-    $examStmt->execute([
-        ':id' => $exam_id,
-        ':semester' => $student_semester,
-        ':department' => $student_department,
-    ]);
-
-    $exam = $examStmt->fetch();
+        WHERE e.id = ?
+        LIMIT 1
+    ");
+    $examMetaStmt->execute([$exam_id]);
+    $exam = $examMetaStmt->fetch();
 
     if (!$exam) {
-        die("Exam not found or you do not have permission to access it.");
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Exam not found or you do not have permission to access it.</h2>");
     }
 
-    if ($exam['seconds_left'] <= 0) {
-        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Time is up! This exam has ended.</h2>");
+    if ($exam['status'] !== 'active') {
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>This exam is not currently active.</h2>");
     }
 
-    // Classroom PIN Verification (For Surprise Tests)
+    // Authorization: Department and semester match
+    if ($exam['department'] !== $student_department || (int)$exam['semester'] !== $student_semester) {
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>You are not authorized to access this exam.</h2>");
+    }
+
+    if ((int)$exam['seconds_left'] <= 0) {
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Time is up! This examination has already concluded.</h2>");
+    }
+
+    // 2. Classroom PIN Check with Rate Limiting
     $pinRequired = !empty($exam['access_pin']);
     $isUnlocked = isset($_SESSION['unlocked_exams'][$exam_id]);
     $pinError = '';
 
     if ($pinRequired && !$isUnlocked) {
+        $pinKey = "pin:exam:{$exam_id}:stu:{$student_id}";
+        $pinRate = RateLimiter::check($pdo, $pinKey, 5);
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_pin'])) {
             verify_csrf();
-            $enteredPin = clean_input($_POST['exam_pin'] ?? '');
-            if ($enteredPin === $exam['access_pin']) {
-                $_SESSION['unlocked_exams'][$exam_id] = true;
-                $isUnlocked = true;
+            if (!$pinRate['allowed']) {
+                $cooldownMin = ceil($pinRate['retry_after'] / 60);
+                $pinError = "Too many incorrect PIN attempts. Access locked for {$cooldownMin} minute" . ($cooldownMin > 1 ? 's' : '') . " (or {$pinRate['retry_after']}s). Please contact your instructor.";
             } else {
-                $pinError = "Incorrect Classroom Exam PIN. Please ask your instructor.";
+                $enteredPin = clean_input($_POST['exam_pin'] ?? '');
+                if ($enteredPin === $exam['access_pin']) {
+                    RateLimiter::clear($pdo, $pinKey);
+                    $_SESSION['unlocked_exams'][$exam_id] = true;
+                    $isUnlocked = true;
+                } else {
+                    $hit = RateLimiter::hit($pdo, $pinKey, 600, 5);
+                    $rem = max(0, 5 - $hit['hits']);
+                    if ($rem > 0) {
+                        $pinError = "Incorrect Classroom Exam PIN. {$rem} attempt" . ($rem === 1 ? '' : 's') . " remaining before a 10-minute lockout.";
+                    } else {
+                        $pinError = "Incorrect Classroom Exam PIN. Maximum attempts exceeded. Locked out for 10 minutes.";
+                    }
+                }
             }
+        } elseif (!$pinRate['allowed']) {
+            $cooldownMin = ceil($pinRate['retry_after'] / 60);
+            $pinError = "Too many incorrect PIN attempts. Access locked for {$cooldownMin} minute" . ($cooldownMin > 1 ? 's' : '') . " (or {$pinRate['retry_after']}s). Please contact your instructor.";
         }
     }
 
@@ -68,7 +96,7 @@ try {
         ?>
         <div class="auth-card">
             <h1>Classroom Access PIN</h1>
-            <p class="subtitle">Enter the PIN provided by your instructor on the board to unlock <strong><?= e($exam['title']) ?></strong></p>
+            <p class="subtitle">Enter the PIN provided by your instructor to unlock <strong><?= e($exam['title']) ?></strong></p>
 
             <?php if ($pinError): ?>
                 <div class="alert alert-error"><?= e($pinError) ?></div>
@@ -91,57 +119,20 @@ try {
         exit;
     }
 
-    $points_per_question = ($exam['total_questions_to_ask'] > 0) ? ($exam['total_marks'] / $exam['total_questions_to_ask']) : 0;
-    $points_per_question = round((float) $points_per_question, 2);
+    // 3. Initialize or fetch Attempt via ExamEngine
+    $res = ExamEngine::getOrStartAttempt($pdo, $student_id, $exam_id, $student_semester, $student_department);
+    if (!empty($res['error'])) {
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>" . e($res['error']) . "</h2>");
+    }
 
-    // Check or initialize attempt
-    $attemptStmt = $pdo->prepare("SELECT id, total_questions, status FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
-    $attemptStmt->execute([$student_id, $exam_id]);
-    $attempt = $attemptStmt->fetch();
-
-    if ($attempt && $attempt['status'] === 'completed') {
+    $attempt = $res['attempt'];
+    if (($attempt['status'] ?? '') === 'completed') {
         redirect("result.php?exam_id=$exam_id");
     }
 
-    if (!$attempt) {
-        $pdo->beginTransaction();
-        try {
-            $stmt = $pdo->prepare("INSERT INTO exam_attempts (student_id, exam_id, total_questions) VALUES (?, ?, ?)");
-            $stmt->execute([$student_id, $exam_id, $exam['total_questions_to_ask']]);
-            $attempt_id = (int) $pdo->lastInsertId();
-
-            $qCount = (int) $exam['total_questions_to_ask'];
-
-            if ($exam['target_units'] === 'all') {
-                $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? ORDER BY RAND() LIMIT " . $qCount);
-                $qStmt->execute([$exam['subject_id']]);
-            } else {
-                $qStmt = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? AND unit_number = ? ORDER BY RAND() LIMIT " . $qCount);
-                $qStmt->execute([$exam['subject_id'], $exam['target_units']]);
-            }
-
-            $random_questions = $qStmt->fetchAll(PDO::FETCH_COLUMN);
-
-            if (count($random_questions) < $exam['total_questions_to_ask']) {
-                throw new Exception("Not enough questions in question bank.");
-            }
-
-            $ansStmt = $pdo->prepare("INSERT INTO student_answers (attempt_id, question_id) VALUES (?, ?)");
-            foreach ($random_questions as $q_id) {
-                $ansStmt->execute([$attempt_id, $q_id]);
-            }
-
-            $pdo->commit();
-            $total_questions = (int) $exam['total_questions_to_ask'];
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            log_error("Error initializing exam attempt for student $student_id", $e);
-            die("Error starting exam: " . $e->getMessage());
-        }
-    } else {
-        $attempt_id = (int) $attempt['id'];
-        $total_questions = (int) $attempt['total_questions'];
-    }
+    $attempt_id = (int) $attempt['id'];
+    $total_questions = (int) $attempt['total_questions'];
+    $points_per_question = ($total_questions > 0) ? round((float)$exam['total_marks'] / $total_questions, 2) : 0;
 
 } catch (PDOException $e) {
     log_error("Exam loading error", $e);
@@ -164,7 +155,7 @@ include __DIR__ . '/../components/header.php';
 
 <?php if ($total_questions === 0): ?>
     <div style="text-align: center; padding: 80px 20px; color: var(--color-text-secondary);">
-        No questions available for this exam.
+        No questions configured for this exam.
     </div>
 <?php else: ?>
     <div class="exam-container">
@@ -179,7 +170,7 @@ include __DIR__ . '/../components/header.php';
                     <span class="material-symbols-outlined icon-xs">arrow_back</span> Previous
                 </button>
                 <button type="button" id="btn-review" class="btn btn-warning" data-marked="0" style="display: inline-flex; align-items: center; gap: 4px;">
-                    <span class="material-symbols-outlined icon-xs">bookmark</span> Mark for Review
+                    <span class="material-symbols-outlined icon-xs">bookmark_border</span> Mark for Review
                 </button>
                 <button type="button" id="btn-next" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 4px;">
                     Next <span class="material-symbols-outlined icon-xs">arrow_forward</span>
@@ -216,16 +207,67 @@ include __DIR__ . '/../components/header.php';
             <span class="material-symbols-outlined icon-lg">shield</span> Start Secure Examination
         </h2>
         <p>This exam is protected by anti-cheat monitoring. Fullscreen mode will be activated.</p>
-        <div class="alert alert-warning" style="margin-bottom: 20px; display: flex; align-items: center; gap: 6px;">
+        <div class="alert alert-warning" style="margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
             <span class="material-symbols-outlined icon-sm">warning</span>
             <div>Tab switches, window minimization, and developer tools are recorded on the instructor dashboard.</div>
         </div>
+
+        <!-- Dynamic Touchscreen Laptop Notice -->
+        <div id="touchscreen-laptop-warning" class="alert alert-warning" style="display: none; margin-bottom: 20px; text-align: left; align-items: center; gap: 8px; background: #fef9c3; border-color: #fef08a; color: #854d0e;">
+            <span class="material-symbols-outlined icon-sm" style="color: #ca8a04;">touchpad_mouse</span>
+            <div>
+                <strong>Touchscreen Laptop Detected:</strong> Institutional regulations strictly require using your physical touchpad or mouse. Screen taps are disabled during the examination.
+            </div>
+        </div>
+
         <button id="btn-enter-fullscreen" class="btn btn-primary btn-block" style="padding: 14px; font-size: 1.05rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
             <span class="material-symbols-outlined icon-md">fullscreen</span> Click to Enter Fullscreen & Begin
         </button>
         <p style="margin-top: 14px; font-size: 0.85rem; color: var(--color-text-muted);">
             Or press <strong>F11</strong> on your keyboard
         </p>
+    </div>
+</div>
+
+<!-- In-DOM Examination Submission Confirmation Modal (Prevents Browser Native Dialog Blur Violations) -->
+<div id="submit-confirm-modal" class="fullscreen-overlay" style="display: none; z-index: 99999;">
+    <div class="overlay-card" style="max-width: 480px; text-align: center; padding: 32px 24px; position: relative;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 68px; height: 68px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; margin-bottom: 16px;">
+            <span class="material-symbols-outlined" style="font-size: 38px;">task_alt</span>
+        </div>
+
+        <h2 style="margin: 0 0 8px; color: var(--color-dark); font-size: 1.35rem; font-weight: 800;">
+            Submit Examination?
+        </h2>
+
+        <p style="color: var(--color-text-secondary); font-size: 0.95rem; line-height: 1.5; margin: 0 0 20px;">
+            Are you sure you want to finish and submit your exam? Once submitted, your score will be calculated and you will not be able to modify your answers.
+        </p>
+
+        <!-- Summary Statistics -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 24px; display: flex; justify-content: space-around;">
+            <div style="text-align: center;">
+                <div style="font-size: 1.3rem; font-weight: 800; color: #2563eb;" id="modal-answered-count">0</div>
+                <div style="color: #64748b; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Answered</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 1.3rem; font-weight: 800; color: #ca8a04;" id="modal-review-count">0</div>
+                <div style="color: #64748b; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Marked</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 1.3rem; font-weight: 800; color: #dc2626;" id="modal-unanswered-count">0</div>
+                <div style="color: #64748b; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Unanswered</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button type="button" id="btn-cancel-submit" class="btn btn-secondary" style="flex: 1; padding: 12px; font-weight: 600;">
+                Return to Exam
+            </button>
+            <button type="button" id="btn-confirm-submit" class="btn btn-success" style="flex: 1; padding: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-xs">check_circle</span> Yes, Submit
+            </button>
+        </div>
     </div>
 </div>
 
@@ -236,12 +278,14 @@ include __DIR__ . '/../components/header.php';
     const attemptId = <?= $attempt_id ?>;
     const totalQuestions = <?= $total_questions ?>;
     const pointsPerQuestion = <?= $points_per_question ?>;
+    const csrfToken = '<?= csrf_token() ?>';
     let currentIndex = 0;
     let currentQuestionId = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         AntiCheat.init({
             attemptId: attemptId,
+            csrfToken: csrfToken,
             onViolation: (count, reason) => console.warn(`Violation ${count}: ${reason}`),
             onTerminate: () => {
                 alert("Maximum violations reached. Your exam is being automatically submitted.");
@@ -263,8 +307,21 @@ include __DIR__ . '/../components/header.php';
 
     function loadQuestion(index) {
         fetch(`question.php?exam_id=${examId}&index=${index}`)
-            .then(res => res.json())
+            .then(res => {
+                if (res.status === 401) {
+                    alert("Your account was logged into from another device or browser. This session has been terminated.");
+                    window.location.href = 'login.php?error=concurrent_session';
+                    return null;
+                }
+                return res.json();
+            })
             .then(data => {
+                if (!data) return;
+                if (data.concurrent_session) {
+                    alert(data.error || "Your account was logged into from another device.");
+                    window.location.href = 'login.php?error=concurrent_session';
+                    return;
+                }
                 if (data.error) return alert(data.error);
 
                 currentIndex = data.currentIndex;
@@ -285,6 +342,19 @@ include __DIR__ . '/../components/header.php';
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function setReviewButtonState(isMarked) {
+        const reviewBtn = document.getElementById('btn-review');
+        if (!reviewBtn) return;
+        reviewBtn.dataset.marked = isMarked ? "1" : "0";
+        if (isMarked) {
+            reviewBtn.classList.add('is-marked');
+            reviewBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">bookmark</span> Unmark Review';
+        } else {
+            reviewBtn.classList.remove('is-marked');
+            reviewBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">bookmark_border</span> Mark for Review';
+        }
     }
 
     function renderQuestion(q, selected, marked) {
@@ -313,11 +383,7 @@ include __DIR__ . '/../components/header.php';
         html += `</div>`;
         container.innerHTML = html;
 
-        const reviewBtn = document.getElementById('btn-review');
-        if (reviewBtn) {
-            reviewBtn.dataset.marked = marked ? "1" : "0";
-            reviewBtn.innerText = marked ? "Unmark Review" : "Mark for Review";
-        }
+        setReviewButtonState(!!marked);
     }
 
     function renderGrid(total, answers, reviews, allIds) {
@@ -358,25 +424,37 @@ include __DIR__ . '/../components/header.php';
             exam_id: examId,
             question_id: currentQuestionId,
             marked_for_review: isMarked,
-            csrf_token: '<?= csrf_token() ?>'
+            csrf_token: csrfToken
         };
         if (selected) payload.selected_option = selected;
 
         try {
-            await fetch('question.php', {
+            const res = await fetch('question.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': '<?= csrf_token() ?>'
+                    'X-CSRF-Token': csrfToken
                 },
                 body: JSON.stringify(payload)
             });
+
+            if (res.status === 401) {
+                alert("Your account was logged into from another device or browser. This session has been terminated.");
+                window.location.href = 'login.php?error=concurrent_session';
+                return;
+            }
+
+            const data = await res.json().catch(() => ({}));
+            if (data.concurrent_session) {
+                alert(data.error || "Your account was logged into from another device.");
+                window.location.href = 'login.php?error=concurrent_session';
+            }
         } catch (e) {
             console.error("Auto-sync failed:", e);
         }
     }
 
-    // Auto-save when option is clicked
+    // Auto-save when option is selected
     document.getElementById('question-container').addEventListener('change', e => {
         if (e.target.name === 'answer') {
             document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
@@ -397,27 +475,67 @@ include __DIR__ . '/../components/header.php';
     };
 
     document.getElementById('btn-review').onclick = function () {
-        const isMarked = this.dataset.marked === "1";
-        this.dataset.marked = isMarked ? "0" : "1";
-        this.innerText = isMarked ? "Mark for Review" : "Unmark Review";
+        const wasMarked = this.dataset.marked === "1";
+        const newMarked = !wasMarked;
+        setReviewButtonState(newMarked);
 
         const btn = document.getElementById(`grid-btn-${currentIndex}`);
         if (btn) {
-            if (isMarked) {
-                btn.classList.remove('review');
-            } else {
+            if (newMarked) {
                 btn.classList.add('review');
+            } else {
+                btn.classList.remove('review');
             }
         }
         saveCurrentAnswer();
     };
 
-    document.getElementById('btn-submit-exam').onclick = async () => {
-        if (confirm("Are you sure you want to submit your examination? Once submitted, you cannot change your answers.")) {
-            await saveCurrentAnswer();
-            document.getElementById('examForm').submit();
+    const submitModal = document.getElementById('submit-confirm-modal');
+    const cancelSubmitBtn = document.getElementById('btn-cancel-submit');
+    const confirmSubmitBtn = document.getElementById('btn-confirm-submit');
+
+    document.getElementById('btn-submit-exam').onclick = () => {
+        // Calculate live answer metrics from palette
+        const answeredCount = document.querySelectorAll('#grid-container .grid-btn.answered').length;
+        const reviewCount = document.querySelectorAll('#grid-container .grid-btn.review').length;
+        const unansweredCount = Math.max(0, totalQuestions - answeredCount);
+
+        const ansEl = document.getElementById('modal-answered-count');
+        const revEl = document.getElementById('modal-review-count');
+        const unansEl = document.getElementById('modal-unanswered-count');
+
+        if (ansEl) ansEl.innerText = answeredCount;
+        if (revEl) revEl.innerText = reviewCount;
+        if (unansEl) unansEl.innerText = unansweredCount;
+
+        if (submitModal) {
+            submitModal.style.display = 'flex';
         }
     };
+
+    if (cancelSubmitBtn) {
+        cancelSubmitBtn.onclick = () => {
+            if (submitModal) {
+                submitModal.style.display = 'none';
+            }
+        };
+    }
+
+    if (confirmSubmitBtn) {
+        confirmSubmitBtn.onclick = async () => {
+            confirmSubmitBtn.disabled = true;
+            confirmSubmitBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">sync</span> Submitting...';
+            if (cancelSubmitBtn) cancelSubmitBtn.disabled = true;
+
+            // Stop AntiCheat monitoring to prevent false violations during form submission & page transition
+            if (window.AntiCheat && typeof window.AntiCheat.stop === 'function') {
+                window.AntiCheat.stop();
+            }
+
+            await saveCurrentAnswer();
+            document.getElementById('examForm').submit();
+        };
+    }
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

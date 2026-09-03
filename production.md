@@ -1,42 +1,64 @@
-# 📦 Production Build
+# Production Build and Deployment Guide
 
-Examify uses GitHub Actions CI/CD to automatically build and package production-ready artifacts.
+Examify uses GitHub Actions to package production-ready release archives automatically.
+The production archive contains only runtime files and assets.
 
-## Downloading the Latest Build
+---
 
-To get the final build without any unnecessary files or development scripts:
+## 1. Downloading the Release Package
 
-1. Navigate to the **[Actions](https://github.com/ujjaldas-11/online-exam-system/actions)** tab on the GitHub repository.
-2. Click on the latest successful workflow run (look for the green checkmark ✔️).
-3. Scroll down to the **Artifacts** section.
-4. Click on **examify-release** to download the `examify-release.zip` file.
-5. Extract the `.zip` file. The extracted folder contains only the production-ready code.
+Follow these steps to download the production build:
 
-## Deployment
+1. Open the repository on GitHub.
+2. Click the **Releases** section on the right sidebar.
+3. Select the latest version tag (for example, `v1.2.0`).
+4. Download `examify-release.zip` or `examify-release.tar.gz`.
+5. (Optional) Download `SHA256SUMS.txt` to verify archive integrity.
+6. Extract the downloaded archive on your local computer.
 
-Once you have extracted the production build:
+---
 
-1. Upload the contents of the extracted folder directly to your web server (e.g., inside `htdocs`, `www`, or `/var/www/html/`).
-2. Configure your `.env` file with `APP_ENV=production` and your live database credentials.
-3. Initialize the database on your MySQL server using the database schema (`schema.sql` from the repository) as described in [Database Setup](README.md#3-initialize-database).
+## 2. Web Server Deployment
 
-## ⚡ Production Optimizations
+Follow these steps to deploy the extracted application:
 
-The CI pipeline and production environment apply automated performance optimizations:
-- **Environment Caching**: Setting `APP_ENV=production` enables static asset caching and HTTP expiration headers for high-performance LAN/WAN delivery.
-- **CSS Minification**: All stylesheets in `assets/css/` are processed with `clean-css-cli` to strip comments and collapse whitespace, reducing asset payload size.
-- **JavaScript Minification & Mangling**: All client scripts in `utils/` are optimized and minified with `terser` (`--compress --mangle`).
-- **Zero Build Tooling at Runtime**: Minification happens during GitHub Actions packaging, leaving the deployed application completely dependency-free Vanilla PHP.
+1. Upload all extracted files to your web root directory (for example, `/var/www/html/` or `htdocs/`).
+2. Create a `.env` file in the root directory:
+   ```env
+   APP_ENV=production
+   DB_HOST=127.0.0.1
+   DB_DATABASE=examify
+   DB_USERNAME=your_db_user
+   DB_PASSWORD=your_secure_password
+   DB_CHARSET=utf8mb4
+   ```
+3. Initialize the database schema:
+   ```bash
+   php init-db.php --schema-only
+   ```
+4. Open the application in your browser and complete the Superadmin setup wizard (`admin/setup.php`).
 
-## What is excluded?
+---
 
-The production artifact specifically excludes development, setup scripts, testing, and CI configuration files to ensure a clean deployment containing only runtime assets:
-- `archive/` (raw SQL migrations and development schemas)
-- `tools/` (local development utilities, format checkers, and seeders)
-- `tests/` directory
+## 3. Automated Release Optimizations
+
+The release packaging workflow performs these automated optimizations:
+
+- **Static Asset Caching**: The setting `APP_ENV=production` enables browser caching headers.
+- **CSS Minification**: The workflow minifies all files in `assets/css/` using `clean-css-cli`.
+- **JavaScript Minification**: The workflow minifies and mangles scripts in `utils/` using `terser`.
+- **Zero Runtime Dependencies**: The workflow produces a pure Vanilla PHP deployment without build tools.
+
+---
+
+## 4. Excluded Files and Directories
+
+The production archive excludes these development and test resources:
+
+- Version control files (`.git/`, `.gitignore`, `.gitattributes`)
+- Test suites and mock question banks (`tests/`)
+- Development scripts and format checkers (`tools/`)
 - GitHub Actions workflows and issue templates (`.github/`)
-- Version control and development dotfiles (`.git/`, `.gitignore`, `.gitattributes`)
-- Linter configs (`.editorconfig`, `.editorconfig-checker.json`, `.php-cs-fixer.dist.php`)
-
-
-
+- Linter configurations (`.editorconfig`, `.editorconfig-checker.json`, `.php-cs-fixer.dist.php`)
+- Local secrets and environment files (`.env`)
+- Local error logs (`logs/*.log`)

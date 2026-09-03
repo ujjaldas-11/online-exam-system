@@ -5,6 +5,8 @@ require_once '../config/database.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 
+require_once '../utils/csrf.php';
+
 if (empty($_GET['exam_id'])) {
     die("No exam selected.");
 }
@@ -14,7 +16,8 @@ $exam_id = int_param($_GET['exam_id']);
 try {
     // Fetch Exam Details
     $examStmt = $pdo->prepare("
-        SELECT e.title, e.total_marks, a.name as creator_name, a.status as creator_status
+        SELECT e.id, e.title, e.total_marks, e.status, e.results_published,
+               a.name as creator_name, a.status as creator_status
         FROM exams e
         LEFT JOIN admins a ON e.created_by = a.id
         WHERE e.id = ?
@@ -26,8 +29,24 @@ try {
         die("Exam not found.");
     }
 
+    // Handle Publish / Unpublish Actions
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        verify_csrf();
+        if (isset($_POST['publish_results'])) {
+            $pdo->prepare("UPDATE exams SET results_published = 1 WHERE id = ?")->execute([$exam_id]);
+            log_admin_action($pdo, 'publish_results', 'exam', $exam_id, "Published results for exam #$exam_id to students");
+            set_flash('success', "Results for '{$exam['title']}' have been published! Students can now view their scores and answer breakdowns.");
+            redirect("view-results.php?exam_id=$exam_id");
+        } elseif (isset($_POST['unpublish_results'])) {
+            $pdo->prepare("UPDATE exams SET results_published = 0 WHERE id = ?")->execute([$exam_id]);
+            log_admin_action($pdo, 'unpublish_results', 'exam', $exam_id, "Unpublished results for exam #$exam_id");
+            set_flash('success', "Results for '{$exam['title']}' are now hidden from students.");
+            redirect("view-results.php?exam_id=$exam_id");
+        }
+    }
+
     // Fetch All Completed Attempts (Ordered by Score)
-    $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.score, ea.total_questions, ea.submitted_at
+    $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at
         FROM exam_attempts ea
         JOIN students s ON ea.student_id = s.id
         WHERE ea.exam_id = :exam_id AND ea.status = 'completed'
@@ -70,9 +89,54 @@ include __DIR__ . '/../components/header.php';
                 <?php endif; ?>
             </p>
         </div>
-        <button onclick="window.print()" class="btn btn-primary no-print" style="display: inline-flex; align-items: center; gap: 6px;">
-            <span class="material-symbols-outlined icon-sm">print</span> Print / Save PDF
-        </button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;" class="no-print">
+            <a href="export-pdf.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">picture_as_pdf</span> Download Results PDF
+            </a>
+        </div>
+    </div>
+
+    <?php if ($flash = get_flash('success')): ?>
+        <div class="alert alert-success no-print" style="margin-bottom: 20px;">
+            <?= e($flash) ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- Publication Status Banner -->
+    <div class="card no-print" style="margin-bottom: 24px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: <?= !empty($exam['results_published']) ? '#f0fdf4' : '#fffbeb' ?>; border-color: <?= !empty($exam['results_published']) ? '#bbf7d0' : '#fde68a' ?>;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: <?= !empty($exam['results_published']) ? '#dcfce7' : '#fef3c7' ?>; color: <?= !empty($exam['results_published']) ? '#16a34a' : '#d97706' ?>; display: inline-flex; align-items: center; justify-content: center;">
+                <span class="material-symbols-outlined" style="font-size: 24px;"><?= !empty($exam['results_published']) ? 'visibility' : 'visibility_off' ?></span>
+            </div>
+            <div>
+                <h4 style="margin: 0 0 2px; font-weight: 700; color: var(--color-dark);">
+                    <?= !empty($exam['results_published']) ? 'Results are Published' : 'Results are Unpublished' ?>
+                </h4>
+                <p style="margin: 0; font-size: 0.88rem; color: var(--color-text-secondary);">
+                    <?= !empty($exam['results_published'])
+                        ? 'Students can view their scores, detailed answer reviews, and download official scorecards.'
+                        : 'Scores and answer keys are currently hidden from students until you publish them.' ?>
+                </p>
+            </div>
+        </div>
+
+        <div>
+            <?php if (empty($exam['results_published'])): ?>
+                <form method="POST" style="display: inline;" onsubmit="return confirm('Publish results to all students now? Students will immediately see their scores and answer breakdowns.');">
+                    <?= csrf_field() ?>
+                    <button type="submit" name="publish_results" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined icon-sm">publish</span> Publish Results to Students
+                    </button>
+                </form>
+            <?php else: ?>
+                <form method="POST" style="display: inline;" onsubmit="return confirm('Hide results from students? Scores and answer reviews will be locked.');">
+                    <?= csrf_field() ?>
+                    <button type="submit" name="unpublish_results" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined icon-sm">visibility_off</span> Unpublish Results
+                    </button>
+                </form>
+            <?php endif; ?>
+        </div>
     </div>
 
     <?php if (empty($all_results)): ?>
@@ -102,7 +166,7 @@ include __DIR__ . '/../components/header.php';
                         <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-dark); margin-bottom: 2px;"><?= e($student['name']) ?></h3>
                         <div style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 8px;">Roll: <?= e($student['roll_number']) ?></div>
                         <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-primary);">
-                            <?= e((string)$student['score']) ?> <span style="font-size: 0.9rem; color: var(--color-text-secondary);">/ <?= e((string)$exam['total_marks']) ?></span>
+                            <?= sprintf('%.2f', (float)$student['score']) ?> <span style="font-size: 0.9rem; color: var(--color-text-secondary);">/ <?= e((string)$exam['total_marks']) ?></span>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -132,7 +196,7 @@ include __DIR__ . '/../components/header.php';
                         <?php
                         $rank = 1;
                         foreach ($all_results as $row):
-                            $percentage = (int)$exam['total_marks'] > 0 ? round(($row['score'] / $exam['total_marks']) * 100) : 0;
+                            $percentage = (float)$exam['total_marks'] > 0 ? round(((float)$row['score'] / (float)$exam['total_marks']) * 100) : 0;
                             ?>
                             <tr>
                                 <td><strong>#<?= $rank++ ?></strong></td>
@@ -143,7 +207,7 @@ include __DIR__ . '/../components/header.php';
                                     </small>
                                 </td>
                                 <td>
-                                    <strong><?= e((string)$row['score']) ?></strong> / <?= e((string)$exam['total_marks']) ?>
+                                    <strong><?= sprintf('%.2f', (float)$row['score']) ?></strong> / <?= e((string)$exam['total_marks']) ?>
                                 </td>
                                 <td>
                                     <span class="badge <?= $percentage >= 50 ? 'badge-active' : 'badge-rejected' ?>">

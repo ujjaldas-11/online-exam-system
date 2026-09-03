@@ -270,3 +270,22 @@
     position: static;
   }
 }
+
+/* Review Action Button State Transitions */
+#btn-review {
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+#btn-review.is-marked {
+  background: var(--color-warning);
+  color: #ffffff !important;
+  border-color: #b45309;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.25);
+}
+
+#btn-review.is-marked:hover {
+  background: #b45309;
+  color: #ffffff !important;
+  border-color: #92400e;
+}
