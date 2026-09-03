@@ -4,6 +4,8 @@
     --nav-tint: color-mix(in srgb, var(--color-header-hover, #45573d) 70%, white 30%);
     --nav-text: #ede9d9;
     --nav-active-text: rgb(212, 232, 197);
+    --color-gold: #d8a457;
+    --color-gold-hover: #edb055;
 }
 
 .student-navbar {
@@ -89,7 +91,7 @@
 .student-nav-links a:hover,
 .student-nav-links a.active {
     background: var(--color-header-hover, #45573d);
-    color: var(--nav-active-text);
+    color: var(--color-gold);
 }
 
 .student-nav-links a.nav-logout {
