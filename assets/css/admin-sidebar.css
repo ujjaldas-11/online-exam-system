@@ -85,19 +85,21 @@ body.sidebar-collapsed .main-content {
 
 .topbar-shortcut.active {
     background: rgba(255, 255, 255, 0.12);
+    color: var(--color-gold);
 }
 
 .topbar-badge {
     position: absolute;
+    text-align: center;
     top: -2px;
     right: -2px;
     min-width: 16px;
-    height: 16px;
+    height: 20px;
     padding: 0 4px;
     border-radius: 999px;
-    background: var(--color-gold, #e3af05);
-    color: white;
-    font-size: 0.65rem;
+    background: rgba(255, 255, 255, 0.12);
+    color: yellow;
+    font-size: 0.85rem;
     font-weight: 700;
     line-height: 15px;
     text-align: center;
@@ -214,9 +216,18 @@ body.sidebar-collapsed .main-content {
   font-size: 22px;
 }
 
+.sidebar-links a{
+  font-weight: bolder;
+}
+
 .sidebar-links a:hover {
   background: var(--color-header-hover, #45573d);
-  /* color: var(--sidebar-active-text); */
+  color: var(--color-gold-hover);
+}
+
+.sidebar-links a:hover,
+.sidebar-links a.active {
+  background: var(--color-header-hover, #45573d);
   color: var(--color-gold-hover);
 }
 
