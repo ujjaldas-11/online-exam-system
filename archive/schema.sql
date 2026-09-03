@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS `exams` (
   `total_questions_to_ask` int(11) NOT NULL DEFAULT 10,
   `total_marks` int(11) NOT NULL DEFAULT 0,
   `status` enum('inactive','scheduled','active','ended') NOT NULL DEFAULT 'inactive',
+  `results_published` tinyint(1) NOT NULL DEFAULT 0,
   `access_pin` varchar(10) DEFAULT NULL,
   `target_units` varchar(50) NOT NULL DEFAULT 'all',
   `start_time` datetime DEFAULT NULL,
@@ -216,6 +217,17 @@ CREATE TABLE IF NOT EXISTS `admin_audit_logs` (
   KEY `idx_audit_action` (`action`),
   KEY `idx_audit_entity` (`entity_type`, `entity_id`),
   CONSTRAINT `fk_audit_admin` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table: rate_limits (High-throughput security throttle)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `rate_limits` (
+  `rate_key` varchar(128) NOT NULL,
+  `hits` int(11) NOT NULL DEFAULT 1,
+  `expires_at` datetime NOT NULL,
+  PRIMARY KEY (`rate_key`),
+  KEY `idx_expires_at` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 COMMIT;

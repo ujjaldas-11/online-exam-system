@@ -61,6 +61,10 @@ try {
     $examCols = $pdo->query("DESCRIBE exams")->fetchAll(PDO::FETCH_COLUMN);
     assert_test("Exams table contains 'results_published' boolean column", in_array('results_published', $examCols, true));
 
+    // 1.6 Verify rate_limits table exists
+    $rateTables = $pdo->query("SHOW TABLES LIKE 'rate_limits'")->fetchAll();
+    assert_test("Database contains 'rate_limits' table for security throttling", count($rateTables) === 1);
+
 } catch (Exception $e) {
     assert_test("Database schema check failed", false, $e->getMessage());
 }

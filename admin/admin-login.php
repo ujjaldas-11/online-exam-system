@@ -39,13 +39,21 @@ if (has_flash('success')) {
     $success = get_flash('success');
 }
 
+require_once __DIR__ . '/../utils/rate-limiter.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     $email = clean_input($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if (empty($email) || empty($password)) {
+    // Check rate limit before verifying credentials
+    $rateCheck = RateLimiter::checkLogin($pdo, 'admin', $email, 5);
+    if (!$rateCheck['allowed']) {
+        http_response_code(429);
+        $cooldownMin = ceil($rateCheck['retry_after'] / 60);
+        $error = "Too many failed login attempts. For security reasons, access is temporarily locked. Please try again in {$cooldownMin} minute" . ($cooldownMin > 1 ? 's' : '') . " (or {$rateCheck['retry_after']}s).";
+    } elseif (empty($email) || empty($password)) {
         $error = "Please enter both email and password.";
     } else {
         try {
@@ -57,6 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (($admin['status'] ?? 'active') === 'retired') {
                     $error = "This instructor account has been marked as retired/deactivated. Access is disabled.";
                 } else {
+                    // Reset failed login attempts upon successful authentication
+                    RateLimiter::clearLogin($pdo, 'admin', $email);
+
                     // Prevent session fixation
                     session_regenerate_id(true);
 
@@ -74,7 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     redirect('admin-dashboard.php');
                 }
             } else {
-                $error = "Invalid email or password.";
+                $failInfo = RateLimiter::recordFailedLogin($pdo, 'admin', $email, 300, 5);
+                $remaining = $failInfo['remaining'];
+                if ($remaining > 0) {
+                    $error = "Invalid email or password. {$remaining} attempt" . ($remaining === 1 ? '' : 's') . " remaining before temporary lockout.";
+                } else {
+                    http_response_code(429);
+                    $error = "Invalid email or password. Maximum attempts exceeded; please wait 5 minutes before trying again.";
+                }
             }
         } catch (PDOException $e) {
             $error = safe_db_error($e, "Admin login unavailable.");

@@ -7,6 +7,7 @@ require_once __DIR__ . '/../utils/sanitize.php';
 require_once __DIR__ . '/../utils/csrf.php';
 require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/device.php';
+require_once __DIR__ . '/../utils/rate-limiter.php';
 require_once __DIR__ . '/../services/ExamEngine.php';
 
 init_secure_session();
@@ -27,6 +28,14 @@ if (!verify_active_session($pdo, 'student', (int) $_SESSION['student_id'])) {
 }
 
 $student_id = (int) $_SESSION['student_id'];
+
+// Enforce per-candidate API rate limit (max 120 requests / minute)
+$apiRate = RateLimiter::hit($pdo, "api:q:stu:{$student_id}", 60, 120);
+if (!$apiRate['allowed']) {
+    release_session_lock();
+    header('Retry-After: ' . $apiRate['retry_after']);
+    json_response(['error' => 'Too many requests. Please slow down.', 'retry_after' => $apiRate['retry_after']], 429);
+}
 
 // Handle POST: Autosave Answer & Review status
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

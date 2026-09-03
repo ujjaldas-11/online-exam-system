@@ -6,6 +6,7 @@ require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/sanitize.php';
 require_once __DIR__ . '/../utils/csrf.php';
 require_once __DIR__ . '/../utils/auth.php';
+require_once __DIR__ . '/../utils/rate-limiter.php';
 
 init_secure_session();
 
@@ -38,6 +39,12 @@ $student_id = (int) $_SESSION['student_id'];
 
 // Release session lock to unblock concurrent client requests
 release_session_lock();
+
+// Rate limit violation reporting (max 30 events per minute per attempt)
+$violRate = RateLimiter::hit($pdo, "api:viol:attempt:{$attempt_id}", 60, 30);
+if (!$violRate['allowed']) {
+    json_response(['error' => 'Rate limit exceeded for violation events.'], 429);
+}
 
 try {
     // Verify attempt belongs to current student

@@ -7,6 +7,7 @@ require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 require_once '../utils/device.php';
 require_once '../services/ExamEngine.php';
+require_once '../utils/rate-limiter.php';
 
 // Enforce desktop PC / laptop environment for active examinations
 require_desktop_for_exam();
@@ -23,47 +24,68 @@ $student_department = (string) $_SESSION['department'];
 // 1. Fetch Exam Meta to check PIN requirements & access
 try {
     $examMetaStmt = $pdo->prepare("
-        SELECT e.id, e.title, e.duration_minutes, e.subject_id, e.total_questions_to_ask, e.total_marks,
+        SELECT e.id, e.title, e.duration_minutes, e.total_questions_to_ask, e.total_marks,
                e.access_pin, e.target_units, e.status,
+               s.department, s.semester, s.name AS subject_name,
                TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id
-        WHERE e.id = :id
-          AND s.semester = :semester
-          AND s.department = :department
-          AND e.status = 'active'
+        WHERE e.id = ?
         LIMIT 1
     ");
-    $examMetaStmt->execute([
-        ':id' => $exam_id,
-        ':semester' => $student_semester,
-        ':department' => $student_department
-    ]);
+    $examMetaStmt->execute([$exam_id]);
     $exam = $examMetaStmt->fetch();
 
     if (!$exam) {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Exam not found or you do not have permission to access it.</h2>");
     }
 
+    if ($exam['status'] !== 'active') {
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>This exam is not currently active.</h2>");
+    }
+
+    // Authorization: Department and semester match
+    if ($exam['department'] !== $student_department || (int)$exam['semester'] !== $student_semester) {
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>You are not authorized to access this exam.</h2>");
+    }
+
     if ((int)$exam['seconds_left'] <= 0) {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Time is up! This examination has already concluded.</h2>");
     }
 
-    // 2. Classroom PIN Check
+    // 2. Classroom PIN Check with Rate Limiting
     $pinRequired = !empty($exam['access_pin']);
     $isUnlocked = isset($_SESSION['unlocked_exams'][$exam_id]);
     $pinError = '';
 
     if ($pinRequired && !$isUnlocked) {
+        $pinKey = "pin:exam:{$exam_id}:stu:{$student_id}";
+        $pinRate = RateLimiter::check($pdo, $pinKey, 5);
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_pin'])) {
             verify_csrf();
-            $enteredPin = clean_input($_POST['exam_pin'] ?? '');
-            if ($enteredPin === $exam['access_pin']) {
-                $_SESSION['unlocked_exams'][$exam_id] = true;
-                $isUnlocked = true;
+            if (!$pinRate['allowed']) {
+                $cooldownMin = ceil($pinRate['retry_after'] / 60);
+                $pinError = "Too many incorrect PIN attempts. Access locked for {$cooldownMin} minute" . ($cooldownMin > 1 ? 's' : '') . " (or {$pinRate['retry_after']}s). Please contact your instructor.";
             } else {
-                $pinError = "Incorrect Classroom Exam PIN. Please ask your instructor.";
+                $enteredPin = clean_input($_POST['exam_pin'] ?? '');
+                if ($enteredPin === $exam['access_pin']) {
+                    RateLimiter::clear($pdo, $pinKey);
+                    $_SESSION['unlocked_exams'][$exam_id] = true;
+                    $isUnlocked = true;
+                } else {
+                    $hit = RateLimiter::hit($pdo, $pinKey, 600, 5);
+                    $rem = max(0, 5 - $hit['hits']);
+                    if ($rem > 0) {
+                        $pinError = "Incorrect Classroom Exam PIN. {$rem} attempt" . ($rem === 1 ? '' : 's') . " remaining before a 10-minute lockout.";
+                    } else {
+                        $pinError = "Incorrect Classroom Exam PIN. Maximum attempts exceeded. Locked out for 10 minutes.";
+                    }
+                }
             }
+        } elseif (!$pinRate['allowed']) {
+            $cooldownMin = ceil($pinRate['retry_after'] / 60);
+            $pinError = "Too many incorrect PIN attempts. Access locked for {$cooldownMin} minute" . ($cooldownMin > 1 ? 's' : '') . " (or {$pinRate['retry_after']}s). Please contact your instructor.";
         }
     }
 

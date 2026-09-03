@@ -13,76 +13,90 @@ if (is_student_logged_in()) {
     redirect('dashboard.php');
 }
 
+require_once __DIR__ . '/../utils/rate-limiter.php';
+
 $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
-    $name = clean_input($_POST['name'] ?? '');
-    $email = clean_input($_POST['email'] ?? '');
-    $roll = strtoupper(clean_input($_POST['roll_number'] ?? ''));
-    $dept = clean_input($_POST['department'] ?? '');
-    $phone = clean_input($_POST['phone_number'] ?? '');
-    $gender = clean_input($_POST['gender'] ?? '');
-    $pass = $_POST['password'] ?? '';
-    $cpass = $_POST['confirm_password'] ?? '';
-    $sem = int_param($_POST['semester'] ?? 0);
-
-    if (!$name || !$email || !$pass || !$roll || !$sem || !$dept || !$phone || !$gender) {
-        $error = "All fields are required.";
-    } elseif (strlen($name) > 100) {
-        $error = "Name cannot exceed 100 characters.";
-    } elseif (strlen($email) > 100 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Invalid email address format.";
-    } elseif (strlen($roll) > 50) {
-        $error = "Roll number cannot exceed 50 characters.";
-    } elseif (!in_array($dept, ['BCA', 'BBA'], true)) {
-        $error = "Invalid department selected.";
-    } elseif (!in_array($gender, ['male', 'female', 'others'], true)) {
-        $error = "Invalid gender selected.";
-    } elseif ($pass !== $cpass) {
-        $error = "Passwords do not match.";
-    } elseif (strlen($pass) < 6) {
-        $error = "Password must be at least 6 characters.";
-    } elseif (!preg_match('/^[0-9]{10}$/', $phone)) {
-        $error = "Phone number must be exactly 10 numeric digits.";
-    } elseif ($sem < 1 || $sem > 8) {
-        $error = "Semester must be between 1 and 8.";
+    $ip = RateLimiter::getClientIp();
+    $regRate = RateLimiter::check($pdo, "register:ip:{$ip}", 5);
+    if (!$regRate['allowed']) {
+        http_response_code(429);
+        $cooldownMin = ceil($regRate['retry_after'] / 60);
+        $error = "Too many registration attempts from this device. Please wait {$cooldownMin} minute" . ($cooldownMin > 1 ? 's' : '') . " before attempting again.";
     } else {
-        try {
-            $stmt = $pdo->prepare("SELECT id, status FROM students WHERE email = ? LIMIT 1");
-            $stmt->execute([$email]);
-            $existingEmail = $stmt->fetch();
+        $name = clean_input($_POST['name'] ?? '');
+        $email = clean_input($_POST['email'] ?? '');
+        $roll = strtoupper(clean_input($_POST['roll_number'] ?? ''));
+        $dept = clean_input($_POST['department'] ?? '');
+        $phone = clean_input($_POST['phone_number'] ?? '');
+        $gender = clean_input($_POST['gender'] ?? '');
+        $pass = $_POST['password'] ?? '';
+        $cpass = $_POST['confirm_password'] ?? '';
+        $sem = int_param($_POST['semester'] ?? 0);
 
-            if ($existingEmail) {
-                if ($existingEmail['status'] === 'pending') {
-                    $error = "An account with this email is already registered and awaiting administrator approval.";
+        if (!$name || !$email || !$pass || !$roll || !$sem || !$dept || !$phone || !$gender) {
+            $error = "All fields are required.";
+            RateLimiter::hit($pdo, "register:ip:{$ip}", 900, 5);
+        } elseif (strlen($name) > 100) {
+            $error = "Name cannot exceed 100 characters.";
+        } elseif (strlen($email) > 100 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = "Invalid email address format.";
+        } elseif (strlen($roll) > 50) {
+            $error = "Roll number cannot exceed 50 characters.";
+        } elseif (!in_array($dept, ['BCA', 'BBA'], true)) {
+            $error = "Invalid department selected.";
+        } elseif (!in_array($gender, ['male', 'female', 'others'], true)) {
+            $error = "Invalid gender selected.";
+        } elseif ($pass !== $cpass) {
+            $error = "Passwords do not match.";
+        } elseif (strlen($pass) < 6) {
+            $error = "Password must be at least 6 characters.";
+        } elseif (!preg_match('/^[0-9]{10}$/', $phone)) {
+            $error = "Phone number must be exactly 10 numeric digits.";
+        } elseif ($sem < 1 || $sem > 8) {
+            $error = "Semester must be between 1 and 8.";
+        } else {
+            try {
+                $stmt = $pdo->prepare("SELECT id, status FROM students WHERE email = ? LIMIT 1");
+                $stmt->execute([$email]);
+                $existingEmail = $stmt->fetch();
+
+                if ($existingEmail) {
+                    if ($existingEmail['status'] === 'pending') {
+                        $error = "An account with this email is already registered and awaiting administrator approval.";
+                    } else {
+                        $error = "An account with this email already exists. Please log in.";
+                    }
                 } else {
-                    $error = "An account with this email already exists. Please log in.";
+                    $stmt = $pdo->prepare("SELECT id, status FROM students WHERE roll_number = ? LIMIT 1");
+                    $stmt->execute([$roll]);
+                    $existingRoll = $stmt->fetch();
+
+                    if ($existingRoll) {
+                        $error = "Roll number is already registered.";
+                    } else {
+                        $hashed = password_hash($pass, PASSWORD_DEFAULT);
+
+                        $ins = $pdo->prepare("
+                            INSERT INTO students (name, email, password, roll_number, department, semester, phone_number, gender, status)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                        ");
+                        $ins->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone, $gender]);
+
+                        // Record registration hit
+                        RateLimiter::hit($pdo, "register:ip:{$ip}", 900, 5);
+
+                        $success = "Registration submitted successfully! Your account is pending instructor approval. Once approved, you can log in.";
+                        $_POST = [];
+                    }
                 }
-            } else {
-                $stmt = $pdo->prepare("SELECT id, status FROM students WHERE roll_number = ? LIMIT 1");
-                $stmt->execute([$roll]);
-                $existingRoll = $stmt->fetch();
-
-                if ($existingRoll) {
-                    $error = "Roll number is already registered.";
-                } else {
-                    $hashed = password_hash($pass, PASSWORD_DEFAULT);
-
-                    $ins = $pdo->prepare("
-                        INSERT INTO students (name, email, password, roll_number, department, semester, phone_number, gender, status)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-                    ");
-                    $ins->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone, $gender]);
-
-                    $success = "Registration submitted successfully! Your account is pending instructor approval. Once approved, you can log in.";
-                    $_POST = [];
-                }
+            } catch (PDOException $e) {
+                $error = safe_db_error($e, "Registration failed. Please check your information.");
             }
-        } catch (PDOException $e) {
-            $error = safe_db_error($e, "Registration failed. Please check your information.");
         }
     }
 }

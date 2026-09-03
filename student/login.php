@@ -7,6 +7,8 @@ require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/logger.php';
 require_once __DIR__ . '/../utils/sanitize.php';
 
+require_once __DIR__ . '/../utils/rate-limiter.php';
+
 init_secure_session();
 
 if (is_student_logged_in()) {
@@ -30,7 +32,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = clean_input($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if (empty($email) || empty($password)) {
+    // Check rate limit before performing password checks
+    $rateCheck = RateLimiter::checkLogin($pdo, 'student', $email, 5);
+    if (!$rateCheck['allowed']) {
+        http_response_code(429);
+        $cooldownMin = ceil($rateCheck['retry_after'] / 60);
+        $error = "Too many failed login attempts. For security reasons, access is temporarily locked. Please try again in {$cooldownMin} minute" . ($cooldownMin > 1 ? 's' : '') . " (or {$rateCheck['retry_after']}s).";
+    } elseif (empty($email) || empty($password)) {
         $error = "Please enter both email and password.";
     } else {
         try {
@@ -48,6 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($status === 'blocked') {
                     $error = "Your account has been blocked. Please contact your instructor.";
                 } else {
+                    // Reset failed login attempts upon successful authentication
+                    RateLimiter::clearLogin($pdo, 'student', $email);
+
                     // Prevent session fixation
                     session_regenerate_id(true);
 
@@ -63,7 +74,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     redirect('dashboard.php');
                 }
             } else {
-                $error = "Invalid email or password.";
+                $failInfo = RateLimiter::recordFailedLogin($pdo, 'student', $email, 300, 5);
+                $remaining = $failInfo['remaining'];
+                if ($remaining > 0) {
+                    $error = "Invalid email or password. {$remaining} attempt" . ($remaining === 1 ? '' : 's') . " remaining before temporary lockout.";
+                } else {
+                    http_response_code(429);
+                    $error = "Invalid email or password. Maximum attempts exceeded; please wait 5 minutes before trying again.";
+                }
             }
         } catch (PDOException $e) {
             $error = safe_db_error($e, "Login service unavailable. Please try again.");

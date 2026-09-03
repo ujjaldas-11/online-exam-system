@@ -220,6 +220,12 @@ Stores immutable records of all administrative operations.
 - `ip_address` (VARCHAR(45), NULLABLE)
 - `created_at` (TIMESTAMP)
 
+#### 11. `rate_limits`
+Stores high-throughput sliding window throttle keys and expiration timestamps.
+- `rate_key` (VARCHAR(128), PRIMARY KEY): Scoped key identifier (for example `login:admin:ip:127.0.0.1`).
+- `hits` (INT, DEFAULT 1): Count of requests or failed attempts within current time window.
+- `expires_at` (DATETIME): Expiration timestamp for automatic cooldown and garbage collection.
+
 ### 3.2 Database Initialization Tool (`init-db.php`)
 
 Examify uses a consolidated database script in the repository root:
@@ -326,7 +332,18 @@ The system separates desktop examination access from mobile portal viewing.
 - `safe_db_error(PDOException $e, string $userMessage)`:
   Logs the raw SQL error to the log file and returns a safe generic message to the user.
 
-### 5.7 Authentication and Authorization (`utils/auth.php`)
+### 5.7 Rate Limiting & Throttling (`utils/rate-limiter.php`)
+
+Examify implements database-backed, sliding window rate limiting with atomic SQL queries:
+
+- **Dual-Key Login Defense**: Throttles failed attempts across both client IP and user account identifier (5 failed attempts per 5 minutes).
+- **Exam PIN Brute-Force Defense**: Locks candidates out for 10 minutes upon 5 incorrect classroom PIN attempts.
+- **Registration Flood Control**: Restricts device velocity to 5 registrations per 15 minutes per IP.
+- **API Request Throttling**: Caps question autosave requests to 120 requests/minute and violation reporting to 30 requests/minute.
+- **Atomic Operations**: Employs `INSERT ... ON DUPLICATE KEY UPDATE` to avoid race conditions.
+- **Opportunistic Pruning**: Automatically purges expired rate limit records on 1% of incoming requests.
+
+### 5.8 Authentication and Authorization (`utils/auth.php`)
 
 - `is_admin_logged_in()`: Returns `true` if the session contains an authenticated `admin_id`.
 - `is_superadmin()`: Returns `true` if the administrator holds the `superadmin` role.
@@ -336,7 +353,7 @@ The system separates desktop examination access from mobile portal viewing.
 - `admin/admin-guard.php`: Guard file included at the top of all admin pages.
 - `student/student-guard.php`: Guard file included at the top of all student pages.
 
-### 5.8 Master Superadmin Setup Wizard (`admin/setup.php`)
+### 5.9 Master Superadmin Setup Wizard (`admin/setup.php`)
 
 When an administrator deploys Examify on a new server:
 1. The helper `is_system_initialized($pdo)` evaluates to `false` because zero admin accounts exist.
