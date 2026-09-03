@@ -477,6 +477,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <a href="<?= e($exportUrl) ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">download</span> Export CSV
             </a>
+            <a href="import-students.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">group</span>Bulk student imsert
+            </a>
             <button type="button" class="btn btn-secondary" onclick="openBulkPromoteModal()" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">upgrade</span> Bulk Promote
             </button>

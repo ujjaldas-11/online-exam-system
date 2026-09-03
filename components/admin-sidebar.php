@@ -27,7 +27,7 @@ $admin_nav = [
     'control-exams.php' => ['label' => 'Exams', 'icon' => 'fact_check', 'title' => 'exams'],
     'results.php' => ['label' => 'Results', 'icon' => 'bar_chart', 'title' => 'results'],
     'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications', 'title' => 'profile update request'],
-    'registration-request.php' => ['label' => 'registration request', 'icon' => 'Person', 'title' => 'registration requests'],
+    'registration-request.php' => ['label' => 'registration request', 'icon' => 'person_add', 'title' => 'registration requests'],
     'import-students.php' => ['label' => 'Import', 'icon' => 'upload_file', 'title' => 'import students'],
 
 ];
@@ -56,7 +56,7 @@ if ($isAdminSuper) {
         <div class="topbar-right">
             <a href="registration-request.php"
             class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Notifications" title="registration requests">
-                <span class="material-symbols-outlined">person</span>
+                <span class="material-symbols-outlined">person_add</span>
                 <?php if (!empty($pending_registration_requests_count)): ?>
                     <span class="topbar-badge"><?= (int) $pending_registration_requests_count ?></span>
                 <?php endif; ?>
