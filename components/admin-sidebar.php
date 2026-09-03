@@ -21,23 +21,23 @@ require_once __DIR__ . '/../utils/auth.php';
 $isAdminSuper = is_superadmin();
 
 $admin_nav = [
-    'admin-dashboard.php' => ['label' => 'Dashboard', 'icon' => 'space_dashboard'],
-    'manage-subjects.php' => ['label' => 'Subjects', 'icon' => 'menu_book'],
-    'manage-questions.php' => ['label' => 'Questions', 'icon' => 'quiz'],
-    'control-exams.php' => ['label' => 'Exams', 'icon' => 'fact_check'],
-    'results.php' => ['label' => 'Results', 'icon' => 'bar_chart'],
-    'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications'],
-    'registration-request.php' => ['label' => 'registration request', 'icon' => 'person'],
-    'import-students.php' => ['label' => 'Import', 'icon' => 'upload_file'],
-    
+    'admin-dashboard.php' => ['label' => 'Dashboard', 'icon' => 'space_dashboard', 'title' => 'dashboard'],
+    'manage-subjects.php' => ['label' => 'Subjects', 'icon' => 'menu_book', 'title' => 'manage subjects'],
+    'manage-questions.php' => ['label' => 'Questions', 'icon' => 'quiz', 'title' => 'questions'],
+    'control-exams.php' => ['label' => 'Exams', 'icon' => 'fact_check', 'title' => 'exams'],
+    'results.php' => ['label' => 'Results', 'icon' => 'bar_chart', 'title' => 'results'],
+    'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications', 'title' => 'profile update request'],
+    'registration-request.php' => ['label' => 'registration request', 'icon' => 'Person', 'title' => 'registration requests'],
+    'import-students.php' => ['label' => 'Import', 'icon' => 'upload_file', 'title' => 'import students'],
+
 ];
 
 if ($isAdminSuper) {
-    $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school'];
-    $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long'];
-    $admin_nav['manage-students.php'] = ['label' => 'students', 'icon' => 'group'];
+    $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school', 'title' => 'teachers'];
+    $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long', 'title' => 'logs'];
+    $admin_nav['manage-students.php'] = ['label' => 'students', 'icon' => 'group', 'title' => 'students'];
 } else {
-    $admin_nav['audit-logs.php'] = ['label' => 'My Activity', 'icon' => 'history'];
+    $admin_nav['audit-logs.php'] = ['label' => 'My Activity', 'icon' => 'history', 'title' => 'my history'];
 }
 ?>
 
@@ -48,7 +48,7 @@ if ($isAdminSuper) {
             <button class="icon-btn desktop-collapse-btn" id="desktopCollapseBtn" aria-label="Collapse sidebar">
                 <span class="material-symbols-outlined">dock_to_right</span>
             </button>
-            <button class="icon-btn mobile-menu-btn" id="sidebarToggle" aria-label="Open navigation">
+            <button class="icon-btn mobile-menu-btn" id="sidebarToggle" aria-label="Open navigation" title="menu bar">
                 <span class="material-symbols-outlined">menu</span>
             </button>
         </div>
@@ -93,7 +93,9 @@ if ($isAdminSuper) {
         <?php foreach ($admin_nav as $page => $meta): ?>
             <a href="<?= $page ?>"
             class="<?= $current_page === $page ? 'active' : '' ?>"
-            data-tooltip="<?= htmlspecialchars($meta['label']) ?>">
+            title="<?= $meta['title'] ?>"
+            data-tooltip="<?= htmlspecialchars($meta['label']) ?>"
+            >
                 <span class="material-symbols-outlined">
                     <?= $meta['icon'] ?>
                 </span>
