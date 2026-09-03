@@ -215,7 +215,7 @@ body.sidebar-collapsed .main-content {
 .sidebar-links a.active {
   background: var(--color-header-hover, #45573d);
   /* color: var(--sidebar-active-text); */
-  color: var(--color-gold);
+  color: var(--color-gold-hover);
 }
 
 .sidebar-logout {
@@ -227,7 +227,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .sidebar-logout:hover {
-  background: color-mix(in srgb, var(--color-error, #dc2626) 82%, black 18%);
+  background: color-mix(in srgb, var(--color-gold-hover) 82%, black 18%);
   color: white;
 }
 

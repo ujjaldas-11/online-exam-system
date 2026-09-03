@@ -55,7 +55,7 @@ if ($isAdminSuper) {
 
         <div class="topbar-right">
             <a href="registration-request.php"
-            class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Notifications" title="Notifications">
+            class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Notifications" title="registration requests">
                 <span class="material-symbols-outlined">person</span>
                 <?php if (!empty($pending_registration_requests_count)): ?>
                     <span class="topbar-badge"><?= (int) $pending_registration_requests_count ?></span>
@@ -63,7 +63,7 @@ if ($isAdminSuper) {
             </a>
 
             <a href="manage-requests.php"
-            class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="Notifications">
+            class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="profile update requests">
                 <span class="material-symbols-outlined">notifications</span>
                 <?php if (!empty($pending_requests_count)): ?>
                     <span class="topbar-badge"><?= (int) $pending_requests_count ?></span>
