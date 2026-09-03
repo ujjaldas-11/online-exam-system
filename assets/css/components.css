@@ -221,13 +221,13 @@
   cursor: pointer;
   transition: all 0.15s ease;
   background: var(--color-primary);
-  color: white;
+  color: var(--color-gold);
   text-decoration: none;
 }
 
 .btn:hover {
   background: var(--color-primary-hover);
-  color: white;
+  color: var(--color-gold-hover);
 }
 
 .btn-secondary {
@@ -398,8 +398,8 @@ tr:hover td {
 
 .badge-active,
 .badge-running {
-  background: var(--color-success-bg);
-  color: var(--color-success);
+  background: var(--color-primary);
+  color: var(--color-gold-hover);
 }
 
 .badge-scheduled,
