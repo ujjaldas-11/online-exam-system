@@ -15,7 +15,7 @@
   );
   --sidebar-text: #ede9d9;
   --sidebar-text-dim: color-mix(in srgb, #ede9d9 65%, transparent);
-  --sidebar-active-text: rgb(212, 232, 197);
+  --sidebar-active-text: #ffd700; /* Gold */
 }
 
 body {
@@ -26,11 +26,14 @@ body {
 .main-content {
   margin-left: var(--sidebar-w);
   padding-top: 70px;
-  transition: margin-left 0.25s ease;
+  max-width: calc(100% - var(--sidebar-w));
+  box-sizing: border-box;
+  transition: margin-left 0.25s ease, max-width 0.25s ease;
 }
 
 body.sidebar-collapsed .main-content {
   margin-left: 160px;
+  max-width: calc(100% - 160px);
 }
 
 /* ---------- Topbar ---------- */
@@ -210,10 +213,23 @@ body.sidebar-collapsed .main-content {
   font-size: 22px;
 }
 
-.sidebar-links a:hover,
-.sidebar-links a.active {
+.sidebar-links a:hover {
   background: var(--color-header-hover, #45573d);
-  color: var(--sidebar-active-text);
+  color: var(--sidebar-text, #ede9d9);
+}
+
+.sidebar-links a.active,
+.sidebar-links a.active:hover {
+  background: var(--color-header-hover, #45573d);
+  color: var(--sidebar-active-text, #ffd700);
+  font-weight: 600;
+}
+
+.sidebar-links a.active .material-symbols-outlined,
+.sidebar-links a.active .link-label,
+.sidebar-links a.active:hover .material-symbols-outlined,
+.sidebar-links a.active:hover .link-label {
+  color: var(--sidebar-active-text, #ffd700) !important;
 }
 
 .sidebar-logout {
@@ -309,6 +325,7 @@ body.sidebar-collapsed .main-content {
 @media (max-width: 992px) {
   .main-content {
     margin-left: 0 !important;
+    max-width: 100% !important;
     padding-top: var(--topbar-h);
   }
 

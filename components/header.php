@@ -33,7 +33,7 @@ $bodyClass = $body_class ?? '';
             if ($safeCss === null) {
                 continue;
             }
-            $cssSrc = (strpos($safeCss, '/') !== false) ? $safeCss : "$assetsPath/css/$safeCss";
+            $cssSrc = (str_contains($safeCss, '/')) ? $safeCss : "$assetsPath/css/$safeCss";
             ?>
             <link rel="stylesheet" href="<?= htmlspecialchars($cssSrc, ENT_QUOTES, 'UTF-8') ?>?v=<?= $assetVersion ?>">
         <?php endforeach; ?>

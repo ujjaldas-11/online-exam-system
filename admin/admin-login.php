@@ -9,7 +9,6 @@ require_once __DIR__ . '/../utils/sanitize.php';
 
 init_secure_session();
 
-// Check if database requires initial superadmin setup
 if (!is_system_initialized($pdo)) {
     redirect('setup.php');
 }
@@ -21,8 +20,14 @@ if (is_admin_logged_in()) {
 $error = '';
 $success = '';
 
-if (isset($_GET['error']) && $_GET['error'] === 'retired') {
-    $error = "This instructor account has been marked as retired/deactivated. Access is disabled.";
+if (isset($_GET['error'])) {
+    if ($_GET['error'] === 'retired') {
+        $error = "This instructor account has been marked as retired/deactivated. Access is disabled.";
+    } elseif ($_GET['error'] === 'concurrent_session') {
+        $error = "You have been logged out because your administrator account was accessed from another device or browser.";
+    } elseif ($_GET['error'] === 'expired') {
+        $error = "Your session has expired due to inactivity. Please log in again.";
+    }
 } elseif (isset($_GET['msg']) && $_GET['msg'] === 'setup_complete') {
     $success = "Superadmin setup completed successfully! Please log in.";
 }
@@ -55,11 +60,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Prevent session fixation
                     session_regenerate_id(true);
 
-                    $_SESSION['admin_id'] = $admin['id'];
+                    $_SESSION['admin_id'] = (int) $admin['id'];
                     $_SESSION['admin_name'] = $admin['name'];
                     $_SESSION['admin_role'] = $admin['role'] ?? 'teacher';
                     $_SESSION['role'] = $admin['role'] ?? 'teacher';
                     $_SESSION['admin_dept'] = $admin['department'] ?? '';
+
+                    // Enforce singleton active session
+                    bind_active_session($pdo, 'admin', (int) $admin['id']);
 
                     log_admin_action($pdo, 'login', 'admin', $admin['id'], "Admin/Teacher logged in: {$admin['name']}");
 
@@ -106,7 +114,12 @@ include __DIR__ . '/../components/header.php';
 
         <div class="form-group">
             <label>Password</label>
-            <input type="password" name="password" required placeholder="••••••••">
+            <div class="password-wrapper">
+                <input type="password" name="password" required placeholder="••••••••">
+                <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                    <span class="material-symbols-outlined">visibility</span>
+                </button>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">

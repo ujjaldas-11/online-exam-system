@@ -1,32 +1,26 @@
 <?php
 
-require_once __DIR__ . '/../utils/session.php';
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../utils/response.php';
-
-init_secure_session();
-
-if (empty($_SESSION['student_id'])) {
-    json_response(['error' => 'Not authenticated'], 401);
-}
+require_once 'student-guard.php';
+require_once '../config/database.php';
+require_once '../utils/response.php';
 
 $semester = (int) $_SESSION['semester'];
 $department = (string) $_SESSION['department'];
 
-// Release session lock to prevent blocking concurrent student requests
-session_write_close();
-
 try {
     $stmt = $pdo->prepare("
-        SELECT COUNT(e.id) as active_count
+        SELECT COUNT(*)
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id
-        WHERE s.semester = ? AND s.department = ? AND e.status = 'active'
+        WHERE s.department = ?
+          AND s.semester = ?
+          AND e.status = 'active'
+          AND NOW() <= DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)
     ");
-    $stmt->execute([$semester, $department]);
-    $count = (int) $stmt->fetchColumn();
+    $stmt->execute([$department, $semester]);
+    $activeCount = (int) $stmt->fetchColumn();
 
-    json_response(['active_exams' => $count]);
-} catch (Exception) {
-    json_response(['error' => 'Database error'], 500);
+    json_response(['active_exams' => $activeCount]);
+} catch (PDOException $e) {
+    json_response(['active_exams' => 0]);
 }

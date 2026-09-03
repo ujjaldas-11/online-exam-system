@@ -73,7 +73,7 @@ DB_CHARSET=utf8mb4
 
 ## 3. Database Architecture and Data Model
 
-Examify stores all application data in 9 relational tables.
+Examify stores all application data in 10 relational tables.
 
 ```text
 ┌──────────────┐       ┌──────────────┐       ┌──────────────┐
@@ -94,38 +94,43 @@ Examify stores all application data in 9 relational tables.
 ### 3.1 Table Specifications
 
 #### 1. `admins`
-Stores instructor and administrator user accounts.
+Stores instructor and administrator accounts.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
 - `name` (VARCHAR(100))
-- `email` (VARCHAR(150), UNIQUE)
+- `email` (VARCHAR(100), UNIQUE)
 - `password` (VARCHAR(255))
 - `role` (ENUM('superadmin', 'teacher'), DEFAULT 'teacher')
 - `status` (ENUM('active', 'retired'), DEFAULT 'active')
 - `department` (VARCHAR(50), NULLABLE)
+- `active_session_id` (VARCHAR(128), NULLABLE): Tracks current active session token for singleton login enforcement.
 - `created_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `created_at` (TIMESTAMP)
 - `updated_at` (TIMESTAMP)
 
 #### 2. `students`
-Stores registered student user accounts.
+Stores student accounts across the complete enrollment lifecycle.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
 - `name` (VARCHAR(100))
-- `email` (VARCHAR(150), UNIQUE)
+- `email` (VARCHAR(100), UNIQUE)
 - `password` (VARCHAR(255))
 - `roll_number` (VARCHAR(50), UNIQUE)
 - `department` (VARCHAR(50))
-- `semester` (INT)
+- `semester` (TINYINT UNSIGNED)
 - `phone_number` (VARCHAR(20), NULLABLE)
-- `gender` (ENUM('Male', 'Female', 'Other'), NULLABLE)
-- `status` (ENUM('active', 'blocked'))
+- `gender` (ENUM('male', 'female', 'others'), NULLABLE)
+- `status` (ENUM('pending', 'active', 'rejected', 'blocked'), DEFAULT 'pending')
+- `reviewed_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
+- `reviewed_at` (DATETIME, NULLABLE)
+- `active_session_id` (VARCHAR(128), NULLABLE): Enforces single-device login constraints.
 - `created_at` (TIMESTAMP)
+- `updated_at` (TIMESTAMP)
 
 #### 3. `subjects`
-Stores academic curriculum subjects organized by department and semester.
+Stores curriculum subjects organized by department and semester.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
-- `name` (VARCHAR(100))
+- `name` (VARCHAR(200))
 - `department` (VARCHAR(50))
-- `semester` (INT)
+- `semester` (TINYINT UNSIGNED)
 - `created_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `created_at` (TIMESTAMP)
 
@@ -133,92 +138,82 @@ Stores academic curriculum subjects organized by department and semester.
 Stores multiple-choice questions belonging to subjects.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
 - `subject_id` (INT, FOREIGN KEY -> `subjects.id` ON DELETE CASCADE)
-- `unit_number` (INT, DEFAULT 1)
 - `question_text` (TEXT)
+- `unit_number` (INT, DEFAULT 1)
 - `option_a` (TEXT)
 - `option_b` (TEXT)
-- `option_c` (TEXT)
-- `option_d` (TEXT)
-- `correct_option` (CHAR(1))
+- `option_c` (TEXT, NULLABLE)
+- `option_d` (TEXT, NULLABLE)
+- `correct_option` (ENUM('A', 'B', 'C', 'D'))
 - `marks` (INT, DEFAULT 1)
 - `created_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
+- `created_at` (TIMESTAMP)
 
 #### 5. `exams`
-Stores examination configurations and live status.
+Stores examination configurations and lifecycle states.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
-- `title` (VARCHAR(150))
-- `subject_id` (INT, FOREIGN KEY -> `subjects.id`)
+- `subject_id` (INT, FOREIGN KEY -> `subjects.id` ON DELETE CASCADE)
+- `title` (VARCHAR(200))
+- `description` (TEXT, NULLABLE)
 - `duration_minutes` (INT)
-- `total_marks` (INT)
-- `total_questions_to_ask` (INT)
+- `total_questions_to_ask` (INT, DEFAULT 10)
+- `total_marks` (INT, DEFAULT 0)
+- `status` (ENUM('inactive', 'scheduled', 'active', 'ended'), DEFAULT 'inactive')
+- `results_published` (TINYINT(1), DEFAULT 0): Controls student score and question answer key release after the exam concludes.
 - `access_pin` (VARCHAR(10), NULLABLE)
 - `target_units` (VARCHAR(50), DEFAULT 'all')
-- `status` (ENUM('inactive', 'active', 'ended'))
 - `start_time` (DATETIME, NULLABLE)
 - `created_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `created_at` (TIMESTAMP)
 
 #### 6. `exam_attempts`
-Stores student test attempts and total scores.
+Stores student examination sessions and computed scores.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
-- `student_id` (INT, FOREIGN KEY -> `students.id`)
-- `exam_id` (INT, FOREIGN KEY -> `exams.id`)
-- `total_questions` (INT)
-- `score` (DECIMAL(5,2), DEFAULT 0.00)
-- `status` (ENUM('in_progress', 'completed'))
+- `student_id` (INT, FOREIGN KEY -> `students.id` ON DELETE CASCADE)
+- `exam_id` (INT, FOREIGN KEY -> `exams.id` ON DELETE CASCADE)
 - `started_at` (TIMESTAMP)
-- `submitted_at` (DATETIME, NULLABLE)
+- `submitted_at` (TIMESTAMP, NULLABLE)
+- `score` (DECIMAL(6,2), DEFAULT 0.00): Decimal precision supports fractional marking.
+- `total_questions` (INT, DEFAULT 0)
+- `status` (ENUM('in_progress', 'completed', 'disqualified'), DEFAULT 'in_progress')
 
 #### 7. `student_answers`
-Stores individual question assignments and student responses per attempt.
+Stores question assignments and saved responses per attempt.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
-- `attempt_id` (INT, FOREIGN KEY -> `exam_attempts.id`)
-- `question_id` (INT, FOREIGN KEY -> `questions.id`)
-- `selected_option` (CHAR(1), NULLABLE)
+- `attempt_id` (INT, FOREIGN KEY -> `exam_attempts.id` ON DELETE CASCADE)
+- `question_id` (INT, FOREIGN KEY -> `questions.id` ON DELETE CASCADE)
+- `selected_option` (ENUM('A', 'B', 'C', 'D'), NULLABLE)
+- `marked_for_review` (TINYINT(1), DEFAULT 0): Persists review flags across page reloads.
 - `is_correct` (TINYINT(1), DEFAULT 0)
+- `answered_at` (TIMESTAMP, NULLABLE)
 
 #### 8. `exam_violations`
-Stores real-time anti-cheat infraction events.
+Stores real-time proctoring infraction events.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
-- `attempt_id` (INT, FOREIGN KEY -> `exam_attempts.id`)
-- `violation_type` (VARCHAR(100))
+- `attempt_id` (INT, FOREIGN KEY -> `exam_attempts.id` ON DELETE CASCADE)
+- `violation_type` (VARCHAR(50))
 - `details` (TEXT, NULLABLE)
-- `timestamp` (TIMESTAMP)
+- `occurred_at` (TIMESTAMP)
 
 #### 9. `profile_requests`
-Stores pending student profile change requests.
+Stores student requests for academic profile updates.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
-- `student_id` (INT, FOREIGN KEY -> `students.id`)
+- `student_id` (INT, FOREIGN KEY -> `students.id` ON DELETE CASCADE)
 - `new_name` (VARCHAR(100))
 - `new_roll_no` (VARCHAR(50))
 - `new_department` (VARCHAR(50))
-- `new_semester` (INT)
-- `status` (ENUM('pending', 'approved', 'rejected'))
+- `new_semester` (TINYINT UNSIGNED)
+- `status` (ENUM('pending', 'approved', 'rejected'), DEFAULT 'pending')
 - `reviewed_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `request_date` (TIMESTAMP)
 
-#### 10. `registration_request`
-Stores self-registered student accounts waiting for teacher/admin verification.
-- `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
-- `name` (VARCHAR(100))
-- `email` (VARCHAR(150), UNIQUE)
-- `password` (VARCHAR(255))
-- `roll_number` (VARCHAR(50), UNIQUE)
-- `department` (VARCHAR(50))
-- `semester` (INT)
-- `phone_number` (VARCHAR(20), NULLABLE)
-- `gender` (ENUM('Male', 'Female', 'Other'), NULLABLE)
-- `status` (ENUM('pending', 'approved', 'rejected'))
-- `reviewed_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
-- `created_at` (TIMESTAMP)
-
-#### 11. `admin_audit_logs`
-Stores immutable chronological audit records of all administrative actions.
+#### 10. `admin_audit_logs`
+Stores immutable records of all administrative operations.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
 - `admin_id` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `admin_name` (VARCHAR(100))
 - `admin_role` (VARCHAR(50))
-- `action` (VARCHAR(80))
+- `action` (VARCHAR(100))
 - `entity_type` (VARCHAR(50), NULLABLE)
 - `entity_id` (INT, NULLABLE)
 - `details` (TEXT, NULLABLE)
@@ -227,18 +222,18 @@ Stores immutable chronological audit records of all administrative actions.
 
 ### 3.2 Database Initialization Tool (`init-db.php`)
 
-Examify uses a single consolidated database initialization script located at the repository root:
+Examify uses a consolidated database script in the repository root:
 
 - `init-db.php`:
-  Initializes the MySQL database, applies `archive/schema.sql`, and seeds initial accounts and curriculum questions.
+  The script initializes MySQL tables, applies `archive/schema.sql`, and seeds initial accounts.
   ```bash
-  # Standard initialization with demo data
+  # Standard setup with demo data
   php init-db.php
 
-  # Fresh drop and recreate with seed data
+  # Recreate database and apply demo data
   php init-db.php --fresh
 
-  # Schema tables only without seeds (Production)
+  # Apply schema without demo data
   php init-db.php --schema-only
   ```
 
@@ -248,20 +243,22 @@ Examify uses a single consolidated database initialization script located at the
 
 ```text
 online-exam-system/
-├── admin/               # Administrator views and backend control endpoints
-├── assets/              # CSS styles, web fonts, images, and brand assets
+├── admin/               # Administrator views and backend endpoints
+├── assets/              # CSS stylesheets, web fonts, and images
 │   ├── css/             # Consolidated and modular stylesheets
-│   ├── fonts/           # Self-hosted web fonts for offline campus deployment
-│   └── images/          # Logo and icon graphics
-├── components/          # Shared PHP UI partials (header, navbar, footer, searchbar)
+│   ├── fonts/           # Self-hosted web fonts for offline campus use
+│   └── images/          # Application logos and icons
+├── components/          # Shared PHP UI partials and modal components
 ├── config/              # Database connection and environment loader
-├── docs/                # User and developer documentation
-│   ├── dev/             # Developer reference documentation
-│   └── user/            # User guide documentation
+├── docs/                # Technical documentation library
+│   ├── dev/             # Developer specifications (ASD-STE100)
+│   └── user/            # User guide documentation (ASD-STE100)
+├── lib/                 # Third-party libraries (FPDF engine)
+├── services/            # Core business logic services (ExamEngine, PdfService)
 ├── student/             # Student portal views and examination endpoints
-├── tests/               # Test credential generators and JSON question banks
-├── tools/               # Database installers, seeders, and format checkers
-├── utils/               # Helper modules (auth, CSRF, logger, mailer, sanitize, timer)
+├── tests/               # Automated unit, security, and concurrency test suites
+├── tools/               # Local development and format checkers
+├── utils/               # Core utility modules (auth, CSRF, device, logger, sanitize, timer)
 ├── .editorconfig        # Indentation and line ending specification
 ├── .htaccess            # Apache security headers and browser caching rules
 ├── .php-cs-fixer.dist.php # PSR-12 code style fixer configuration
@@ -276,13 +273,13 @@ online-exam-system/
 
 All state-changing POST endpoints require CSRF token validation.
 
-- `csrf_token()`: Generates a cryptographically secure token and saves it to the session.
+- `csrf_token()`: Generates a cryptographically secure token and stores the token in the session.
 - `csrf_field()`: Outputs a hidden HTML form input element with the token:
   ```html
   <input type="hidden" name="csrf_token" value="...">
   ```
 - `verify_csrf()`: Validates incoming POST requests against `$_SESSION['csrf_token']`.
-  If the token is invalid, the function stops execution with a `403 Forbidden` response.
+  If the token fails validation, the function halts execution with a `403 Forbidden` response.
 
 ### 5.2 Session Hardening (`utils/session.php`)
 
@@ -290,192 +287,177 @@ The `init_secure_session()` function configures hardened cookie parameters:
 
 - `cookie_httponly = 1`: Prevents client-side scripts from reading session cookies.
 - `cookie_samesite = 'Lax'`: Mitigates Cross-Site Request Forgery attacks.
-- `use_only_cookies = 1`: Disallows session ID transmission through URL parameters.
-- `cookie_secure`: Automatically set to `1` when the server detects HTTPS.
+- `use_only_cookies = 1`: Disallows session ID transmission through URL query parameters.
+- `cookie_secure`: Automatically activates when the server detects HTTPS connections.
 
-On successful login, scripts call `session_regenerate_id(true)` to prevent session fixation.
+On successful login, the application calls `session_regenerate_id(true)` to prevent session fixation attacks.
 
-### 5.3 Input Sanitization and XSS Prevention (`utils/sanitize.php`)
+### 5.3 Singleton Login Architecture (`utils/auth.php`)
+
+Examify enforces a strict singleton session model for students and administrators.
+Only one active browser session can access an account at a given time.
+
+1. Upon successful login, the system generates a random 64-character cryptographic token.
+2. The system stores this token in the user session and in the `active_session_id` database column.
+3. Every request handler invokes `validate_singleton_session()`.
+4. If the database token does not match the session token, the system destroys the session immediately.
+5. Logging in from a second device immediately invalidates the first session.
+
+### 5.4 Device and Platform Gating (`utils/device.php`)
+
+The system separates desktop examination access from mobile portal viewing.
+
+- **Mobile and Tablet Access**: Students can check announcements, dashboards, and profile history on mobile devices.
+- **Desktop Examination Lockout**: The system blocks mobile phones and tablets from entering the examination interface (`student/exam.php`).
+- **Lockout Screen (`components/desktop-required.php`)**: Mobile devices display an instructive notification requesting a desktop or laptop computer.
+- **Touchscreen Suppression**: Examination rooms suppress touchscreen tap events on laptops to prevent accidental screen touches.
+
+### 5.5 Input Sanitization and XSS Prevention (`utils/sanitize.php`)
 
 - `e(string $value)`: Escapes output with `htmlspecialchars($value, ENT_QUOTES, 'UTF-8')`.
 - `clean_input(string $data)`: Trims whitespace and strips dangerous characters.
-- `int_param(mixed $val, int $default = 0)`: Sanitizes numeric query and form inputs.
+- `int_param(mixed $val, int $default = 0)`: Sanitizes numeric query and form parameters.
+- `sanitize_csv_value(string $val)`: Prepends a single quote to strings starting with `=`, `+`, `-`, or `@` to prevent CSV formula injection.
 
-### 5.4 Centralized Error Logging (`utils/logger.php`)
+### 5.6 Centralized Error Logging (`utils/logger.php`)
 
 - `log_error(string $message, ?Throwable $exception = null)`:
   Appends timestamped error messages and stack traces to `logs/app_errors.log`.
 - `safe_db_error(PDOException $e, string $userMessage)`:
-  Logs the real SQL error to the log file and returns a safe, generic message to the user.
+  Logs the raw SQL error to the log file and returns a safe generic message to the user.
 
-### 5.5 Authentication and Authorization (`utils/auth.php`)
+### 5.7 Authentication and Authorization (`utils/auth.php`)
 
-- `is_admin_logged_in()`: Returns `true` if the session contains a valid `admin_id`.
-- `is_superadmin()`: Returns `true` if the logged-in administrator possesses `role === 'superadmin'`.
-- `is_teacher()`: Returns `true` if the logged-in administrator possesses `role === 'teacher'`.
-- `get_admin_role()`: Returns `'superadmin'`, `'teacher'`, or empty string.
-- `require_admin()`: Redirects unauthenticated visitors to `admin-login.php`.
-- `require_superadmin()`: Restricts access to Superadmin-only modules (`manage-teachers.php`), redirecting teachers with an error.
-- `is_system_initialized(PDO $pdo)`: Checks whether the `admins` table contains at least one Superadmin account.
-- `admin/admin-guard.php`: Guard file included at the top of all admin pages. Syncs active role and terminates sessions if an account is marked `retired`.
+- `is_admin_logged_in()`: Returns `true` if the session contains an authenticated `admin_id`.
+- `is_superadmin()`: Returns `true` if the administrator holds the `superadmin` role.
+- `is_teacher()`: Returns `true` if the administrator holds the `teacher` role.
+- `require_admin()`: Redirects unauthenticated visitors to `admin/admin-login.php`.
+- `require_superadmin()`: Restricts access to Superadmin-only management modules.
+- `admin/admin-guard.php`: Guard file included at the top of all admin pages.
 - `student/student-guard.php`: Guard file included at the top of all student pages.
 
-### 5.6 First-Time Master Superadmin Password Setup (`admin/setup.php`)
+### 5.8 Master Superadmin Setup Wizard (`admin/setup.php`)
 
-When Examify is freshly deployed or initialized:
-1. `is_system_initialized($pdo)` evaluates to `false` because zero `superadmin` rows exist.
-2. Any visit to `admin/admin-login.php` or administrative areas automatically redirects to `admin/setup.php`.
-3. The setup wizard requests the Superadmin's Full Name, Institutional Email, and Master Password (minimum 8 characters with confirmation).
-4. Upon form submission, the Superadmin record is provisioned with `role = 'superadmin'`, `status = 'active'`, and a secure `PASSWORD_BCRYPT` hash.
-5. An immutable initialization record is written to `admin_audit_logs`.
-6. Once a Superadmin exists, `admin/setup.php` is **permanently locked** and redirects to `admin-login.php`, preventing administrative hijacking.
+When an administrator deploys Examify on a new server:
+1. The helper `is_system_initialized($pdo)` evaluates to `false` because zero admin accounts exist.
+2. Visits to administrative routes automatically redirect to `admin/setup.php`.
+3. The setup wizard captures the Superadmin name, email, and master password.
+4. The system provisions the account using `PASSWORD_BCRYPT` hashing and logs the event in `admin_audit_logs`.
+5. Once initialized, `admin/setup.php` locks permanently and redirects subsequent visits to `admin-login.php`.
 
-### 5.7 Teacher Account Provisioning, Retirement & Record Retention
+### 5.9 Universal Password Visibility Toggle (`components/footer.php`)
 
-To maintain institutional integrity when teachers leave or retire:
-- **Separation of Accounts**: Each teacher receives their own distinct administrative login with departmental affiliation.
-- **Account Provisioning**: The Superadmin provisions teacher accounts via `admin/manage-teachers.php`.
-- **Foreign Key Preservation**: All authored entities (`subjects.created_by`, `exams.created_by`, `questions.created_by`, `profile_requests.reviewed_by`, `registration_request.reviewed_by`) use `FOREIGN KEY ... ON DELETE SET NULL` rather than `CASCADE`.
-- **Retirement Mechanism**: Teachers are **never hard-deleted** from the system. Instead, their status is set to `retired`:
-  - `admin-guard.php` and `admin-login.php` immediately reject retired instructor logins.
-  - Active sessions are immediately invalidated.
-  - All questions, examinations, student attempts, and historical grading records created by the retired instructor are **100% retained**.
-  - All interfaces (`control-exams.php`, `view-questions.php`, `results.php`, `view-results.php`, `manage-subjects.php`) display the author's name alongside an explicit `[Retired]` badge.
-
-### 5.8 Institutional Audit Trail (`admin/audit-logs.php` & `utils/logger.php`)
-
-All significant administrative actions are tracked via `log_admin_action()`:
-- **Events Logged**: Exam creation, launch/start, extension, deletion; question imports; subject creation; student registrations; profile approvals; student password resets; teacher provisioning, retirement, and password changes.
-- **Immutable Log Entry**: Records `admin_id`, `admin_name`, `admin_role`, `action`, `entity_type`, `entity_id`, `details`, client `ip_address`, and `created_at`.
-- **Access Control**: Superadmins can filter and review activity across all instructors; teachers can inspect their own activity history.
+The application provides an interactive eye icon for every password input field:
+- The helper wraps password inputs in a relative `.password-wrapper` container.
+- An absolute-positioned `.password-toggle-btn` displays a Material Symbols eye icon.
+- Clicking the toggle button switches the input attribute between `type="password"` and `type="text"`.
+- A centralized listener in `components/footer.php` initializes all toggles automatically across the entire application.
 
 ---
 
-## 6. Examination Engine and Anti-Cheat Module
+## 6. High-Concurrency Examination Engine & Proctoring
 
-### 6.1 Real-Time Question Fetching and Auto-Save (`student/question.php`)
+### 6.1 Concurrency Engine (`services/ExamEngine.php`)
 
-`student/question.php` handles question delivery and student response recording:
+`ExamEngine` manages examination attempts under high concurrent laboratory loads:
 
-- **GET Request**:
-  Fetches a single question by index for the active attempt.
-  Returns question text, options, current index, total count, and saved answer state as JSON.
-- **POST Request**:
-  Receives `selected_option` and `marked_for_review`.
-  Saves the answer to the PHP session and executes a direct database backup query to `student_answers`.
+- **Idempotent Attempt Initialization**: The engine creates an attempt record inside a database transaction.
+  If an attempt already exists, the engine returns the existing record without duplicate queries.
+- **Bulk Answer Seeding**: The engine generates all question rows for the attempt using a single multi-row `INSERT` statement.
+- **Atomic Answer Persistence**: Question responses save directly with an indexed atomic `UPDATE` query.
+- **Decimal Scoring Precision**: Scores calculate as exact decimal values (`DECIMAL(6,2)`), supporting fractional grading schemes.
 
 ### 6.2 Client-Side Anti-Cheat Detection (`utils/anti-cheat.js`)
 
-The `AntiCheat` JavaScript module monitors examination integrity:
+The `AntiCheat` JavaScript module monitors examination room integrity:
 
 ```javascript
 AntiCheat.init({
   attemptId: attemptId,
-  onViolation: (count, reason) => console.warn(reason),
+  maxViolations: 3,
+  onViolation: (count, reason) => showViolationModal(count, reason),
   onTerminate: () => document.getElementById('examForm').submit()
 });
 ```
 
 #### Monitored Events
+1. **Fullscreen Enforcement**: Requests full-screen mode on start and logs violations if the student exits.
+2. **Tab Switching**: Listens for document visibility changes (`document.hidden`).
+3. **Window Focus Loss**: Detects window blur events.
+4. **Developer Tools Shortcuts**: Blocks the `F12` key, `Ctrl+Shift+I`, `Ctrl+Shift+J`, `Ctrl+Shift+C`, and `Ctrl+U`.
+5. **Touchscreen Suppression**: Suppresses touch taps on touchscreen laptops to prevent accidental touches.
 
-1. **Full-Screen Enforcement**:
-  Calls `requestFullscreen()` when the student begins the test.
-  Listens for `fullscreenchange` events. If the student exits full-screen, the module triggers a violation.
-2. **Tab Switching and Minimization**:
-  Listens for `visibilitychange` events (`document.hidden`).
-3. **Window Focus Loss**:
-  Listens for `window.blur` events.
-4. **Developer Tools Shortcuts**:
-  Blocks the `F12` key and keyboard combinations (`Ctrl+Shift+I`, `Ctrl+Shift+J`, `Ctrl+Shift+C`, `Ctrl+U`).
+#### In-DOM Confirmation & Proctoring Teardown
+- The examination room replaces native browser `confirm()` popups with an in-DOM modal (`#submit-confirm-modal`).
+- The modal displays dynamic live counts for answered, marked, and unanswered questions.
+- When the student clicks the final submit button, the script calls `AntiCheat.stop()` immediately.
+- This action halts event listeners before form submission, preventing false blur infractions.
 
-When a violation occurs, the module sends an asynchronous POST request to `student/log-violation.php`.
-If the student reaches 3 violations, the module submits the examination automatically.
+### 6.3 Synchronized Countdown Timer (`utils/timer.js`)
 
-### 6.3 Synchronized Exam Countdown Timer (`utils/timer.js`)
-
-The timer reads the remaining duration from `data-time-left` on the `#timerDisplay` element.
-The script counts down each second and updates the timer display.
-When the remaining time reaches 0, the script submits the form `#examForm`.
+The timer reads remaining seconds from `data-time-left` on the `#timerDisplay` element.
+The script updates the countdown display every second.
+When the countdown reaches zero, the timer stops the proctoring monitor and submits `#examForm` automatically.
 
 ---
 
-## 7. CSS Design System and Assets
+## 7. Reporting & PDF Generation Architecture
 
-Examify uses a consolidated CSS architecture under `assets/css/`:
+### 7.1 Pure-PHP PDF Generation Service (`services/PdfService.php`)
 
-- `variables.css`: Defines colors, fonts, spacing, shadows, and border-radius tokens.
-- `base.css`: Global HTML resets, typography defaults, and form field baselines.
-- `components.css`: Buttons, cards, tables, badges, alert boxes, and Material Symbols styling.
-- `material-symbols.css`: Self-hosted `@font-face` definitions for offline campus deployment.
-- `app.css`: Master stylesheet that imports `variables.css`, `base.css`, and `components.css`.
-- `exam.css`: Isolated stylesheet for the examination room, split-view layout, and question palette.
-- `landing.css` & `style.css`: Styles for the portal landing page.
+Examify generates official academic records using the bundled pure-PHP FPDF library (`lib/fpdf/`):
 
-### Material Symbols Icons
-
-The project self-hosts the `Material Symbols Outlined` web font in `assets/fonts/` and loads it via `assets/css/material-symbols.css` in `components/header.php` for completely offline, zero-CDN campus deployment.
-Use icons in HTML with this syntax:
-
-```html
-<span class="material-symbols-outlined icon-sm">icon_name</span>
-```
-
-Available size modifier classes:
-- `.icon-xs` (16px)
-- `.icon-sm` (18px)
-- `.icon-md` (24px)
-- `.icon-lg` (28px)
-- `.icon-xl` (32px)
-- `.icon-2xl` (48px)
+- **No Operating System Binaries**: The service operates without `wkhtmltopdf`, headless Chrome, or Node.js.
+- **Institutional Results Report (`generateExamResultsPdf`)**:
+  - Generates comprehensive departmental examination summaries.
+  - Formats KPI cards for total candidates, pass counts, fail counts, highest scores, and class averages.
+  - Measures candidate names using `$pdf->GetStringWidth()` to prevent cell clipping.
+  - Positions institutional endorsement lines symmetrically across the printable page width (`X = 20..75mm` and `X = 135..190mm`).
+- **Student Scorecard Report (`generateStudentScorecardPdf`)**:
+  - Generates official student assessment grade sheets.
+  - Positions exam title across a full-width header box to prevent text margin overflow.
+  - Implements a balanced two-column grid for candidate details.
+  - Renders a complete performance breakdown table and centered official signature blocks.
+  - Appends official timestamps and dynamic page numbers (`Page X of Y`).
 
 ---
 
-## 8. Code Quality, Standards, and CI/CD
+## 8. CSS Design System and Tokens
 
-### 8.1 Code Style Standards
+Examify organizes styles modularly under `assets/css/`:
 
-Examify follows the PSR-12 coding standard for PHP and strict EditorConfig rules.
+- `variables.css`: Defines color palettes, typography tokens, border radii, and shadows.
+- `base.css`: Global HTML resets and form control baselines.
+- `components.css`: Buttons, cards, modals, badges, password wrappers, and `.table-responsive` containers.
+- `admin-sidebar.css`: Administrative sidebar navigation styles with gold active state indicator (`#ffd700`).
+- `exam.css`: Isolated layout rules for the split-screen examination room and question palette.
+- `landing.css`: Landing page hero sections and feature presentation styles.
+- `material-symbols.css`: Offline `@font-face` definitions for self-hosted Material Symbols web fonts.
+- `app.css`: Master stylesheet that imports core tokens, base rules, and components into one cached file.
 
-- **PHP files**: 4 spaces indentation, Unix LF line endings, strict typing where applicable.
-- **CSS / JS / JSON / SQL / Markdown / YAML files**: 2 spaces indentation, Unix LF line endings.
+---
 
-### 8.2 Local Quality Verification
+## 9. Code Quality Standards and CI/CD
 
-#### Windows (PowerShell):
+### 9.1 Coding Standards
+- **PHP**: Strictly adheres to PSR-12 code style with 4-space indentation and Unix LF line endings.
+- **Assets**: CSS, JavaScript, JSON, SQL, and Markdown use 2-space indentation with Unix LF line endings.
 
+### 9.2 Automated Verification Commands
 ```powershell
-# 1. Verify EditorConfig compliance
+# Windows PowerShell
 .\tools\check-editorconfig.ps1
-
-# 2. Verify PHP syntax across all project files
-Get-ChildItem -Filter *.php -Recurse | Where-Object { $_.FullName -notmatch '[\\/]vendor[\\/]' } | ForEach-Object { php -l $_.FullName }
+Get-ChildItem -Filter *.php -Recurse | ForEach-Object { php -l $_.FullName }
+php tests/security_and_unit_tests.php
 ```
 
-#### Linux / macOS (Bash):
-
 ```bash
-# 1. Verify EditorConfig compliance
+# Linux / macOS Bash
 ./tools/check-editorconfig.sh
-
-# 2. Verify PHP syntax across all project files
-find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} +
+find . -type f -name "*.php" -exec php -l {} +
+php tests/security_and_unit_tests.php
 ```
 
-#### Code Formatting with PHP-CS-Fixer:
-
-```bash
-php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
-```
-
-### 8.3 GitHub Actions CI/CD Pipeline
-
-The repository includes two automated workflows under `.github/workflows/`:
-
-1. `lint.yml`:
-  Runs on every push and pull request.
-  Checks EditorConfig rules, tests PHP syntax across PHP 8.1, 8.2, and 8.3, and runs PHP-CS-Fixer.
-
-2. `archive.yml`:
-  Runs on release tags.
-  Minifies all CSS files with `clean-css-cli` and JavaScript files with `terser`.
-  Packages runtime files into a clean `examify-release.zip` distribution artifact.
+### 9.3 GitHub Actions Workflows
+- `lint.yml`: Checks EditorConfig rules, validates PHP syntax across PHP 8.1, 8.2, and 8.3, and tests code style.
+- `release.yml`: Minifies CSS and JavaScript assets, excludes development files, and packages production releases (`examify-release.zip`).

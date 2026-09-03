@@ -1,14 +1,9 @@
 <?php
 
 /**
- * Environment & Caching Helper
- *
- * Handles .env parsing and environment-aware caching controls.
+ * Environment & Security Header Helper
  */
 
-/**
- * Load environment variables from .env file into $_ENV and putenv().
- */
 function load_env(?string $path = null): void
 {
     static $isLoaded = false;
@@ -35,11 +30,11 @@ function load_env(?string $path = null): void
     foreach ($lines as $line) {
         $line = trim($line);
 
-        if ($line === '' || strpos($line, '#') === 0) {
+        if ($line === '' || str_starts_with($line, '#')) {
             continue;
         }
 
-        if (strpos($line, '=') !== false) {
+        if (str_contains($line, '=')) {
             list($name, $value) = explode('=', $line, 2);
 
             $name = trim($name);
@@ -56,9 +51,6 @@ function load_env(?string $path = null): void
     $isLoaded = true;
 }
 
-/**
- * Get an environment variable with optional fallback.
- */
 function get_env(string $key, $default = null)
 {
     load_env();
@@ -75,46 +67,29 @@ function get_env(string $key, $default = null)
     return $default;
 }
 
-/**
- * Check if the application is running in development mode.
- */
 function is_development(): bool
 {
     $env = strtolower((string) get_env('APP_ENV', 'development'));
     return in_array($env, ['development', 'dev', 'local', 'debug'], true);
 }
 
-/**
- * Check if the application is running in production mode.
- */
 function is_production(): bool
 {
     return !is_development();
 }
 
-/**
- * Get the cache-busting asset version string.
- * In development: dynamic timestamp to guarantee fresh assets on reload.
- * In production: static version string for efficient browser caching.
- */
 function asset_version(): string
 {
-    return is_development() ? (string) time() : '1.0.0';
+    return is_development() ? (string) time() : '2.0.0';
 }
 
-/**
- * Generate an asset URL with cache-busting query parameter in development.
- */
 function asset_url(string $path): string
 {
     $version = asset_version();
-    $separator = (strpos($path, '?') === false) ? '?' : '&';
+    $separator = (str_contains($path, '?')) ? '&' : '?';
     return $path . $separator . 'v=' . $version;
 }
 
-/**
- * Send HTTP headers to prevent browser caching when in development mode.
- */
 function send_cache_control_headers(): void
 {
     if (php_sapi_name() === 'cli' || headers_sent()) {
@@ -129,9 +104,6 @@ function send_cache_control_headers(): void
     }
 }
 
-/**
- * Send standard HTTP security headers across all environments.
- */
 function send_security_headers(): void
 {
     if (php_sapi_name() === 'cli' || headers_sent()) {
@@ -144,7 +116,6 @@ function send_security_headers(): void
     header('X-XSS-Protection: 1; mode=block');
 }
 
-// Auto-load .env and apply security and cache control headers on include
 load_env();
 date_default_timezone_set((string) get_env('APP_TIMEZONE', 'Asia/Kolkata'));
 send_security_headers();

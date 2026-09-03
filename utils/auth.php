@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Authentication Helpers
+ * Authentication & RBAC Guard Helpers
  */
 
 require_once __DIR__ . '/session.php';
@@ -85,4 +85,45 @@ function is_system_initialized(PDO $pdo): bool
     } catch (Throwable) {
         return false;
     }
+}
+
+/**
+ * Singleton Session Management Helpers
+ * Enforces strictly ONE active login per user account across devices.
+ */
+function bind_active_session(PDO $pdo, string $userType, int $userId): void
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        init_secure_session();
+    }
+    $table = ($userType === 'admin') ? 'admins' : 'students';
+    $sessionId = session_id();
+    $stmt = $pdo->prepare("UPDATE {$table} SET active_session_id = ? WHERE id = ?");
+    $stmt->execute([$sessionId, $userId]);
+}
+
+function verify_active_session(PDO $pdo, string $userType, int $userId): bool
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        init_secure_session();
+    }
+    $table = ($userType === 'admin') ? 'admins' : 'students';
+    $currentSessionId = session_id();
+
+    $stmt = $pdo->prepare("SELECT active_session_id FROM {$table} WHERE id = ? LIMIT 1");
+    $stmt->execute([$userId]);
+    $activeId = $stmt->fetchColumn();
+
+    // If active_session_id is recorded and does not match current session, another device has logged in
+    if (!empty($activeId) && $activeId !== $currentSessionId) {
+        return false;
+    }
+    return true;
+}
+
+function clear_active_session(PDO $pdo, string $userType, int $userId): void
+{
+    $table = ($userType === 'admin') ? 'admins' : 'students';
+    $stmt = $pdo->prepare("UPDATE {$table} SET active_session_id = NULL WHERE id = ?");
+    $stmt->execute([$userId]);
 }

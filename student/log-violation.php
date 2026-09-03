@@ -4,16 +4,31 @@ require_once __DIR__ . '/../utils/session.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/sanitize.php';
+require_once __DIR__ . '/../utils/csrf.php';
+require_once __DIR__ . '/../utils/auth.php';
 
 init_secure_session();
 
 if (empty($_SESSION['student_id'])) {
+    release_session_lock();
     json_response(['error' => 'Unauthorized'], 401);
+}
+
+if (!verify_active_session($pdo, 'student', (int) $_SESSION['student_id'])) {
+    release_session_lock();
+    json_response(['error' => 'Concurrent session detected.'], 401);
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!$input || empty($input['attempt_id']) || empty($input['violation_type'])) {
+    release_session_lock();
     json_response(['error' => 'Invalid parameters'], 400);
+}
+
+$token = $input['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+if (!is_csrf_valid($token)) {
+    release_session_lock();
+    json_response(['error' => 'CSRF verification failed'], 403);
 }
 
 $attempt_id = int_param($input['attempt_id']);
@@ -22,7 +37,7 @@ $details = clean_input($input['details'] ?? '');
 $student_id = (int) $_SESSION['student_id'];
 
 // Release session lock to unblock concurrent client requests
-session_write_close();
+release_session_lock();
 
 try {
     // Verify attempt belongs to current student
@@ -45,6 +60,5 @@ try {
         'violations_count' => $totalViolations,
     ]);
 } catch (PDOException $e) {
-    // Graceful fallback if table not yet created
     json_response(['success' => false, 'message' => 'Logged locally'], 200);
 }

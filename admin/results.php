@@ -12,7 +12,7 @@ try {
     $departments = $deptStmt->fetchAll(PDO::FETCH_COLUMN);
 
     $params = [];
-    $sql = "SELECT e.id, e.title, e.total_marks, s.department, s.semester,
+    $sql = "SELECT e.id, e.title, e.total_marks, e.results_published, s.department, s.semester,
             a.name as creator_name, a.status as creator_status,
             (SELECT COUNT(*) FROM exam_attempts
             WHERE exam_id = e.id AND status = 'completed') AS total_attempts
@@ -74,13 +74,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <th>Semester</th>
                         <th>Max Marks</th>
                         <th>Submissions</th>
+                        <th>Results Status</th>
                         <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($exams)): ?>
                         <tr>
-                            <td colspan="6" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">
+                            <td colspan="7" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">
                                 No exams found for <strong><?= e($selected_dept) ?></strong>.
                             </td>
                         </tr>
@@ -104,10 +105,26 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <?= e((string) $exam['total_attempts']) ?> submissions
                                     </span>
                                 </td>
+                                <td>
+                                    <?php if (!empty($exam['results_published'])): ?>
+                                        <span class="badge badge-active" style="display: inline-flex; align-items: center; gap: 4px;" title="Scores and answer reviews are visible to students">
+                                            <span class="material-symbols-outlined icon-xs">visibility</span> Published
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge badge-warning" style="display: inline-flex; align-items: center; gap: 4px;" title="Scores and answer reviews are hidden from students">
+                                            <span class="material-symbols-outlined icon-xs">visibility_off</span> Unpublished
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
                                 <td style="text-align: right;">
-                                    <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-                                        <span class="material-symbols-outlined icon-xs">leaderboard</span> View Results
-                                    </a>
+                                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                        <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <span class="material-symbols-outlined icon-xs">leaderboard</span> View Results
+                                        </a>
+                                        <a href="export-pdf.php?exam_id=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Download Results PDF">
+                                            <span class="material-symbols-outlined icon-xs">picture_as_pdf</span> PDF
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

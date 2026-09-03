@@ -65,7 +65,7 @@ include __DIR__ . '/../components/student-navbar.php';
             </div>
             <div>
                 <label style="color: var(--color-text-secondary); margin-bottom: 2px;">Department & Semester</label>
-                <div style="font-size: 1.1rem; font-weight: 600;"><?= e($student['department']) ?> • Semester <?= e($student['semester']) ?></div>
+                <div style="font-size: 1.1rem; font-weight: 600;"><?= e($student['department']) ?> • Semester <?= e((string)$student['semester']) ?></div>
             </div>
         </div>
     </div>
@@ -85,7 +85,7 @@ include __DIR__ . '/../components/student-navbar.php';
                             <th>Exam Title</th>
                             <th>Score</th>
                             <th>Submitted On</th>
-                            <th>Actions</th>
+                            <th style="text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,17 +94,21 @@ include __DIR__ . '/../components/student-navbar.php';
                                 <td><strong><?= e($result['title']) ?></strong></td>
                                 <td>
                                     <span class="badge badge-active" style="font-size: 0.85rem;">
-                                        <?= e($result['score']) ?> / <?= e($result['total_marks']) ?>
+                                        <?= sprintf('%.2f', (float)$result['score']) ?> / <?= e((string)$result['total_marks']) ?>
                                     </span>
                                 </td>
                                 <td>
                                     <?= $result['submitted_at'] ? date('d M Y, h:i A', strtotime($result['submitted_at'])) : '—' ?>
                                 </td>
-
-                                <td>
-                                    <a href="review-exam.php?attempt_id=<?= $result['attempt_id'] ?>" class="btn btn-outline">
-                                        Review Answers
-                                    </a>
+                                <td style="text-align: right;">
+                                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                        <a href="review-exam.php?attempt_id=<?= $result['attempt_id'] ?>" class="btn btn-outline btn-sm">
+                                            Review
+                                        </a>
+                                        <a href="download-card.php?attempt_id=<?= $result['attempt_id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <span class="material-symbols-outlined icon-xs">picture_as_pdf</span> PDF
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

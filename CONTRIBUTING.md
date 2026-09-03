@@ -1,81 +1,89 @@
-# 🤝 Contributing to Examify
+# Contributing to Examify
 
-Thank you for contributing to **Examify**! To maintain a secure, high-performance, and consistent codebase, please review and adhere to the guidelines below before submitting pull requests.
+Follow these guidelines to contribute to the Examify codebase.
+These rules keep the software secure, fast, and consistent.
 
 ---
 
 ## 🏛️ Architectural Principles
 
-1. **Strict Vanilla PHP**:
-  - The runtime project uses **pure Vanilla PHP 8.x** with native PDO and native session management.
-  - Do **NOT** introduce heavy runtime framework dependencies (e.g., Laravel, Symfony) or npm frontend build chains (Webpack, Vite).
-2. **Offline / College LAN First**:
-  - All features must operate reliably in isolated local area network environments (e.g., college computer labs).
-  - External CDN dependencies must have local fallbacks or be included directly in `assets/`.
+1. **Pure Vanilla PHP**:
+   - Write backend code using pure PHP 8.1+ with native PDO and sessions.
+   - Do not add runtime frameworks or npm build tools.
+2. **Offline Local Area Network Design**:
+   - Design all features for isolated college computer laboratories.
+   - Store all fonts, styles, and assets locally in the `assets/` directory.
+   - Do not depend on external CDNs.
 3. **Defense in Depth**:
-  - Verify CSRF tokens on every state-changing `POST` request using `verify_csrf()`.
-  - Always escape HTML output with `e($string)` or `htmlspecialchars()`.
-  - Use prepared statements (`PDO::prepare`) with parameter binding for all database queries.
+   - Validate CSRF tokens on every state-changing POST request using `verify_csrf()`.
+   - Escape all HTML output using `e($string)`.
+   - Use prepared SQL statements with bound parameters for all database queries.
 
 ---
 
-## 🎨 Code Style & Formatting Standards
+## 🎨 Code Style and Formatting
 
-Our automated CI pipeline enforces strict formatting across all files.
+The automated CI workflow enforces strict formatting rules.
 
-### 1. EditorConfig Standards
-- **Line Endings**: Unix LF (`\n`) across all files on all operating systems.
-- **Trailing Whitespace**: Stripped automatically on save (markdown files configured to preserve line breaks).
-- **Final Newline**: Required at the end of every file.
+### 1. EditorConfig Rules
+- **Line Endings**: Unix LF (`\n`) for all files.
+- **Trailing Whitespace**: Remove trailing whitespace on save.
+- **Final Newline**: Insert a final newline at the end of every file.
 - **Indentation**:
-  - `*.php`, `*.{sh,bash,ps1}`: **4 spaces**
-  - `*.sql`, `*.css`, `*.js`, `*.json`, `*.yml`, `*.md`: **2 spaces**
+  - `*.php`, `*.ps1`, `*.sh`: Use **4 spaces**.
+  - `*.css`, `*.js`, `*.json`, `*.sql`, `*.yml`, `*.md`: Use **2 spaces**.
 
 ### 2. PHP Formatting (PSR-12)
-- All control structures must use braces `{ ... }` (no single-line `if ($x) do();`).
-- Opening braces for classes and methods on the next line; control structures on the same line.
-- Do not let closing PHP tags (`?>`) appear at the end of pure PHP files.
+- Enclose all control structures in braces `{ ... }`.
+- Place opening braces for classes and methods on the next line.
+- Place opening braces for control structures on the same line.
+- Omit closing PHP tags (`?>`) at the end of pure PHP files.
 
 ---
 
-## 🛠️ Developer Verification Tools
+## 🛠️ Verification Commands
 
-Before committing your code, run the local verification suite:
+Run these verification commands before you commit code:
 
 ### 1. Verification on Windows (PowerShell)
 ```powershell
-# Verify text format & EditorConfig
+# Verify text format and EditorConfig rules
 .\tools\check-editorconfig.ps1
 
-# Verify PHP syntax across all files
-Get-ChildItem -Filter *.php -Recurse | Where-Object { $_.FullName -notmatch '[\\/]vendor[\\/]' } | ForEach-Object { php -l $_.FullName }
+# Verify PHP syntax across all project files
+Get-ChildItem -Filter *.php -Recurse | ForEach-Object { php -l $_.FullName }
 ```
 
-### 2. Verification on Linux / macOS (Bash)
+### 2. Verification on Linux or macOS (Bash)
 ```bash
-# Verify text format & EditorConfig
+# Verify text format and EditorConfig rules
 ./tools/check-editorconfig.sh
 
-# Verify PHP syntax across all files
-find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} +
+# Verify PHP syntax across all project files
+find . -type f -name "*.php" -exec php -l {} +
 ```
 
-### 3. Check PHP Code Style (PHP-CS-Fixer)
+### 3. Run Automated Test Suite
 ```bash
-# Using globally installed php-cs-fixer
-php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
-
-# Or using downloaded phar
-# php php-cs-fixer.phar fix --dry-run --diff --config=.php-cs-fixer.dist.php
+php tests/security_and_unit_tests.php
+php tests/singleton_login_test.php
+php tests/device_gating_test.php
+php tests/password_visibility_test.php
+php tests/bulk_promote_test.php
+php tests/concurrency_test.php
 ```
 
 ---
 
 ## 🚀 Pull Request Checklist
 
-- [ ] My code passes `tools/check-editorconfig.ps1` (or `check-editorconfig.sh`) with 0 errors.
-- [ ] All modified PHP files pass `php -l` without syntax errors.
-- [ ] No credentials, `.env` files, or local logs (`logs/*.log`) are committed.
-- [ ] Forms include `<?= csrf_field() ?>` and handlers call `verify_csrf()`.
+Verify these items before you submit a pull request:
+
+- [ ] All files pass `tools/check-editorconfig.ps1` or `check-editorconfig.sh` with zero errors.
+- [ ] All modified PHP files pass `php -l` syntax validation.
+- [ ] You did not commit credentials, `.env` files, or local logs (`logs/*.log`).
+- [ ] Every form contains `<?= csrf_field() ?>`.
+- [ ] Every POST request handler calls `verify_csrf()`.
 - [ ] Database queries use prepared statements with bound parameters.
+- [ ] All automated tests pass with zero failures.
 

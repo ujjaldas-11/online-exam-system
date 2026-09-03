@@ -1,23 +1,25 @@
 # Examify — Online Examination System
 
-**Examify** is a high-performance, secure, and lightweight web-based online examination platform built with **Vanilla PHP 8.x, MySQL, HTML5, CSS3, and Vanilla JavaScript**. Designed specifically for educational institutions and college computer labs, Examify provides complete classroom control for **surprise quizzes, semester tests, and scheduled online exams** over local area networks (LAN).
+Examify is a secure web-based online examination platform.
+The system uses Vanilla PHP 8.x, MySQL, HTML5, CSS3, and Vanilla JavaScript.
+Institutions deploy Examify on local area networks (LAN) for quizzes, semester tests, and scheduled examinations.
 
 ---
-[![CI](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml)
 
+[![CI](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml)
 
 ## 🎯 Primary Use Case & Architecture
 
-- **Deployment Model**: College local area network (LAN) server (Apache/Nginx on Ubuntu/Debian or local XAMPP/WampServer).
-- **Classroom Scenarios**: Lab surprise tests, scheduled examinations, and department assessments.
-- **Core Technology**: 100% pure Vanilla PHP (zero heavy runtime framework dependencies), native PDO, native session management, and single-hit cached CSS.
+- **Deployment Model**: College local area network (LAN) server with Apache or Nginx.
+- **Classroom Scenarios**: Surprise quizzes, semester examinations, and departmental assessments.
+- **Core Technology**: Pure Vanilla PHP, native PDO database connections, native session management, and single-hit cached CSS.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │                          EXAMIFY ARCHITECTURE                          │
 ├─────────────────┬─────────────────┬─────────────────┬──────────────────┤
 │  Admin Portal   │ Student Portal  │ Live Proctoring │ Security & Timer │
-│  (Exams & Bank) │  (Test Room)    │ (Real-time LAN) │   (Anti-Cheat)   │
+│ (Exams/Students)│  (Test Room)    │ (Real-time LAN) │   (Anti-Cheat)   │
 └─────────────────┴─────────────────┴─────────────────┴──────────────────┘
 ```
 
@@ -25,24 +27,30 @@
 
 ## ✨ Key Features & Capabilities
 
-### 🛡️ Security & Integrity
-- **CSRF Defense**: Cryptographic token protection across all student and admin state-changing endpoints (`verify_csrf()`).
-- **Session Hardening**: Secure cookie flags (`HttpOnly`, `SameSite=Lax`, `Secure` when HTTPS) and post-login session regeneration (`session_regenerate_id(true)`).
-- **Server-Side Timer Enforcement**: Tamper-proof validation on submission preventing client clock manipulation.
-- **Anti-Cheat Audit Trail**: Real-time logging of tab switches, full-screen exits, and DevTools attempts stored in `exam_violations` table.
-- **Safe Error Disclosure**: Centralized exception logging to `logs/app_errors.log` preventing SQL error leaks.
+### 🛡️ Security & Session Integrity
+- **Singleton Login Enforcement**: The system permits only one active session per account. A new login immediately invalidates the previous session.
+- **Device & Platform Gating**: The system restricts active examinations to desktop and laptop computers. Mobile phones and tablets cannot take examinations.
+- **Touchscreen Suppression**: The system suppresses touchscreen inputs on laptops. Students must use a physical mouse or touchpad.
+- **In-DOM Submission Confirmation**: A custom modal replaces native browser popups. The modal displays answered, marked, and unanswered question counts.
+- **Graceful Proctoring Teardown**: The anti-cheat monitor stops before form submission. This action prevents false window blur violations.
+- **CSRF Defense**: Cryptographic tokens protect all state-changing endpoints via `verify_csrf()`.
+- **Session Hardening**: Secure cookie parameters (`HttpOnly`, `SameSite=Lax`, `Secure` when HTTPS) and post-login session regeneration prevent session fixation.
+- **Centralized Audit Trail**: The system records administrative actions and anti-cheat infractions in dedicated database tables.
 
-### 🎓 Classroom & Surprise Test Features
-- **Classroom Exam PIN**: Instructors can set an optional 4-to-6 digit PIN on exams. Students enter the whiteboard PIN to start the quiz.
-- **Live Instructor Proctoring Panel**: Real-time dashboard showing every enrolled student's live status, current question progress, and cheat flags.
-- **Emergency PC Crash Recovery**: Instructors can unlock and resume attempts or grant $+5$ / $+10$ minutes if lab hardware crashes.
-- **Batch CSV Student Roster Import**: Enroll an entire classroom in seconds by uploading a `.csv` file.
-- **Offline LAN Password Reset**: Instructors can reset forgotten student passwords directly in the admin panel with one click.
+### 🎓 Classroom & Administration Features
+- **Student Management Panel**: Administrators search, filter, enroll, edit, suspend, and delete student accounts.
+- **Bulk Student Promotion**: Administrators promote student cohorts by department or promote selected students (+1 semester).
+- **Universal Password Visibility**: Every password input field includes an interactive eye toggle button.
+- **Automated Registration Redirect**: Successful student registration shows a 30-second progress bar and redirects to the homepage.
+- **Classroom Access PIN**: Instructors can set an optional PIN on examinations.
+- **Live Classroom Proctoring**: Instructors monitor student progress and violation counts in real time.
+- **Hardware Crash Recovery**: Instructors can unlock student attempts and grant emergency time (+5 or +10 minutes).
+- **Pure-PHP PDF Reports**: The system generates institutional result summaries and individual student scorecards without external operating system tools.
 
-### 🎨 Modern Vanilla CSS Design System
-- **Single Cached Network Hit (`assets/css/app.css`)**: Combines unified design tokens (`variables.css`), global resets (`base.css`), and reusable components (`components.css`).
-- **55% CSS Payload Reduction**: Replaced redundant inline style blocks with a consolidated ~12 KB stylesheet cached on first lab visit.
-- **Modular Styles**: Dedicated `exam.css` for the exam room, `landing.css` for landing components, and `style.css` for page layout.
+### 🎨 Design System
+- **Single Cached Network Hit (`assets/css/app.css`)**: Combines design tokens, global resets, and reusable components.
+- **Responsive Layout Containment**: Tables and containers prevent horizontal page overflow across screen sizes.
+- **Gold Navigation Indicator**: The active tab in the admin sidebar displays text and icons in gold (`#ffd700`).
 
 ---
 
@@ -52,98 +60,88 @@
 online-exam-system/
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
-│   │   ├── bug_report.md        # GitHub bug report template
-│   │   └── feature_request.md   # GitHub feature request template
+│   │   ├── bug_report.md        # Bug report template
+│   │   └── feature_request.md   # Feature request template
 │   └── workflows/
-│       ├── archive.yml          # Production release packager workflow
-│       └── lint.yml             # Automated GitHub Actions CI (EditorConfig, PHP Syntax & Style)
+│       ├── lint.yml             # Automated CI workflow
+│       └── release.yml          # Automated release packaging workflow
 ├── admin/
-│   ├── admin-dashboard.php      # System overview and quick action center
+│   ├── admin-dashboard.php      # Admin overview and quick action center
 │   ├── admin-guard.php          # Session authorization gate for administrators
-│   ├── admin-login.php          # Secure admin authentication
-│   ├── admin-logout.php         # Session destruction and logout
+│   ├── admin-login.php          # Administrator authentication
+│   ├── admin-logout.php         # Session termination and logout
 │   ├── control-exams.php        # Start/stop exams, add emergency time, view PINs
-│   ├── import-students.php      # Bulk CSV classroom enrollment tool
-│   ├── manage-exam.php          # Configure exams (duration, question count, PIN)
-│   ├── manage-questions.php     # Bulk upload MCQ questions with JSON
-│   ├── manage-requests.php      # Profile updates and emergency password resets
-│   ├── manage-subjects.php      # Curriculum subjects by department/semester
+│   ├── export-pdf.php           # Institutional exam results PDF download
+│   ├── manage-exam.php          # Configure exams (duration, marks, PIN)
+│   ├── manage-questions.php     # Upload multiple-choice questions with JSON
+│   ├── manage-students.php      # Student management and bulk promotion panel
+│   ├── manage-teachers.php      # Teacher account management
 │   ├── proctor-exam.php         # Live classroom proctoring dashboard
 │   ├── results.php              # Department results overview
-│   ├── view-questions.php       # Question bank browser and management
-│   └── view-results.php         # Top 3 podium, leaderboard, and printable report
+│   ├── setup.php                # Master superadmin initial setup wizard
+│   ├── view-questions.php       # Question bank browser
+│   └── view-results.php         # Exam leaderboard and PDF export trigger
 ├── archive/
-│   └── schema.sql               # Consolidated master MySQL schema
+│   └── schema.sql               # Master MySQL relational schema
 ├── assets/
 │   ├── css/
-│   │   ├── app.css              # Consolidated master application stylesheet
-│   │   ├── base.css             # Resets and base element defaults
-│   │   ├── components.css       # Buttons, cards, tables, badges, and alerts
-│   │   ├── exam.css             # Isolated exam room and question palette
-│   │   ├── landing.css          # Isolated marketing landing styles
+│   │   ├── admin-sidebar.css    # Admin sidebar styles and active theme
+│   │   ├── app.css              # Master combined application stylesheet
+│   │   ├── base.css             # HTML resets and base defaults
+│   │   ├── components.css       # Cards, tables, modals, badges, password toggles
+│   │   ├── exam.css             # Isolated examination room layout
+│   │   ├── landing.css          # Landing page styles
 │   │   ├── material-symbols.css # Self-hosted Material Symbols font stylesheet
-│   │   ├── style.css            # Legacy & landing page styles
-│   │   └── variables.css        # Unified CSS custom property design tokens
-│   ├── fonts/                   # Self-hosted web fonts for zero-CDN offline labs
-│   │   └── material-symbols-outlined.woff2
-│   └── images/                  # Logos and branding assets
+│   │   └── variables.css        # CSS custom properties and color tokens
+│   ├── fonts/                   # Self-hosted woff2 font files
+│   └── images/                  # Application logos and graphics
 ├── components/
-│   ├── footer.php               # Shared footer layout partial
-│   ├── header.php               # Shared HTML head and stylesheet partial
-│   ├── navbar.php               # Sticky navigation bar
-│   └── searchbar.php            # Instant table search component
+│   ├── admin-sidebar.php        # Admin sidebar navigation partial
+│   ├── desktop-required.php     # Mobile lockout notification screen
+│   ├── footer.php               # Shared footer and password toggle handler
+│   ├── header.php               # Shared HTML head partial
+│   ├── navbar.php               # Navigation bar component
+│   └── searchbar.php            # Search input component
 ├── config/
-│   └── database.php             # Native .env parser and PDO connection
+│   └── database.php             # Environment loader and PDO connection
 ├── docs/
 │   ├── dev/
 │   │   └── README.md            # Developer documentation (ASD-STE100)
 │   ├── user/
-│   │   └── README.md            # User & instructor documentation (ASD-STE100)
+│   │   └── README.md            # User guide documentation (ASD-STE100)
 │   └── README.md                # Documentation index
+├── lib/
+│   └── fpdf/                    # Pure-PHP PDF generation engine
+├── services/
+│   ├── ExamEngine.php           # High-concurrency exam delivery and grading engine
+│   └── PdfService.php           # PDF report layout service
 ├── student/
-│   ├── check-exams.php          # Non-blocking polling endpoint for live exams
-│   ├── dashboard.php            # Active student examinations
-│   ├── edit-profile.php         # Request academic info change
-│   ├── exam.php                 # Exam taking interface with timer and AntiCheat
-│   ├── log-violation.php        # Real-time cheating violation audit endpoint
+│   ├── check-exams.php          # Live examination polling endpoint
+│   ├── dashboard.php            # Student dashboard and active tests
+│   ├── download-card.php        # Student scorecard PDF download endpoint
+│   ├── exam.php                 # Exam taking room with in-DOM confirmation modal
+│   ├── log-violation.php        # Anti-cheat violation logging endpoint
 │   ├── login.php                # Student authentication
-│   ├── logout.php               # Student logout
-│   ├── profile.php              # Academic credentials and past exam history
-│   ├── question.php             # Real-time question fetching and auto-save
-│   ├── register.php             # Student registration
-│   ├── result.php               # Instant score evaluation and performance breakdown
-│   └── student-guard.php        # Student authorization gate
-├── tests/
-│   ├── daa-questions.json       # Question bank for Algorithms
-│   ├── networking-questions.json# Question bank for Computer Networks
-│   ├── os-questions.json        # Question bank for Operating Systems
-│   ├── security_and_unit_tests.php # Security & unit test suite
-│   └── e2e_automation.php       # End-to-end browser automation suite
-├── tools/
-│   ├── check-editorconfig.ps1   # PowerShell EditorConfig runner
-│   └── check-editorconfig.sh    # Bash EditorConfig runner
-├── init-db.php                  # Consolidated database initializer, schema installer & seeder
+│   ├── logout.php               # Student session termination
+│   ├── question.php             # Question fetch and auto-save endpoint
+│   ├── register.php             # Student registration with 30s timeout bar
+│   ├── result.php               # Score evaluation and metrics breakdown
+│   └── student-guard.php        # Student session authorization gate
+├── tests/                       # Automated unit, security, and concurrency test suites
+├── tools/                       # Development format and syntax checkers
 ├── utils/
-│   ├── anti-cheat.js            # Fullscreen, tab-switch, and DevTools detection
-│   ├── auth.php                 # Native role verification helpers
-│   ├── csrf.php                 # Native CSRF token generation and validation
-│   ├── env.php                  # Environment variables & browser cache control helper
-│   ├── funny_quotes.json        # Anti-cheat violation notice quotes
+│   ├── anti-cheat.js            # Client-side integrity, fullscreen, and touch suppression
+│   ├── auth.php                 # Role verification and singleton session helpers
+│   ├── csrf.php                 # CSRF token generator and validator
+│   ├── device.php               # Device detection and desktop requirement helpers
 │   ├── logger.php               # Safe exception logging
-│   ├── mailer.php               # Zero-dependency Vanilla PHP socket SMTP client
-│   ├── response.php             # JSON response and redirect helpers
-│   ├── sanitize.php             # HTML escaping and parameter sanitization
-│   ├── session.php              # Hardened session initialization and flash messages
+│   ├── sanitize.php             # HTML escaping and CSV sanitization
 │   └── timer.js                 # Synchronized exam timer countdown
-├── .editorconfig                # Universal indentation and whitespace rules
-├── .editorconfig-checker.json   # EditorConfig automated checker config
-├── .htaccess                    # Apache LAN caching and security headers
-├── .php-cs-fixer.dist.php       # PHP PSR-12 code style config
-├── CONTRIBUTING.md              # Guidelines for developers and contributors
+├── init-db.php                  # Database initializer and seeder tool
+├── index.php                    # Application landing page
 ├── LICENSE                      # Project license
 ├── PRODUCTION.md                # Production build and deployment guide
-├── README.md                    # System documentation
-└── index.php                    # Landing page and portal gateway
+└── README.md                    # Main system documentation
 ```
 
 ---
@@ -151,102 +149,89 @@ online-exam-system/
 ## 🚀 Installation & Quick Start
 
 ### 1. Requirements
-- **PHP**: 8.1 or higher (with `pdo_mysql` enabled)
-- **Database**: MySQL 5.7+ / MariaDB 10.3+
-- **Web Server**: Apache / Nginx or built-in PHP server
+- **PHP**: Version 8.1 or higher with `pdo_mysql`, `mbstring`, and `json` extensions.
+- **Database**: MySQL 5.7+ or MariaDB 10.3+.
+- **Web Server**: Apache 2.4+, Nginx, or the built-in PHP development server.
 
 ### 2. Setup Configuration
-1. Clone the repository into your web server directory (`htdocs` or `/var/www/html`):
-  ```bash
-  git clone https://github.com/ujjaldas-11/online-exam-system.git
-  cd online-exam-system
-  ```
-2. Create a `.env` file in the root directory:
-  ```env
-  # Set to 'development' (disables browser cache) or 'production' (enables caching)
-  APP_ENV=development
-
-  DB_HOST=localhost
-  DB_DATABASE=examify
-  DB_USERNAME=root
-  DB_PASSWORD=
-  DB_CHARSET=utf8mb4
-  ```
+1. Clone the repository into your web server directory:
+   ```bash
+   git clone https://github.com/ujjaldas-11/online-exam-system.git
+   cd online-exam-system
+   ```
+2. Create a `.env` file in the project root directory:
+   ```env
+   APP_ENV=development
+   DB_HOST=127.0.0.1
+   DB_DATABASE=examify
+   DB_USERNAME=root
+   DB_PASSWORD=
+   DB_CHARSET=utf8mb4
+   ```
 
 ### 3. Initialize Database
-
-Run the consolidated database initialization tool:
+Execute the consolidated database initialization tool:
 
 ```bash
 php init-db.php
 ```
 
-*This automatically creates the database, applies `archive/schema.sql`, and seeds initial accounts and curriculum questions:*
-- **Superadmin Email**: `admin@college.edu` | **Password**: `Admin@123`
-- **Active Teacher Email**: `teacher@college.edu` | **Password**: `Teacher@123`
-- **Retired Teacher Email**: `grace.hopper@college.edu` *(Records Preserved)*
-- **Student Email**: `student@college.edu` | **Password**: `Student@123` *(BCA, Semester 4)*
-- **Live Test Exam**: *OS Surprise Quiz* (Classroom Access PIN: `4821`)
+The script creates the database schema and seeds initial accounts:
+- **Superadmin**: `admin@college.edu` | Password: `Admin@123`
+- **Active Teacher**: `teacher@college.edu` | Password: `Teacher@123`
+- **Student**: `student@college.edu` | Password: `Student@123`
+- **Demo Quiz**: *OS Surprise Quiz* (PIN: `4821`)
 
 #### Advanced CLI Options
-- `php init-db.php --fresh` — Drops existing database, recreates it from scratch, and seeds clean demo data.
-- `php init-db.php --schema-only` — Applies database tables without seeding (for pristine production environments).
+- `php init-db.php --fresh`: Drops existing database tables and seeds new demo data.
+- `php init-db.php --schema-only`: Applies database tables without seeding demo data.
 
 ### 4. Launch Application
-- **Via Local Web Server (XAMPP / WampServer / Apache)**:
-  Navigate to: `http://localhost/online-exam-system/`
+- **Via Local Web Server (Apache/XAMPP)**:
+  Open `http://localhost/online-exam-system/` in your browser.
 - **Via Built-in PHP Server**:
   ```bash
-  php -S localhost:8000
+  php -S 127.0.0.1:8000
   ```
-  Navigate to: `http://localhost:8000/`
+  Open `http://127.0.0.1:8000/` in your browser.
 
 ---
 
-## 🛠️ Developer & CI Verification
+## 🛠️ Verification & Test Suites
 
-Examify uses strict PSR-12 and EditorConfig standards enforced by GitHub Actions.
+Run the automated test suites to verify system functionality:
 
-### Windows (PowerShell)
-```powershell
-# 1. Verify text format & EditorConfig
-.\tools\check-editorconfig.ps1
-
-# 2. Verify PHP syntax across all files
-Get-ChildItem -Filter *.php -Recurse | Where-Object { $_.FullName -notmatch '[\\/]vendor[\\/]' } | ForEach-Object { php -l $_.FullName }
-```
-
-### Linux / macOS (Bash)
 ```bash
-# 1. Verify text format & EditorConfig
-./tools/check-editorconfig.sh
+# Security, CSRF, and unit tests
+php tests/security_and_unit_tests.php
 
-# 2. Verify PHP syntax across all files
-find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} +
-```
+# Singleton concurrent login test
+php tests/singleton_login_test.php
 
-### PHP Code Formatting (PHP-CS-Fixer)
-```bash
-# 3. Check PSR-12 style standards
-php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
+# Device and touchscreen gating test
+php tests/device_gating_test.php
 
-# Or using downloaded phar
-# php php-cs-fixer.phar fix --dry-run --diff --config=.php-cs-fixer.dist.php
+# Universal password visibility toggle test
+php tests/password_visibility_test.php
+
+# Bulk student promotion test
+php tests/bulk_promote_test.php
+
+# High-concurrency exam engine benchmark
+php tests/concurrency_test.php
 ```
 
 ---
 
 ## 📚 Documentation
 
-Complete project documentation is available under the [`docs/`](docs/README.md) directory, written in **ASD-STE100 Simplified Technical English**:
+The [`docs/`](docs/README.md) directory contains complete documentation written in **ASD-STE100 Simplified Technical English**:
 
-- [**User Documentation (`docs/user/README.md`)**](docs/user/README.md): Step-by-step guides for students, instructors, and administrators.
-- [**Developer Documentation (`docs/dev/README.md`)**](docs/dev/README.md): Architecture specifications, database models, security modules, APIs, and CI/CD pipelines.
+- [**User Documentation (`docs/user/README.md`)**](docs/user/README.md): Instructions for students, instructors, and administrators.
+- [**Developer Documentation (`docs/dev/README.md`)**](docs/dev/README.md): Specifications for architecture, database schema, security modules, and APIs.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions and improvements are welcome! Please read [**CONTRIBUTING.md**](CONTRIBUTING.md) for code style guidelines and pull request instructions.
-
-
+Read [**CONTRIBUTING.md**](CONTRIBUTING.md) for code style guidelines and pull request instructions.

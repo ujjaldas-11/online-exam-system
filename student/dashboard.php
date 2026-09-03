@@ -13,29 +13,33 @@ $department = (string) $_SESSION['department'];
 $student_id = (int) $_SESSION['student_id'];
 
 try {
-    $sql = "SELECT
-                e.id,
-                e.title,
-                e.description,
-                e.duration_minutes,
-                e.total_marks,
-                e.total_questions_to_ask,
-                e.status,
-                e.start_time,
-                s.name AS subject_name,
-                ea.id AS attempt_id,
-                ea.score,
-                ea.total_questions
-            FROM exams e
-            JOIN subjects s ON e.subject_id = s.id
-            LEFT JOIN exam_attempts ea
-                ON e.id = ea.exam_id AND ea.student_id = :student_id
-            WHERE s.department = :department
-                AND s.semester = :semester
-                AND e.status IN ('active', 'scheduled', 'ended')
-            ORDER BY
-                FIELD(e.status, 'active', 'scheduled', 'ended'),
-                e.start_time DESC";
+    $sql = "
+        SELECT
+            e.id,
+            e.title,
+            e.description,
+            e.duration_minutes,
+            e.total_marks,
+            e.total_questions_to_ask,
+            e.status,
+            e.results_published,
+            e.start_time,
+            s.name AS subject_name,
+            ea.id AS attempt_id,
+            ea.score,
+            ea.status AS attempt_status,
+            ea.total_questions
+        FROM exams e
+        JOIN subjects s ON e.subject_id = s.id
+        LEFT JOIN exam_attempts ea
+            ON e.id = ea.exam_id AND ea.student_id = :student_id
+        WHERE s.department = :department
+          AND s.semester = :semester
+          AND e.status IN ('active', 'scheduled', 'ended')
+        ORDER BY
+            FIELD(e.status, 'active', 'scheduled', 'ended'),
+            e.start_time DESC
+    ";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -91,9 +95,20 @@ include __DIR__ . '/../components/student-navbar.php';
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
             <?php foreach ($filtered_exams as $exam): ?>
                 <?php
-                $is_completed = !empty($exam['attempt_id']);
-                $is_ongoing = isset($_SESSION['exam_answers'][$exam['id']]);
+                $attempt_status = $exam['attempt_status'] ?? '';
+                $is_completed = ($attempt_status === 'completed');
+                $is_ongoing = ($attempt_status === 'in_progress');
                 $status = $exam['status'];
+
+                $is_exam_ended = ($status === 'ended');
+                if ($status === 'active' && !empty($exam['start_time'])) {
+                    $durationSec = (int)$exam['duration_minutes'] * 60;
+                    if (time() >= (strtotime($exam['start_time']) + $durationSec)) {
+                        $is_exam_ended = true;
+                    }
+                }
+                $is_published = !empty($exam['results_published']);
+                $can_view_results = $is_exam_ended && $is_published;
                 ?>
 
                 <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
@@ -131,10 +146,34 @@ include __DIR__ . '/../components/student-navbar.php';
 
                     <div>
                         <?php if ($is_completed): ?>
-                            <div class="alert alert-success" style="margin-bottom: 0; display: flex; align-items: center; gap: 6px;">
-                                <span class="material-symbols-outlined icon-sm">check_circle</span>
-                                <div>Completed • Score: <strong><?= e((string) $exam['score']) ?> / <?= e((string) ($exam['total_questions'] ?? $exam['total_marks'])) ?></strong></div>
-                            </div>
+                            <?php if ($can_view_results): ?>
+                                <div class="alert alert-success" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span class="material-symbols-outlined icon-sm">check_circle</span>
+                                        <div>Score: <strong><?= sprintf('%.2f', (float)$exam['score']) ?> / <?= e((string) $exam['total_marks']) ?></strong></div>
+                                    </div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <a href="result.php?exam_id=<?= (int)$exam['id'] ?>" class="btn btn-secondary btn-sm" title="View Full Scorecard">Score</a>
+                                        <a href="review-exam.php?attempt_id=<?= (int)$exam['attempt_id'] ?>" class="btn btn-outline btn-sm">Review</a>
+                                    </div>
+                                </div>
+                            <?php elseif (!$is_exam_ended): ?>
+                                <div class="alert alert-info" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span class="material-symbols-outlined icon-sm">task_alt</span>
+                                        <div><strong>Exam Submitted</strong> • Session in progress</div>
+                                    </div>
+                                    <span class="badge badge-pending">Results Hidden</span>
+                                </div>
+                            <?php else: ?>
+                                <div class="alert alert-warning" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span class="material-symbols-outlined icon-sm">hourglass_top</span>
+                                        <div><strong>Exam Ended</strong> • Results awaiting publication</div>
+                                    </div>
+                                    <span class="badge badge-warning">Unpublished</span>
+                                </div>
+                            <?php endif; ?>
                         <?php elseif ($status === 'scheduled'): ?>
                             <div class="alert alert-warning" style="margin-bottom: 0; display: flex; align-items: center; gap: 6px;">
                                 <span class="material-symbols-outlined icon-sm">schedule</span>

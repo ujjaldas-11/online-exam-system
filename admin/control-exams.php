@@ -78,6 +78,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = safe_db_error($e, "Failed to end exam.");
             $message_type = 'error';
         }
+    } elseif (isset($_POST['publish_results'])) {
+        $exam_id = int_param($_POST['exam_id'] ?? 0);
+        try {
+            $pdo->prepare("UPDATE exams SET results_published = 1 WHERE id = ?")->execute([$exam_id]);
+            log_admin_action($pdo, 'publish_results', 'exam', $exam_id, "Published results for exam #$exam_id to students");
+            $message = "Results for exam #$exam_id have been published to students.";
+            $message_type = 'success';
+        } catch (PDOException $e) {
+            $message = safe_db_error($e, "Failed to publish results.");
+            $message_type = 'error';
+        }
+    } elseif (isset($_POST['unpublish_results'])) {
+        $exam_id = int_param($_POST['exam_id'] ?? 0);
+        try {
+            $pdo->prepare("UPDATE exams SET results_published = 0 WHERE id = ?")->execute([$exam_id]);
+            log_admin_action($pdo, 'unpublish_results', 'exam', $exam_id, "Unpublished results for exam #$exam_id");
+            $message = "Results for exam #$exam_id are now hidden from students.";
+            $message_type = 'success';
+        } catch (PDOException $e) {
+            $message = safe_db_error($e, "Failed to unpublish results.");
+            $message_type = 'error';
+        }
     }
 }
 
@@ -95,8 +117,6 @@ try {
     log_error("Failed to fetch exams in control-exams", $e);
     $exams = [];
 }
-
-
 
 $page_title = 'Exam Control Center • Examify';
 include __DIR__ . '/../components/header.php';
@@ -204,6 +224,19 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <?php endif; ?>
                                         <?= $display_status ?>
                                     </span>
+                                    <?php if ($display_status === 'ENDED' || $exam['status'] === 'ended'): ?>
+                                        <div style="margin-top: 4px;">
+                                            <?php if (!empty($exam['results_published'])): ?>
+                                                <span class="badge badge-active" style="font-size: 0.72rem; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px;" title="Scores and answers visible to students">
+                                                    <span class="material-symbols-outlined" style="font-size: 13px;">visibility</span> Published
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge badge-warning" style="font-size: 0.72rem; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px;" title="Scores and answers hidden from students">
+                                                    <span class="material-symbols-outlined" style="font-size: 13px;">visibility_off</span> Hidden
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <strong><?= e((string)$exam['total_attempts']) ?></strong>
@@ -236,6 +269,24 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                                                 <span class="material-symbols-outlined icon-xs">leaderboard</span> Results
                                             </a>
+
+                                            <?php if (empty($exam['results_published'])): ?>
+                                                <form method="POST" style="display: inline;" onsubmit="return confirm('Publish results for exam #<?= $exam['id'] ?> to students? Students will immediately see their scores and answer breakdowns.');">
+                                                    <?= csrf_field() ?>
+                                                    <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
+                                                    <button type="submit" name="publish_results" class="btn btn-success btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Release scores and answers to students">
+                                                        <span class="material-symbols-outlined icon-xs">publish</span> Publish
+                                                    </button>
+                                                </form>
+                                            <?php else: ?>
+                                                <form method="POST" style="display: inline;" onsubmit="return confirm('Unpublish results for exam #<?= $exam['id'] ?>? Scores and answers will be hidden from students.');">
+                                                    <?= csrf_field() ?>
+                                                    <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
+                                                    <button type="submit" name="unpublish_results" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Hide scores and answers from students">
+                                                        <span class="material-symbols-outlined icon-xs">visibility_off</span> Unpublish
+                                                    </button>
+                                                </form>
+                                            <?php endif; ?>
                                         <?php endif; ?>
 
                                         <!-- Delete Exam -->
@@ -250,10 +301,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

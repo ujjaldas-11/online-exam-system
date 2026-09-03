@@ -38,13 +38,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
         $message_type = 'error';
     } else {
         // Check available questions in question bank
-        if ($target_units == 'all') {
+        if ($target_units === 'all') {
             $stmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ?');
             $stmt->execute([$subject_id]);
-        } else{
-            $stmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ? AND unit_number = ? ');
+        } else {
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ? AND unit_number = ?');
             $stmt->execute([$subject_id, $target_units]);
-
         }
 
         $available = (int) $stmt->fetchColumn();
@@ -82,7 +81,6 @@ try {
     log_error('Failed to fetch subjects in manage-exam', $e);
     $subjects = [];
 }
-
 
 $page_title = 'Create Exam • Examify';
 include __DIR__ . '/../components/header.php';
@@ -128,7 +126,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <label>Target Unit</label>
                 <select name="target_units" required class="form-control">
                     <option value="">Select Target Unit</option>
-
                     <option value="all" <?= (($_POST['target_units'] ?? '') === 'all') ? 'selected' : '' ?>>All Units (Combined Exam)</option>
                     <option value="1" <?= (($_POST['target_units'] ?? '') == '1') ? 'selected' : '' ?>>Unit 1</option>
                     <option value="2" <?= (($_POST['target_units'] ?? '') == '2') ? 'selected' : '' ?>>Unit 2</option>
@@ -136,7 +133,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <option value="4" <?= (($_POST['target_units'] ?? '') == '4') ? 'selected' : '' ?>>Unit 4</option>
                     <option value="5" <?= (($_POST['target_units'] ?? '') == '5') ? 'selected' : '' ?>>Unit 5</option>
                     <option value="6" <?= (($_POST['target_units'] ?? '') == '6') ? 'selected' : '' ?>>Unit 6</option>
-
                 </select>
                 <small style="color: var(--color-text-secondary);">If the selected unit lacks enough questions, the system will notify you.</small>
             </div>
@@ -157,13 +153,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div class="form-group">
                     <label>Questions per Student</label>
                     <input type="number" name="total_questions_to_ask" required min="1" placeholder="e.g. 20" value="<?= e($_POST['total_questions_to_ask'] ?? '20') ?>">
-                    <small style="color: var(--color-text-secondary);">Randomly picked per student from subject pool</small>
+                    <small style="color: var(--color-text-secondary);">Randomly picked per student from question pool</small>
                 </div>
 
                 <div class="form-group">
                     <label>Classroom PIN (Optional)</label>
                     <input type="text" name="access_pin" maxlength="10" placeholder="e.g. 4821" value="<?= e($_POST['access_pin'] ?? '') ?>">
-                    <small style="color: var(--color-text-secondary);">Students must enter this to start surprise test</small>
+                    <small style="color: var(--color-text-secondary);">Students must enter this PIN to start surprise test</small>
                 </div>
             </div>
 
@@ -179,9 +175,4 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 </div>
 
-
-
 <?php include __DIR__ . '/../components/footer.php'; ?>
-
-
-

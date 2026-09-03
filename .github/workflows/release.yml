@@ -1,0 +1,152 @@
+name: Package and Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (e.g. v1.0.0, creates tag if not present)'
+        required: false
+        default: ''
+      release_title:
+        description: 'Release Title (optional, defaults to Tag name)'
+        required: false
+        default: ''
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Package & Publish Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql, mbstring, gd
+          coverage: none
+
+      - name: Run PHP Syntax Checks
+        run: |
+          echo "Verifying PHP syntax across codebase..."
+          find . -type f -name "*.php" ! -path "./.git/*" ! -path "./tests/*" -print0 | xargs -0 -n1 -P4 php -l
+
+      - name: Setup Node.js (Asset Optimization)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Optimize & Minify Assets
+        run: |
+          npm install -g clean-css-cli terser
+          echo "Minifying CSS files in assets/css/..."
+          for f in assets/css/*.css; do
+            [ -f "$f" ] && cleancss -o "$f" "$f"
+          done
+          echo "Minifying JS files in utils/..."
+          for f in utils/*.js; do
+            [ -f "$f" ] && terser "$f" -o "$f" --compress --mangle
+          done
+
+      - name: Determine Release Tag & Version
+        id: vars
+        run: |
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            TAG="${{ github.event.inputs.tag_name }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG="v$(date +'%Y.%m.%d.%H%M')"
+          fi
+
+          TITLE="${{ github.event.inputs.release_title }}"
+          if [ -z "$TITLE" ]; then
+            TITLE="Examify Release $TAG"
+          fi
+
+          echo "TAG_NAME=$TAG" >> $GITHUB_OUTPUT
+          echo "RELEASE_TITLE=$TITLE" >> $GITHUB_OUTPUT
+          echo "Release Tag: $TAG"
+          echo "Release Title: $TITLE"
+
+      - name: Assemble Production Distribution
+        run: |
+          mkdir -p dist/examify
+
+          # Copy runtime production directories
+          cp -r admin/ dist/examify/
+          cp -r assets/ dist/examify/
+          cp -r components/ dist/examify/
+          cp -r config/ dist/examify/
+          [ -d docs/ ] && cp -r docs/ dist/examify/
+          [ -d lib/ ] && cp -r lib/ dist/examify/
+          [ -d services/ ] && cp -r services/ dist/examify/
+          cp -r student/ dist/examify/
+          cp -r utils/ dist/examify/
+
+          # Copy database migration / initialization files
+          mkdir -p dist/examify/archive
+          [ -f archive/schema.sql ] && cp archive/schema.sql dist/examify/archive/
+          [ -f init-db.php ] && cp init-db.php dist/examify/
+
+          # Copy entry points and server configurations
+          cp index.php dist/examify/
+          [ -f .htaccess ] && cp .htaccess dist/examify/
+          [ -f .env.example ] && cp .env.example dist/examify/
+          [ -f README.md ] && cp README.md dist/examify/
+          [ -f LICENSE ] && cp LICENSE dist/examify/
+
+          # Ensure logs directory exists but exclude actual log content
+          rm -rf dist/examify/logs/*.log 2>/dev/null || true
+          mkdir -p dist/examify/logs
+
+          echo "Production files assembled successfully:"
+          ls -la dist/examify
+
+      - name: Create Release Archives & Checksums
+        run: |
+          TAG="${{ steps.vars.outputs.TAG_NAME }}"
+          cd dist
+
+          # Package ZIP archive
+          zip -r "examify-${TAG}.zip" examify/
+
+          # Package TAR.GZ archive
+          tar -czf "examify-${TAG}.tar.gz" examify/
+
+          # Create SHA-256 Checksums
+          sha256sum "examify-${TAG}.zip" "examify-${TAG}.tar.gz" > SHA256SUMS.txt
+
+          echo "Generated Archives:"
+          ls -lh examify-${TAG}.zip examify-${TAG}.tar.gz SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.TAG_NAME }}
+          name: ${{ steps.vars.outputs.RELEASE_TITLE }}
+          files: |
+            dist/examify-${{ steps.vars.outputs.TAG_NAME }}.zip
+            dist/examify-${{ steps.vars.outputs.TAG_NAME }}.tar.gz
+            dist/SHA256SUMS.txt
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease || false }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

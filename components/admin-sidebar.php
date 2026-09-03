@@ -3,7 +3,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 if (!isset($pending_registration_requests_count) && isset($pdo)) {
     try {
-        $pending_registration_requests_count = (int) $pdo->query("SELECT COUNT(*) FROM registration_request WHERE status = 'pending'")->fetchColumn();
+        $pending_registration_requests_count = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'pending'")->fetchColumn();
     } catch (PDOException) {
         $pending_registration_requests_count = 0;
     }
@@ -22,17 +22,19 @@ $isAdminSuper = is_superadmin();
 
 $admin_nav = [
     'admin-dashboard.php' => ['label' => 'Dashboard', 'icon' => 'space_dashboard'],
+    'manage-students.php' => ['label' => 'Students', 'icon' => 'school'],
     'manage-subjects.php' => ['label' => 'Subjects', 'icon' => 'menu_book'],
     'manage-questions.php' => ['label' => 'Questions', 'icon' => 'quiz'],
     'control-exams.php' => ['label' => 'Exams', 'icon' => 'fact_check'],
     'results.php' => ['label' => 'Results', 'icon' => 'bar_chart'],
     'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications'],
-    'registration-request.php' => ['label' => 'registration request', 'icon' => 'person'],
+    'registration-request.php' => ['label' => 'Registrations', 'icon' => 'person'],
     'import-students.php' => ['label' => 'Import', 'icon' => 'upload_file'],
+    'admin-doc.php' => ['label' => 'Docs', 'icon' => 'help'],
 ];
 
 if ($isAdminSuper) {
-    $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school'];
+    $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'badge'];
     $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long'];
 } else {
     $admin_nav['audit-logs.php'] = ['label' => 'My Activity', 'icon' => 'history'];
@@ -53,7 +55,7 @@ if ($isAdminSuper) {
 
         <div class="topbar-right">
             <a href="registration-request.php"
-            class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Notifications" title="Notifications">
+            class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Registrations" title="Pending Registrations">
                 <span class="material-symbols-outlined">person</span>
                 <?php if (!empty($pending_registration_requests_count)): ?>
                     <span class="topbar-badge"><?= (int) $pending_registration_requests_count ?></span>
@@ -61,7 +63,7 @@ if ($isAdminSuper) {
             </a>
 
             <a href="manage-requests.php"
-            class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="Notifications">
+            class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Profile Requests" title="Profile Requests">
                 <span class="material-symbols-outlined">notifications</span>
                 <?php if (!empty($pending_requests_count)): ?>
                     <span class="topbar-badge"><?= (int) $pending_requests_count ?></span>
@@ -69,9 +71,9 @@ if ($isAdminSuper) {
             </a>
 
             <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2;">
-                <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?></span>
+                <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></span>
                 <span style="font-size: 0.72rem; color: #e2e8f0; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
-                    <?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher') ?>
+                    <?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?>
                 </span>
             </div>
             <span class="material-symbols-outlined profile-icon" aria-hidden="true">account_circle</span>
@@ -91,11 +93,11 @@ if ($isAdminSuper) {
         <?php foreach ($admin_nav as $page => $meta): ?>
             <a href="<?= $page ?>"
             class="<?= $current_page === $page ? 'active' : '' ?>"
-            data-tooltip="<?= htmlspecialchars($meta['label']) ?>">
+            data-tooltip="<?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?>">
                 <span class="material-symbols-outlined">
                     <?= $meta['icon'] ?>
                 </span>
-                <span class="link-label"><?= htmlspecialchars($meta['label']) ?></span>
+                <span class="link-label"><?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?></span>
             </a>
         <?php endforeach; ?>
     </nav>
@@ -110,17 +112,12 @@ if ($isAdminSuper) {
 
 <link rel="stylesheet" href="../assets/css/admin-sidebar.css">
 
-
 <script>
-
-
-    // ===================== Admin Sidebar Behaviour =====================
 (function () {
     const body = document.body;
     const adminSidebar = document.getElementById('adminSidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-    // ---- Desktop minimize / expand (persisted across pages) ----
     const desktopCollapseBtn = document.getElementById('desktopCollapseBtn');
     const STORAGE_KEY = 'adminSidebarCollapsed';
 
@@ -135,7 +132,6 @@ if ($isAdminSuper) {
         });
     }
 
-    // ---- Mobile drawer open / close ----
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebarClose = document.getElementById('sidebarClose');
 
@@ -155,7 +151,6 @@ if ($isAdminSuper) {
     sidebarClose?.addEventListener('click', closeSidebar);
     sidebarOverlay?.addEventListener('click', closeSidebar);
 
-    // Close mobile drawer automatically if resized back to desktop
     window.addEventListener('resize', () => {
         if (window.innerWidth > 992) closeSidebar();
     });

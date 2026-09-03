@@ -1,6 +1,5 @@
 <?php
 
-
 $current_page = basename($_SERVER['PHP_SELF']);
 
 $student_nav = [
@@ -14,11 +13,10 @@ $student_name = $_SESSION['student_name'] ?? 'Student';
 <nav class="student-navbar">
     <div class="student-nav-inner">
         <a href="dashboard.php" class="student-brand">
-
-        <div class="student-greeting-mobile-hidden">
-            <div class="avatar-badge"><?= strtoupper(substr($student_name, 0, 1)) ?></div>
-            <span class="student-greeting">Hi, <?= htmlspecialchars($student_name) ?></span>
-        </div>
+            <div class="student-greeting-mobile-hidden">
+                <div class="avatar-badge"><?= strtoupper(substr($student_name, 0, 1)) ?></div>
+                <span class="student-greeting">Hi, <?= htmlspecialchars($student_name, ENT_QUOTES, 'UTF-8') ?></span>
+            </div>
         </a>
         <button class="menu-btn" id="menuBtn" aria-label="Toggle navigation">
             <span class="material-symbols-outlined" id="menuIcon">menu</span>
@@ -27,13 +25,13 @@ $student_name = $_SESSION['student_name'] ?? 'Student';
         <div class="student-nav-links" id="navLinks">
             <div class="drawer-profile">
                 <div class="avatar-badge lg"><?= strtoupper(substr($student_name, 0, 1)) ?></div>
-                <span class="student-greeting">Hi, <?= htmlspecialchars($student_name) ?></span>
+                <span class="student-greeting">Hi, <?= htmlspecialchars($student_name, ENT_QUOTES, 'UTF-8') ?></span>
             </div>
 
             <?php foreach ($student_nav as $page => $meta): ?>
                 <a href="<?= $page ?>" class="<?= $current_page === $page ? 'active' : '' ?>">
                     <span class="material-symbols-outlined"><?= $meta['icon'] ?></span>
-                    <span><?= htmlspecialchars($meta['label']) ?></span>
+                    <span><?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?></span>
                 </a>
             <?php endforeach; ?>
 
@@ -49,7 +47,6 @@ $student_name = $_SESSION['student_name'] ?? 'Student';
 
 <link rel="stylesheet" href="../assets/css/student-navbar.css">
 <script defer>
-
 (function () {
     const menuBtn = document.getElementById('menuBtn');
     const menuIcon = document.getElementById('menuIcon');

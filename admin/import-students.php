@@ -72,7 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_csv'])) {
 
             try {
                 $checkStmt = $pdo->prepare("SELECT id FROM students WHERE email = ? OR roll_number = ?");
-                $insertStmt = $pdo->prepare("INSERT INTO students (name, email, password, roll_number, department, semester) VALUES (?, ?, ?, ?, ?, ?)");
+                $adminId = $_SESSION['admin_id'] ?? null;
+                $insertStmt = $pdo->prepare("
+                    INSERT INTO students (name, email, password, roll_number, department, semester, status, reviewed_by, reviewed_at)
+                    VALUES (?, ?, ?, ?, ?, ?, 'active', ?, NOW())
+                ");
 
                 $pdo->beginTransaction();
 
@@ -95,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_csv'])) {
 
                     $name = sanitize_csv_value($row[0] ?? '');
                     $email = clean_input($row[1] ?? '');
-                    $roll = sanitize_csv_value($row[2] ?? '');
+                    $roll = strtoupper(sanitize_csv_value($row[2] ?? ''));
                     $dept = sanitize_csv_value($row[3] ?? '');
                     $sem = int_param($row[4] ?? 0);
                     $raw_pass = !empty($row[5]) ? trim($row[5]) : $roll; // Default password is Roll Number if omitted
@@ -127,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_csv'])) {
 
                     try {
                         $hashed = password_hash($raw_pass, PASSWORD_DEFAULT);
-                        $insertStmt->execute([$name, $email, $hashed, $roll, $dept, $sem]);
+                        $insertStmt->execute([$name, $email, $hashed, $roll, $dept, $sem, $adminId]);
                         $success_count++;
                     } catch (PDOException $e) {
                         $skip_count++;

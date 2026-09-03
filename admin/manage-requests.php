@@ -24,18 +24,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($req && $req['status'] === 'pending') {
                     $pdo->beginTransaction();
 
-                    // 1. Update the student
+                    // 1. Update the student record
                     $updatestmt = $pdo->prepare("UPDATE students SET name = ?, roll_number = ?, department = ?, semester = ? WHERE id = ?");
-                    $updateSuccess = $updatestmt->execute([$req['new_name'], $req['new_roll_no'], $req['new_department'], $req['new_semester'], $req['student_id']]);
+                    $updateSuccess = $updatestmt->execute([
+                        $req['new_name'],
+                        $req['new_roll_no'],
+                        $req['new_department'],
+                        $req['new_semester'],
+                        $req['student_id']
+                    ]);
 
                     // 2. Update the request status
-                    $reviewer_id = $_SESSION['admin_id'] ?? null;
+                    $reviewer_id = (int) ($_SESSION['admin_id'] ?? 0);
                     $statusStmt = $pdo->prepare("UPDATE profile_requests SET status = 'approved', reviewed_by = ? WHERE id = ?");
                     $statusSuccess = $statusStmt->execute([$reviewer_id, $request_id]);
 
                     if ($updateSuccess && $statusSuccess) {
                         $pdo->commit();
-                        log_admin_action($pdo, 'approve_profile_edit', 'profile_request', $request_id, "Approved profile edit for student #{$req['student_id']}: {$req['new_name']} ({$req['new_roll_no']})");
+                        log_admin_action(
+                            $pdo,
+                            'approve_profile_edit',
+                            'profile_request',
+                            $request_id,
+                            "Approved profile edit for student #{$req['student_id']}: {$req['new_name']} ({$req['new_roll_no']})"
+                        );
                         $message = "Student profile updated successfully!";
                     } else {
                         $pdo->rollBack();
@@ -46,12 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-                $error = safe_db_error($e, "Failed to approve request.");
+                $error = safe_db_error($e, "Failed to approve request. Roll number might already exist.");
             }
         } elseif ($_POST['action'] === 'reject') {
             try {
-                $reviewer_id = $_SESSION['admin_id'] ?? null;
-                $pdo->prepare("UPDATE profile_requests SET status ='rejected', reviewed_by = ? WHERE id = ?")->execute([$reviewer_id, $request_id]);
+                $reviewer_id = (int) ($_SESSION['admin_id'] ?? 0);
+                $pdo->prepare("UPDATE profile_requests SET status = 'rejected', reviewed_by = ? WHERE id = ?")->execute([$reviewer_id, $request_id]);
                 log_admin_action($pdo, 'reject_profile_edit', 'profile_request', $request_id, "Rejected profile edit request #$request_id");
                 $message = "Request has been rejected.";
             } catch (PDOException $e) {
@@ -59,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif (isset($_POST['reset_password'])) {
-        // Teacher One-Click Student Password Reset
+        // Teacher Emergency Classroom Student Password Reset
         $roll_number = clean_input($_POST['student_roll'] ?? '');
         $new_password = $_POST['new_password'] ?? '';
 
@@ -80,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     log_admin_action($pdo, 'reset_student_password', 'student', (int)$student['id'], "Reset password for student {$student['name']} ($roll_number)");
 
-                    $message = "Password for student " . e($student['name']) . " ($roll_number) has been updated successfully. Any active student session was revoked.";
+                    $message = "Password for student " . e($student['name']) . " ($roll_number) has been updated successfully. Active sessions revoked.";
                 }
             } catch (PDOException $e) {
                 $error = safe_db_error($e, "Failed to reset student password.");
@@ -102,7 +114,7 @@ try {
     $requests = [];
 }
 
-$page_title = 'Manage Requests & Student Credentials • Examify';
+$page_title = 'Manage Requests & Credentials • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
@@ -153,8 +165,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     </p>
                                 </td>
                                 <td>
-                                    <strong style="color: red"><?= e($req['new_name']) ?> (Roll: <?= e($req['new_roll_no']) ?>)</strong><br>
-                                    <p style="color: red;">
+                                    <strong style="color: var(--color-error);"><?= e($req['new_name']) ?> (Roll: <?= e($req['new_roll_no']) ?>)</strong><br>
+                                    <p style="color: var(--color-error);">
                                         <?= e($req['new_department']) ?> • Sem <?= e((string)$req['new_semester']) ?>
                                     </p>
                                 </td>
@@ -172,7 +184,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <form method="POST" style="display: inline;">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px; background-color: var(--color-error, #dc2626); color: #ffffff;">
                                                 <span class="material-symbols-outlined icon-xs">close</span> Reject
                                             </button>
                                         </form>
@@ -189,7 +201,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <!-- Teacher Emergency Password Reset Tool -->
     <div class="card">
         <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-            <span class="material-symbols-outlined icon-md">lock_reset</span> Classroom Password Reset (Offline LAN Mode)
+            <span class="material-symbols-outlined icon-md">lock_reset</span> Classroom Password Reset (Offline Lab Mode)
         </div>
         <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
             If a student forgets their password before a surprise test in the lab, reset their password instantly below.

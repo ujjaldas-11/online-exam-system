@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                 $is_header = true;
                 $allowedOptions = ['A', 'B', 'C', 'D'];
 
-                while (($data = fgetcsv($handle, 2000, ',')) !== false) {
+                while (($data = fgetcsv($handle, 4000, ',')) !== false) {
                     if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) {
                         continue;
                     }
@@ -107,15 +107,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                     }
 
                     $q_text  = clean_input($data[0] ?? '');
-                    $u_num   = clean_input($data[1] ?? '');
-                    $opt_a   = clean_input($data[2] ?? '');
-                    $opt_b   = clean_input($data[3] ?? '');
-                    $opt_c   = isset($data[4]) ? clean_input($data[4]) : '';
-                    $opt_d   = isset($data[5]) ? clean_input($data[5]) : '';
+                    $u_num   = (int) clean_input($data[1] ?? '1');
+                    $opt_a   = trim($data[2] ?? '');
+                    $opt_b   = trim($data[3] ?? '');
+                    $opt_c   = isset($data[4]) ? trim($data[4]) : null;
+                    $opt_d   = isset($data[5]) ? trim($data[5]) : null;
                     $correct = strtoupper(clean_input($data[6] ?? ''));
 
-                    if (empty($q_text) || empty($u_num) || empty($opt_a) || empty($opt_b) || empty($correct)) {
-                        throw new Exception('Row ' . ($count + 1) . ' is missing required fields (Question Text, Unit Number, Option A, Option B, Correct Option). Transaction aborted.');
+                    if (empty($q_text) || empty($opt_a) || empty($opt_b) || empty($correct)) {
+                        throw new Exception('Row ' . ($count + 1) . ' is missing required fields (Question Text, Option A, Option B, Correct Option). Transaction aborted.');
                     }
 
                     if (!in_array($correct, $allowedOptions, true)) {
@@ -128,8 +128,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                         $u_num,
                         $opt_a,
                         $opt_b,
-                        $opt_c,
-                        $opt_d,
+                        $opt_c ?: null,
+                        $opt_d ?: null,
                         $correct,
                         $creator_id
                     ]);
@@ -169,6 +169,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <h1>Manage Questions</h1>
             <p>Bulk upload multiple-choice questions into the curriculum question bank</p>
         </div>
+        <a href="view-questions.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">visibility</span> View Question Bank
+        </a>
     </div>
 
     <?php if ($success_message): ?>
@@ -221,7 +224,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </button>
                 </div>
                 <textarea name="csv_text" id="csv_text" rows="8" class="form-control"
-                placeholder='What is a CPU?,1,Central Processing Unit,Computer Power Unit,Core Process Utility,None,A&#10;Is HTML a programming language?,2,Yes,No,,,B'></textarea>
+                placeholder='What is an operating system?,1,System software,Application software,Hardware component,Malware,A&#10;Is HTML a programming language?,2,Yes,No,,,B'></textarea>
             </div>
 
             <button type="submit" name="add_bulk_csv" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 15px;">
@@ -229,7 +232,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </button>
         </form>
     </div>
-
 </div>
 
 <script>
@@ -255,7 +257,7 @@ Columns format:
 Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
 
 Example:
-What is an operating system?,1,System software,Application,Hardware,Malware,A
+What is an operating system?,1,System software,Application software,Hardware component,Malware,A
 
 Rules:
 - "Unit Number" must be an integer (e.g. 1, 2, 3, 4).
@@ -286,4 +288,3 @@ Rules:
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
-

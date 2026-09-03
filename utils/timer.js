@@ -18,6 +18,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (submitBtn) submitBtn.disabled = true; // Prevent double clicks
 
+            if (window.AntiCheat && typeof window.AntiCheat.stop === 'function') {
+                window.AntiCheat.stop();
+            }
+
             // Automatically submit the form
             if (examForm) examForm.submit();
         } else {

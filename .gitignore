@@ -1,39 +1,112 @@
-# Environment Variables (CRITICAL)
+# ==============================================================================
+# Examify - Git Ignore Rules
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Environment & Secrets (CRITICAL)
+# ------------------------------------------------------------------------------
 .env
 .env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 !.env.example
 
-# OS generated files
+# ------------------------------------------------------------------------------
+# Database Backups & Local Exports
+# ------------------------------------------------------------------------------
+*.sql.bak
+*.dump
+*.backup
+db_backup/
+backups/
+
+# ------------------------------------------------------------------------------
+# Runtime Logs & Debug Output
+# ------------------------------------------------------------------------------
+*.log
+logs/
+error_log
+access_log
+php_errors.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ------------------------------------------------------------------------------
+# Temporary Files & Uploads
+# ------------------------------------------------------------------------------
+tmp/
+temp/
+*.tmp
+*.temp
+uploads/
+assets/uploads/
+
+# ------------------------------------------------------------------------------
+# Build & Distribution Artifacts (Local Packaging)
+# ------------------------------------------------------------------------------
+dist/
+build/
+out/
+releases/
+*.zip
+*.tar.gz
+*.tgz
+
+# ------------------------------------------------------------------------------
+# Dependencies & Package Managers
+# ------------------------------------------------------------------------------
+vendor/
+composer.phar
+node_modules/
+
+# ------------------------------------------------------------------------------
+# Test Artifacts & Tool Caches
+# ------------------------------------------------------------------------------
+tests/screenshots/
+tests/results/
+tests/coverage/
+.phpunit.result.cache
+.phpunit.cache/
+.php-cs-fixer.cache
+
+# ------------------------------------------------------------------------------
+# IDE & Code Editor Files
+# ------------------------------------------------------------------------------
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.fleet/
+
+# ------------------------------------------------------------------------------
+# Operating System Generated Files
+# ------------------------------------------------------------------------------
+# macOS
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# IDE and Editor directories
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Log files
-*.log
-error_log
-access_log
-php_errors.log
-
-# Composer dependencies (just in case you use Composer in the future)
-vendor/
-composer.phar
-
-# Tools & caches
-.php-cs-fixer.cache
-
-# User uploaded files (if you add image/file uploads later)
-uploads/
-assets/uploads/
-
-# Test artifacts
-tests/screenshots/
+# Linux
+.directory
+.fuse_hidden*
+.Trash-*
+.nfs*

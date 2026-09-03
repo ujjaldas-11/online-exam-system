@@ -246,6 +246,15 @@
     padding: 10px;
     border-radius: 12px;
     border: 1px solid var(--landing-accent-soft-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--landing-accent-text);
+}
+
+.feature-icon .material-symbols-outlined {
+    font-size: 1.8rem;
+    color: var(--landing-accent-text);
 }
 
 .feature-title {

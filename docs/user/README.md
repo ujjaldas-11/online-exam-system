@@ -7,10 +7,11 @@ Examify is an online examination system for college computer laboratories and lo
 
 ## 1. User Roles
 
-Examify has two primary user roles:
+Examify supports three distinct user roles:
 
-- **Student**: Takes online examinations, reviews results, and manages profile data.
-- **Instructor / Administrator**: Creates subjects, uploads questions, configures exams, monitors live tests, and evaluates results.
+- **Student**: Registers an account, takes examinations on desktop computers, reviews scores, and downloads scorecards.
+- **Teacher**: Manages subjects, uploads questions, configures examinations, proctors live sessions, and views results.
+- **Superadmin**: Exercises full system authority, provisions teacher accounts, manages student rosters, and oversees audits.
 
 ---
 
@@ -20,326 +21,291 @@ Examify has two primary user roles:
 
 Follow these steps to register a new student account:
 
-1. Open a web browser.
-2. Go to the application address (for example: `http://localhost/online-exam-system/`).
+1. Open your web browser.
+2. Navigate to the application homepage (for example: `http://localhost/online-exam-system/`).
 3. Click the **Student Portal** button.
 4. Click the **Register here** link.
-5. Type your full name in the **Full Name** box.
-6. Type your college email address in the **College Email** box.
-7. Type your student roll number in the **Roll Number / Student ID** box.
-8. Select your department from the **Department** list.
+5. Type your full name in the **Full Name** field.
+6. Type your college email in the **College Email** field.
+7. Type your roll number in the **Roll Number** field.
+   The system converts your roll number to uppercase letters automatically.
+8. Select your academic department from the **Department** list.
 9. Select your current semester from the **Semester** list.
-10. Type a password with at least 6 characters in the **Password** box.
-11. Type the password again in the **Confirm Password** box.
+10. Type your password in the **Password** field.
+11. Type your password again in the **Confirm Password** field.
 12. Click the **Register** button.
 
-The system shows a confirmation message. You can now log in.
+The system registers your account in `pending` status.
+A progress bar animates across 30 seconds and redirects your browser to the homepage.
+An administrator reviews and approves your account before you take examinations.
 
-### 2.2 Student Login
+### 2.2 Password Visibility Toggle
 
-Follow these steps to log in to the Student Portal:
+Every password field includes an interactive eye icon on the right side:
+
+1. Click the **Eye** icon to display your password characters.
+2. Click the **Eye** icon again to mask your password characters.
+
+### 2.3 Student Login and Single-Device Rules
+
+Follow these steps to log in:
 
 1. Open the student login page (`student/login.php`).
-2. Type your registered email address in the **Email Address** box.
-3. Type your password in the **Password** box.
+2. Type your registered college email.
+3. Type your password.
 4. Click the **Login** button.
 
-The system opens your student dashboard.
+Examify enforces a single-device login policy.
+If you log in from a second device, the system invalidates your previous session immediately.
 
-### 2.3 Student Dashboard
+### 2.4 Device Requirements & Touchscreen Rules
 
-The student dashboard shows all examinations for your department and semester.
-The dashboard automatically checks for new active examinations every 10 seconds.
+Observe these computer hardware rules:
 
-Each examination card shows:
+- You must use a desktop computer or a laptop computer to take examinations.
+- Mobile phones and tablets cannot access the examination room.
+- If you open the examination room on a mobile device, a lockout screen appears.
+- On touchscreen laptops, the examination room suppresses touch taps.
+- You must use a physical mouse or a touchpad to select answers.
 
-- Examination title and description
-- Subject name
-- Examination duration in minutes
-- Total number of questions
-- Total examination marks
-- Status badge (**Live**, **Scheduled**, or **Ended**)
+### 2.5 Student Dashboard & Examination Access
 
-### 2.4 Unlocking an Examination with a Classroom PIN
+The student dashboard shows all examinations configured for your department and semester.
+The dashboard checks for active tests every 10 seconds.
 
-Some surprise examinations require an access PIN.
-The instructor gives this PIN in the classroom.
+Each examination card displays:
+- Examination title and course subject.
+- Duration in minutes.
+- Total question count and maximum marks.
+- Status badge (**Live**, **Scheduled**, or **Ended**).
 
-Follow these steps to unlock an examination:
+Follow these steps to enter an examination:
 
-1. Find the examination card on your dashboard.
+1. Locate the live examination card on your dashboard.
 2. Click the **Start Exam** button.
-3. If the examination requires a PIN, the system shows the PIN screen.
-4. Type the PIN from your instructor in the **Exam PIN / Passcode** box.
-5. Click the **Unlock Exam** button.
+3. If the test requires a classroom PIN, type the 4-digit code in the PIN field.
+4. Click the **Unlock Exam** button.
 
-The system verifies the PIN and opens the secure examination room.
+### 2.6 Taking an Examination
 
-### 2.5 Taking an Examination
-
-Follow these steps to take an examination:
+Follow these steps during your test:
 
 1. Click the **Click to Enter Fullscreen & Begin** button.
 2. The browser enters full-screen mode.
-3. Read the question text and options on the screen.
-4. Click an option button (A, B, C, or D) to select your answer.
-5. The system saves your answer automatically.
-6. Click the **Next** button to move to the next question.
-7. Click the **Previous** button to return to the previous question.
-8. Click the **Mark for Review** button if you want to check the question later.
+3. Read the question statement and options.
+4. Click an option (A, B, C, or D) to select your answer.
+   The system saves your answer automatically.
+5. Click the **Next** button to advance to the next question.
+6. Click the **Previous** button to revisit the prior question.
+7. Click the **Mark for Review** button to flag questions for later check.
 
-#### Question Palette Colors
+#### Question Palette Indicators
 
-The right sidebar shows the question palette grid:
+The right sidebar displays the question palette:
+- **Blue Box**: You answered the question.
+- **Yellow Box**: You marked the question for review.
+- **Gray Box**: You have not answered the question.
+- **Dark Border**: Indicates your current active question.
 
-- **Blue Box**: Question answered.
-- **Yellow Box**: Question marked for review.
-- **Gray Box**: Question not answered.
-- **Dark Border**: Current active question.
+Click any question number in the palette to navigate directly to that question.
 
-Click any question number in the grid to jump directly to that question.
+### 2.7 Anti-Cheat Security Rules
 
-#### Examination Timer
-
-The timer at the top right counts down the remaining time.
-When the timer reaches zero, the system submits your examination automatically.
-
-### 2.6 Anti-Cheat Security Rules
-
-Examify monitors test integrity during the examination.
-The system records all violations in the database.
-
-Observe these rules during the examination:
+Examify enforces strict proctoring rules during every examination:
 
 - Do not exit full-screen mode.
-- Do not switch browser tabs.
+- Do not switch browser tabs or open other applications.
 - Do not minimize the browser window.
-- Do not click outside the examination window.
-- Do not press the **F12** key or open developer tools.
-- Do not press keyboard shortcuts such as **Ctrl+Shift+I** or **Ctrl+U**.
+- Do not press the **F12** key or inspect developer tools.
+- Do not use keyboard shortcuts such as **Ctrl+Shift+I** or **Ctrl+U**.
 
-If a violation occurs:
+If an infraction occurs:
+1. The system pauses your examination and displays a warning banner.
+2. Click the **Resume Exam** button to re-enter full-screen mode.
+3. If you accumulate 3 violations, the system submits your test attempt immediately.
 
-1. The system shows a warning banner with the violation count.
-2. The system pauses your examination.
-3. Click the **Resume Exam** button to return to full-screen mode.
+### 2.8 Submitting an Examination
 
-> [!WARNING]
-> If you reach 3 violations, the system submits your examination immediately.
+Follow these steps to submit your test:
 
-### 2.7 Submitting an Examination
+1. Review your answers using the question palette.
+2. Click the **Submit Exam** button in the sidebar.
+3. An in-DOM confirmation modal appears on your screen.
+4. Inspect the summary counters:
+   - **Answered Questions**
+   - **Marked for Review**
+   - **Unanswered Questions**
+5. Click the **Confirm & Submit** button to finish your examination.
 
-Follow these steps to submit your examination:
+The system halts proctoring listeners before submission to prevent false window blur warnings.
 
-1. Check all questions in the question palette.
-2. Make sure that you have answered all desired questions.
-3. Click the **Submit Exam** button in the sidebar.
-4. Click **OK** in the confirmation dialog.
+### 2.9 Examination Submission & Result Publication
 
-The system evaluates your answers and opens the result page.
+After you submit an examination:
 
-### 2.8 Reviewing Examination Results
-
-The result page shows your performance breakdown:
-
-- Celebration icon or study icon based on score percentage
-- Total score and maximum possible marks
-- Score percentage
-- Number of correct answers
-- Number of wrong answers
-- Number of skipped questions
-
-Click the **Return to Dashboard** button to go back to the dashboard.
-Click the **View Profile History** button to see your past examination records.
-
-### 2.9 Student Profile and Change Requests
-
-Follow these steps to view your profile:
-
-1. Click the **Profile** link in the navigation bar.
-2. The page shows your name, email, roll number, department, semester, and test history.
-
-Follow these steps to request a profile change:
-
-1. Click the **Edit Profile** button on the profile page.
-2. Type the new values for your name, roll number, department, or semester.
-3. Click the **Request Update** button.
-
-The request goes to the administrator for review.
-You cannot submit another request until the administrator reviews the current request.
+1. The system records your answers securely and displays the **Exam Submitted Successfully** confirmation.
+2. To prevent academic dishonesty in the examination room, scores and question answer keys remain confidential while the examination session continues.
+3. Once the examination concludes and the administrator publishes the results, your full performance metrics become visible on your Student Dashboard:
+   - Final score and maximum marks.
+   - Calculated percentage and clearing status (**PASS** or **FAIL**).
+   - Count of correct, incorrect, and skipped questions.
+   - Question-by-question answer review with correct options.
+4. Click the **Download Scorecard PDF** button on published examinations to download your official grade sheet.
+   The scorecard contains institutional headers, detailed metrics, and official signature blocks.
 
 ---
 
-## 3. Instructor and Administrator Portal Guide
+## 3. Instructor & Administrator Portal Guide
 
-### 3.1 Administrator Login
+### 3.1 Administrator Authentication
 
 Follow these steps to log in as an administrator:
 
-1. Open the admin login page (`admin/admin-login.php`).
+1. Open the administrator login page (`admin/admin-login.php`).
 2. Type your administrator email address.
-3. Type your administrator password.
+3. Type your password.
 4. Click the **Login as Admin** button.
 
-The system opens the admin dashboard.
+If you deploy a fresh installation, the system redirects you to the setup wizard (`admin/setup.php`).
+Complete the setup wizard to provision the initial Superadmin account.
 
-### 3.2 Admin Dashboard Overview
+### 3.2 Administrator Dashboard
 
-The admin dashboard gives an overview of the examination system:
+The dashboard provides a system overview:
+- Total active curriculum subjects.
+- Total configured examinations and currently active tests.
+- Total question bank inventory.
+- Enrolled student count and completed test attempts.
+- Navigation links with the active tab highlighted in gold (`#ffd700`).
 
-- Total curriculum subjects
-- Total configured examinations
-- Number of live examinations
-- Total questions in the question bank
-- Total registered students
-- Total completed student attempts
+### 3.3 Student Management Panel (`admin/manage-students.php`)
 
-Quick-action cards give fast access to all management modules.
+Open the **Students** tab to manage student enrollments.
 
-### 3.3 Managing Curriculum Subjects
+#### Filtering and Searching:
+- Type a name, email, or roll number in the search bar.
+- Filter records by department, semester, or enrollment status (`active`, `pending`, `blocked`).
 
-Follow these steps to add a new subject:
+#### Enrolling a Student:
+1. Click the **Add Student** button.
+2. Type the student name, email, roll number, department, semester, and password.
+3. Click the **Create Student** button.
 
-1. Click the **Subjects** link in the navigation bar.
-2. Type the subject name in the **Subject Name** box (for example: `Operating Systems`).
-3. Select the department from the **Department** list.
-4. Select the semester from the **Semester** list.
-5. Click the **Create Subject** button.
-
-The table below shows all existing subjects.
-Click the **View Questions** button next to any subject to inspect its question bank.
-
-### 3.4 Managing Question Banks
-
-You can add multiple-choice questions to subjects in bulk with JSON data.
-
-Follow these steps to upload questions:
-
-1. Click the **Questions** link in the navigation bar.
-2. Select the target subject from the **Select Subject** list.
-3. (Optional) Click the **Copy LLM Prompt** button to copy a prompt for an AI tool.
-4. Generate the JSON question list with your AI tool or text editor.
-5. Paste the JSON data into the **JSON Data Array** box.
-6. Click the **Upload All Questions** button.
-
-#### Required JSON Structure
-
-Each question in the JSON array must use this format:
-
-```json
-[
-  {
-    "question_text": "What is an operating system?",
-    "option_a": "System software",
-    "option_b": "Application software",
-    "option_c": "Hardware component",
-    "option_d": "Malicious program",
-    "correct_option": "A"
-  }
-]
-```
-
-- `question_text`: The question statement (required).
-- `option_a`: Text for option A (required).
-- `option_b`: Text for option B (required).
-- `option_c`: Text for option C (optional).
-- `option_d`: Text for option D (optional).
-- `correct_option`: Must be `A`, `B`, `C`, or `D` (required).
-
-### 3.5 Configuring an Examination
-
-Follow these steps to make a new examination:
-
-1. Click the **Create Exam** link in the navigation bar.
-2. Type the exam title in the **Exam Title** box.
-3. Select the subject from the **Subject** list.
-4. Type the duration in minutes in the **Duration (Minutes)** box.
-5. Type the total marks in the **Total Marks** box.
-6. Type the number of questions in the **Questions per Student** box.
-7. (Optional) Type a 4-digit code in the **Classroom PIN** box for surprise tests.
-8. Click the **Create Examination** button.
-
-> [!NOTE]
-> The subject question bank must contain at least as many questions as the **Questions per Student** value.
-
-### 3.6 Controlling Examinations
-
-Open the **Exam Controls** page (`admin/control-exams.php`) to manage examinations.
-
-The table shows all examinations, their department, semester, PIN, and status.
-
-#### Actions on Inactive Exams:
-- Click the **Start** button to make an examination live.
-- Click the **Delete** button to remove an examination.
-
-#### Actions on Live Exams:
-- Click the **Live Proctor** button to open real-time classroom monitoring.
-- Click the **+5 min** button to give students 5 additional minutes.
-- Click the **+10 min** button to give students 10 additional minutes.
-- Click the **End Exam** button to stop the examination immediately.
-
-#### Actions on Ended Exams:
-- Click the **Results** button to view graded submissions.
-
-### 3.7 Live Classroom Proctoring Panel
-
-Open the Live Proctor panel (`admin/proctor-exam.php?exam_id=<ID>`) during a test.
-The panel refreshes data automatically every 5 seconds.
-
-#### Proctoring Statistics:
-- **Total Class Roster**: Total students enrolled in the department and semester.
-- **Currently Answering**: Number of students with an active test attempt.
-- **Submitted / Done**: Number of students who completed the test.
-- **Not Started**: Number of students who have not started yet.
-- **Total Cheating Flags**: Total anti-cheat violations recorded across all students.
-
-#### Emergency Classroom Actions:
-- **Unlock / Resume**: If a student computer crashes, click this button to restore the attempt to **In Progress**.
-- **Force Submit**: If a student leaves the lab, click this button to submit the attempt immediately.
-
-### 3.8 Managing Student Requests and Password Resets
-
-Open the **Student Requests** page (`admin/manage-requests.php`) to handle student credentials.
-
-#### Approving Profile Change Requests:
-1. Review the table of pending modification requests.
-2. Compare the current details with the requested changes.
-3. Click the **Approve** button to apply the changes to the student account.
-4. Click the **Reject** button to dismiss the request.
+#### Editing Student Information:
+1. Locate the student in the table.
+2. Click the **Edit** button in the action menu.
+3. Modify the academic details and click **Save Changes**.
 
 #### Resetting Student Passwords:
-If a student forgets their password before a lab test:
+1. Click the **Reset Password** button for the student.
+2. Type a new temporary password and click **Update Password**.
 
-1. Go to the **Classroom Password Reset** section.
-2. Type the student roll number in the **Student Roll Number** box.
-3. Type a new temporary password in the **New Temporary Password** box.
-4. Click the **Reset Student Password** button.
-5. Give the temporary password to the student.
+#### Account Suspension and Deletion:
+- Click the **Block** button to suspend a student account.
+- Click the **Unblock** button to restore account access.
+- Click the **Delete** button to remove a student and purge historical attempts.
 
-### 3.9 Batch Student Enrollment with CSV
+#### Exporting Student Rosters:
+Click the **Export CSV** button to download the filtered student roster as a CSV spreadsheet.
 
-Open the **Import Students** page (`admin/import-students.php`) to enroll a class.
+### 3.4 Bulk Student Promotion
 
-Follow these steps to import students:
+Administrators can promote student cohorts to the next academic semester:
 
-1. Prepare a CSV file or CSV text with this column order:
-  `Name, Email, Roll Number, Department, Semester, Password`
-2. Select the `.csv` file in the **Upload .CSV File** box, or paste the text in the text box.
-3. Click the **Import Classroom Roster** button.
+#### Cohort Bulk Promotion:
+1. Locate the **Bulk Promote by Cohort** card.
+2. Select the target **Department** and **Current Semester**.
+3. Click the **Promote Cohort (+1 Sem)** button.
+4. Confirm the prompt to advance all matching students by one semester.
 
-The system imports all new students.
-The system skips duplicate emails and duplicate roll numbers.
-If you omit the password column, the system sets the default password to the student roll number.
+#### Selection Bulk Promotion:
+1. Select the checkboxes next to individual student records in the roster table.
+2. A floating batch action bar appears at the bottom of the screen.
+3. Click the **Promote Selected (+1 Sem)** button.
+4. Confirm the prompt to advance selected students.
+The system caps student advancement at Semester 8.
 
-### 3.10 Viewing Results and Printing Reports
+### 3.5 Managing Subjects
 
-Follow these steps to inspect exam results:
+Follow these steps to create a subject:
+
+1. Click the **Subjects** link in the navigation bar.
+2. Type the subject name (for example: `Computer Networks`).
+3. Select the department and semester.
+4. Click the **Create Subject** button.
+
+### 3.6 Managing Question Banks
+
+Follow these steps to upload multiple-choice questions in bulk:
+
+1. Click the **Questions** link in the navigation bar.
+2. Select the target subject from the dropdown menu.
+3. (Optional) Click the **Copy LLM Prompt** button to generate questions with an AI tool.
+4. Paste the JSON question array into the text area:
+   ```json
+   [
+     {
+       "question_text": "What does HTTP stand for?",
+       "option_a": "HyperText Transfer Protocol",
+       "option_b": "High Text Transfer Program",
+       "option_c": "Hyperlink Text Transmission Protocol",
+       "option_d": "Hosting Text Transfer Provider",
+       "correct_option": "A"
+     }
+   ]
+   ```
+5. Click the **Upload All Questions** button.
+
+### 3.7 Configuring Examinations
+
+Follow these steps to configure a test:
+
+1. Click the **Create Exam** link in the navigation bar.
+2. Type the examination title.
+3. Select the curriculum subject.
+4. Set the test duration in minutes.
+5. Set total marks and the question quota per student.
+6. (Optional) Type a 4-digit classroom PIN for surprise quizzes.
+7. Click the **Create Examination** button.
+
+### 3.8 Examination Controls & Emergency Time
+
+Open the **Exam Controls** page (`admin/control-exams.php`) to govern tests:
+
+- **Start Exam**: Click to publish a scheduled test to student dashboards.
+- **+5 min / +10 min**: Click to extend the remaining duration for all active candidates.
+- **End Exam**: Click to conclude testing and lock submissions.
+
+### 3.9 Live Classroom Proctoring Panel
+
+Open the live proctoring dashboard (`admin/proctor-exam.php?exam_id=<ID>`) during a test:
+
+- The screen updates candidate statistics every 5 seconds.
+- Monitor active attempts, completed tests, and cumulative cheating flags.
+- **Unlock / Resume**: Click to restore an attempt if a student computer crashes.
+- **Force Submit**: Click to submit an attempt immediately if a candidate departs.
+
+### 3.10 Viewing Results & Downloading Institutional Reports
+
+Follow these steps to inspect and export examination results:
 
 1. Click the **Results** link in the navigation bar.
-2. (Optional) Filter the list by department.
-3. Click the **View Results** button for the desired examination.
+2. Click the **View Results** button for the examination.
+3. Inspect the top 3 podium cards and comprehensive leaderboard table.
+4. Click the **Download Results PDF** button.
 
-The results page shows:
-- **Top Performers Podium**: Top 3 students with gold, silver, and bronze rank cards.
-- **Leaderboard Table**: All student submissions with rank, roll number, score, and submission timestamp.
-- **Print / Save PDF**: Click the **Print / Save PDF** button to print an official score sheet.
+### 3.11 Publishing Examination Results to Students
+
+By default, student scores and question answer keys are locked to prevent early finishers from sharing answers with peers who are still writing.
+
+Follow these steps to release results to candidates:
+
+1. Conclude the examination session by clicking **End Exam** in the **Exam Controls** center (`admin/control-exams.php`).
+2. Verify that all students in the classroom have finished testing.
+3. Click the **Publish** button in the **Exam Controls** center, or click **Publish Results to Students** at the top of the examination's results page (`admin/view-results.php`).
+4. The system updates the publication status to `Published`. All candidates can now view their final scores, review question answer keys, and download official PDF scorecards.
+5. If you must audit or modify records, click the **Unpublish Results** button to temporarily lock student visibility.
+
+Examify compiles an official institutional PDF report.
+The report contains KPI metric boxes, student rankings, scores, and official endorsement signature lines.
+

@@ -23,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['reset_student_attempt'])) {
         $student_id = int_param($_POST['student_id'] ?? 0);
         try {
-            // Unlocks student attempt by deleting or resetting status so they can resume
             $stmt = $pdo->prepare("UPDATE exam_attempts SET status = 'in_progress' WHERE exam_id = ? AND student_id = ?");
             $stmt->execute([$exam_id, $student_id]);
             $message = "Student attempt has been unlocked and set to In Progress.";
@@ -69,7 +68,7 @@ try {
             (SELECT COUNT(*) FROM exam_violations WHERE attempt_id = ea.id) AS violation_count
         FROM students st
         LEFT JOIN exam_attempts ea ON st.id = ea.student_id AND ea.exam_id = ?
-        WHERE st.department = ? AND st.semester = ?
+        WHERE st.department = ? AND st.semester = ? AND st.status = 'active'
         ORDER BY st.roll_number ASC
     ");
 
@@ -137,15 +136,15 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="stats">
         <div class="stat-card">
             <div class="stat-num"><?= $total_enrolled ?></div>
-            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">group</span> Total Class Roster</div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">group</span> Class Roster</div>
         </div>
         <div class="stat-card" style="border-left: 4px solid var(--color-success);">
             <div class="stat-num" style="color: var(--color-success);"><?= $in_progress_count ?></div>
-            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-success);">sensors</span> Currently Answering</div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-success);">sensors</span> Answering Now</div>
         </div>
         <div class="stat-card" style="border-left: 4px solid var(--color-info);">
             <div class="stat-num" style="color: var(--color-info);"><?= $completed_count ?></div>
-            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-info);">check_circle</span> Submitted / Done</div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-info);">check_circle</span> Submitted</div>
         </div>
         <div class="stat-card">
             <div class="stat-num" style="color: var(--color-text-secondary);"><?= $not_started_count ?></div>
@@ -153,7 +152,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
         <div class="stat-card" style="border-left: 4px solid var(--color-error);">
             <div class="stat-num" style="color: var(--color-error);"><?= $total_violations ?></div>
-            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-error);">warning</span> Total Cheating Flags</div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-error);">warning</span> Cheating Flags</div>
         </div>
     </div>
 
@@ -180,7 +179,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <tbody>
                     <?php if (empty($students)): ?>
                         <tr>
-                            <td colspan="7" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">No students enrolled in this department/semester.</td>
+                            <td colspan="7" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">No active students enrolled in this department/semester.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($students as $st): ?>
@@ -205,7 +204,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 </td>
                                 <td>
                                     <?php if ($st['attempt_status'] === 'completed'): ?>
-                                        <strong><?= e((string)$st['score']) ?></strong> / <?= (int) $exam['total_marks'] ?>
+                                        <strong><?= sprintf('%.2f', (float)$st['score']) ?></strong> / <?= (int) $exam['total_marks'] ?>
                                     <?php else: ?>
                                         —
                                     <?php endif; ?>
@@ -242,15 +241,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            <?php endif; ?>
         </div>
     </div>
 </div>
 
 <script>
-    // Auto-refresh proctor panel every 5 seconds to keep teacher updated
     setTimeout(function() {
         window.location.reload();
     }, 5000);

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Examify - Consolidated Database Initialization Tool
+ * Examify - Consolidated Database Initialization Tool (Refined Architecture)
  *
  * Usage via CLI:
  *   php init-db.php                # Apply schema & seed standard test accounts & questions
@@ -43,7 +43,7 @@ if (!$isCli) {
     echo "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><title>Database Init • Examify</title></head>";
     echo "<body style='background: #0f172a; color: #f8fafc; padding: 40px; font-family: system-ui, sans-serif;'>";
     echo "<div style='max-width: 760px; margin: 0 auto; background: #1e293b; padding: 32px; border-radius: 12px; border: 1px solid #334155;'>";
-    echo "<h2 style='margin-top: 0; color: #38bdf8;'>🚀 Examify Database Initializer</h2>";
+    echo "<h2 style='margin-top: 0; color: #38bdf8;'>🚀 Examify Database Initializer (Refined)</h2>";
 }
 
 // Parse Command Line Options
@@ -109,7 +109,7 @@ out("Applying Canonical Schema (archive/schema.sql)...", $isCli, 'heading');
 try {
     $schemaSql = file_get_contents($schemaFile);
     $pdo->exec($schemaSql);
-    out("All 11 tables created/verified successfully.", $isCli, 'success');
+    out("All 10 refined tables verified and updated successfully.", $isCli, 'success');
 } catch (PDOException $e) {
     out("Failed executing schema.sql: " . $e->getMessage(), $isCli, 'error');
     if (!$isCli) echo "</div></body></html>";
@@ -183,24 +183,27 @@ try {
         out("Retired Teacher already exists (ID: #$teacherRetiredId).", $isCli);
     }
 
-    // Students
+    // Active Students (Enrolled)
     $studentsToSeed = [
-        ['Alex Johnson', 'student@college.edu', $studentPass, 'BCA2401', 'BCA', 4],
-        ['Priya Sharma', 'priya@college.edu', $studentPass, 'BCA2402', 'BCA', 4],
-        ['Rahul Verma', 'rahul@college.edu', $studentPass, 'BBA2401', 'BBA', 2],
-        ['Test Student', 'student@example.com', password_hash('password123', PASSWORD_DEFAULT), 'STU12345', 'BCA', 1]
+        ['Alex Johnson', 'student@college.edu', $studentPass, 'BCA2401', 'BCA', 4, '9876543210', 'male', 'active', $superadminId],
+        ['Priya Sharma', 'priya@college.edu', $studentPass, 'BCA2402', 'BCA', 4, '9876543211', 'female', 'active', $superadminId],
+        ['Rahul Verma', 'rahul@college.edu', $studentPass, 'BBA2401', 'BBA', 2, '9876543212', 'male', 'active', $superadminId],
+        ['Test Student', 'student@example.com', password_hash('password123', PASSWORD_DEFAULT), 'STU12345', 'BCA', 1, '9876543213', 'male', 'active', $superadminId],
+        ['Neha Gupta', 'neha@college.edu', $studentPass, 'BCA2405', 'BCA', 4, '9876543214', 'female', 'pending', null] // Pending student request
     ];
 
     $insStu = $pdo->prepare("
-        INSERT INTO students (name, email, password, roll_number, department, semester, status)
-        VALUES (?, ?, ?, ?, ?, ?, 'active')
-        ON DUPLICATE KEY UPDATE name = VALUES(name), department = VALUES(department), semester = VALUES(semester)
+        INSERT INTO students (name, email, password, roll_number, department, semester, phone_number, gender, status, reviewed_by, reviewed_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, IF(? = 'active', NOW(), NULL))
+        ON DUPLICATE KEY UPDATE name = VALUES(name), department = VALUES(department), semester = VALUES(semester), status = VALUES(status)
     ");
 
     foreach ($studentsToSeed as $s) {
-        $insStu->execute($s);
+        $insStu->execute([
+            $s[0], $s[1], $s[2], $s[3], $s[4], $s[5], $s[6], $s[7], $s[8], $s[9], $s[8]
+        ]);
     }
-    out("Enrolled test students (Default: student@college.edu / Student@123).", $isCli, 'success');
+    out("Enrolled active test students and seeded 1 pending registration for verification.", $isCli, 'success');
 
     // 4.2 Create Curriculum Subjects with Creator Attribution
     $subjectsMap = [
@@ -230,7 +233,7 @@ try {
             $subjectIds[$sName] = (int) $pdo->lastInsertId();
         }
     }
-    out("Curriculum subjects created/verified with author attribution.", $isCli, 'success');
+    out("Curriculum subjects verified with author attribution.", $isCli, 'success');
 
     // 4.3 Import Test Questions from tests/ Directory
     $testFiles = [
@@ -257,9 +260,9 @@ try {
             continue;
         }
 
-        // Check if subject already has questions
-        $cntExisting = (int) $pdo->query("SELECT COUNT(*) FROM questions WHERE subject_id = $subId")->fetchColumn();
-        if ($cntExisting > 0) {
+        $chkCount = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE subject_id = ?");
+        $chkCount->execute([$subId]);
+        if ((int) $chkCount->fetchColumn() > 0) {
             continue;
         }
 
@@ -278,19 +281,20 @@ try {
                 $subId,
                 trim(strip_tags($q['question_text'])),
                 $unitNum,
-                trim(strip_tags($q['option_a'])),
-                trim(strip_tags($q['option_b'])),
-                isset($q['option_c']) ? trim(strip_tags($q['option_c'])) : '',
-                isset($q['option_d']) ? trim(strip_tags($q['option_d'])) : '',
-                strtoupper(trim(strip_tags($q['correct_option']))),
+                trim($q['option_a']),
+                trim($q['option_b']),
+                isset($q['option_c']) ? trim($q['option_c']) : null,
+                isset($q['option_d']) ? trim($q['option_d']) : null,
+                strtoupper(trim($q['correct_option'])),
                 isset($q['marks']) ? (int) $q['marks'] : 1,
                 $meta['by']
             ]);
             $totalImported++;
         }
     }
+
     if ($totalImported > 0) {
-        out("Imported $totalImported test questions attributed to active & retired instructors.", $isCli, 'success');
+        out("Imported $totalImported test questions attributed to instructors.", $isCli, 'success');
     } else {
         out("Question bank already populated.", $isCli);
     }
@@ -309,25 +313,25 @@ try {
             ");
             $insExam->execute([$osSubId, $teacherActiveId]);
             $examId = (int) $pdo->lastInsertId();
-            out("Created Active Exam: 'OS Surprise Quiz' (PIN: 4821, Created by: Prof. Alan Turing)", $isCli, 'success');
+            out("Created Active Exam: 'OS Surprise Quiz' (PIN: 4821, Author: Prof. Alan Turing)", $isCli, 'success');
         }
 
-        // Also create an exam authored by the retired teacher to prove record retention
+        // Retired teacher exam to prove data preservation
         $daaSubId = $subjectIds['Design and Analysis of Algorithms'] ?? null;
         if ($daaSubId) {
-            $chkDaaExam = $pdo->prepare("SELECT id FROM exams WHERE title = ?");
-            $chkDaaExam->execute(['DAA Mid-Term Assessment']);
-            if (!$chkDaaExam->fetchColumn()) {
-                $insDaaExam = $pdo->prepare("
+            $chkDaa = $pdo->prepare("SELECT id FROM exams WHERE title = ?");
+            $chkDaa->execute(['DAA Mid-Term Assessment']);
+            if (!$chkDaa->fetchColumn()) {
+                $insDaa = $pdo->prepare("
                     INSERT INTO exams (subject_id, title, duration_minutes, total_questions_to_ask, total_marks, status, access_pin, target_units, start_time, created_by)
                     VALUES (?, 'DAA Mid-Term Assessment', 45, 10, 20, 'active', NULL, 'all', NOW(), ?)
                 ");
-                $insDaaExam->execute([$daaSubId, $teacherRetiredId]);
-                out("Created Exam by Retired Teacher: 'DAA Mid-Term Assessment' (Authored by: Prof. Grace Hopper [Retired])", $isCli, 'success');
+                $insDaa->execute([$daaSubId, $teacherRetiredId]);
+                out("Created Exam by Retired Teacher: 'DAA Mid-Term Assessment'", $isCli, 'success');
             }
         }
 
-        // Seed an attempt for Alex Johnson so leaderboards and analytics have data
+        // Seed an attempt for Alex Johnson so leaderboards, analytics and PDF export have immediate data
         $alexId = (int) $pdo->query("SELECT id FROM students WHERE email = 'student@college.edu'")->fetchColumn();
         if ($alexId > 0 && $examId > 0) {
             $chkAttempt = $pdo->prepare("SELECT id FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
@@ -350,7 +354,7 @@ try {
                 foreach ($qs as $qRow) {
                     $insAns->execute([$attemptId, $qRow['id'], $qRow['correct_option']]);
                 }
-                out("Seeded completed attempt for Alex Johnson (Score: 10/10).", $isCli, 'success');
+                out("Seeded completed attempt for Alex Johnson (Score: 10.00 / 10).", $isCli, 'success');
             }
         }
     }
@@ -360,7 +364,7 @@ try {
     if ((int)$chkInitLog === 0) {
         $pdo->prepare("
             INSERT INTO admin_audit_logs (admin_id, admin_name, admin_role, action, entity_type, entity_id, details, ip_address)
-            VALUES (?, 'Dr. Sarah Admin', 'superadmin', 'system_initialized', 'system', 1, 'Examify system initialized via init-db.php', '127.0.0.1')
+            VALUES (?, 'Dr. Sarah Admin', 'superadmin', 'system_initialized', 'system', 1, 'Examify refined system initialized via init-db.php', '127.0.0.1')
         ")->execute([$superadminId]);
         out("System initialization recorded in audit trail.", $isCli, 'success');
     }

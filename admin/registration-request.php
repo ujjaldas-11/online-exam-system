@@ -13,62 +13,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     if (isset($_POST['request_id']) && isset($_POST['action'])) {
-        $request_id = int_param($_POST['request_id']);
+        $student_id = int_param($_POST['request_id']);
+        $reviewer_id = (int) ($_SESSION['admin_id'] ?? 0);
 
         if ($_POST['action'] === 'approve') {
             try {
-                $reqstmt = $pdo->prepare("SELECT * FROM registration_request WHERE id = ?");
-                $reqstmt->execute([$request_id]);
-                $req = $reqstmt->fetch();
+                $stmt = $pdo->prepare("SELECT name, roll_number, department FROM students WHERE id = ? AND status = 'pending'");
+                $stmt->execute([$student_id]);
+                $student = $stmt->fetch();
 
-                if ($req && $req['status'] === 'pending') {
-                    $pdo->beginTransaction();
+                if ($student) {
+                    $up = $pdo->prepare("UPDATE students SET status = 'active', reviewed_by = ?, reviewed_at = NOW() WHERE id = ?");
+                    $up->execute([$reviewer_id, $student_id]);
 
-                    $insertStmt = $pdo->prepare("
-                        INSERT INTO students (name, email, password, roll_number, department,semester, phone_number, gender, created_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ");
-
-                    $updateSuccess = $insertStmt->execute([
-                        $req['name'],
-                        $req['email'],
-                        $req['password'],
-                        $req['roll_number'],
-                        $req['department'],
-                        $req['semester'],
-                        $req['phone_number'],
-                        $req['gender'],
-                        $req['created_at']
-                    ]);
-
-                    $reviewer_id = $_SESSION['admin_id'] ?? null;
-                    $statusStmt = $pdo->prepare("UPDATE registration_request SET status = 'approved', reviewed_by = ? WHERE id = ?");
-                    $statusSuccess = $statusStmt->execute([$reviewer_id, $request_id]);
-
-                    if ($updateSuccess && $statusSuccess) {
-                        $newStudentId = (int) $pdo->lastInsertId();
-                        $pdo->commit();
-                        log_admin_action($pdo, 'approve_student_reg', 'student', $newStudentId, "Approved registration for {$req['name']} (Roll: {$req['roll_number']}, Dept: {$req['department']})");
-                        $message = "Student profile created and approved successfully!";
-                    } else {
-                        $pdo->rollBack();
-                        $error = "Failed to create the student profile.";
-                    }
+                    log_admin_action(
+                        $pdo,
+                        'approve_student_reg',
+                        'student',
+                        $student_id,
+                        "Approved registration for {$student['name']} (Roll: {$student['roll_number']}, Dept: {$student['department']})"
+                    );
+                    $message = "Student {$student['name']} ({$student['roll_number']}) approved and enrolled successfully!";
+                } else {
+                    $error = "Student request not found or already reviewed.";
                 }
-            } catch (Exception $e) {
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
-                }
-                $error = safe_db_error($e, "Failed to approve request. Roll number or Email might already exist.");
+            } catch (PDOException $e) {
+                $error = safe_db_error($e, "Failed to approve student registration.");
             }
         } elseif ($_POST['action'] === 'reject') {
             try {
-                $reviewer_id = $_SESSION['admin_id'] ?? null;
-                $pdo->prepare("UPDATE registration_request SET status = 'rejected', reviewed_by = ? WHERE id = ?")->execute([$reviewer_id, $request_id]);
-                log_admin_action($pdo, 'reject_student_reg', 'registration_request', $request_id, "Rejected registration request #$request_id");
-                $message = "Registration request has been rejected.";
+                $stmt = $pdo->prepare("SELECT name, roll_number FROM students WHERE id = ? AND status = 'pending'");
+                $stmt->execute([$student_id]);
+                $student = $stmt->fetch();
+
+                if ($student) {
+                    $up = $pdo->prepare("UPDATE students SET status = 'rejected', reviewed_by = ?, reviewed_at = NOW() WHERE id = ?");
+                    $up->execute([$reviewer_id, $student_id]);
+
+                    log_admin_action(
+                        $pdo,
+                        'reject_student_reg',
+                        'student',
+                        $student_id,
+                        "Rejected registration request for {$student['name']} (Roll: {$student['roll_number']})"
+                    );
+                    $message = "Registration request for {$student['name']} has been rejected.";
+                } else {
+                    $error = "Student request not found or already reviewed.";
+                }
             } catch (PDOException $e) {
-                $error = safe_db_error($e, "Failed to reject request.");
+                $error = safe_db_error($e, "Failed to reject registration request.");
             }
         }
     }
@@ -76,14 +70,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 try {
     $requests = $pdo->query("
-        SELECT * FROM registration_request WHERE status = 'pending'")->fetchAll();
+        SELECT id, name, email, roll_number, department, semester, phone_number, gender, created_at
+        FROM students
+        WHERE status = 'pending'
+        ORDER BY created_at ASC
+    ")->fetchAll();
 } catch (PDOException $e) {
-    log_error("Failed to fetch registration requests", $e);
+    log_error("Failed to fetch pending student registrations", $e);
     $requests = [];
 }
-
-
-
 
 $page_title = 'Manage Registrations • Examify';
 include __DIR__ . '/../components/header.php';
@@ -132,7 +127,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <strong><?= e($req['name']) ?></strong><br>
                                     <span style="color: var(--color-text-secondary); font-size: 0.9em;">
                                         <?= e($req['email']) ?><br>
-                                        <?= e($req['phone_number']) ?> • <?= ucfirst(e($req['gender'])) ?>
+                                        <?= e($req['phone_number'] ?? '—') ?> • <?= ucfirst(e($req['gender'] ?? 'unknown')) ?>
                                     </span>
                                 </td>
                                 <td>
@@ -155,7 +150,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <form method="POST" style="display: inline;">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px; background-color: var(--color-error, #dc2626); color: #ffffff;">
                                                 <span class="material-symbols-outlined icon-xs">close</span> Reject
                                             </button>
                                         </form>
@@ -168,7 +163,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
         <?php endif; ?>
     </div>
-
 </div>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
