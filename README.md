@@ -6,7 +6,7 @@ Institutions deploy Examify on local area networks (LAN) for quizzes, semester t
 
 ---
 
-[![CI](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml)
+[![CI](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/mega-linter.yml/badge.svg?branch=main)](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/mega-linter.yml)
 
 ## 🎯 Primary Use Case & Architecture
 
