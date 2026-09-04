@@ -121,9 +121,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                                             <span class="material-symbols-outlined icon-xs">leaderboard</span> View Results
                                         </a>
-                                        <a href="export-pdf.php?exam_id=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Download Results PDF">
+                                        <!-- <a href="export-pdf.php?exam_id=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Download Results PDF">
                                             <span class="material-symbols-outlined icon-xs">picture_as_pdf</span> PDF
-                                        </a>
+                                        </a> -->
                                     </div>
                                 </td>
                             </tr>

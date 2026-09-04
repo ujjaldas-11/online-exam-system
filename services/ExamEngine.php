@@ -222,7 +222,15 @@ class ExamEngine
                 $stmt->execute($params);
             }
 
-            return ['success' => true];
+            $ansCountStmt = $pdo->prepare("SELECT COUNT(*) FROM student_answers WHERE attempt_id = ? AND selected_option IS NOT NULL AND selected_option != ''");
+            $ansCountStmt->execute([$attemptId]);
+            $answeredCount = (int) $ansCountStmt->fetchColumn();
+
+            return [
+                'success' => true,
+                'attempt_id' => $attemptId,
+                'answered_count' => $answeredCount,
+            ];
         } catch (PDOException $e) {
             log_error("Failed saving answer: student $studentId, question $questionId", $e);
             return ['error' => 'Database error saving answer', 'code' => 500];

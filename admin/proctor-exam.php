@@ -25,6 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $pdo->prepare("UPDATE exam_attempts SET status = 'in_progress' WHERE exam_id = ? AND student_id = ?");
             $stmt->execute([$exam_id, $student_id]);
+
+            $attStmt = $pdo->prepare("SELECT id FROM exam_attempts WHERE exam_id = ? AND student_id = ?");
+            $attStmt->execute([$exam_id, $student_id]);
+            $attId = $attStmt->fetchColumn();
+
+            require_once __DIR__ . '/../utils/websocket-pusher.php';
+            WebSocketPusher::emit("exam:{$exam_id}", "student_started", [
+                'student_id' => $student_id,
+                'attempt_id' => (int) $attId,
+            ]);
+
             $message = "Student attempt has been unlocked and set to In Progress.";
             $message_type = 'success';
         } catch (PDOException $e) {
@@ -36,6 +47,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $pdo->prepare("UPDATE exam_attempts SET status = 'completed', submitted_at = NOW() WHERE id = ?");
             $stmt->execute([$attempt_id]);
+
+            $stStmt = $pdo->prepare("SELECT student_id, score FROM exam_attempts WHERE id = ?");
+            $stStmt->execute([$attempt_id]);
+            $stRow = $stStmt->fetch();
+
+            if ($stRow) {
+                require_once __DIR__ . '/../utils/websocket-pusher.php';
+                WebSocketPusher::emit("exam:{$exam_id}", "exam_submitted", [
+                    'student_id' => (int) $stRow['student_id'],
+                    'attempt_id' => $attempt_id,
+                    'score' => (float) ($stRow['score'] ?? 0),
+                ]);
+            }
+
             $message = "Attempt #$attempt_id has been forced to completed status.";
             $message_type = 'success';
         } catch (PDOException $e) {
@@ -118,6 +143,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <p>Monitoring: <strong><?= e($exam['title']) ?></strong> (<?= e($exam['subject_name']) ?> • <?= e($exam['department']) ?>, Sem <?= e((string)$exam['semester']) ?>)</p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
+            <div id="proctor-live-badge-container"></div>
             <?php if (!empty($exam['access_pin'])): ?>
                 <div class="badge badge-pending" style="font-size: 1rem; padding: 8px 16px; font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 6px;">
                     <span class="material-symbols-outlined icon-sm">key</span> Classroom PIN: <strong><?= e($exam['access_pin']) ?></strong>
@@ -135,23 +161,23 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <!-- Real-time Stats Grid -->
     <div class="stats">
         <div class="stat-card">
-            <div class="stat-num"><?= $total_enrolled ?></div>
+            <div class="stat-num" id="summary-total-enrolled"><?= $total_enrolled ?></div>
             <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">group</span> Class Roster</div>
         </div>
         <div class="stat-card" style="border-left: 4px solid var(--color-success);">
-            <div class="stat-num" style="color: var(--color-success);"><?= $in_progress_count ?></div>
+            <div class="stat-num" id="summary-in-progress" style="color: var(--color-success);"><?= $in_progress_count ?></div>
             <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-success);">sensors</span> Answering Now</div>
         </div>
         <div class="stat-card" style="border-left: 4px solid var(--color-info);">
-            <div class="stat-num" style="color: var(--color-info);"><?= $completed_count ?></div>
+            <div class="stat-num" id="summary-completed" style="color: var(--color-info);"><?= $completed_count ?></div>
             <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-info);">check_circle</span> Submitted</div>
         </div>
         <div class="stat-card">
-            <div class="stat-num" style="color: var(--color-text-secondary);"><?= $not_started_count ?></div>
+            <div class="stat-num" id="summary-not-started" style="color: var(--color-text-secondary);"><?= $not_started_count ?></div>
             <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-text-secondary);">hourglass_empty</span> Not Started</div>
         </div>
         <div class="stat-card" style="border-left: 4px solid var(--color-error);">
-            <div class="stat-num" style="color: var(--color-error);"><?= $total_violations ?></div>
+            <div class="stat-num" id="summary-total-violations" style="color: var(--color-error);"><?= $total_violations ?></div>
             <div class="stat-label" style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm" style="color: var(--color-error);">warning</span> Cheating Flags</div>
         </div>
     </div>
@@ -160,7 +186,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="card">
         <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
             <span>Classroom Live Status Roster</span>
-            <small style="color: var(--color-text-secondary); font-weight: normal;">Auto-refreshing every 5 seconds</small>
+            <small style="color: var(--color-text-secondary); font-weight: normal;">Live Real-Time Sync</small>
         </div>
 
         <div class="table-wrap">
@@ -183,10 +209,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         </tr>
                     <?php else: ?>
                         <?php foreach ($students as $st): ?>
-                            <tr>
+                            <tr id="student-row-<?= (int)$st['student_id'] ?>" data-student-id="<?= (int)$st['student_id'] ?>" data-attempt-id="<?= (int)($st['attempt_id'] ?? 0) ?>" data-total-questions="<?= (int)$exam['total_questions_to_ask'] ?>" data-total-marks="<?= (int)$exam['total_marks'] ?>">
                                 <td><strong><?= e($st['roll_number']) ?></strong></td>
                                 <td><?= e($st['name']) ?></td>
-                                <td>
+                                <td class="col-status">
                                     <?php if (empty($st['attempt_id'])): ?>
                                         <span class="badge badge-inactive">Not Started</span>
                                     <?php elseif ($st['attempt_status'] === 'completed'): ?>
@@ -195,21 +221,21 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <span class="badge badge-running">In Progress</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
+                                <td class="col-answered">
                                     <?php if (!empty($st['attempt_id'])): ?>
                                         <?= (int) $st['answered_count'] ?> / <?= (int) $exam['total_questions_to_ask'] ?> Qs
                                     <?php else: ?>
                                         —
                                     <?php endif; ?>
                                 </td>
-                                <td>
+                                <td class="col-score">
                                     <?php if ($st['attempt_status'] === 'completed'): ?>
                                         <strong><?= sprintf('%.2f', (float)$st['score']) ?></strong> / <?= (int) $exam['total_marks'] ?>
                                     <?php else: ?>
                                         —
                                     <?php endif; ?>
                                 </td>
-                                <td>
+                                <td class="col-violations">
                                     <?php if ((int)$st['violation_count'] > 0): ?>
                                         <span class="badge badge-rejected" title="Tab switches or fullscreen exit recorded" style="display: inline-flex; align-items: center; gap: 4px;">
                                             <span class="material-symbols-outlined icon-xs">warning</span> <?= (int)$st['violation_count'] ?>
@@ -220,7 +246,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         </span>
                                     <?php endif; ?>
                                 </td>
-                                <td style="text-align: right;">
+                                <td class="col-actions" style="text-align: right;">
                                     <?php if (!empty($st['attempt_id'])): ?>
                                         <div style="display: flex; gap: 6px; justify-content: flex-end;">
                                             <?php if ($st['attempt_status'] === 'completed'): ?>
@@ -248,10 +274,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 </div>
 
+<script src="<?= asset_url('../assets/js/proctor-socket.js') ?>"></script>
 <script>
-    setTimeout(function() {
-        window.location.reload();
-    }, 5000);
+    ExamifyProctor.init({
+        examId: <?= (int) $exam_id ?>,
+        wsUrl: '<?= htmlspecialchars((string) get_env('WS_PUBLIC_URL', 'ws://' . (!empty($_SERVER['HTTP_HOST']) ? explode(':', $_SERVER['HTTP_HOST'])[0] : 'localhost') . ':8085'), ENT_QUOTES, 'UTF-8') ?>'
+    });
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

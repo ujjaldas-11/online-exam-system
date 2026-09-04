@@ -47,20 +47,20 @@ Run these verification commands before you commit code:
 
 ### 1. Verification on Windows (PowerShell)
 ```powershell
-# Verify text format and EditorConfig rules
-.\tools\check-editorconfig.ps1
-
 # Verify PHP syntax across all project files
 Get-ChildItem -Filter *.php -Recurse | ForEach-Object { php -l $_.FullName }
+
+# Optional: Run MegaLinter locally (requires Docker & Node.js)
+npx mega-linter-runner --flavor php
 ```
 
 ### 2. Verification on Linux or macOS (Bash)
 ```bash
-# Verify text format and EditorConfig rules
-./tools/check-editorconfig.sh
-
 # Verify PHP syntax across all project files
 find . -type f -name "*.php" -exec php -l {} +
+
+# Optional: Run MegaLinter locally (requires Docker & Node.js)
+npx mega-linter-runner --flavor php
 ```
 
 ### 3. Run Automated Test Suite
@@ -79,7 +79,7 @@ php tests/concurrency_test.php
 
 Verify these items before you submit a pull request:
 
-- [ ] All files pass `tools/check-editorconfig.ps1` or `check-editorconfig.sh` with zero errors.
+- [ ] Automated MegaLinter CI checks pass with zero errors.
 - [ ] All modified PHP files pass `php -l` syntax validation.
 - [ ] You did not commit credentials, `.env` files, or local logs (`logs/*.log`).
 - [ ] Every form contains `<?= csrf_field() ?>`.

@@ -28,14 +28,15 @@ $admin_nav = [
     'results.php' => ['label' => 'Results', 'icon' => 'bar_chart', 'title' => 'results'],
     'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications', 'title' => 'profile update request'],
     'registration-request.php' => ['label' => 'registration request', 'icon' => 'person_add', 'title' => 'registration requests'],
-    'import-students.php' => ['label' => 'Import', 'icon' => 'upload_file', 'title' => 'import students'],
+    'manage-students.php' => ['label' => 'manage students', 'icon' => 'group', 'title' => 'students'],
 
 ];
 
 if ($isAdminSuper) {
     $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school', 'title' => 'teachers'];
     $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long', 'title' => 'logs'];
-    $admin_nav['manage-students.php'] = ['label' => 'students', 'icon' => 'group', 'title' => 'students'];
+    $admin_nav['import-students.php'] = ['label' => 'Import', 'icon' => 'upload_file', 'title' => 'import students'];
+
 } else {
     $admin_nav['audit-logs.php'] = ['label' => 'My Activity', 'icon' => 'history', 'title' => 'my history'];
 }

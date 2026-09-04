@@ -37,6 +37,11 @@ Follow these steps to deploy the extracted application:
    php init-db.php --schema-only
    ```
 4. Open the application in your browser and complete the Superadmin setup wizard (`admin/setup.php`).
+5. (Optional) Start the Real-Time WebSocket Daemon for live classroom proctoring:
+   ```bash
+   php bin/websocket-server.php &
+   ```
+   *(If not started, the application automatically falls back to in-place background HTTP polling with zero functionality loss).*
 
 ---
 
@@ -57,8 +62,7 @@ The production archive excludes these development and test resources:
 
 - Version control files (`.git/`, `.gitignore`, `.gitattributes`)
 - Test suites and mock question banks (`tests/`)
-- Development scripts and format checkers (`tools/`)
 - GitHub Actions workflows and issue templates (`.github/`)
-- Linter configurations (`.editorconfig`, `.editorconfig-checker.json`, `.php-cs-fixer.dist.php`)
+- Linter configurations (`.mega-linter.yml`)
 - Local secrets and environment files (`.env`)
 - Local error logs (`logs/*.log`)

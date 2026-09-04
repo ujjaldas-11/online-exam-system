@@ -67,6 +67,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         json_response(['error' => $res['error']], $res['code'] ?? 400);
     }
 
+    if (isset($res['answered_count'])) {
+        require_once __DIR__ . '/../utils/websocket-pusher.php';
+        WebSocketPusher::emit("exam:{$exam_id}", "answer_saved", [
+            'student_id' => $student_id,
+            'attempt_id' => $res['attempt_id'],
+            'answered_count' => $res['answered_count'],
+        ]);
+    }
+
     json_response(['success' => true]);
 }
 

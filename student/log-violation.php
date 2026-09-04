@@ -48,9 +48,10 @@ if (!$violRate['allowed']) {
 
 try {
     // Verify attempt belongs to current student
-    $checkStmt = $pdo->prepare("SELECT id FROM exam_attempts WHERE id = ? AND student_id = ?");
+    $checkStmt = $pdo->prepare("SELECT id, exam_id FROM exam_attempts WHERE id = ? AND student_id = ?");
     $checkStmt->execute([$attempt_id, $student_id]);
-    if (!$checkStmt->fetch()) {
+    $attemptRow = $checkStmt->fetch();
+    if (!$attemptRow) {
         json_response(['error' => 'Attempt not found or unauthorized'], 403);
     }
 
@@ -61,6 +62,15 @@ try {
     $countStmt = $pdo->prepare("SELECT COUNT(*) FROM exam_violations WHERE attempt_id = ?");
     $countStmt->execute([$attempt_id]);
     $totalViolations = (int) $countStmt->fetchColumn();
+
+    // Broadcast real-time violation event to proctors
+    require_once __DIR__ . '/../utils/websocket-pusher.php';
+    WebSocketPusher::emit("exam:{$attemptRow['exam_id']}", "violation", [
+        'student_id' => $student_id,
+        'attempt_id' => $attempt_id,
+        'violation_type' => $violation_type,
+        'total_violations' => $totalViolations,
+    ]);
 
     json_response([
         'success' => true,

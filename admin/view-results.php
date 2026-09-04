@@ -16,7 +16,7 @@ $exam_id = int_param($_GET['exam_id']);
 try {
     // Fetch Exam Details
     $examStmt = $pdo->prepare("
-        SELECT e.id, e.title, e.total_marks, e.status, e.results_published,
+        SELECT e.id, e.title, e.total_marks, e.duration_minutes, e.start_time, e.status, e.results_published,
                a.name as creator_name, a.status as creator_status
         FROM exams e
         LEFT JOIN admins a ON e.created_by = a.id
@@ -29,10 +29,23 @@ try {
         die("Exam not found.");
     }
 
+    $is_ongoing = false;
+    if ($exam['status'] === 'active') {
+        $startTs = !empty($exam['start_time']) ? strtotime($exam['start_time']) : time();
+        $durationSec = ((int)$exam['duration_minutes']) * 60;
+        if (time() < ($startTs + $durationSec)) {
+            $is_ongoing = true;
+        }
+    }
+
     // Handle Publish / Unpublish Actions
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verify_csrf();
         if (isset($_POST['publish_results'])) {
+            if ($is_ongoing) {
+                set_flash('error', "Cannot publish results while the examination is still ongoing.");
+                redirect("view-results.php?exam_id=$exam_id");
+            }
             $pdo->prepare("UPDATE exams SET results_published = 1 WHERE id = ?")->execute([$exam_id]);
             log_admin_action($pdo, 'publish_results', 'exam', $exam_id, "Published results for exam #$exam_id to students");
             set_flash('success', "Results for '{$exam['title']}' have been published! Students can now view their scores and answer breakdowns.");
@@ -101,33 +114,46 @@ include __DIR__ . '/../components/header.php';
             <?= e($flash) ?>
         </div>
     <?php endif; ?>
+    <?php if ($flashError = get_flash('error')): ?>
+        <div class="alert alert-error no-print" style="margin-bottom: 20px;">
+            <?= e($flashError) ?>
+        </div>
+    <?php endif; ?>
 
     <!-- Publication Status Banner -->
-    <div class="card no-print" style="margin-bottom: 24px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: <?= !empty($exam['results_published']) ? '#f0fdf4' : '#fffbeb' ?>; border-color: <?= !empty($exam['results_published']) ? '#bbf7d0' : '#fde68a' ?>;">
+    <div class="card no-print" style="margin-bottom: 24px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: <?= !empty($exam['results_published']) ? '#f0fdf4' : ($is_ongoing ? '#fefce8' : '#fffbeb') ?>; border-color: <?= !empty($exam['results_published']) ? '#bbf7d0' : ($is_ongoing ? '#fef08a' : '#fde68a') ?>;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 50%; background: <?= !empty($exam['results_published']) ? '#dcfce7' : '#fef3c7' ?>; color: <?= !empty($exam['results_published']) ? '#16a34a' : '#d97706' ?>; display: inline-flex; align-items: center; justify-content: center;">
-                <span class="material-symbols-outlined" style="font-size: 24px;"><?= !empty($exam['results_published']) ? 'visibility' : 'visibility_off' ?></span>
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: <?= !empty($exam['results_published']) ? '#dcfce7' : ($is_ongoing ? '#fef9c3' : '#fef3c7') ?>; color: <?= !empty($exam['results_published']) ? '#16a34a' : ($is_ongoing ? '#ca8a04' : '#d97706') ?>; display: inline-flex; align-items: center; justify-content: center;">
+                <span class="material-symbols-outlined" style="font-size: 24px;"><?= !empty($exam['results_published']) ? 'visibility' : ($is_ongoing ? 'pending_actions' : 'visibility_off') ?></span>
             </div>
             <div>
                 <h4 style="margin: 0 0 2px; font-weight: 700; color: var(--color-dark);">
-                    <?= !empty($exam['results_published']) ? 'Results are Published' : 'Results are Unpublished' ?>
+                    <?= !empty($exam['results_published']) ? 'Results are Published' : ($is_ongoing ? 'Exam is Currently Ongoing' : 'Results are Unpublished') ?>
                 </h4>
                 <p style="margin: 0; font-size: 0.88rem; color: var(--color-text-secondary);">
                     <?= !empty($exam['results_published'])
                         ? 'Students can view their scores, detailed answer reviews, and download official scorecards.'
-                        : 'Scores and answer keys are currently hidden from students until you publish them.' ?>
+                        : ($is_ongoing
+                            ? 'The exam is currently in progress. Results can only be released after the exam concludes.'
+                            : 'Scores and answer keys are currently hidden from students until you publish them.') ?>
                 </p>
             </div>
         </div>
 
         <div>
             <?php if (empty($exam['results_published'])): ?>
-                <form method="POST" style="display: inline;" onsubmit="return confirm('Publish results to all students now? Students will immediately see their scores and answer breakdowns.');">
-                    <?= csrf_field() ?>
-                    <button type="submit" name="publish_results" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 6px;">
+                <?php if ($is_ongoing): ?>
+                    <button type="button" class="btn btn-success" disabled style="display: inline-flex; align-items: center; gap: 6px;" title="Cannot publish results while the exam is still ongoing">
                         <span class="material-symbols-outlined icon-sm">publish</span> Publish Results to Students
                     </button>
-                </form>
+                <?php else: ?>
+                    <form method="POST" style="display: inline;" onsubmit="return confirm('Publish results to all students now? Students will immediately see their scores and answer breakdowns.');">
+                        <?= csrf_field() ?>
+                        <button type="submit" name="publish_results" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined icon-sm">publish</span> Publish Results to Students
+                        </button>
+                    </form>
+                <?php endif; ?>
             <?php else: ?>
                 <form method="POST" style="display: inline;" onsubmit="return confirm('Hide results from students? Scores and answer reviews will be locked.');">
                     <?= csrf_field() ?>

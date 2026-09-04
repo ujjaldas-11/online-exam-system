@@ -254,20 +254,19 @@ online-exam-system/
 │   ├── css/             # Consolidated and modular stylesheets
 │   ├── fonts/           # Self-hosted web fonts for offline campus use
 │   └── images/          # Application logos and icons
+├── bin/                 # CLI entrypoints (websocket-server.php)
 ├── components/          # Shared PHP UI partials and modal components
 ├── config/              # Database connection and environment loader
 ├── docs/                # Technical documentation library
 │   ├── dev/             # Developer specifications (ASD-STE100)
 │   └── user/            # User guide documentation (ASD-STE100)
-├── lib/                 # Third-party libraries (FPDF engine)
+├── lib/                 # Third-party and internal engines (FPDF, WebSocket)
 ├── services/            # Core business logic services (ExamEngine, PdfService)
 ├── student/             # Student portal views and examination endpoints
 ├── tests/               # Automated unit, security, and concurrency test suites
-├── tools/               # Local development and format checkers
-├── utils/               # Core utility modules (auth, CSRF, device, logger, sanitize, timer)
-├── .editorconfig        # Indentation and line ending specification
+├── utils/               # Core utility modules (auth, CSRF, device, logger, sanitize, timer, pusher)
 ├── .htaccess            # Apache security headers and browser caching rules
-├── .php-cs-fixer.dist.php # PSR-12 code style fixer configuration
+├── .mega-linter.yml     # Automated multi-language linter configuration
 └── index.php            # Application landing page
 ```
 
@@ -362,13 +361,22 @@ When an administrator deploys Examify on a new server:
 4. The system provisions the account using `PASSWORD_BCRYPT` hashing and logs the event in `admin_audit_logs`.
 5. Once initialized, `admin/setup.php` locks permanently and redirects subsequent visits to `admin-login.php`.
 
-### 5.9 Universal Password Visibility Toggle (`components/footer.php`)
+### 5.10 Universal Password Visibility Toggle (`components/footer.php`)
 
 The application provides an interactive eye icon for every password input field:
 - The helper wraps password inputs in a relative `.password-wrapper` container.
 - An absolute-positioned `.password-toggle-btn` displays a Material Symbols eye icon.
 - Clicking the toggle button switches the input attribute between `type="password"` and `type="text"`.
 - A centralized listener in `components/footer.php` initializes all toggles automatically across the entire application.
+
+### 5.11 Real-Time WebSocket & IPC Architecture (`lib/websocket/`, `utils/websocket-pusher.php`)
+
+Examify implements an event-driven real-time architecture replacing full-page reloads and periodic polling:
+- **WebSocket Engine (`lib/websocket/Server.php`)**: Standalone RFC 6455 server using native PHP `stream_socket_server`.
+- **Public Port (`8085`)**: Accepts browser client connections for channel subscriptions (`exam:{id}`, `admin:notifications`).
+- **IPC Push Bridge (`127.0.0.1:8086`)**: Accepts internal TCP JSON pushes from standard PHP requests via `WebSocketPusher::emit()`.
+- **In-Place UI Updates (`assets/js/proctor-socket.js`)**: Real-time updates for violation counters, student progress, attempt states, and emergency actions with pulse animations.
+- **Graceful Fallback**: If the WebSocket daemon is stopped, the client transparently switches to lightweight background AJAX polling without page flickers.
 
 ---
 
@@ -463,18 +471,16 @@ Examify organizes styles modularly under `assets/css/`:
 ### 9.2 Automated Verification Commands
 ```powershell
 # Windows PowerShell
-.\tools\check-editorconfig.ps1
 Get-ChildItem -Filter *.php -Recurse | ForEach-Object { php -l $_.FullName }
 php tests/security_and_unit_tests.php
 ```
 
 ```bash
 # Linux / macOS Bash
-./tools/check-editorconfig.sh
 find . -type f -name "*.php" -exec php -l {} +
 php tests/security_and_unit_tests.php
 ```
 
 ### 9.3 GitHub Actions Workflows
-- `lint.yml`: Checks EditorConfig rules, validates PHP syntax across PHP 8.1, 8.2, and 8.3, and tests code style.
+- `mega-linter.yml`: Fully-bundled multi-language linter (PHP flavor) automatically validating syntax, styles, and format across all codebase files on push/PR.
 - `release.yml`: Minifies CSS and JavaScript assets, excludes development files, and packages production releases (`examify-release.zip`).

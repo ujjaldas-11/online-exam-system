@@ -60,6 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $upStmt = $pdo->prepare("UPDATE exams SET duration_minutes = duration_minutes + ? WHERE id = ?");
                 $upStmt->execute([$extra_minutes, $exam_id]);
                 log_admin_action($pdo, 'extend_exam_time', 'exam', $exam_id, "Added +$extra_minutes mins to exam #$exam_id duration");
+
+                require_once __DIR__ . '/../utils/websocket-pusher.php';
+                WebSocketPusher::emit("exam:{$exam_id}", "time_extended", [
+                    'extra_minutes' => $extra_minutes,
+                ]);
                 $message = "Added +$extra_minutes minutes to exam duration.";
                 $message_type = 'success';
             } catch (PDOException $e) {
@@ -81,10 +86,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (isset($_POST['publish_results'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         try {
-            $pdo->prepare("UPDATE exams SET results_published = 1 WHERE id = ?")->execute([$exam_id]);
-            log_admin_action($pdo, 'publish_results', 'exam', $exam_id, "Published results for exam #$exam_id to students");
-            $message = "Results for exam #$exam_id have been published to students.";
-            $message_type = 'success';
+            $chkStmt = $pdo->prepare("SELECT status, start_time, duration_minutes FROM exams WHERE id = ?");
+            $chkStmt->execute([$exam_id]);
+            $targetExam = $chkStmt->fetch();
+
+            $examOngoing = false;
+            if ($targetExam && $targetExam['status'] === 'active') {
+                $startTs = !empty($targetExam['start_time']) ? strtotime($targetExam['start_time']) : time();
+                $durationSec = ((int)$targetExam['duration_minutes']) * 60;
+                if (time() < ($startTs + $durationSec)) {
+                    $examOngoing = true;
+                }
+            }
+
+            if ($examOngoing) {
+                $message = "Cannot publish results: Exam #$exam_id is still ongoing.";
+                $message_type = 'error';
+            } else {
+                $pdo->prepare("UPDATE exams SET results_published = 1 WHERE id = ?")->execute([$exam_id]);
+                log_admin_action($pdo, 'publish_results', 'exam', $exam_id, "Published results for exam #$exam_id to students");
+                $message = "Results for exam #$exam_id have been published to students.";
+                $message_type = 'success';
+            }
         } catch (PDOException $e) {
             $message = safe_db_error($e, "Failed to publish results.");
             $message_type = 'error';
@@ -187,6 +210,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 $display_status = 'ENDED';
                                 $badge_class = 'badge-ended';
                             }
+                            $is_ongoing = ($display_status === 'RUNNING');
                             ?>
                             <tr>
                                 <td>#<?= e((string)$exam['id']) ?></td>
@@ -271,13 +295,19 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             </a>
 
                                             <?php if (empty($exam['results_published'])): ?>
-                                                <form method="POST" style="display: inline;" onsubmit="return confirm('Publish results for exam #<?= $exam['id'] ?> to students? Students will immediately see their scores and answer breakdowns.');">
-                                                    <?= csrf_field() ?>
-                                                    <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
-                                                    <button type="submit" name="publish_results" class="btn btn-success btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Release scores and answers to students">
+                                                <?php if ($is_ongoing): ?>
+                                                    <button type="button" class="btn btn-success btn-sm" disabled style="display: inline-flex; align-items: center; gap: 4px;" title="Cannot publish results while the exam is still ongoing">
                                                         <span class="material-symbols-outlined icon-xs">publish</span> Publish
                                                     </button>
-                                                </form>
+                                                <?php else: ?>
+                                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Publish results for exam #<?= $exam['id'] ?> to students? Students will immediately see their scores and answer breakdowns.');">
+                                                        <?= csrf_field() ?>
+                                                        <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
+                                                        <button type="submit" name="publish_results" class="btn btn-success btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Release scores and answers to students">
+                                                            <span class="material-symbols-outlined icon-xs">publish</span> Publish
+                                                        </button>
+                                                    </form>
+                                                <?php endif; ?>
                                             <?php else: ?>
                                                 <form method="POST" style="display: inline;" onsubmit="return confirm('Unpublish results for exam #<?= $exam['id'] ?>? Scores and answers will be hidden from students.');">
                                                     <?= csrf_field() ?>

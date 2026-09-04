@@ -1,0 +1,30 @@
+# MegaLinter Configuration
+# Documentation: https://megalinter.io/latest/configuration/
+
+# Whitelist active linters tailored to this codebase
+ENABLE_LINTERS:
+  - PHP_PHPLINT                         # PHP syntax verification (php -l)
+  - JSON_JSONLINT                       # JSON syntax validator
+  - YAML_YAMLLINT                       # YAML configuration validator
+  - ACTION_ACTIONLINT                   # GitHub Actions workflow validator
+  - MARKDOWN_MARKDOWNLINT               # Markdown syntax and heading validator
+  - MARKDOWN_MARKDOWN_TABLE_FORMATTER   # Markdown table alignment
+  - MARKDOWN_MARKDOWN_LINK_CHECK        # Markdown hyperlink validator
+
+# Disable automatic in-place file modifications in CI
+APPLY_FIXES: none
+
+# Exclude third-party vendor code, logs, and database archives
+EXCLUDED_DIRECTORIES:
+  - lib
+  - logs
+  - archive
+  - dist
+  - .git
+
+# Regex path exclusion pattern
+FILTER_REGEX_EXCLUDE: "(lib/.*|logs/.*|archive/.*|dist/.*)"
+
+# Output formatting
+SHOW_ELAPSED_TIME: true
+PRINT_ALPACA: false
