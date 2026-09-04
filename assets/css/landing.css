@@ -1,29 +1,32 @@
 /*LANDING PAGE*/
 
 :root {
-    --landing-bg:   #121212;
-    --landing-nav-bg: rgba(18, 18, 18, 0.8);
+    --landing-bg:radial-gradient(circle at top left, #EFF6FF 0%, #F8FAFC 100%);
+
+
+;
+    --landing-nav-bg: #0F172A; 
     --landing-footer-bg: rgba(18, 18, 18, 0.9);
 
     --landing-text: #e2e8f0;
-    --landing-heading: #f8fafc;
+    --landing-heading: #00060c;
     --landing-white: #ffffff;
 
     --landing-border: rgba(255, 255, 255, 0.08);
     --landing-border-soft: rgba(255, 255, 255, 0.05);
     --landing-border-strong: rgba(255, 255, 255, 0.2);
 
-    --landing-accent: var(--color-primary, #33422e);
-    --landing-accent-hover: var(--color-primary-hover, #263320);
-    --landing-accent-text: #b7cda3;
+    --landing-accent: var(--cobtn-admin, #302e42);
+    --landing-accent-hover: var(--cobtn-admin-hover, #263320);
+    --landing-accent-text: #040900;
     --landing-accent-dots: rgba(159, 189, 138, 0.35);
     --landing-accent-soft: rgba(51, 66, 46, 0.14);
     --landing-accent-soft-border: rgba(51, 66, 46, 0.28);
-    --landing-accent-shadow: rgba(51, 66, 46, 0.55);
+    --landing-accent-shadow: rgba(106, 151, 171, 0.55);
     --landing-accent-shadow-soft: rgba(51, 66, 46, 0.32);
 
-    --landing-card-bg: rgba(30, 41, 59, 0.5);
-    --landing-card-bg-hover: rgba(30, 41, 59, 0.9);
+    
+    --landing-card-bg-hover: rgba(46, 101, 188, 0.9);
 }
 
 .landing-body {
@@ -52,6 +55,7 @@
     position: sticky;
     top: 0;
     z-index: 50;
+    margin-bottom: -3.5rem;
 }
 
 .college-brand {
@@ -63,27 +67,37 @@
     transition: transform 0.2s ease;
 }
 
-.college-brand:hover {
-    transform: scale(1.02);
-}
-
 .college-brand img {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     object-fit: contain;
     border-radius: 50%;
 }
-
 .college-name {
     font-size: 1.25rem;
     font-weight: 800;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.01em; 
+    color: #FFFFFF;
+    transition: color 0.2s ease-in-out; 
+    cursor: pointer;
+}
+
+.college-name:hover {
+    color: #38BDF8;
 }
 
 .college-name span {
-    color: #5aa2f4;
+    color: #22a6de;
+    font-weight: 800;
     font-size: 1.4rem;
+    transition: color 0.2s ease-in-out;
 }
+
+
+.college-name:hover span {
+    color: #FFFFFF; 
+}
+
 
 .college-name-mob {
     display: none;
@@ -124,31 +138,43 @@
 }
 
 .eyebrow img {
-    width: min(200px, 40vw);
+    width: min(400px, 60vw);
     height: auto;
-    margin-bottom: 10px;
+    margin-bottom: -10px;
+    filter: drop-shadow(0 15px 25px rgba(15, 23, 42, 0.25)) 
+            drop-shadow(0 5px 10px rgba(34, 166, 222, 0.15));
 }
 
 .hero-section h1 {
-    margin: 0 0 10px;
-    color: var(--landing-heading);
-    font-size: clamp(2.5rem, 5vw, 4rem);
+    margin: 0 3px 1px; 
+    
+    
+    font-size: clamp(3.5rem, 6vw, 5.5rem); 
+    
     font-weight: 800;
-    line-height: 1.1;
+    line-height: 1.05; 
     letter-spacing: -0.04em;
-    background: linear-gradient(to right, var(--landing-white), var(--landing-accent-text));
+    
+    
+    background: linear-gradient(135deg, #0F172A 40%, #1E4ED8 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    
+    color: #0F172A; 
+    padding-left: 2.9rem;
 }
 
-.hero-sub {
-    color: var(--color-text-muted, #94a3b8);
-    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-    line-height: 1.6;
-    margin-bottom: 24px;
-}
 
+.hero-section p {
+    font-family: "Segoe UI Text", "Segoe UI", -apple-system, Roboto, sans-serif;
+    font-size: clamp(1.15rem, 2vw, 1.3rem);
+    font-weight: 400;
+    line-height: 1.65;
+    color: #334155; 
+    max-width: 600px;
+    margin-top: 12px;
+}
 .hero-actions {
     display: flex;
     gap: 12px;
@@ -161,53 +187,67 @@
     align-items: center;
     justify-content: center;
     padding: 12px 20px;
+    min-height: 20px;
     border-radius: var(--radius-md, 8px);
     font-size: 0.9rem;
     font-weight: 600;
+    letter-spacing: 0.1px;
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease,
+                background 0.2s ease, color 0.2s ease;
 }
 
-.interactive-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px -6px var(--landing-accent-shadow);
+
+.btn:hover {
+    transform: translateY(-2px);
 }
 
-.interactive-btn:active {
+.btn:active {
     transform: translateY(0);
 }
 
-.btn-primary {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--landing-white);
-    border: 1px solid var(--landing-border-strong);
+
+.btn-admin {
+    color: #fff;
+    background: linear-gradient(135deg, #0F172A 20%, #1E4ED8 100%);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
 }
 
-.btn-primary:hover {
-    background: var(--landing-white);
-    color: var(--landing-bg);
+.btn-admin:hover {
+    background: linear-gradient(135deg, #16213a 20%, #285bdc 100%);
+    box-shadow: 0 7px 18px rgba(30, 78, 216, 0.25);
 }
 
-.btn-outline {
-    color: var(--landing-white);
-    background: var(--landing-accent);
-    border: 1px solid var(--landing-accent);
+
+.btn-student {
+    color: #0F172A;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
 }
 
-.btn-outline:hover {
-    background: var(--landing-accent-hover);
+.btn-student:hover {
+    color: #fff;
+    background: #433a85;
+    border-color: #433a85;
+    box-shadow: 0 7px 18px rgba(67, 58, 133, 0.22);
 }
 
-.btn-text {
-    color: var(--landing-accent-text);
+
+.btn-text-documentation {
+    color: #1e3a8a;
     background: transparent;
+    border: 1px solid transparent;
+    font-weight: bold;
 }
 
-.btn-text:hover {
-    color: var(--landing-white);
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+.btn-text-documentation:hover {
+    color: #433a85;
+    background: rgba(67, 58, 133, 0.06);
+    text-shadow: none;
 }
+
 
 .features-section {
     position: relative;
@@ -220,8 +260,8 @@
 }
 
 .feature-card {
-    background: var(--landing-card-bg);
-    border: 1px solid var(--landing-border);
+    background:#0F172A;
+    border: 1px solid gray;
     border-radius: 16px;
     padding: 20px;
     display: flex;
@@ -233,21 +273,16 @@
     cursor: default;
 }
 
-.interactive-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    background: var(--landing-card-bg-hover);
-    border-color: var(--landing-accent);
-    box-shadow: 0 15px 30px -10px var(--landing-accent-shadow-soft);
-}
+
 
 .feature-icon {
     font-size: 1.8rem;
     line-height: 1;
-    background: var(--landing-accent-soft);
+    background:var(--landing-bg);
     width: max-content;
     padding: 10px;
     border-radius: 12px;
-    border: 1px solid var(--landing-accent-soft-border);
+    border: 1px solid gray;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -261,14 +296,14 @@
 
 .feature-title {
     margin: 0 0 4px;
-    color: var(--landing-heading);
+    color: white;
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 750;
 }
 
 .feature-desc {
     margin: 0;
-    color: var(--color-text-muted, #94a3b8);
+    color: #d2cece;
     font-size: 0.85rem;
     line-height: 1.5;
 }
@@ -279,7 +314,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 28px;
-    background: var(--landing-footer-bg);
+    background: var(--landing-nav-bg);
     border-top: 1px solid var(--landing-border-soft);
     position: relative;
     z-index: 10;
@@ -315,6 +350,7 @@
 .footer-center {
     display: flex;
     align-items: center;
+    color: #ffffff;
     gap: 12px;
 }
 
@@ -384,6 +420,7 @@
 
     .hero-section h1 {
         font-size: 2.2rem;
+        padding-right: 1.9rem;
     }
 
     .hero-sub {
