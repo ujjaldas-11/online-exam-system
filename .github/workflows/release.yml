@@ -92,6 +92,7 @@ jobs:
           # Copy runtime production directories
           cp -r admin/ dist/examify/
           cp -r assets/ dist/examify/
+          [ -d bin/ ] && cp -r bin/ dist/examify/
           cp -r components/ dist/examify/
           cp -r config/ dist/examify/
           [ -d docs/ ] && cp -r docs/ dist/examify/

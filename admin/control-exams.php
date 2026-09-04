@@ -60,6 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $upStmt = $pdo->prepare("UPDATE exams SET duration_minutes = duration_minutes + ? WHERE id = ?");
                 $upStmt->execute([$extra_minutes, $exam_id]);
                 log_admin_action($pdo, 'extend_exam_time', 'exam', $exam_id, "Added +$extra_minutes mins to exam #$exam_id duration");
+
+                require_once __DIR__ . '/../utils/websocket-pusher.php';
+                WebSocketPusher::emit("exam:{$exam_id}", "time_extended", [
+                    'extra_minutes' => $extra_minutes,
+                ]);
                 $message = "Added +$extra_minutes minutes to exam duration.";
                 $message_type = 'success';
             } catch (PDOException $e) {

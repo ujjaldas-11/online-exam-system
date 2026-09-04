@@ -86,6 +86,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
                         ");
                         $ins->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone, $gender]);
+                        $newStudentId = (int) $pdo->lastInsertId();
+
+                        // Notify admins in real-time
+                        require_once __DIR__ . '/../utils/websocket-pusher.php';
+                        WebSocketPusher::emit("admin:notifications", "new_registration", [
+                            'student_id' => $newStudentId,
+                            'name' => $name,
+                            'roll_number' => $roll,
+                            'department' => $dept,
+                            'semester' => $sem,
+                        ]);
 
                         // Record registration hit
                         RateLimiter::hit($pdo, "register:ip:{$ip}", 900, 5);

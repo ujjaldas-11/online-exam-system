@@ -134,6 +134,14 @@ try {
     $total_questions = (int) $attempt['total_questions'];
     $points_per_question = ($total_questions > 0) ? round((float)$exam['total_marks'] / $total_questions, 2) : 0;
 
+    if (!empty($res['is_new'])) {
+        require_once __DIR__ . '/../utils/websocket-pusher.php';
+        WebSocketPusher::emit("exam:{$exam_id}", "student_started", [
+            'student_id' => $student_id,
+            'attempt_id' => $attempt_id,
+        ]);
+    }
+
 } catch (PDOException $e) {
     log_error("Exam loading error", $e);
     die("Database Error. Please contact your instructor.");
