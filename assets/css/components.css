@@ -72,7 +72,7 @@
 }
 
 .auth-card {
-  background: rgb(249, 240, 249);
+  background: white;
   width: 100%;
   max-width: 400px;
   border: 1px solid var(--color-border);
