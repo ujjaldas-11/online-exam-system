@@ -11,6 +11,16 @@ date_default_timezone_set('Asia/Kolkata');
 $message = '';
 $message_type = '';
 
+try {
+    $stmt = $pdo->query("SELECT DISTINCT unit_number FROM questions WHERE unit_number IS NOT NULL ORDER BY unit_number ASC");
+    $existing_units = $stmt->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $e) {
+    log_error('Failed to fetch existing units in create-exam', $e);
+    $existing_units = [];
+}
+
+$allowed_units = array_merge(['all'], array_map('strval', $existing_units));
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
     verify_csrf();
 
@@ -22,8 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
     $access_pin = clean_input($_POST['access_pin'] ?? '');
     $target_units = clean_input($_POST['target_units'] ?? '');
 
-    $allowed_units = ['all', '1', '2', '3', '4', '5', '6'];
-
     if (empty($title) || $subject_id <= 0 || $duration <= 0 || $duration > 1440 || $total_marks <= 0 || $total_marks > 10000 || $total_questions <= 0 || $total_questions > 1000 || empty($target_units)) {
         $message = 'Please fill all required fields with valid values.';
         $message_type = 'error';
@@ -33,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
     } elseif (strlen($access_pin) > 10) {
         $message = 'Access PIN cannot exceed 10 characters.';
         $message_type = 'error';
-    } elseif (!in_array($target_units, $allowed_units, true)) {
+    } elseif (empty($allowed_units) || !in_array($target_units, $allowed_units, true)) {
         $message = 'Invalid target unit selection.';
         $message_type = 'error';
     } else {
@@ -127,12 +135,15 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <select name="target_units" required class="form-control">
                     <option value="">Select Target Unit</option>
                     <option value="all" <?= (($_POST['target_units'] ?? '') === 'all') ? 'selected' : '' ?>>All Units (Combined Exam)</option>
-                    <option value="1" <?= (($_POST['target_units'] ?? '') == '1') ? 'selected' : '' ?>>Unit 1</option>
-                    <option value="2" <?= (($_POST['target_units'] ?? '') == '2') ? 'selected' : '' ?>>Unit 2</option>
-                    <option value="3" <?= (($_POST['target_units'] ?? '') == '3') ? 'selected' : '' ?>>Unit 3</option>
-                    <option value="4" <?= (($_POST['target_units'] ?? '') == '4') ? 'selected' : '' ?>>Unit 4</option>
-                    <option value="5" <?= (($_POST['target_units'] ?? '') == '5') ? 'selected' : '' ?>>Unit 5</option>
-                    <option value="6" <?= (($_POST['target_units'] ?? '') == '6') ? 'selected' : '' ?>>Unit 6</option>
+                    <?php if (empty($existing_units)): ?>
+                        <option value="" disabled>No units found in question bank</option>
+                    <?php else: ?>
+                        <?php foreach ($existing_units as $unit): ?>
+                            <option value="<?= e((string) $unit) ?>" <?= (($_POST['target_units'] ?? '') == $unit) ? 'selected' : '' ?>>
+                                Unit <?= e((string) $unit) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </select>
                 <small style="color: var(--color-text-secondary);">If the selected unit lacks enough questions, the system will notify you.</small>
             </div>
