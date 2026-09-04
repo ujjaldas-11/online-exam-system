@@ -169,7 +169,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <h1>Manage Questions</h1>
             <p>Bulk upload multiple-choice questions into the curriculum question bank</p>
         </div>
-        <a href="view-questions.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <a href="view-questions.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
             <span class="material-symbols-outlined icon-sm">visibility</span> View Question Bank
         </a>
     </div>

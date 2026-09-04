@@ -97,9 +97,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?php if (!empty($all_questions)): ?>
                 <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!');">
                     <?= csrf_field() ?>
-                    <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <!-- <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px; cursor: not-allowed;">
                         <span class="material-symbols-outlined icon-sm">delete</span> Delete All
-                    </button>
+                    </button> -->
                 </form>
             <?php endif; ?>
         </div>
