@@ -2,9 +2,6 @@
 
 :root {
     --landing-bg:radial-gradient(circle at top left, #EFF6FF 0%, #F8FAFC 100%);
-
-
-;
     --landing-nav-bg: #0F172A; 
     --landing-footer-bg: rgba(18, 18, 18, 0.9);
 
@@ -47,7 +44,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 12px 28px;
+    padding: 12px 28px;  
     background: var(--landing-nav-bg);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
@@ -358,12 +355,13 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: var(--landing-text-muted, #94a3b8);
-    font-size: 0.82rem;
-    font-weight: 500;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
     text-decoration: none;
     transition: color 0.2s ease, opacity 0.2s ease;
 }
+
 
 .footer-nav-link:hover {
     color: #ffd700;
