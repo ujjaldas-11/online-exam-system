@@ -27,7 +27,7 @@ if (has_flash('success')) {
 $isAdminSuper = is_superadmin();
 $adminId = (int) ($_SESSION['admin_id'] ?? 0);
 
-// --- CSV Export Handler ---
+
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $q = clean_input($_GET['q'] ?? '');
     $dept = clean_input($_GET['department'] ?? '');
@@ -93,11 +93,11 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit;
 }
 
-// --- Form POST Handlers ---
+
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     verify_csrf();
 
-    // 1. ADD NEW STUDENT
+
     if (isset($_POST['add_student'])) {
         $name = clean_input($_POST['name'] ?? '');
         $email = clean_input($_POST['email'] ?? '');
@@ -145,7 +145,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         }
     }
 
-    // 2. EDIT STUDENT DETAILS
+
     elseif (isset($_POST['edit_student'])) {
         $studentId = int_param($_POST['student_id'] ?? 0);
         $name = clean_input($_POST['name'] ?? '');
@@ -165,8 +165,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $message_type = 'error';
         } else {
             try {
-                // Check collision with other students
-                $chk = $pdo->prepare("SELECT id FROM students WHERE (email = ? OR roll_number = ?) AND id != ? LIMIT 1");
+
+            $chk = $pdo->prepare("SELECT id FROM students WHERE (email = ? OR roll_number = ?) AND id != ? LIMIT 1");
                 $chk->execute([$email, $roll, $studentId]);
                 if ($chk->fetch()) {
                     $message = "Another student is already using this email or roll number.";
@@ -474,18 +474,21 @@ include __DIR__ . '/../components/admin-sidebar.php';
             $exportParams['export'] = 'csv';
             $exportUrl = 'manage-students.php?' . http_build_query($exportParams);
             ?>
+
+            <?php if ($isAdminSuper): ?>
+                <a href="import-students.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">group</span>Bulk Student Insert
+                </a>
+                <button type="button" class="btn btn-primary" onclick="openBulkPromoteModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">upgrade</span> Bulk Semester Promote
+                </button>
+                <button type="button" class="btn btn-primary" onclick="openAddStudentModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">person_add</span> Add New Student
+                </button>
+            <?php endif; ?>
             <a href="<?= e($exportUrl) ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">download</span> Export CSV
             </a>
-            <a href="import-students.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">group</span>Bulk student imsert
-            </a>
-            <button type="button" class="btn btn-secondary" onclick="openBulkPromoteModal()" style="display: inline-flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">upgrade</span> Bulk Promote
-            </button>
-            <button type="button" class="btn btn-primary" onclick="openAddStudentModal()" style="display: inline-flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">person_add</span> Add New Student
-            </button>
         </div>
     </div>
 
