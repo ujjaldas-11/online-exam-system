@@ -263,11 +263,9 @@ online-exam-system/
 ├── services/            # Core business logic services (ExamEngine, PdfService)
 ├── student/             # Student portal views and examination endpoints
 ├── tests/               # Automated unit, security, and concurrency test suites
-├── tools/               # Local development and format checkers
 ├── utils/               # Core utility modules (auth, CSRF, device, logger, sanitize, timer)
-├── .editorconfig        # Indentation and line ending specification
 ├── .htaccess            # Apache security headers and browser caching rules
-├── .php-cs-fixer.dist.php # PSR-12 code style fixer configuration
+├── .mega-linter.yml     # Automated multi-language linter configuration
 └── index.php            # Application landing page
 ```
 
@@ -463,18 +461,16 @@ Examify organizes styles modularly under `assets/css/`:
 ### 9.2 Automated Verification Commands
 ```powershell
 # Windows PowerShell
-.\tools\check-editorconfig.ps1
 Get-ChildItem -Filter *.php -Recurse | ForEach-Object { php -l $_.FullName }
 php tests/security_and_unit_tests.php
 ```
 
 ```bash
 # Linux / macOS Bash
-./tools/check-editorconfig.sh
 find . -type f -name "*.php" -exec php -l {} +
 php tests/security_and_unit_tests.php
 ```
 
 ### 9.3 GitHub Actions Workflows
-- `lint.yml`: Checks EditorConfig rules, validates PHP syntax across PHP 8.1, 8.2, and 8.3, and tests code style.
+- `mega-linter.yml`: Fully-bundled multi-language linter (PHP flavor) automatically validating syntax, styles, and format across all codebase files on push/PR.
 - `release.yml`: Minifies CSS and JavaScript assets, excludes development files, and packages production releases (`examify-release.zip`).
