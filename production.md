@@ -57,8 +57,7 @@ The production archive excludes these development and test resources:
 
 - Version control files (`.git/`, `.gitignore`, `.gitattributes`)
 - Test suites and mock question banks (`tests/`)
-- Development scripts and format checkers (`tools/`)
 - GitHub Actions workflows and issue templates (`.github/`)
-- Linter configurations (`.editorconfig`, `.editorconfig-checker.json`, `.php-cs-fixer.dist.php`)
+- Linter configurations (`.mega-linter.yml`)
 - Local secrets and environment files (`.env`)
 - Local error logs (`logs/*.log`)

@@ -182,43 +182,43 @@ The dashboard provides a system overview:
 
 Open the **Students** tab to manage student enrollments.
 
-#### Filtering and Searching:
+#### Filtering and Searching
 - Type a name, email, or roll number in the search bar.
 - Filter records by department, semester, or enrollment status (`active`, `pending`, `blocked`).
 
-#### Enrolling a Student:
+#### Enrolling a Student
 1. Click the **Add Student** button.
 2. Type the student name, email, roll number, department, semester, and password.
 3. Click the **Create Student** button.
 
-#### Editing Student Information:
+#### Editing Student Information
 1. Locate the student in the table.
 2. Click the **Edit** button in the action menu.
 3. Modify the academic details and click **Save Changes**.
 
-#### Resetting Student Passwords:
+#### Resetting Student Passwords
 1. Click the **Reset Password** button for the student.
 2. Type a new temporary password and click **Update Password**.
 
-#### Account Suspension and Deletion:
+#### Account Suspension and Deletion
 - Click the **Block** button to suspend a student account.
 - Click the **Unblock** button to restore account access.
 - Click the **Delete** button to remove a student and purge historical attempts.
 
-#### Exporting Student Rosters:
+#### Exporting Student Rosters
 Click the **Export CSV** button to download the filtered student roster as a CSV spreadsheet.
 
 ### 3.4 Bulk Student Promotion
 
 Administrators can promote student cohorts to the next academic semester:
 
-#### Cohort Bulk Promotion:
+#### Cohort Bulk Promotion
 1. Locate the **Bulk Promote by Cohort** card.
 2. Select the target **Department** and **Current Semester**.
 3. Click the **Promote Cohort (+1 Sem)** button.
 4. Confirm the prompt to advance all matching students by one semester.
 
-#### Selection Bulk Promotion:
+#### Selection Bulk Promotion
 1. Select the checkboxes next to individual student records in the roster table.
 2. A floating batch action bar appears at the bottom of the screen.
 3. Click the **Promote Selected (+1 Sem)** button.

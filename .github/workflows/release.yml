@@ -66,9 +66,10 @@ jobs:
       - name: Determine Release Tag & Version
         id: vars
         run: |
-          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
-            TAG="${{ github.event.inputs.tag_name }}"
-          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          INPUT_TAG="${{ github.event.inputs.tag_name }}"
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          elif [[ "$GITHUB_REF" =~ ^refs/tags/ ]]; then
             TAG="${GITHUB_REF#refs/tags/}"
           else
             TAG="v$(date +'%Y.%m.%d.%H%M')"
@@ -79,8 +80,8 @@ jobs:
             TITLE="Examify Release $TAG"
           fi
 
-          echo "TAG_NAME=$TAG" >> $GITHUB_OUTPUT
-          echo "RELEASE_TITLE=$TITLE" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$TAG" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_TITLE=$TITLE" >> "$GITHUB_OUTPUT"
           echo "Release Tag: $TAG"
           echo "Release Title: $TITLE"
 

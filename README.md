@@ -6,7 +6,7 @@ Institutions deploy Examify on local area networks (LAN) for quizzes, semester t
 
 ---
 
-[![CI](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/lint.yml)
+[![CI](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/mega-linter.yml/badge.svg?branch=main)](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/mega-linter.yml)
 
 ## 🎯 Primary Use Case & Architecture
 
@@ -128,7 +128,6 @@ online-exam-system/
 │   ├── result.php               # Score evaluation and metrics breakdown
 │   └── student-guard.php        # Student session authorization gate
 ├── tests/                       # Automated unit, security, and concurrency test suites
-├── tools/                       # Development format and syntax checkers
 ├── utils/
 │   ├── anti-cheat.js            # Client-side integrity, fullscreen, and touch suppression
 │   ├── auth.php                 # Role verification and singleton session helpers
