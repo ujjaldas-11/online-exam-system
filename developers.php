@@ -16,7 +16,7 @@ $developers = [
         'name' => 'Bibekananda Mudi',
         'github' => 'https://github.com/FunToHard',
         'username' => 'FunToHard',
-        'role' => 'Full-Stack Developer',
+        'role' => 'Lead Systems Engineer',
         'initials' => 'BM',
         'color' => '#3b82f6'
     ],
