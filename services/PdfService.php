@@ -257,7 +257,7 @@ class PdfService
         $pdf->Cell(25, 5, 'Department:', 0, 0, 'L');
         $pdf->SetTextColor(15, 23, 42); $pdf->Cell(70, 5, $dept, 0, 0, 'L');
         
-        $pdf->SetTextColor(100, 116, 139); $pdf->Cell(25, 5, 'Target Unit(s):', 0, 0, 'L');
+        $pdf->SetTextColor(100, 116, 139); $pdf->Cell(25, 5, 'Unit(s):', 0, 0, 'L');
         $pdf->SetTextColor(15, 23, 42); $pdf->Cell(70, 5, $units, 0, 1, 'L');
 
         $pdf->SetTextColor(100, 116, 139); $pdf->Cell(25, 5, 'Instructor:', 0, 0, 'L');

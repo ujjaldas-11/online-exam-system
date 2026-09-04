@@ -27,12 +27,13 @@ if (isset($_GET['download_offline']) && isset($_GET['exam_id'])) {
     $examMeta = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($examMeta) {
+        $limit = (int) $examMeta['total_questions_to_ask'];
         // 2. Fetch Questions based on target unit
         if ($examMeta['target_units'] === 'all') {
-            $qStmt = $pdo->prepare("SELECT * FROM questions WHERE subject_id = ? ORDER BY id ASC");
+            $qStmt = $pdo->prepare("SELECT * FROM questions WHERE subject_id = ? ORDER BY RAND() LIMIT $limit");
             $qStmt->execute([$examMeta['subject_id']]);
         } else {
-            $qStmt = $pdo->prepare("SELECT * FROM questions WHERE subject_id = ? AND unit_number = ? ORDER BY id ASC");
+            $qStmt = $pdo->prepare("SELECT * FROM questions WHERE subject_id = ? AND unit_number = ? ORDER BY RAND() LIMIT $limit");
             $qStmt->execute([$examMeta['subject_id'], $examMeta['target_units']]);
         }
         $paperQuestions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
