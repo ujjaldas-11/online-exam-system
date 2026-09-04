@@ -46,6 +46,7 @@
     align-items: center;
     padding: 12px 28px;
     background: var(--landing-nav-bg);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--landing-border);
     position: sticky;
@@ -107,8 +108,8 @@
     background-image: radial-gradient(var(--landing-accent-dots) 1.5px, transparent 1.5px);
     background-size: 30px 30px;
     opacity: 0.4;
-    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
     -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
     z-index: 0;
 }
 
@@ -136,8 +137,8 @@
     line-height: 1.1;
     letter-spacing: -0.04em;
     background: linear-gradient(to right, var(--landing-white), var(--landing-accent-text));
-    background-clip: text;
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -226,6 +227,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: default;
