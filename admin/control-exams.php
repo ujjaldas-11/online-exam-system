@@ -11,6 +11,37 @@ date_default_timezone_set('Asia/Kolkata');
 $message = '';
 $message_type = '';
 
+if (isset($_GET['download_offline']) && isset($_GET['exam_id'])) {
+    require_once '../services/PdfService.php';
+    $dl_exam_id = (int)$_GET['exam_id'];
+
+    // 1. Fetch Exam Meta
+    $stmt = $pdo->prepare("
+        SELECT e.*, a.name as creator_name, s.department, s.semester 
+        FROM exams e 
+        LEFT JOIN admins a ON e.created_by = a.id
+        LEFT JOIN subjects s ON e.subject_id = s.id 
+        WHERE e.id = ?
+    ");
+    $stmt->execute([$dl_exam_id]);
+    $examMeta = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($examMeta) {
+        // 2. Fetch Questions based on target unit
+        if ($examMeta['target_units'] === 'all') {
+            $qStmt = $pdo->prepare("SELECT * FROM questions WHERE subject_id = ? ORDER BY id ASC");
+            $qStmt->execute([$examMeta['subject_id']]);
+        } else {
+            $qStmt = $pdo->prepare("SELECT * FROM questions WHERE subject_id = ? AND unit_number = ? ORDER BY id ASC");
+            $qStmt->execute([$examMeta['subject_id'], $examMeta['target_units']]);
+        }
+        $paperQuestions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 3. Generate PDF and force download ('D')
+        PdfService::generateOfflineExamPaperPdf($examMeta, $paperQuestions, 'D');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
@@ -267,6 +298,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 </td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;">
+                                        <a href="?download_offline=true&exam_id=<?= $exam['id'] ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                                            <span class="material-symbols-outlined icon-sm">print</span> Print Offline Paper
+                                        </a>
                                         <?php if ($display_status === 'NOT STARTED'): ?>
                                             <form method="POST" style="display: inline;" onsubmit="return confirm('Start this examination now? Students will be able to join immediately.');">
                                                 <?= csrf_field() ?>

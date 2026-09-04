@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 
+
 $student_id = (int) $_SESSION['student_id'];
 $student_name = $_SESSION['student_name'] ?? 'Student';
 $dept = $_SESSION['department'] ?? '';
@@ -14,6 +15,40 @@ if (empty($_GET['attempt_id'])) {
     die('Invalid request. No exam attempt specified.');
 }
 $attempt_id = int_param($_GET['attempt_id']);
+
+
+if (isset($_GET['download_answers']) && isset($_GET['attempt_id'])) {
+    require_once '../services/PdfService.php';
+    $dl_attempt_id = (int)$_GET['attempt_id'];
+
+    $metaStmt = $pdo->prepare("
+        SELECT s.name, s.roll_number, e.title 
+        FROM exam_attempts ea
+        JOIN students s ON ea.student_id = s.id
+        JOIN exams e ON ea.exam_id = e.id
+        WHERE ea.id = ? AND ea.student_id = ?
+    ");
+    // $student_id should come from your session
+    $metaStmt->execute([$dl_attempt_id, $student_id]); 
+    $metaData = $metaStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($metaData) {
+        $pdfStudent = ['name' => $metaData['name'], 'roll_number' => $metaData['roll_number']];
+        $pdfExam = ['title' => $metaData['title']];
+
+        $qaStmt = $pdo->prepare("
+            SELECT q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
+                   sa.selected_option, sa.is_correct
+            FROM student_answers sa
+            JOIN questions q ON sa.question_id = q.id
+            WHERE sa.attempt_id = ?
+            ORDER BY sa.id ASC
+        ");
+        $qaStmt->execute([$dl_attempt_id]);
+        
+        PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $qaStmt->fetchAll(PDO::FETCH_ASSOC), 'D');
+    }
+}
 
 try {
     $examStmt = $pdo->prepare("
@@ -106,8 +141,8 @@ $marks_each = ($total_qs > 0) ? round($total_marks / $total_qs, 2) : 0;
                 <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
             </div>
             <div style="margin-top: 8px;">
-                <a href="download-card.php?attempt_id=<?= $attempt_id ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-                    <span class="material-symbols-outlined icon-xs">picture_as_pdf</span> Download Scorecard PDF
+                <a href="?download_answers=true&attempt_id=<?= $attempt_id ?>" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">rule</span> Download Detailed Answer Sheet
                 </a>
             </div>
         </div>

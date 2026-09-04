@@ -137,14 +137,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
             </a>
 
-            <a href="import-students.php" class="btn btn-secondary" style="justify-content: flex-start; padding: 16px; gap: 12px;">
-                <span class="material-symbols-outlined icon-xl">upload_file</span>
-                <div style="text-align: left;">
-                    <div><strong>Import Students (CSV)</strong></div>
-                    <small style="color: var(--color-text-secondary); font-weight: normal;">Bulk roster creation</small>
-                </div>
-            </a>
-
             <a href="manage-requests.php" class="btn btn-secondary" style="justify-content: flex-start; padding: 16px; gap: 12px;">
                 <span class="material-symbols-outlined icon-xl">manage_accounts</span>
                 <div style="text-align: left;">
@@ -167,6 +159,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <div style="text-align: left;">
                         <div><strong>System Audit Trail</strong></div>
                         <small style="color: var(--color-text-secondary); font-weight: normal;">Review teacher & record history</small>
+                    </div>
+                </a>
+
+                <a href="import-students.php" class="btn btn-secondary" style="justify-content: flex-start; padding: 16px; gap: 12px;">
+                    <span class="material-symbols-outlined icon-xl">upload_file</span>
+                    <div style="text-align: left;">
+                        <div><strong>Import Students (CSV)</strong></div>
+                        <small style="color: var(--color-text-secondary); font-weight: normal;">Bulk roster creation</small>
                     </div>
                 </a>
             <?php else: ?>
