@@ -98,21 +98,33 @@ include __DIR__ . '/../components/student-navbar.php';
 
 <div class="container" style="max-width: 700px;">
     <?php if (!$can_view_results): ?>
-        <!-- PENDING RESULTS PUBLICATION VIEW -->
-        <div class="card" style="text-align: center; padding: 48px 24px;">
-            <div style="width: 72px; height: 72px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                <span class="material-symbols-outlined" style="font-size: 40px;">task_alt</span>
+        <!-- PENDING RESULTS PUBLICATION VIEW (Score visible, review & PDF locked) -->
+        <div class="card" style="text-align: center; padding: 40px 24px;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <span class="material-symbols-outlined" style="font-size: 36px;">task_alt</span>
             </div>
 
-            <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--color-dark); margin-bottom: 8px;">
+            <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--color-dark); margin-bottom: 6px;">
                 Exam Submitted Successfully
             </h1>
-            <p style="color: var(--color-text-secondary); font-size: 1.05rem; margin-bottom: 28px;">
-                Your responses for <strong><?= e($attempt['title']) ?></strong> have been securely recorded.
+            <p style="color: var(--color-text-secondary); font-size: 1rem; margin-bottom: 24px;">
+                Your responses for <strong><?= e($attempt['title']) ?></strong> have been securely recorded. Examination Result summary:
             </p>
 
-            <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 30px; text-align: left;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <!-- Student Total Score Display -->
+            <div style="background: var(--color-primary-soft); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 24px;">
+                <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;">Your Total Score</div>
+                <div style="font-size: 2.8rem; font-weight: 800; color: var(--color-primary); line-height: 1.1; margin: 6px 0;">
+                    <?= sprintf('%.2f', $score) ?> <span style="font-size: 1.4rem; color: var(--color-text-secondary); font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
+                </div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: <?= $percentage >= 50 ? 'var(--color-success)' : 'var(--color-error)' ?>;">
+                    Score Percentage: <?= $percentage ?>%
+                </div>
+            </div>
+
+            <!-- Admin Publish Warning Container -->
+            <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 28px; text-align: left;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                     <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-secondary); letter-spacing: 0.5px;">Results Status</span>
                     <?php if (!$is_exam_ended): ?>
                         <span class="badge badge-active" style="display: inline-flex; align-items: center; gap: 4px;">
@@ -125,22 +137,26 @@ include __DIR__ . '/../components/student-navbar.php';
                     <?php endif; ?>
                 </div>
 
-                <p style="color: var(--color-text); font-size: 0.95rem; line-height: 1.6; margin: 0 0 10px;">
+                <p style="color: var(--color-text); font-size: 0.92rem; line-height: 1.6; margin: 0 0 10px;">
                     <?php if (!$is_exam_ended): ?>
-                        This examination session is currently ongoing in the classroom. To maintain academic integrity, scores and answer breakdowns remain strictly confidential until the entire examination ends and the administrator publishes the results.
+                        This examination session is currently ongoing in the classroom. To maintain academic integrity, detailed answer breakdowns and downloadable scorecard PDFs remain locked until the entire examination ends and the administrator publishes the results.
                     <?php else: ?>
-                        The examination session has concluded. Answer keys and scores are currently being verified and will be released as soon as the administrator publishes the results.
+                        The examination session has concluded. Official scorecard PDFs and detailed question answer reviews are currently being finalized and will be unlocked as soon as the administrator publishes the results.
                     <?php endif; ?>
                 </p>
-                <div style="font-size: 0.85rem; color: var(--color-text-muted);">
-                    Check your Student Dashboard periodically for published score updates.
+                <div style="font-size: 0.85rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-xs">info</span>
+                    Scorecard PDF download and answer key review will be available once results are published by the instructor.
                 </div>
             </div>
 
-            <div>
-                <a href="dashboard.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 12px 24px;">
+            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                <a href="dashboard.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px;">
                     <span class="material-symbols-outlined icon-sm">dashboard</span> Return to Dashboard
                 </a>
+                <button type="button" class="btn btn-secondary" disabled style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; opacity: 0.6; cursor: not-allowed;" title="Scorecard PDF download is locked until admin publishes results">
+                    <span class="material-symbols-outlined icon-sm">lock</span> Download PDF (Locked)
+                </button>
             </div>
         </div>
     <?php else: ?>

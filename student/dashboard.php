@@ -63,10 +63,12 @@ foreach ($available_exams as $exam) {
         $duration_seconds = $exam['duration_minutes'] * 60;
         $end_timestamp = $start_timestamp + $duration_seconds;
 
-        if (time() >= $end_timestamp) {
+        if (time() >= $end_timestamp && empty($exam['attempt_status'])) {
             continue;
         }
-        $active_count++;
+        if (time() < $end_timestamp) {
+            $active_count++;
+        }
     }
     $filtered_exams[] = $exam;
 }
@@ -158,20 +160,26 @@ include __DIR__ . '/../components/student-navbar.php';
                                     </div>
                                 </div>
                             <?php elseif (!$is_exam_ended): ?>
-                                <div class="alert alert-info" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                <div class="alert alert-info" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <span class="material-symbols-outlined icon-sm">task_alt</span>
-                                        <div><strong>Exam Submitted</strong> • Session in progress</div>
+                                        <div>Score: <strong><?= sprintf('%.2f', (float)$exam['score']) ?> / <?= e((string) $exam['total_marks']) ?></strong> <span style="font-size: 0.8rem; opacity: 0.85;">(Live Session)</span></div>
                                     </div>
-                                    <span class="badge badge-pending">Results Hidden</span>
+                                    <div style="display: flex; gap: 6px; align-items: center;">
+                                        <a href="result.php?exam_id=<?= (int)$exam['id'] ?>" class="btn btn-secondary btn-sm" title="View Score">Score</a>
+                                        <span class="badge badge-pending" style="font-size: 0.72rem;">Review &amp; PDF Locked</span>
+                                    </div>
                                 </div>
                             <?php else: ?>
-                                <div class="alert alert-warning" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                <div class="alert alert-warning" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <span class="material-symbols-outlined icon-sm">hourglass_top</span>
-                                        <div><strong>Exam Ended</strong> • Results awaiting publication</div>
+                                        <div>Score: <strong><?= sprintf('%.2f', (float)$exam['score']) ?> / <?= e((string) $exam['total_marks']) ?></strong> <span style="font-size: 0.8rem; opacity: 0.85;">(Awaiting Publication)</span></div>
                                     </div>
-                                    <span class="badge badge-warning">Unpublished</span>
+                                    <div style="display: flex; gap: 6px; align-items: center;">
+                                        <a href="result.php?exam_id=<?= (int)$exam['id'] ?>" class="btn btn-secondary btn-sm" title="View Score">Score</a>
+                                        <span class="badge badge-warning" style="font-size: 0.72rem;">Unpublished</span>
+                                    </div>
                                 </div>
                             <?php endif; ?>
                         <?php elseif ($status === 'scheduled'): ?>
