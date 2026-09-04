@@ -55,7 +55,7 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
         </section>
 
         <section class="features-section">
-            <div class="feature-card interactive-card">
+            <div class="feature-card">
                 <div class="feature-icon">
                     <span class="material-symbols-outlined">quiz</span>
                 </div>
@@ -64,7 +64,7 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
                     <p class="feature-desc">Organize and reuse subjects effortlessly.</p>
                 </div>
             </div>
-            <div class="feature-card interactive-card">
+            <div class="feature-card">
                 <div class="feature-icon">
                     <span class="material-symbols-outlined">timer</span>
                 </div>
@@ -73,7 +73,7 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
                     <p class="feature-desc">Set windows and monitor live sessions.</p>
                 </div>
             </div>
-            <div class="feature-card interactive-card">
+            <div class="feature-card">
                 <div class="feature-icon">
                     <span class="material-symbols-outlined">shield</span>
                 </div>
@@ -82,7 +82,7 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
                     <p class="feature-desc">Full-screen enforcement & tab tracking.</p>
                 </div>
             </div>
-            <div class="feature-card interactive-card">
+            <div class="feature-card">
                 <div class="feature-icon">
                     <span class="material-symbols-outlined">analytics</span>
                 </div>
