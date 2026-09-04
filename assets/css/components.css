@@ -211,6 +211,7 @@
   line-height: 1;
   border-radius: var(--radius-sm, 4px);
   transition: color 0.15s ease, background-color 0.15s ease;
+  -webkit-user-select: none;
   user-select: none;
   z-index: 2;
 }
@@ -230,6 +231,7 @@
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.65);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   display: none;
   align-items: center;
@@ -407,6 +409,13 @@
 .btn:hover {
   background: var(--color-primary-hover);
   color: var(--color-gold-hover);
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -847,7 +856,6 @@ tr:hover td {
   direction: ltr;
   -webkit-font-feature-settings: "liga";
   font-feature-settings: "liga";
-  -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
   -webkit-user-select: none;
   user-select: none;

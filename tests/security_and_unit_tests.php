@@ -300,6 +300,21 @@ try {
     $unpubVal = (int)$pdo->query("SELECT results_published FROM exams WHERE id = $testExamId")->fetchColumn();
     assert_test("Admin unpublish reverts results_published to 0 in database", $unpubVal === 0);
 
+    // 6.2 Admin Publish Eligibility (Disabled when Ongoing)
+    $isOngoing = function(string $status, ?string $startTime, int $durationMin): bool {
+        if ($status === 'active') {
+            $startTs = !empty($startTime) ? strtotime($startTime) : time();
+            $durationSec = $durationMin * 60;
+            return time() < ($startTs + $durationSec);
+        }
+        return false;
+    };
+
+    assert_test("Active exam with remaining duration is detected as ongoing", $isOngoing('active', date('Y-m-d H:i:s'), 30) === true);
+    assert_test("Active exam with elapsed duration is detected as not ongoing", $isOngoing('active', date('Y-m-d H:i:s', time() - 3600), 30) === false);
+    assert_test("Ended exam is detected as not ongoing", $isOngoing('ended', null, 30) === false);
+    assert_test("Pending exam is detected as not ongoing", $isOngoing('pending', null, 30) === false);
+
 } catch (Exception $e) {
     assert_test("Results gating tests failed", false, $e->getMessage());
 }
