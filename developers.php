@@ -16,9 +16,9 @@ $developers = [
         'name' => 'Bibekananda Mudi',
         'github' => 'https://github.com/FunToHard',
         'username' => 'FunToHard',
-        'role' => 'Lead Systems Engineer',
+        'role' => 'Full-Stack Developer',
         'initials' => 'BM',
-        'color' => '#3b82f6'
+        'color' => '#3b82f6' 
     ],
     [
         'name' => 'Ujjal Das',
@@ -32,7 +32,7 @@ $developers = [
         'name' => 'Gopal Mahato',
         'github' => 'https://github.com/gopal-mlfullstack',
         'username' => 'gopal-mlfullstack',
-        'role' => 'Lead Frontend Developer',
+        'role' => 'Frontend Developer',
         'initials' => 'GM',
         'color' => '#291064'
     ],
