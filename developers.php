@@ -33,9 +33,9 @@ $developers = [
         'name' => 'Gopal Mahato',
         'github' => 'https://github.com/gopal-mlfullstack',
         'username' => 'gopal-mlfullstack',
-        'role' => 'Full-Stack Developer',
+        'role' => 'Frontend Developer',
         'initials' => 'GM',
-        'color' => '#8b5cf6'
+        'color' => '#291064'
     ],
     [
         'name' => 'Chandan Kuiri',
