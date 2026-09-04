@@ -71,30 +71,169 @@ try {
 }
 
 $page_title = 'System Audit Trail • Examify';
+$body_class = 'audit-logs-page';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<div class="container main-content">
-    <div class="page-header">
+<style>
+/* Audit Logs Scrollable Container & Viewport Fit */
+@media (min-width: 769px) and (min-height: 550px) {
+    html, body.audit-logs-page {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .audit-page-container {
+        height: 100vh;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding-top: 64px !important;
+        padding-bottom: 16px !important;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .audit-page-container .audit-page-header {
+        margin-bottom: 10px;
+        flex-shrink: 0;
+    }
+
+    .audit-page-container .audit-page-header h1 {
+        font-size: 1.4rem;
+        line-height: 1.2;
+    }
+
+    .audit-page-container .audit-page-header p {
+        font-size: 0.85rem;
+        margin-top: 2px;
+    }
+
+    .audit-page-container .filter-card {
+        margin-bottom: 10px !important;
+        padding: 10px 16px !important;
+        flex-shrink: 0;
+    }
+
+    .audit-page-container .audit-card {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0 !important;
+        padding: 14px 18px !important;
+        overflow: hidden;
+    }
+
+    .audit-page-container .audit-card .card-header-row {
+        margin-bottom: 10px;
+        flex-shrink: 0;
+    }
+
+    .audit-page-container .audit-table-wrap {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 768px), (max-height: 549px) {
+    .audit-page-container {
+        padding-top: 64px !important;
+        padding-bottom: 24px !important;
+    }
+
+    .audit-card {
+        margin-bottom: 24px;
+        padding: 16px;
+    }
+
+    .audit-table-wrap {
+        max-height: 60vh;
+        min-height: 280px;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+}
+
+.audit-table-wrap {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    position: relative;
+    overscroll-behavior: contain;
+}
+
+.audit-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+.audit-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--color-border);
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.audit-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.audit-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Subtle modern scrollbars */
+.audit-table-wrap::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.audit-table-wrap::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+.audit-table-wrap::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.audit-table-wrap::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+.audit-table-wrap {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+</style>
+
+<div class="container main-content audit-page-container">
+    <div class="page-header audit-page-header">
         <div>
             <h1>Activity &amp; Record Audit Trail</h1>
             <p><?= $isAdminSuper ? 'Comprehensive institutional tracking of all teacher actions, exam controls, and question banks' : 'Your administrative activity log and record history' ?></p>
         </div>
         <?php if ($isAdminSuper): ?>
-            <a href="manage-teachers.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <a href="manage-teachers.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 0.85rem;">
                 <span class="material-symbols-outlined icon-sm">group</span> Manage Teachers
             </a>
         <?php endif; ?>
     </div>
 
     <!-- Filter Card -->
-    <div class="card" style="margin-bottom: 20px;">
-        <form method="GET" action="" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+    <div class="card filter-card">
+        <form method="GET" action="" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
             <?php if ($isAdminSuper): ?>
-                <div class="form-group" style="margin-bottom: 0; min-width: 200px; flex: 1;">
-                    <label style="font-size: 0.85rem;">Filter by Instructor</label>
-                    <select name="admin_id" onchange="this.form.submit()">
+                <div class="form-group" style="margin-bottom: 0; min-width: 140px; flex: 1.2;">
+                    <label style="font-size: 0.8rem; margin-bottom: 3px; display: block; font-weight: 500;">Filter by Instructor</label>
+                    <select name="admin_id" onchange="this.form.submit()" style="padding: 6px 10px; font-size: 0.85rem; height: 34px;">
                         <option value="0">-- All Instructors &amp; Admins --</option>
                         <?php foreach ($allAdmins as $adm): ?>
                             <option value="<?= $adm['id'] ?>" <?= $filterAdminId === (int)$adm['id'] ? 'selected' : '' ?>>
@@ -105,9 +244,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
             <?php endif; ?>
 
-            <div class="form-group" style="margin-bottom: 0; min-width: 180px; flex: 1;">
-                <label style="font-size: 0.85rem;">Filter by Action</label>
-                <select name="action" onchange="this.form.submit()">
+            <div class="form-group" style="margin-bottom: 0; min-width: 130px; flex: 1;">
+                <label style="font-size: 0.8rem; margin-bottom: 3px; display: block; font-weight: 500;">Filter by Action</label>
+                <select name="action" onchange="this.form.submit()" style="padding: 6px 10px; font-size: 0.85rem; height: 34px;">
                     <option value="">-- All Actions --</option>
                     <?php foreach ($allActions as $act): ?>
                         <option value="<?= e($act) ?>" <?= $filterAction === $act ? 'selected' : '' ?>>
@@ -117,16 +256,16 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </select>
             </div>
 
-            <div class="form-group" style="margin-bottom: 0; min-width: 220px; flex: 2;">
-                <label style="font-size: 0.85rem;">Search Details or IP</label>
-                <input type="text" name="q" placeholder="Keywords, entity, IP..." value="<?= e($searchQuery) ?>">
+            <div class="form-group" style="margin-bottom: 0; min-width: 160px; flex: 1.5;">
+                <label style="font-size: 0.8rem; margin-bottom: 3px; display: block; font-weight: 500;">Search Details or IP</label>
+                <input type="text" name="q" placeholder="Keywords, entity, IP..." value="<?= e($searchQuery) ?>" style="padding: 6px 10px; font-size: 0.85rem; height: 34px;">
             </div>
 
             <div style="display: flex; gap: 8px;">
-                <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 4px; padding: 10px 16px;">
+                <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 4px; padding: 0 14px; height: 34px; font-size: 0.85rem;">
                     <span class="material-symbols-outlined icon-sm">search</span> Filter
                 </button>
-                <a href="audit-logs.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 4px; padding: 10px 16px;">
+                <a href="audit-logs.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 4px; padding: 0 14px; height: 34px; font-size: 0.85rem;">
                     Reset
                 </a>
             </div>
@@ -134,11 +273,16 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 
     <!-- Audit Logs Table -->
-    <div class="card">
-        <div class="card-title">Activity Logs (<?= count($logs) ?> entries)</div>
+    <div class="card audit-card">
+        <div class="card-header-row" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="card-title" style="margin-bottom: 0; font-size: 1.1rem;">Activity Logs (<?= count($logs) ?> entries)</div>
+            <span style="font-size: 0.78rem; color: var(--color-text-secondary); display: inline-flex; align-items: center; gap: 4px;">
+                <span class="material-symbols-outlined" style="font-size: 15px;">unfold_more</span> Scrollable log
+            </span>
+        </div>
 
-        <div class="table-wrap">
-            <table>
+        <div class="table-wrap audit-table-wrap">
+            <table class="audit-table">
                 <thead>
                     <tr>
                         <th style="width: 160px;">Timestamp</th>
