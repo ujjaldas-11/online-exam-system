@@ -10,609 +10,730 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Examify — User Documentation</title>
-        <!-- Self-contained typography with system fallbacks for zero-CDN offline access -->
         <style>
+            /* ===== Modern CSS Variables & Theming (Examify Snapshot Theme) ===== */
             :root {
-                --ink: #1b2a41;
-                --ink-soft: #3d4d63;
-                --paper: #eeebe1;
-                --paper-panel: #fbfaf6;
-                --rule: #d9d3c1;
-                --rule-strong: #c3bca6;
-                --blue: #2c6e9e;
-                --blue-deep: #1f5378;
-                --gold: #b8862b;
-                --gold-deep: #8f6a1f;
-                --gray-box: #8b8878;
-                --red: #a53d28;
-                --green: #3f7a5c;
-                --shadow:
-                    0 1px 2px rgba(27, 42, 65, 0.06),
-                    0 6px 20px rgba(27, 42, 65, 0.06);
-                --radius: 3px;
+                /* Light Mode / Base */
+                --bg-main: #f4f7fb;       /* Soft light background */
+                --bg-panel: #ffffff;      /* White panels */
+                --text-main: #131b2c;     /* Deep navy text (from screenshot) */
+                --text-muted: #4b5563;
+                
+                --primary: #1a46b9;       /* Vibrant royal blue (from screenshot button) */
+                --primary-hover: #163a99;
+                
+                --accent-green: #10b981; 
+                --accent-yellow: #f59e0b; 
+                
+                --border: #e2e8f0;
+                --border-strong: #cbd5e1;
+                
+                /* Dark Navy Topbar to match screenshot header */
+                --topbar-bg: rgba(19, 27, 44, 0.95);
+                --topbar-text: #f8fafc;
+                --topbar-border: #2c364c;
+                --topbar-input-bg: rgba(255, 255, 255, 0.08);
+
+                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                --radius: 12px;
+                --transition: all 0.2s ease-in-out;
             }
+
+            /* Dark Mode Variables */
+            [data-theme="dark"] {
+                --bg-main: #0b1121;       /* Very dark navy space */
+                --bg-panel: #131b2c;      /* Navy cards */
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                
+                --primary: #3b82f6;       /* Brighter blue for dark mode visibility */
+                --primary-hover: #60a5fa;
+                
+                --border: #2a344a;
+                --border-strong: #3b4763;
+                
+                --topbar-bg: rgba(11, 17, 33, 0.95);
+                --topbar-text: #f8fafc;
+                --topbar-border: #2a344a;
+                --topbar-input-bg: rgba(255, 255, 255, 0.05);
+                
+                --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+            }
+
             * {
                 box-sizing: border-box;
+                margin: 0;
+                padding: 0;
             }
+
             html {
                 scroll-behavior: smooth;
             }
+
             body {
-                margin: 0;
-                background: var(--paper);
-                color: var(--ink);
-                font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                background: var(--bg-main);
+                color: var(--text-main);
+                font-family: "Inter", system-ui, -apple-system, sans-serif;
                 font-size: 16px;
                 line-height: 1.6;
+                transition: background-color 0.3s, color 0.3s;
             }
+
             ::selection {
-                background: var(--gold);
+                background: var(--primary);
                 color: #fff;
             }
 
-            h1,
-            h2,
-            h3,
-            h4 {
-                font-family: "Fraunces", Georgia, Cambria, "Times New Roman", Times, serif;
-                color: var(--ink);
-                letter-spacing: -0.01em;
-                margin: 0 0 0.5em 0;
-            }
-            code,
-            pre,
-            .mono {
-                font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            }
-            a {
-                color: var(--blue-deep);
+            h1, h2, h3, h4 {
+                color: var(--text-main);
+                font-weight: 800; /* Bolder headings to match image typography */
+                line-height: 1.2;
+                margin-bottom: 0.5em;
             }
 
-            /* ===== Top bar ===== */
+            a {
+                color: var(--primary);
+                text-decoration: none;
+                transition: var(--transition);
+            }
+            
+            a:hover {
+                color: var(--primary-hover);
+            }
+
+            code, .mono {
+                font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+                font-size: 0.9em;
+            }
+
+            /* ===== Dark Navy Glassmorphism Topbar ===== */
             .topbar {
                 position: sticky;
                 top: 0;
                 z-index: 50;
-                background: var(--ink);
-                color: #f1ede0;
-                border-bottom: 3px solid var(--gold);
+                background: var(--topbar-bg);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid var(--topbar-border);
+                color: var(--topbar-text);
             }
+
             .topbar-inner {
-                max-width: 1280px;
+                max-width: 1300px;
                 margin: 0 auto;
                 display: flex;
                 align-items: center;
                 gap: 20px;
-                padding: 12px 28px;
+                padding: 14px 32px;
             }
+
             .brand {
                 display: flex;
                 align-items: center;
-                gap: 10px;
-                font-family: "Fraunces", serif;
-                font-weight: 700;
-                font-size: 1.25rem;
-                color: #fbfaf6;
-                white-space: nowrap;
-                text-decoration: none;
+                gap: 12px;
+                font-weight: 800;
+                font-size: 1.3rem;
+                color: var(--topbar-text);
+                letter-spacing: -0.02em;
             }
-            .brand .dot-grid {
+            
+            .brand:hover {
+                color: #fff;
+            }
+
+            .brand .logo-icon {
+                width: 28px;
+                height: 28px;
+                background: linear-gradient(135deg, #1d4ed8, #60a5fa);
+                border-radius: 6px;
                 display: flex;
-                gap: 3px;
+                align-items: center;
+                justify-content: center;
+                color: white;
             }
-            .brand .dot-grid span {
-                width: 7px;
-                height: 7px;
-                border-radius: 1px;
-                display: block;
-            }
-            .brand .dot-grid span:nth-child(1) { background: var(--blue); }
-            .brand .dot-grid span:nth-child(2) { background: var(--gold); }
-            .brand .dot-grid span:nth-child(3) { background: var(--gray-box); }
 
             .badge-doc-type {
-                font-family: "IBM Plex Mono", monospace;
                 font-size: 0.72rem;
+                font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.08em;
-                background: rgba(255, 255, 255, 0.12);
-                color: #cfc9b4;
-                padding: 4px 10px;
-                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.15);
+                color: #fff;
+                padding: 4px 12px;
+                border-radius: 20px;
             }
 
+            /* ===== Search Box (Adapted for dark navbar) ===== */
+            .search-wrap {
+                position: relative;
+                margin-left: auto;
+            }
+
+            .search-wrap input {
+                background: var(--topbar-input-bg);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                color: #fff;
+                padding: 10px 16px 10px 40px;
+                border-radius: 30px;
+                font-family: inherit;
+                font-size: 0.9rem;
+                width: 220px;
+                transition: var(--transition);
+            }
+
+            .search-wrap input::placeholder {
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            .search-wrap input:focus {
+                outline: none;
+                width: 280px;
+                background: rgba(255, 255, 255, 0.15);
+                border-color: #60a5fa;
+                box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+            }
+
+            .search-wrap svg {
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            /* ===== Buttons (Navbar variations) ===== */
             .topbar-links {
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                margin-left: auto;
             }
-            .topbar-btn {
+
+            .btn {
                 display: inline-flex;
                 align-items: center;
-                gap: 6px;
-                padding: 6px 14px;
-                border-radius: 18px;
-                font-size: 0.84rem;
-                font-weight: 600;
-                text-decoration: none;
-                transition: background 0.2s, color 0.2s;
+                gap: 8px;
+                padding: 8px 18px;
+                border-radius: 8px; /* Squared off a bit like the screenshot */
+                font-size: 0.9rem;
+                font-weight: 700;
+                cursor: pointer;
+                border: none;
+                transition: var(--transition);
             }
-            .topbar-btn-secondary {
-                background: rgba(255, 255, 255, 0.08);
-                color: #e2ded0;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-            }
-            .topbar-btn-secondary:hover {
-                background: rgba(255, 255, 255, 0.18);
+
+            .btn-outline {
+                background: transparent;
+                border: 1px solid rgba(255, 255, 255, 0.3);
                 color: #fff;
             }
-            .topbar-btn-gold {
-                background: var(--gold);
-                color: #1b2a41;
-            }
-            .topbar-btn-gold:hover {
-                background: #cf9b3a;
+
+            .btn-outline:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: #fff;
             }
 
-            .search-wrap {
-                position: relative;
+            .btn-primary {
+                background: #1a46b9;
+                color: #ffffff !important;
+                box-shadow: 0 2px 10px rgba(26, 70, 185, 0.4);
             }
-            .search-wrap input {
+
+            .btn-primary:hover {
+                background: #143694;
+                transform: translateY(-1px);
+            }
+
+            .btn-icon {
+                padding: 8px;
+                border-radius: 8px;
                 background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.18);
-                color: #fbfaf6;
-                padding: 7px 12px 7px 32px;
-                border-radius: 20px;
-                font-family: "IBM Plex Sans", sans-serif;
-                font-size: 0.85rem;
-                width: 180px;
-                transition: width 0.2s, background 0.2s;
+                border: 1px solid transparent;
+                color: #fff;
+                display: flex;
+                cursor: pointer;
+                transition: var(--transition);
             }
-            .search-wrap input::placeholder {
-                color: #9c9782;
-            }
-            .search-wrap input:focus {
-                outline: none;
-                width: 230px;
-                background: rgba(255, 255, 255, 0.14);
-            }
-            .search-wrap svg {
-                position: absolute;
-                left: 10px;
-                top: 50%;
-                transform: translateY(-50%);
-                opacity: 0.6;
+            .btn-icon:hover {
+                background: rgba(255, 255, 255, 0.15);
             }
 
-            /* ===== Layout ===== */
+            /* ===== Layout & Sidebar ===== */
             .shell {
-                max-width: 1280px;
+                max-width: 1300px;
                 margin: 0 auto;
                 display: grid;
-                grid-template-columns: 270px 1fr;
-                gap: 0;
-            }
-            .sidebar {
-                position: sticky;
-                top: 57px;
-                align-self: start;
-                height: calc(100vh - 57px);
-                overflow-y: auto;
-                padding: 28px 16px 40px 28px;
-                border-right: 1px solid var(--rule);
-                scrollbar-width: thin;
-            }
-            .sidebar::-webkit-scrollbar {
-                width: 6px;
-            }
-            .sidebar::-webkit-scrollbar-thumb {
-                background: var(--rule-strong);
-                border-radius: 3px;
+                grid-template-columns: 280px 1fr;
+                gap: 40px;
             }
 
-            .toc-group {
-                margin-bottom: 22px;
+            .sidebar {
+                position: sticky;
+                top: 75px;
+                height: calc(100vh - 75px);
+                overflow-y: auto;
+                padding: 40px 16px 40px 32px;
+                scrollbar-width: thin;
             }
+
+            .sidebar::-webkit-scrollbar { width: 6px; }
+            .sidebar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+            .toc-group { margin-bottom: 28px; }
+            
             .toc-role-label {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.68rem;
-                letter-spacing: 0.12em;
+                font-size: 0.75rem;
+                font-weight: 800;
                 text-transform: uppercase;
-                color: var(--ink-soft);
-                margin: 0 0 8px 4px;
+                letter-spacing: 0.08em;
+                color: var(--text-muted);
+                margin: 0 0 12px 8px;
                 display: flex;
                 align-items: center;
-                gap: 6px;
+                gap: 8px;
             }
+
             .toc-role-label .chip {
                 width: 8px;
                 height: 8px;
                 border-radius: 2px;
                 display: inline-block;
             }
+
             .toc-group ul {
                 list-style: none;
-                margin: 0;
-                padding: 0;
-            }
-            .toc-group > ul > li {
-                margin-bottom: 2px;
-            }
-            .toc-link {
-                display: block;
-                padding: 6px 10px;
-                border-radius: var(--radius);
-                color: var(--ink-soft);
-                text-decoration: none;
-                font-size: 0.88rem;
-                border-left: 2px solid transparent;
-            }
-            .toc-link.top {
-                font-weight: 600;
-                color: var(--ink);
-            }
-            .toc-group ul ul {
-                margin-left: 10px;
-                border-left: 1px dashed var(--rule-strong);
-            }
-            .toc-link:hover {
-                background: rgba(27, 42, 65, 0.05);
-                color: var(--ink);
-            }
-            .toc-link.active {
-                background: #fff;
-                color: var(--ink);
-                border-left: 2px solid var(--blue);
-                box-shadow: var(--shadow);
-                font-weight: 600;
             }
 
+            .toc-link {
+                display: block;
+                padding: 8px 12px;
+                border-radius: 6px;
+                color: var(--text-muted);
+                font-size: 0.95rem;
+                margin-bottom: 4px;
+                border-left: 2px solid transparent;
+            }
+
+            .toc-link.top {
+                font-weight: 700;
+                color: var(--text-main);
+            }
+
+            .toc-group ul ul {
+                margin-left: 12px;
+                border-left: 1px solid var(--border);
+                padding-left: 8px;
+            }
+
+            .toc-link:hover {
+                background: var(--bg-panel);
+                color: var(--text-main);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .toc-link.active {
+                background: rgba(26, 70, 185, 0.08);
+                color: var(--primary);
+                font-weight: 700;
+                border-left: 2px solid var(--primary);
+            }
+
+            /* ===== Main Content Area ===== */
             main {
-                padding: 0 40px 100px 40px;
+                padding: 0 32px 100px 0;
                 min-width: 0;
             }
 
-            /* ===== Hero ===== */
+            /* ===== Hero Section ===== */
             .hero {
-                padding: 56px 0 40px 0;
-                border-bottom: 1px solid var(--rule);
+                padding: 60px 0 50px 0;
+                border-bottom: 1px solid var(--border);
                 display: grid;
-                grid-template-columns: 1.3fr 1fr;
-                gap: 40px;
+                grid-template-columns: 1.2fr 1fr;
+                gap: 50px;
                 align-items: center;
             }
+
             .hero-eyebrow {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.75rem;
-                letter-spacing: 0.14em;
+                font-size: 0.85rem;
+                font-weight: 800;
+                letter-spacing: 0.1em;
                 text-transform: uppercase;
-                color: var(--blue-deep);
-                margin-bottom: 10px;
-                font-weight: 600;
-            }
-            .hero h1 {
-                font-size: 2.9rem;
-                font-weight: 700;
-                line-height: 1.05;
-                margin-bottom: 14px;
-            }
-            .hero p.lede {
-                font-size: 1.08rem;
-                color: var(--ink-soft);
-                max-width: 46ch;
-            }
-            .hero-stats {
-                display: flex;
-                gap: 28px;
-                margin-top: 26px;
-            }
-            .hero-stat .num {
-                font-family: "Fraunces", serif;
-                font-size: 1.7rem;
-                font-weight: 700;
-            }
-            .hero-stat .label {
-                font-size: 0.78rem;
-                color: var(--ink-soft);
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
+                color: var(--primary);
+                margin-bottom: 16px;
             }
 
-            /* signature: exam palette demo card */
-            .palette-card {
-                background: var(--paper-panel);
-                border: 1px solid var(--rule);
-                border-radius: 6px;
-                box-shadow: var(--shadow);
-                padding: 22px;
+            .hero h1 {
+                font-size: 3.5rem;
+                letter-spacing: -0.04em;
+                margin-bottom: 20px;
+                color: var(--text-main);
             }
+
+            .hero p.lede {
+                font-size: 1.15rem;
+                color: var(--text-muted);
+                max-width: 90%;
+            }
+
+            .hero-stats {
+                display: flex;
+                gap: 40px;
+                margin-top: 32px;
+            }
+
+            .hero-stat .num {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: var(--text-main);
+                line-height: 1;
+            }
+
+            .hero-stat .label {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 8px;
+            }
+
+            /* ===== Interactive Palette Widget ===== */
+            .palette-card {
+                background: var(--bg-panel);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                box-shadow: var(--shadow-md);
+                padding: 24px;
+            }
+
             .palette-card .pc-head {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 14px;
+                margin-bottom: 20px;
             }
+
             .palette-card .pc-title {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.78rem;
-                color: var(--ink-soft);
+                font-weight: 700;
+                font-size: 0.9rem;
+                color: var(--text-muted);
                 text-transform: uppercase;
-                letter-spacing: 0.08em;
+                letter-spacing: 0.05em;
             }
+
             .palette-card .pc-timer {
-                font-family: "IBM Plex Mono", monospace;
-                font-weight: 600;
-                font-size: 0.95rem;
-                background: var(--ink);
-                color: var(--gold);
-                padding: 3px 10px;
-                border-radius: 4px;
+                font-family: "Fira Code", monospace;
+                font-weight: 700;
+                font-size: 1rem;
+                background: rgba(245, 158, 11, 0.15);
+                color: var(--accent-yellow);
+                padding: 6px 12px;
+                border-radius: 6px;
+                animation: pulse 2s infinite;
             }
+
+            @keyframes pulse {
+                0% { opacity: 1; }
+                50% { opacity: 0.7; }
+                100% { opacity: 1; }
+            }
+
             .palette-grid {
                 display: grid;
                 grid-template-columns: repeat(8, 1fr);
-                gap: 6px;
-                margin-bottom: 16px;
+                gap: 8px;
+                margin-bottom: 20px;
             }
+
             .palette-grid .cell {
                 aspect-ratio: 1;
-                border-radius: 3px;
+                border-radius: 6px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.7rem;
-                font-weight: 600;
+                font-size: 0.85rem;
+                font-weight: 800;
                 color: #fff;
-                cursor: default;
-                transition: transform 0.15s;
+                cursor: pointer;
+                transition: var(--transition);
+                box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
             }
+
             .palette-grid .cell:hover {
-                transform: scale(1.12);
+                transform: translateY(-2px);
+                filter: brightness(1.1);
             }
-            .palette-grid .cell.answered { background: var(--blue); }
-            .palette-grid .cell.review { background: var(--gold); color: #3a2a05; }
-            .palette-grid .cell.unanswered { background: var(--gray-box); }
-            .palette-grid .cell.current {
-                outline: 2px solid var(--ink);
+
+            .cell.answered { background: var(--accent-green); }
+            .cell.review { background: var(--accent-yellow); color: #fff; }
+            .cell.unanswered { background: var(--border-strong); color: var(--text-main); }
+            .cell.current {
+                outline: 3px solid var(--primary);
                 outline-offset: 2px;
             }
+
             .palette-legend {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 12px;
-                font-size: 0.78rem;
-                color: var(--ink-soft);
+                gap: 16px;
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                font-weight: 600;
             }
+
             .palette-legend span {
                 display: flex;
                 align-items: center;
-                gap: 6px;
+                gap: 8px;
             }
+
             .palette-legend i {
-                width: 10px;
-                height: 10px;
-                border-radius: 2px;
+                width: 14px;
+                height: 14px;
+                border-radius: 4px;
                 display: inline-block;
             }
-            .leg-answered { background: var(--blue); }
-            .leg-review { background: var(--gold); }
-            .leg-unanswered { background: var(--gray-box); }
 
-            /* ===== Section blocks ===== */
+            /* ===== Content Sections & Accordions ===== */
             section.doc-section {
-                padding-top: 52px;
-                scroll-margin-top: 72px;
+                padding-top: 60px;
+                scroll-margin-top: 90px;
             }
+
             .section-kicker {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.75rem;
-                color: var(--ink-soft);
+                font-size: 0.8rem;
+                font-weight: 800;
+                color: var(--text-muted);
                 text-transform: uppercase;
                 letter-spacing: 0.1em;
-                margin-bottom: 6px;
+                margin-bottom: 8px;
             }
+
             section.doc-section h2 {
-                font-size: 1.9rem;
-                padding-bottom: 14px;
-                border-bottom: 2px solid var(--rule);
-                margin-bottom: 22px;
+                font-size: 2.2rem;
+                padding-bottom: 16px;
+                border-bottom: 2px solid var(--border);
+                margin-bottom: 24px;
             }
 
             .subsection {
-                margin: 0 0 18px 0;
-                background: var(--paper-panel);
-                border: 1px solid var(--rule);
-                border-radius: 6px;
-                box-shadow: var(--shadow);
+                margin: 0 0 16px 0;
+                background: var(--bg-panel);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                box-shadow: var(--shadow-sm);
                 overflow: hidden;
-                scroll-margin-top: 72px;
+                scroll-margin-top: 90px;
+                transition: var(--transition);
             }
+
+            .subsection:hover {
+                border-color: var(--border-strong);
+            }
+
             .subsection.filtered-out {
                 display: none;
             }
+
             .subsection > summary {
                 list-style: none;
                 cursor: pointer;
-                padding: 16px 20px;
+                padding: 20px 24px;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                gap: 12px;
-                font-family: "Fraunces", serif;
-                font-weight: 600;
-                font-size: 1.08rem;
-            }
-            .subsection > summary::-webkit-details-marker {
-                display: none;
-            }
-            .subsection > summary .arrow {
-                font-family: "IBM Plex Mono", monospace;
-                color: var(--ink-soft);
-                font-size: 0.9rem;
-                transition: transform 0.2s;
-                flex-shrink: 0;
-            }
-            .subsection[open] > summary .arrow {
-                transform: rotate(90deg);
-            }
-            .subsection > summary:hover {
-                background: rgba(27, 42, 65, 0.03);
-            }
-            .subsection .body {
-                padding: 0 22px 22px 22px;
-                color: var(--ink-soft);
-            }
-            .subsection .body p {
-                margin: 0 0 12px 0;
-            }
-            .subsection .body ol,
-            .subsection .body ul {
-                padding-left: 22px;
-                margin: 0 0 14px 0;
-            }
-            .subsection .body li {
-                margin-bottom: 6px;
-            }
-            .subsection .body strong {
-                color: var(--ink);
+                font-weight: 700;
+                font-size: 1.1rem;
+                color: var(--text-main);
+                background: var(--bg-panel);
             }
 
+            .subsection > summary::-webkit-details-marker { display: none; }
+            
+            .subsection > summary .arrow {
+                color: var(--text-muted);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                display: flex;
+            }
+
+            .subsection[open] > summary .arrow {
+                transform: rotate(180deg);
+                color: var(--primary);
+            }
+
+            .subsection .body {
+                padding: 0 24px 24px 24px;
+                color: var(--text-muted);
+                border-top: 1px solid var(--border);
+                margin-top: 4px;
+                padding-top: 20px;
+            }
+
+            .subsection .body p { margin-bottom: 16px; }
+            .subsection .body ol, .subsection .body ul {
+                padding-left: 24px;
+                margin-bottom: 16px;
+            }
+            .subsection .body li { margin-bottom: 8px; }
+            .subsection .body strong { color: var(--text-main); }
+
+            /* ===== Tables & Admonitions ===== */
             table {
                 width: 100%;
                 border-collapse: collapse;
-                margin: 10px 0 16px 0;
-                font-size: 0.92rem;
+                margin: 16px 0;
+                background: var(--bg-main);
+                border-radius: 8px;
+                overflow: hidden;
             }
-            th,
-            td {
+
+            th, td {
                 text-align: left;
-                padding: 9px 12px;
-                border-bottom: 1px solid var(--rule);
+                padding: 14px 16px;
+                border-bottom: 1px solid var(--border);
             }
+
             th {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.72rem;
+                font-size: 0.85rem;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                color: var(--ink-soft);
-                background: rgba(27, 42, 65, 0.03);
+                color: var(--text-muted);
+                background: var(--bg-panel);
+                font-weight: 700;
             }
 
             .admonition {
-                border-left: 4px solid var(--blue);
-                background: #eef4f8;
-                padding: 12px 16px;
-                border-radius: 0 4px 4px 0;
-                margin: 14px 0;
-                font-size: 0.92rem;
+                border-left: 4px solid var(--primary);
+                background: rgba(26, 70, 185, 0.05);
+                padding: 16px 20px;
+                border-radius: 0 8px 8px 0;
+                margin: 20px 0;
             }
+
             .admonition.warning {
-                border-left-color: var(--red);
-                background: #f8ece7;
+                border-left-color: #ef4444; 
+                background: rgba(239, 68, 68, 0.05);
             }
+
             .admonition .adm-label {
-                font-family: "IBM Plex Mono", monospace;
-                font-weight: 700;
-                font-size: 0.72rem;
+                font-size: 0.8rem;
+                font-weight: 800;
                 text-transform: uppercase;
                 letter-spacing: 0.08em;
                 display: block;
-                margin-bottom: 4px;
+                margin-bottom: 6px;
             }
-            .admonition.warning .adm-label { color: var(--red); }
-            .admonition:not(.warning) .adm-label { color: var(--blue-deep); }
+
+            .admonition:not(.warning) .adm-label { color: var(--primary); }
+            .admonition.warning .adm-label { color: #ef4444; }
 
             .kbd {
-                font-family: "IBM Plex Mono", monospace;
-                background: #fff;
-                border: 1px solid var(--rule-strong);
-                border-bottom-width: 2px;
-                padding: 1px 6px;
-                border-radius: 4px;
-                font-size: 0.82rem;
+                font-family: inherit;
+                background: var(--bg-main);
+                border: 1px solid var(--border-strong);
+                border-bottom-width: 3px;
+                padding: 2px 8px;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                font-weight: 700;
+                color: var(--text-main);
             }
 
+            /* ===== Callouts (Styled like image cards) ===== */
             .role-pill {
                 display: inline-block;
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.68rem;
+                font-size: 0.7rem;
                 text-transform: uppercase;
                 letter-spacing: 0.06em;
-                padding: 2px 8px;
-                border-radius: 10px;
-                margin-left: 8px;
-                vertical-align: middle;
-                font-weight: 600;
+                padding: 4px 10px;
+                border-radius: 20px;
+                margin-left: 12px;
+                font-weight: 800;
             }
+
             .role-pill.student {
-                background: #e6eef4;
-                color: var(--blue-deep);
+                background: rgba(16, 185, 129, 0.15);
+                color: var(--accent-green);
             }
 
             .admin-callout {
-                background: #faf6ea;
-                border: 1px solid #ebd9a9;
-                border-radius: 6px;
-                padding: 20px;
-                margin-top: 40px;
+                /* Styled like the dark feature cards in the screenshot */
+                background: #131b2c;
+                border: 1px solid #2a344a;
+                border-radius: var(--radius);
+                padding: 35px;
+                margin-top: 60px;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                gap: 20px;
-            }
-            .admin-callout-content h3 {
-                margin: 0 0 6px 0;
-                font-size: 1.15rem;
-                color: var(--gold-deep);
-            }
-            .admin-callout-content p {
-                margin: 0;
-                font-size: 0.92rem;
-                color: var(--ink-soft);
+                gap: 24px;
+                box-shadow: var(--shadow-md);
             }
 
+            .admin-callout-content h3 { color: #f8fafc; margin-bottom: 8px; }
+            .admin-callout-content p { margin: 0; color: #94a3b8; font-size: 1.05rem; }
+
             footer {
-                border-top: 1px solid var(--rule);
-                padding: 28px 40px;
+                /* Dark footer to match screenshot */
+                background: #0b1121;
+                border-top: 1px solid #2a344a;
+                padding: 10px;
                 text-align: center;
-                color: var(--ink-soft);
-                font-size: 0.85rem;
+                color: #b8d3f9;
+                font-size: 0.9rem;
+                margin-top: 60px;
             }
 
             .no-results {
                 display: none;
-                padding: 40px;
+                padding: 60px 20px;
                 text-align: center;
-                color: var(--ink-soft);
-                font-family: "IBM Plex Mono", monospace;
+                color: var(--text-muted);
+                background: var(--bg-panel);
+                border-radius: var(--radius);
+                border: 1px dashed var(--border-strong);
+                margin-top: 20px;
             }
 
-            @media (max-width: 900px) {
+            /* Floating Scroll to Top Button */
+            #scrollTopBtn {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                background: var(--primary);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+                cursor: pointer;
+                box-shadow: var(--shadow-md);
+                opacity: 0;
+                transform: translateY(20px);
+                transition: var(--transition);
+                pointer-events: none;
+                z-index: 100;
+            }
+            #scrollTopBtn.visible {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+            #scrollTopBtn:hover {
+                background: var(--primary-hover);
+                transform: translateY(-3px);
+            }
+
+            @media (max-width: 960px) {
                 .shell { grid-template-columns: 1fr; }
-                .sidebar {
-                    position: static;
-                    height: auto;
-                    border-right: none;
-                    border-bottom: 1px solid var(--rule);
-                }
-                .hero { grid-template-columns: 1fr; }
-                main { padding: 0 18px 80px 18px; }
-                .topbar-inner { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
-                .search-wrap { order: 3; width: 100%; margin-left: 0; }
+                .sidebar { display: none; }
+                .hero { grid-template-columns: 1fr; gap: 30px; }
+                main { padding: 0 20px; }
+                .topbar-inner { flex-wrap: wrap; padding: 14px 20px; }
+                .search-wrap { order: 3; width: 100%; margin-top: 12px; }
                 .search-wrap input { width: 100%; }
-                .topbar-links { width: 100%; justify-content: space-between; }
                 .admin-callout { flex-direction: column; align-items: flex-start; }
-            }
-
-            :focus-visible {
-                outline: 2px solid var(--blue);
-                outline-offset: 2px;
-            }
-            @media (prefers-reduced-motion: reduce) {
-                html { scroll-behavior: auto; }
-                * { transition: none !important; }
             }
         </style>
     </head>
@@ -620,24 +741,29 @@
         <div class="topbar">
             <div class="topbar-inner">
                 <a href="../../index.php" class="brand">
-                    <span class="dot-grid"><span></span><span></span><span></span></span>
+                    <div class="logo-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
                     Examify Docs
                 </a>
-                <span class="badge-doc-type">Student & Candidate Guide</span>
+                <span class="badge-doc-type">Student Guide</span>
                 
                 <div class="search-wrap">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="7" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
                         <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
-                    <input id="searchInput" type="text" placeholder="Search topics…" />
+                    <input id="searchInput" type="text" placeholder="Search topics, keywords..." />
                 </div>
 
                 <div class="topbar-links">
-                    <a href="../../index.php" class="topbar-btn topbar-btn-secondary">Portal Home</a>
-                    <a href="admin-doc.php" class="topbar-btn topbar-btn-gold" title="Restricted to Instructors and Administrators">
-                        Admin Docs &rarr;
-                    </a>
+                    <!-- Dark Mode Toggle -->
+                    <button class="btn-icon" id="themeToggle" title="Toggle Theme">
+                        <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <svg id="sunIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    </button>
+                    <a href="../../index.php" class="btn btn-outline">Portal Home</a>
+                    <a href="admin-doc.php" class="btn btn-primary" title="Restricted to Instructors">Admin Docs &rarr;</a>
                 </div>
             </div>
         </div>
@@ -646,7 +772,7 @@
             <nav class="sidebar" id="sidebar">
                 <div class="toc-group">
                     <div class="toc-role-label">
-                        <span class="chip" style="background: var(--gray-box)"></span>Overview
+                        <span class="chip" style="background: var(--border-strong)"></span>Overview
                     </div>
                     <ul>
                         <li><a class="toc-link top" href="#sec-1">1. User Roles</a></li>
@@ -655,23 +781,22 @@
 
                 <div class="toc-group">
                     <div class="toc-role-label">
-                        <span class="chip" style="background: var(--blue)"></span>Student Portal
+                        <span class="chip" style="background: var(--primary)"></span>Student Portal
                     </div>
                     <ul>
                         <li>
-                            <a class="toc-link top" href="#sec-2">2. Student Portal Guide</a>
+                            <a class="toc-link top" href="#sec-2">2. Portal Guide</a>
                             <ul>
                                 <li><a class="toc-link" href="#sec-2-1">2.1 Registration</a></li>
                                 <li><a class="toc-link" href="#sec-2-2">2.2 Password Visibility</a></li>
                                 <li><a class="toc-link" href="#sec-2-3">2.3 Student Login</a></li>
-                                <li><a class="toc-link" href="#sec-2-4">2.4 Hardware & Touchscreen</a></li>
-                                <li><a class="toc-link" href="#sec-2-5">2.5 Student Dashboard</a></li>
-                                <li><a class="toc-link" href="#sec-2-6">2.6 Classroom Access PIN</a></li>
-                                <li><a class="toc-link" href="#sec-2-7">2.7 Taking an Examination</a></li>
+                                <li><a class="toc-link" href="#sec-2-4">2.4 Hardware Rules</a></li>
+                                <li><a class="toc-link" href="#sec-2-5">2.5 Dashboard</a></li>
+                                <li><a class="toc-link" href="#sec-2-6">2.6 Classroom PIN</a></li>
+                                <li><a class="toc-link" href="#sec-2-7">2.7 Taking an Exam</a></li>
                                 <li><a class="toc-link" href="#sec-2-8">2.8 Anti-Cheat Rules</a></li>
-                                <li><a class="toc-link" href="#sec-2-9">2.9 Submitting Answers</a></li>
-                                <li><a class="toc-link" href="#sec-2-10">2.10 Results & Scorecards</a></li>
-                                <li><a class="toc-link" href="#sec-2-11">2.11 Profile & Requests</a></li>
+                                <li><a class="toc-link" href="#sec-2-9">2.9 Submission</a></li>
+                                <li><a class="toc-link" href="#sec-2-10">2.10 Results</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -682,37 +807,33 @@
                 <div class="hero">
                     <div>
                         <div class="hero-eyebrow">Student & Candidate Handbook</div>
-                        <h1>Examify</h1>
+                        <h1>Master the Examify Platform</h1>
                         <p class="lede">
-                            A secure, lightweight online examination platform designed for college computer laboratories and local area networks.
-                            This guide explains how to register, take tests, observe proctoring rules, and review results.
+                            A secure, modern online examination platform designed for computer laboratories. 
+                            Learn how to register, take assessments securely, and review your performance.
                         </p>
                         <div class="hero-stats">
                             <div class="hero-stat">
-                                <div class="num">2</div>
-                                <div class="label">User roles</div>
-                            </div>
-                            <div class="hero-stat">
                                 <div class="num">11</div>
-                                <div class="label">Candidate workflows</div>
+                                <div class="label">Workflows</div>
                             </div>
                             <div class="hero-stat">
                                 <div class="num">3</div>
-                                <div class="label">Violation limit</div>
+                                <div class="label">Strike Limit</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="palette-card">
                         <div class="pc-head">
-                            <span class="pc-title">Question Palette — live demo</span>
+                            <span class="pc-title">Live Palette Demo</span>
                             <span class="pc-timer" id="demoTimer">29:58</span>
                         </div>
                         <div class="palette-grid" id="paletteGrid"></div>
                         <div class="palette-legend">
-                            <span><i class="leg-answered"></i>Answered</span>
-                            <span><i class="leg-review"></i>Marked for review</span>
-                            <span><i class="leg-unanswered"></i>Not answered</span>
+                            <span><i style="background: var(--accent-green)"></i>Answered</span>
+                            <span><i style="background: var(--accent-yellow)"></i>Review</span>
+                            <span><i style="background: var(--border-strong)"></i>Pending</span>
                         </div>
                     </div>
                 </div>
@@ -723,7 +844,8 @@
                     <h2>1. User Roles</h2>
                     <details class="subsection" open>
                         <summary>
-                            System User Personas<span class="arrow">▸</span>
+                            System User Personas
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
                             <p>
@@ -750,263 +872,171 @@
 
                     <details class="subsection" open id="sec-2-1">
                         <summary>
-                            2.1 Student Account Registration<span class="arrow">▸</span>
+                            2.1 Student Account Registration
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
                             <p>Follow these steps to register a new student account:</p>
                             <ol>
-                                <li>Open your web browser and navigate to the application address.</li>
-                                <li>Click the <strong>Student Portal</strong> button on the landing page.</li>
+                                <li>Navigate to the application address and click <strong>Student Portal</strong>.</li>
                                 <li>Click the <strong>Register here</strong> link.</li>
-                                <li>Type your full name in the <strong>Full Name</strong> field.</li>
-                                <li>Type your college email in the <strong>College Email</strong> field.</li>
-                                <li>
-                                    Type your student ID in the <strong>Roll Number</strong> field.
-                                    The system converts your input to uppercase letters automatically.
-                                </li>
-                                <li>Select your academic department (e.g., BCA, BBA) from the dropdown list.</li>
-                                <li>Select your current semester (1 through 8) from the dropdown list.</li>
-                                <li>Type a secure password (minimum 6 characters) in the <strong>Password</strong> field.</li>
-                                <li>Re-enter the password in the <strong>Confirm Password</strong> field.</li>
-                                <li>Click the <strong>Register</strong> button.</li>
+                                <li>Enter your Full Name and College Email.</li>
+                                <li>Type your student ID in the <strong>Roll Number</strong> field (auto-capitalized).</li>
+                                <li>Select your academic department (e.g., BCA, BBA) and semester.</li>
+                                <li>Create a secure password (minimum 6 characters).</li>
+                                <li>Click <strong>Register</strong>.</li>
                             </ol>
                             <p>
-                                The system registers your account in <code>pending</code> status.
-                                A progress bar displays for 30 seconds and redirects you to the homepage.
-                                Your department instructor reviews and approves your account before examinations.
+                                Your account enters a <code>pending</code> status upon creation. Your department instructor must approve it before you can participate in live examinations.
                             </p>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-2-2">
-                        <summary>
-                            2.2 Universal Password Visibility Toggle<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <p>
-                                Every password input field on the portal includes an interactive eye icon:
-                            </p>
-                            <ul>
-                                <li>Click the <strong>Eye Icon</strong> to view masked password text.</li>
-                                <li>Click the <strong>Eye Icon</strong> again to re-mask password characters.</li>
-                            </ul>
-                            <div class="admonition">
-                                <span class="adm-label">Security Reminder</span>
-                                Always mask your password before beginning an examination if other students sit near your computer terminal.
-                            </div>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-2-3">
                         <summary>
-                            2.3 Student Login and Single-Device Session Rules<span class="arrow">▸</span>
+                            2.3 Single-Device Session Rules
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
-                            <ol>
-                                <li>Navigate to the student login page (<code>student/login.php</code>).</li>
-                                <li>Enter your registered institutional email address.</li>
-                                <li>Enter your account password.</li>
-                                <li>Click the <strong>Login</strong> button.</li>
-                            </ol>
                             <div class="admonition warning">
                                 <span class="adm-label">Singleton Login Policy</span>
-                                Examify allows only <strong>one active session per student</strong>. If you log into your account on a second device, your previous session terminates immediately to maintain exam integrity.
+                                Examify allows only <strong>one active session per student</strong>. Logging into a second device will immediately terminate your previous session to prevent collaborative cheating.
                             </div>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-2-4">
                         <summary>
-                            2.4 Hardware Requirements & Touchscreen Gating<span class="arrow">▸</span>
+                            2.4 Hardware Requirements & Touchscreen
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
-                            <p>Review these mandatory hardware policies before exam sessions:</p>
                             <ul>
-                                <li><strong>Desktop or Laptop Required:</strong> You must take exams on a desktop or laptop computer. The exam room blocks mobile phones and tablets.</li>
-                                <li><strong>Lockout Screen:</strong> Attempting to access an active examination on a phone or tablet displays a mobile lockout screen instructing you to switch to a computer.</li>
-                                <li><strong>Touchscreen Suppression:</strong> If you use a touchscreen laptop, the examination room suppresses touch taps to prevent cheating gestures. You must interact using your laptop touchpad or a physical mouse.</li>
-                            </ul>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-2-5">
-                        <summary>
-                            2.5 Student Dashboard & Live Exam Discovery<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <p>
-                                The Student Dashboard automatically discovers examinations tailored to your registered department and semester:
-                            </p>
-                            <ul>
-                                <li><strong>Automatic Polling:</strong> The dashboard queries the server every 10 seconds in the background. When an instructor launches an examination, it appears without manual page reloads.</li>
-                                <li><strong>Status Badges:</strong> Cards display <span class="badge live">Live</span> for active tests, <span class="badge scheduled">Scheduled</span> for upcoming quizzes, and <span class="badge ended">Ended</span> for closed exams.</li>
-                                <li><strong>Assessment Details:</strong> Each card displays course subject, duration in minutes, total questions, and maximum marks.</li>
+                                <li><strong>Desktop or Laptop Required:</strong> The exam room actively blocks mobile phones and tablets.</li>
+                                <li><strong>Touchscreen Suppression:</strong> Touch inputs are disabled during exams. You must use a mouse or trackpad to select answers.</li>
                             </ul>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-2-6">
                         <summary>
-                            2.6 Unlocking an Exam with a Classroom PIN<span class="arrow">▸</span>
+                            2.6 Unlocking an Exam with a PIN
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
-                            <p>
-                                Instructors frequently assign a 4-digit PIN to surprise quizzes:
-                            </p>
                             <ol>
-                                <li>Click the <strong>Start Exam</strong> button on the active test card.</li>
-                                <li>If the exam is PIN-protected, an authorization prompt appears.</li>
-                                <li>Type the 4-digit whiteboard PIN announced by your instructor.</li>
-                                <li>Click the <strong>Unlock Exam</strong> button to initialize your session.</li>
+                                <li>Click <strong>Start Exam</strong> on the active test card in your dashboard.</li>
+                                <li>If prompted, type the 4-digit PIN provided by your proctor.</li>
+                                <li>Click <strong>Unlock Exam</strong> to initialize the secure session.</li>
                             </ol>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-2-7">
                         <summary>
-                            2.7 Taking an Examination (Interface Guide)<span class="arrow">▸</span>
+                            2.7 Taking an Examination
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
-                            <ol>
-                                <li>Click the <strong>Enter Fullscreen & Begin</strong> button.</li>
-                                <li>The browser enters full-screen mode and starts the countdown timer.</li>
-                                <li>Read the question text and select your answer option (A, B, C, or D).</li>
-                                <li>The system saves your selected option automatically.</li>
-                                <li>Click <strong>Next</strong> or <strong>Previous</strong> to step through questions sequentially.</li>
-                                <li>Click <strong>Mark for Review</strong> if you wish to recheck an answer before final submission.</li>
-                            </ol>
-                            <h4>Question Palette Navigation</h4>
-                            <p>
-                                The right-hand sidebar displays your complete question grid. Click any question box to jump directly to that question.
-                            </p>
+                            <p>Once you click <strong>Enter Fullscreen & Begin</strong>, the timer starts. Use the Question Palette to navigate:</p>
                             <table>
                                 <tr><th>Color</th><th>Meaning</th></tr>
-                                <tr><td><strong style="color: var(--blue)">Blue</strong></td><td>Answer saved</td></tr>
-                                <tr><td><strong style="color: var(--gold)">Yellow</strong></td><td>Marked for review</td></tr>
-                                <tr><td><strong style="color: var(--gray-box)">Gray</strong></td><td>Not answered yet</td></tr>
+                                <tr><td><strong style="color: var(--accent-green)">Green</strong></td><td>Answer successfully saved</td></tr>
+                                <tr><td><strong style="color: var(--accent-yellow)">Yellow</strong></td><td>Marked for review (double-check later)</td></tr>
+                                <tr><td><strong style="color: var(--text-muted)">Gray</strong></td><td>Not answered yet</td></tr>
                             </table>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-2-8">
                         <summary>
-                            2.8 Anti-Cheat Security Rules & Cheating Infractions<span class="arrow">▸</span>
+                            2.8 Anti-Cheat Security Rules
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
-                            <p>Examify actively monitors examination room integrity:</p>
+                            <p>The system monitors browser integrity. Avoid the following actions:</p>
                             <ul>
-                                <li>Do not exit full-screen mode.</li>
-                                <li>Do not switch browser tabs or open other programs.</li>
-                                <li>Do not minimize the examination window.</li>
-                                <li>Do not press <span class="kbd">F12</span>, <span class="kbd">Ctrl+Shift+I</span>, or inspect developer tools.</li>
+                                <li>Exiting full-screen mode or minimizing the window.</li>
+                                <li>Switching browser tabs.</li>
+                                <li>Pressing <span class="kbd">F12</span> or <span class="kbd">Ctrl+Shift+I</span>.</li>
                             </ul>
                             <div class="admonition warning">
                                 <span class="adm-label">Three-Strike Rule</span>
-                                When an infraction occurs, the exam pauses and records an audit log. After <strong>3 violations</strong>, the system terminates your attempt and submits your answers immediately.
+                                After <strong>3 violations</strong>, the system instantly terminates your session and submits your current answers.
                             </div>
                         </div>
                     </details>
 
-                    <details class="subsection" id="sec-2-9">
-                        <summary>
-                            2.9 Submitting Answers (In-DOM Confirmation Modal)<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <ol>
-                                <li>Check your question palette to ensure all desired questions are answered.</li>
-                                <li>Click the <strong>Submit Exam</strong> button in the action sidebar.</li>
-                                <li>
-                                    A custom in-DOM confirmation dialog opens on screen displaying live summary counters:
-                                    <ul>
-                                        <li><strong>Answered Questions:</strong> Count of completed items.</li>
-                                        <li><strong>Marked for Review:</strong> Items flagged for double-checking.</li>
-                                        <li><strong>Unanswered Questions:</strong> Items left blank.</li>
-                                    </ul>
-                                </li>
-                                <li>Click <strong>Confirm & Submit</strong> to finalize your submission.</li>
-                            </ol>
-                            <p>
-                                The proctoring monitor stops event listeners prior to form submission, preventing false window blur infractions.
-                            </p>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-2-10">
-                        <summary>
-                            2.10 Reviewing Results & Downloading PDF Scorecards<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <p>
-                                Immediately following submission, the evaluation page displays your performance metrics:
-                            </p>
-                            <ul>
-                                <li>Total score achieved and maximum possible marks.</li>
-                                <li>Percentage score with clearing evaluation (<span class="badge live">PASS</span> or <span class="badge ended">FAIL</span>).</li>
-                                <li>Itemized breakdown of correct, incorrect, and skipped questions.</li>
-                            </ul>
-                            <p>
-                                Click the <strong>Download Scorecard PDF</strong> button to generate an official institutional grade sheet.
-                                The PDF includes candidate metadata, metric tables, and official signature endorsement lines.
-                            </p>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-2-11">
-                        <summary>
-                            2.11 Student Profile & Academic Detail Update Requests<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <ol>
-                                <li>Click the <strong>Profile</strong> link in the navigation header.</li>
-                                <li>Review your enrolled details and historical test submissions.</li>
-                                <li>Click <strong>Edit Profile</strong> if your department or semester details need correction.</li>
-                                <li>Enter the revised details and click <strong>Request Update</strong>.</li>
-                            </ol>
-                            <div class="admonition">
-                                <span class="adm-label">Pending Verification</span>
-                                Change requests require administrative approval before updates reflect across active test rosters.
-                            </div>
-                        </div>
-                    </details>
                 </section>
 
                 <div class="admin-callout">
                     <div class="admin-callout-content">
                         <h3>Are you a Teacher or Administrator?</h3>
-                        <p>Access the Instructor Portal Guide to manage subjects, question banks, classroom PINs, and real-time proctoring.</p>
+                        <p>Access the Instructor Portal Guide to manage subjects, question banks, and live proctoring.</p>
                     </div>
-                    <a href="admin-doc.php" class="topbar-btn topbar-btn-gold">Open Admin Documentation &rarr;</a>
+                    <a href="admin-doc.php" class="btn btn-primary">Open Admin Docs &rarr;</a>
                 </div>
 
                 <div class="no-results" id="noResults">
-                    No matching documentation sections found. Try a different search term.
+                    <h3>No matching sections found.</h3>
+                    <p>Try searching for different keywords.</p>
                 </div>
             </main>
         </div>
 
+        <button id="scrollTopBtn" title="Go to top">↑</button>
+
         <footer>
-            Examify User Documentation — Official Student & Candidate Handbook.
+            &copy; <?php echo date("Y"); ?> Examify Educational Systems. All rights reserved.
         </footer>
 
         <script>
-            // Decorative palette grid
+            // ===== Theme Toggler =====
+            const themeToggle = document.getElementById('themeToggle');
+            const moonIcon = document.getElementById('moonIcon');
+            const sunIcon = document.getElementById('sunIcon');
+            
+            // Check saved theme
+            const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            if (currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                moonIcon.style.display = 'none';
+                sunIcon.style.display = 'block';
+            }
+
+            themeToggle.addEventListener('click', () => {
+                let theme = document.documentElement.getAttribute('data-theme');
+                if (theme === 'dark') {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                    moonIcon.style.display = 'block';
+                    sunIcon.style.display = 'none';
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                    moonIcon.style.display = 'none';
+                    sunIcon.style.display = 'block';
+                }
+            });
+
+            // ===== Decorative Palette Grid =====
             const pattern = [
                 "answered", "answered", "review", "unanswered",
                 "answered", "unanswered", "review", "answered",
                 "unanswered", "answered", "answered", "review",
-                "unanswered", "unanswered", "answered", "review",
+                "unanswered", "unanswered", "answered", "review"
             ];
             const grid = document.getElementById("paletteGrid");
             if (grid) {
-                pattern.forEach((s, i) => {
-                    const c = document.createElement("div");
-                    c.className = "cell " + s + (i === 9 ? " current" : "");
-                    c.textContent = i + 1;
-                    grid.appendChild(c);
+                pattern.forEach((status, i) => {
+                    const cell = document.createElement("div");
+                    cell.className = `cell ${status} ${i === 9 ? "current" : ""}`;
+                    cell.textContent = i + 1;
+                    grid.appendChild(cell);
                 });
             }
 
-            // Decorative countdown timer
+            // ===== Decorative Timer =====
             let secs = 29 * 60 + 58;
             const timerEl = document.getElementById("demoTimer");
             if (timerEl) {
@@ -1014,53 +1044,76 @@
                     secs = secs > 0 ? secs - 1 : 29 * 60 + 58;
                     const m = String(Math.floor(secs / 60)).padStart(2, "0");
                     const s = String(secs % 60).padStart(2, "0");
-                    timerEl.textContent = m + ":" + s;
+                    timerEl.textContent = `${m}:${s}`;
                 }, 1000);
             }
 
-            // Search filter across subsections
+            // ===== Efficient Debounced Search =====
             const searchInput = document.getElementById("searchInput");
             const allSubsections = Array.from(document.querySelectorAll(".subsection"));
             const noResults = document.getElementById("noResults");
+            let searchTimeout;
+
             if (searchInput) {
-                searchInput.addEventListener("input", () => {
-                    const q = searchInput.value.trim().toLowerCase();
-                    let visibleCount = 0;
-                    allSubsections.forEach((sec) => {
-                        const text = sec.textContent.toLowerCase();
-                        const match = q === "" || text.includes(q);
-                        sec.classList.toggle("filtered-out", !match);
-                        if (match) {
-                            visibleCount++;
-                            if (q !== "") sec.open = true;
+                searchInput.addEventListener("input", (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        const query = e.target.value.trim().toLowerCase();
+                        let visibleCount = 0;
+
+                        allSubsections.forEach((sec) => {
+                            const text = sec.textContent.toLowerCase();
+                            const isMatch = query === "" || text.includes(query);
+                            
+                            sec.classList.toggle("filtered-out", !isMatch);
+                            if (isMatch) {
+                                visibleCount++;
+                                if (query !== "") sec.open = true; // Auto-expand matches
+                            }
+                        });
+
+                        if (noResults) {
+                            noResults.style.display = visibleCount === 0 ? "block" : "none";
                         }
-                    });
-                    if (noResults) {
-                        noResults.style.display = visibleCount === 0 ? "block" : "none";
-                    }
+                    }, 250); // 250ms debounce for efficiency
                 });
             }
 
-            // Active TOC highlighting on scroll
+            // ===== Active TOC Highlighting =====
             const tocLinks = document.querySelectorAll(".toc-link");
             const targets = Array.from(tocLinks)
-                .map((l) => document.querySelector(l.getAttribute("href")))
+                .map((link) => document.querySelector(link.getAttribute("href")))
                 .filter(Boolean);
+
             const observer = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
-                        const id = "#" + entry.target.id;
-                        const link = document.querySelector('.toc-link[href="' + id + '"]');
-                        if (!link) return;
                         if (entry.isIntersecting) {
-                            tocLinks.forEach((l) => l.classList.remove("active"));
-                            link.classList.add("active");
+                            const id = "#" + entry.target.id;
+                            const activeLink = document.querySelector(`.toc-link[href="${id}"]`);
+                            if (activeLink) {
+                                tocLinks.forEach((l) => l.classList.remove("active"));
+                                activeLink.classList.add("active");
+                            }
                         }
                     });
                 },
-                { rootMargin: "-20% 0px -70% 0px", threshold: 0 }
+                { rootMargin: "-10% 0px -80% 0px", threshold: 0 }
             );
-            targets.forEach((t) => observer.observe(t));
+            targets.forEach((target) => observer.observe(target));
+
+            // ===== Scroll to Top Button =====
+            const scrollTopBtn = document.getElementById("scrollTopBtn");
+            window.addEventListener("scroll", () => {
+                if (window.scrollY > 300) {
+                    scrollTopBtn.classList.add("visible");
+                } else {
+                    scrollTopBtn.classList.remove("visible");
+                }
+            });
+            scrollTopBtn.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
         </script>
     </body>
 </html>
