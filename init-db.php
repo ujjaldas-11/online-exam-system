@@ -63,12 +63,27 @@ $dbname = get_env('DB_DATABASE', 'examify');
 out("Starting Examify Database Initialization...", $isCli, 'heading');
 out("Target Database: `$dbname` on $host:$port", $isCli);
 
+// SSL configuration
+$useSsl = filter_var(get_env('DB_SSL', false), FILTER_VALIDATE_BOOLEAN);
+$sslCa = get_env('DB_SSL_CA', __DIR__ . '/config/ca.crt');
+
+$sslOptions = [];
+if ($sslCa && file_exists($sslCa)) {
+    $sslOptions[PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
+    $sslOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+} elseif ($useSsl) {
+    if (file_exists('/dev/null')) {
+        $sslOptions[PDO::MYSQL_ATTR_SSL_CA] = '/dev/null';
+    }
+    $sslOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+}
+
 // 1. Connect to MySQL server to ensure database exists or recreate if --fresh
 try {
     $dsnNoDb = "mysql:host=$host;port=$port;charset=$charset";
     $rootPdo = new PDO($dsnNoDb, $username, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-    ]);
+    ] + $sslOptions);
 
     if ($isFresh) {
         out("Dropping existing database `$dbname` (--fresh specified)...", $isCli);
@@ -89,7 +104,7 @@ try {
     $pdo = new PDO($dsnWithDb, $username, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-    ]);
+    ] + $sslOptions);
     out("Connected to database `$dbname`.", $isCli, 'success');
 } catch (PDOException $e) {
     out("Could not connect to `$dbname`: " . $e->getMessage(), $isCli, 'error');
@@ -109,6 +124,22 @@ out("Applying Canonical Schema (archive/schema.sql)...", $isCli, 'heading');
 try {
     $schemaSql = file_get_contents($schemaFile);
     $pdo->exec($schemaSql);
+
+    // Migration patch: ensure students table has required columns if migrating from earlier schema
+    $studentCols = $pdo->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN);
+    if (!in_array('reviewed_by', $studentCols, true)) {
+        $pdo->exec("ALTER TABLE students ADD COLUMN reviewed_by int(11) DEFAULT NULL AFTER status");
+        try {
+            $pdo->exec("ALTER TABLE students ADD CONSTRAINT fk_students_reviewed_by FOREIGN KEY (reviewed_by) REFERENCES admins (id) ON DELETE SET NULL");
+        } catch (Exception $ignored) {}
+    }
+    if (!in_array('reviewed_at', $studentCols, true)) {
+        $pdo->exec("ALTER TABLE students ADD COLUMN reviewed_at datetime DEFAULT NULL AFTER reviewed_by");
+    }
+    if (!in_array('updated_at', $studentCols, true)) {
+        $pdo->exec("ALTER TABLE students ADD COLUMN updated_at timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() AFTER created_at");
+    }
+
     out("All 10 refined tables verified and updated successfully.", $isCli, 'success');
 } catch (PDOException $e) {
     out("Failed executing schema.sql: " . $e->getMessage(), $isCli, 'error');
