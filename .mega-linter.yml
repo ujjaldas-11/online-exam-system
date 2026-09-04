@@ -1,0 +1,25 @@
+# MegaLinter Configuration
+# Documentation: https://megalinter.io/latest/configuration/
+
+# Disable automatic in-place fixes in CI (can be changed to 'all' if auto-committing fixes)
+APPLY_FIXES: none
+
+# Exclude third-party libraries, build artifacts, logs, and database archives
+EXCLUDED_DIRECTORIES:
+  - lib
+  - logs
+  - archive
+  - dist
+  - .git
+
+# Regex path exclusion
+FILTER_REGEX_EXCLUDE: "(lib/.*|logs/.*|archive/.*|dist/.*)"
+
+# Disable linters that produce false positives on standard web code
+DISABLE:
+  - SPELL       # Avoid flagging acronyms and framework method names
+  - COPYPASTE   # Disable duplication checker for template and form markups
+
+# Output formatting
+SHOW_ELAPSED_TIME: true
+PRINT_ALPACA: false
