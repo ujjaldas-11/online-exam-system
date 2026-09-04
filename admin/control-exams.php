@@ -355,13 +355,15 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <?php endif; ?>
 
                                         <!-- Delete Exam -->
-                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to permanently delete this exam?');">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
-                                            <button type="submit" name="delete_exam" class="btn btn-danger btn-sm" title="Delete Exam" style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 8px;">
-                                                <span class="material-symbols-outlined icon-sm">delete</span>
-                                            </button>
-                                        </form>
+                                        <?php if($isAdminSuper): ?>
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to permanently delete this exam?');">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
+                                                <button type="submit" name="delete_exam" class="btn btn-danger btn-sm" title="Delete Exam" style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 8px;">
+                                                    <span class="material-symbols-outlined icon-sm">delete</span>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>
