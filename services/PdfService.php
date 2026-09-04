@@ -32,7 +32,7 @@ class ExamifyPdf extends FPDF
         $this->Cell(0, 5, 'Official Academic Assessment Record', 0, 1, 'C');
 
         $this->SetTextColor(30, 41, 59);
-        $this->Ln(6);
+        $this->SetY(30);
 
         if ($this->examTitle) {
             $titleStr = strtoupper($this->examTitle);
@@ -41,6 +41,9 @@ class ExamifyPdf extends FPDF
             while ($this->GetStringWidth($titleStr) > 185 && $fontSize > 9) {
                 $fontSize -= 0.5;
                 $this->SetFont('Helvetica', 'B', $fontSize);
+            }
+            while ($this->GetStringWidth($titleStr) > 185 && mb_strlen($titleStr) > 10) {
+                $titleStr = mb_substr($titleStr, 0, -1);
             }
             $this->Cell(0, 7, $titleStr, 0, 1, 'L');
         }
@@ -270,7 +273,7 @@ class PdfService
         $sigY = max($pdf->GetY() + 16, 238);
         if ($sigY > 252) {
             $pdf->AddPage();
-            $sigY = 40;
+            $sigY = max($pdf->GetY() + 20, 65);
         }
 
         $pdf->SetDrawColor(148, 163, 184);
