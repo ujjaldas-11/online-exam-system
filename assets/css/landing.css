@@ -18,15 +18,15 @@
 
     --landing-accent: var(--cobtn-admin, #302e42);
     --landing-accent-hover: var(--cobtn-admin-hover, #263320);
-    --landing-accent-text: #b7cda3;
+    --landing-accent-text: #040900;
     --landing-accent-dots: rgba(159, 189, 138, 0.35);
     --landing-accent-soft: rgba(51, 66, 46, 0.14);
     --landing-accent-soft-border: rgba(51, 66, 46, 0.28);
     --landing-accent-shadow: rgba(106, 151, 171, 0.55);
     --landing-accent-shadow-soft: rgba(51, 66, 46, 0.32);
 
-    --landing-card-bg: var(var(--landing-white), #ffffff)
-    --landing-card-bg-hover: rgba(30, 41, 59, 0.9);
+    
+    --landing-card-bg-hover: rgba(46, 101, 188, 0.9);
 }
 
 .landing-body {
@@ -54,6 +54,7 @@
     position: sticky;
     top: 0;
     z-index: 50;
+    margin-bottom: -3.5rem;
 }
 
 .college-brand {
@@ -258,8 +259,8 @@
 }
 
 .feature-card {
-    background: var(--landing-card-bg);
-    border: 1px solid var(--landing-border);
+    background:#0F172A;
+    border: 1px solid gray;
     border-radius: 16px;
     padding: 20px;
     display: flex;
@@ -270,21 +271,16 @@
     cursor: default;
 }
 
-.interactive-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    background: var(--landing-card-bg-hover);
-    border-color: var(--landing-accent);
-    box-shadow: 0 15px 30px -10px var(--landing-accent-shadow-soft);
-}
+
 
 .feature-icon {
     font-size: 1.8rem;
     line-height: 1;
-    background: var(--landing-accent-soft);
+    background:var(--landing-bg);
     width: max-content;
     padding: 10px;
     border-radius: 12px;
-    border: 1px solid var(--landing-accent-soft-border);
+    border: 1px solid gray;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -298,14 +294,14 @@
 
 .feature-title {
     margin: 0 0 4px;
-    color: var(--landing-heading);
+    color: white;
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 750;
 }
 
 .feature-desc {
     margin: 0;
-    color: var(--color-text-muted, #94a3b8);
+    color: #d2cece;
     font-size: 0.85rem;
     line-height: 1.5;
 }
@@ -316,7 +312,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 28px;
-    background: var(--landing-footer-bg);
+    background: var(--landing-nav-bg);
     border-top: 1px solid var(--landing-border-soft);
     position: relative;
     z-index: 10;
@@ -352,6 +348,7 @@
 .footer-center {
     display: flex;
     align-items: center;
+    color: #ffffff;
     gap: 12px;
 }
 
