@@ -31,8 +31,8 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
 
     <nav class="landing-nav">
         <a href="https://www.bistpurulia.org/" class="college-brand" target="_blank" rel="noopener noreferrer" aria-label="Visit Bengal Institute of Science and Technology website">
-            <img src="assets/images/college_logo.png" alt="Bengal Institute of Science and Technology logo">
-            <div class="college-name"><span>B</span>engal <span>I</span>nstitute of <span>S</span>cience and <span>T</span>echnology</div>
+            <img src="assets/images/college_logo_.png" alt="Bengal Institute of Science and Technology logo">
+            <div class="college-name" title="Bengal Institute of Science and Technology" ><span>B</span>engal <span>I</span>nstitute of <span>S</span>cience and <span>T</span>echnology</div>
             <div class="college-name-mob">B.I.S.T</div>
         </a>
     </nav>
@@ -48,9 +48,9 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
             <p class="hero-sub">Build question banks, run timed and proctored exams, and get graded results instantly.</p>
 
             <div class="hero-actions">
-                <a href="admin/admin-login.php" class="btn btn-primary interactive-btn">Admin Portal</a>
-                <a href="student/login.php" class="btn btn-outline interactive-btn">Student Portal</a>
-                <a href="docs/user/user-doc.php" class="btn btn-text interactive-btn">Documentation &rarr;</a>
+                <a href="admin/admin-login.php" class="btn btn-admin">Admin Portal</a>
+                <a href="student/login.php" class="btn btn-student">Student Portal</a>
+                <a href="docs/user/user-doc.php" class="btn btn-text-documentation">Documentation &rarr;</a>
             </div>
         </section>
 
@@ -104,11 +104,8 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
                 <span class="material-symbols-outlined icon-xs">group</span>
                 <span>Meet the Developers</span>
             </a>
-            <span class="footer-sep">&bull;</span>
-            <a href="docs/user/user-doc.php" class="footer-nav-link">
-                <span class="material-symbols-outlined icon-xs">menu_book</span>
-                <span>Documentation</span>
-            </a>
+            
+    
         </div>
         <p class="footer-copy">&copy; <?= date('Y') ?> Examify. All rights reserved.</p>
     </footer>
