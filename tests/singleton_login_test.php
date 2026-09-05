@@ -79,10 +79,23 @@ assert_test("Device 2 is recognized as the active session", verify_active_sessio
 switch_cli_session('studentdev1token12345');
 assert_test("Device 1 session is superseded and rejected (returns false)", verify_active_session($pdo, 'student', $studentId) === false);
 
-// Test Student Logout
+// Stale Device 1 attempts to logout - must NOT wipe Device 2's active session!
+clear_active_session($pdo, 'student', $studentId);
+$dbSessionAfterStaleLogout = $pdo->query("SELECT active_session_id FROM students WHERE id = $studentId")->fetchColumn();
+assert_test("Stale Device 1 logout does NOT wipe active Device 2 session", $dbSessionAfterStaleLogout === 'studentdev2token67890');
+
+// Active Device 2 logs out - must cleanly clear active_session_id
+switch_cli_session('studentdev2token67890');
 clear_active_session($pdo, 'student', $studentId);
 $clearedSession = $pdo->query("SELECT active_session_id FROM students WHERE id = $studentId")->fetchColumn();
-assert_test("Logout clears active_session_id in database", empty($clearedSession));
+assert_test("Active Device 2 logout clears active_session_id in database", empty($clearedSession));
+
+// Test Forced Logout (e.g. Admin blocking student)
+switch_cli_session('studentdev3token99999');
+bind_active_session($pdo, 'student', $studentId);
+clear_active_session($pdo, 'student', $studentId, null, true);
+$forcedCleared = $pdo->query("SELECT active_session_id FROM students WHERE id = $studentId")->fetchColumn();
+assert_test("Forced logout clears active_session_id regardless of current session", empty($forcedCleared));
 
 // 3. Admin / Teacher Singleton Session Simulation
 echo "\n--- 3. Testing Admin / Teacher Singleton Login Flow ---\n";
@@ -105,10 +118,16 @@ assert_test("Admin Device 2 is recognized as active", verify_active_session($pdo
 switch_cli_session('admindev1tokenaaa111');
 assert_test("Admin Device 1 session is superseded and rejected", verify_active_session($pdo, 'admin', $adminId) === false);
 
-// Admin Logout
+// Admin Device 1 (stale) logs out - must NOT wipe Admin Device 2
+clear_active_session($pdo, 'admin', $adminId);
+$dbAdminSessionAfterStale = $pdo->query("SELECT active_session_id FROM admins WHERE id = $adminId")->fetchColumn();
+assert_test("Stale Admin Device 1 logout does NOT wipe active Admin Device 2 session", $dbAdminSessionAfterStale === 'admindev2tokenbbb222');
+
+// Admin Device 2 logs out
+switch_cli_session('admindev2tokenbbb222');
 clear_active_session($pdo, 'admin', $adminId);
 $clearedAdminSession = $pdo->query("SELECT active_session_id FROM admins WHERE id = $adminId")->fetchColumn();
-assert_test("Admin logout clears active_session_id", empty($clearedAdminSession));
+assert_test("Active Admin Device 2 logout clears active_session_id", empty($clearedAdminSession));
 
 // 4. Guard & Controller Verification
 echo "\n--- 4. Testing Guard Enforcement Code ---\n";

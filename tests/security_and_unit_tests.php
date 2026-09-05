@@ -115,10 +115,13 @@ try {
 // TEST 3: High-Concurrency ExamEngine Test
 echo "\n--- 3. Testing High-Concurrency ExamEngine Logic ---\n";
 try {
-    // Pick existing active exam and ensure its window is active
+    // Pick existing exam and ensure it is active and within window
     $exam = $pdo->query("SELECT id, subject_id, total_questions_to_ask, total_marks FROM exams WHERE status = 'active' LIMIT 1")->fetch();
+    if (!$exam) {
+        $exam = $pdo->query("SELECT id, subject_id, total_questions_to_ask, total_marks FROM exams LIMIT 1")->fetch();
+    }
     $examId = (int) $exam['id'];
-    $pdo->prepare("UPDATE exams SET start_time = NOW() WHERE id = ?")->execute([$examId]);
+    $pdo->prepare("UPDATE exams SET status = 'active', start_time = NOW(), end_time = NULL WHERE id = ?")->execute([$examId]);
 
     // Pick a test student matching the exam's subject department and semester
     $examMeta = $pdo->query("SELECT s.department, s.semester FROM exams e JOIN subjects s ON e.subject_id = s.id WHERE e.id = $examId")->fetch();
