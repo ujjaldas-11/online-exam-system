@@ -36,6 +36,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'attempt_id' => (int) $attId,
             ]);
 
+            if (function_exists('log_admin_action')) {
+                log_admin_action(
+                    $pdo,
+                    'reset_student_attempt',
+                    'exam_attempts',
+                    (int) $attId,
+                    "Invigilator unlocked attempt #$attId for student #$student_id back to in_progress."
+                );
+            }
+
             $message = "Student attempt has been unlocked and set to In Progress.";
             $message_type = 'success';
         } catch (PDOException $e) {
@@ -45,25 +55,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (isset($_POST['force_submit_attempt'])) {
         $attempt_id = int_param($_POST['attempt_id'] ?? 0);
         try {
-            $stmt = $pdo->prepare("UPDATE exam_attempts SET status = 'completed', submitted_at = NOW() WHERE id = ?");
-            $stmt->execute([$attempt_id]);
+            $attStmt = $pdo->prepare("SELECT student_id, exam_id FROM exam_attempts WHERE id = ?");
+            $attStmt->execute([$attempt_id]);
+            $attRow = $attStmt->fetch(PDO::FETCH_ASSOC);
 
-            $stStmt = $pdo->prepare("SELECT student_id, score FROM exam_attempts WHERE id = ?");
-            $stStmt->execute([$attempt_id]);
-            $stRow = $stStmt->fetch();
-
-            if ($stRow) {
-                require_once __DIR__ . '/../utils/websocket-pusher.php';
-                WebSocketPusher::emit("exam:{$exam_id}", "exam_submitted", [
-                    'student_id' => (int) $stRow['student_id'],
-                    'attempt_id' => $attempt_id,
-                    'score' => (float) ($stRow['score'] ?? 0),
-                ]);
+            if (!$attRow) {
+                throw new Exception("Exam attempt #$attempt_id not found.");
             }
 
-            $message = "Attempt #$attempt_id has been forced to completed status.";
-            $message_type = 'success';
-        } catch (PDOException $e) {
+            $targetStudentId = (int) $attRow['student_id'];
+            $targetExamId = (int) $attRow['exam_id'];
+
+            require_once __DIR__ . '/../services/ExamEngine.php';
+            $result = ExamEngine::submitExam($pdo, $targetStudentId, $targetExamId);
+
+            if (!empty($result['success'])) {
+                $finalScore = (float) ($result['score'] ?? 0);
+
+                require_once __DIR__ . '/../utils/websocket-pusher.php';
+                WebSocketPusher::emit("exam:{$exam_id}", "exam_submitted", [
+                    'student_id' => $targetStudentId,
+                    'attempt_id' => $attempt_id,
+                    'score' => $finalScore,
+                ]);
+
+                if (function_exists('log_admin_action')) {
+                    log_admin_action(
+                        $pdo,
+                        'force_submit_exam',
+                        'exam_attempts',
+                        $attempt_id,
+                        "Invigilator force-submitted attempt #$attempt_id (Student ID: $targetStudentId, Exam ID: $targetExamId). Graded Score: " . sprintf('%.2f', $finalScore)
+                    );
+                }
+
+                $message = "Attempt #$attempt_id has been successfully auto-graded and marked completed (Score: " . sprintf('%.2f', $finalScore) . ").";
+                $message_type = 'success';
+            } else {
+                $message = "Failed to force submit attempt: " . ($result['error'] ?? 'Unknown error');
+                $message_type = 'error';
+            }
+        } catch (Exception $e) {
             $message = safe_db_error($e, "Failed to submit attempt.");
             $message_type = 'error';
         }

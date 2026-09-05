@@ -1,9 +1,9 @@
 <?php
 
-require_once 'student-guard.php';
-require_once '../config/database.php';
-require_once '../utils/sanitize.php';
-require_once '../utils/logger.php';
+require_once __DIR__ . '/student-guard.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../utils/sanitize.php';
+require_once __DIR__ . '/../utils/logger.php';
 
 
 $student_id = (int) $_SESSION['student_id'];
@@ -17,38 +17,6 @@ if (empty($_GET['attempt_id'])) {
 $attempt_id = int_param($_GET['attempt_id']);
 
 
-if (isset($_GET['download_answers']) && isset($_GET['attempt_id'])) {
-    require_once '../services/PdfService.php';
-    $dl_attempt_id = (int)$_GET['attempt_id'];
-
-    $metaStmt = $pdo->prepare("
-        SELECT s.name, s.roll_number, e.title 
-        FROM exam_attempts ea
-        JOIN students s ON ea.student_id = s.id
-        JOIN exams e ON ea.exam_id = e.id
-        WHERE ea.id = ? AND ea.student_id = ?
-    ");
-    // $student_id should come from your session
-    $metaStmt->execute([$dl_attempt_id, $student_id]); 
-    $metaData = $metaStmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($metaData) {
-        $pdfStudent = ['name' => $metaData['name'], 'roll_number' => $metaData['roll_number']];
-        $pdfExam = ['title' => $metaData['title']];
-
-        $qaStmt = $pdo->prepare("
-            SELECT q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
-                   sa.selected_option, sa.is_correct
-            FROM student_answers sa
-            JOIN questions q ON sa.question_id = q.id
-            WHERE sa.attempt_id = ?
-            ORDER BY sa.id ASC
-        ");
-        $qaStmt->execute([$dl_attempt_id]);
-        
-        PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $qaStmt->fetchAll(PDO::FETCH_ASSOC), 'D');
-    }
-}
 
 try {
     $examStmt = $pdo->prepare("
@@ -99,6 +67,32 @@ try {
         </div>
         <?php
         include __DIR__ . '/../components/footer.php';
+        exit;
+    }
+
+    // Secure PDF Answer Sheet Generation (Only accessible after exam has ended & results are published)
+    if (isset($_GET['download_answers'])) {
+        require_once __DIR__ . '/../services/PdfService.php';
+        $pdfStudent = [
+            'name' => $student_name,
+            'roll_number' => $roll,
+            'department' => $dept
+        ];
+        $pdfExam = [
+            'title' => $examOverview['title']
+        ];
+
+        $qaStmt = $pdo->prepare("
+            SELECT q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
+                   sa.selected_option, sa.is_correct
+            FROM student_answers sa
+            JOIN questions q ON sa.question_id = q.id
+            WHERE sa.attempt_id = ?
+            ORDER BY sa.id ASC
+        ");
+        $qaStmt->execute([$attempt_id]);
+        
+        PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $qaStmt->fetchAll(PDO::FETCH_ASSOC), 'D');
         exit;
     }
 

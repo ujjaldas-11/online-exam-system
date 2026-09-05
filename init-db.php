@@ -12,44 +12,32 @@
  *   Open http://localhost/init-db.php (supports ?fresh=1 or ?schema_only=1)
  */
 
-$isCli = (php_sapi_name() === 'cli');
-
-function out(string $message, bool $isCli, string $type = 'info'): void
-{
-    if ($isCli) {
-        $prefix = match ($type) {
-            'error' => "\033[31m[ERROR]\033[0m ",
-            'success' => "\033[32m[OK]\033[0m ",
-            'heading' => "\n\033[1;34m=== \033[0m",
-            default => "  • "
-        };
-        $suffix = ($type === 'heading') ? "\033[1;34m ===\033[0m\n" : "\n";
-        echo $prefix . $message . $suffix;
-    } else {
-        $color = match ($type) {
-            'error' => '#ef4444',
-            'success' => '#10b981',
-            'heading' => '#3b82f6',
-            default => '#e2e8f0'
-        };
-        $weight = ($type === 'heading') ? 'bold; font-size: 1.1rem; margin-top: 16px;' : 'normal;';
-        echo "<div style='color: $color; font-weight: $weight; font-family: monospace; font-size: 13px; margin: 4px 0;'>";
-        echo ($type === 'success' ? '✅ ' : ($type === 'error' ? '❌ ' : '')) . htmlspecialchars($message);
-        echo "</div>";
-    }
+// Enforce strict CLI execution for database setup/reset operations
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "403 Forbidden: Database initialization can only be executed via the command line (CLI).\n";
+    exit;
 }
 
-if (!$isCli) {
-    echo "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><title>Database Init • Examify</title></head>";
-    echo "<body style='background: #0f172a; color: #f8fafc; padding: 40px; font-family: system-ui, sans-serif;'>";
-    echo "<div style='max-width: 760px; margin: 0 auto; background: #1e293b; padding: 32px; border-radius: 12px; border: 1px solid #334155;'>";
-    echo "<h2 style='margin-top: 0; color: #38bdf8;'>🚀 Examify Database Initializer (Refined)</h2>";
+$isCli = true;
+
+function out(string $message, bool $isCli = true, string $type = 'info'): void
+{
+    $prefix = match ($type) {
+        'error' => "\033[31m[ERROR]\033[0m ",
+        'success' => "\033[32m[OK]\033[0m ",
+        'heading' => "\n\033[1;34m=== \033[0m",
+        default => "  • "
+    };
+    $suffix = ($type === 'heading') ? "\033[1;34m ===\033[0m\n" : "\n";
+    echo $prefix . $message . $suffix;
 }
 
 // Parse Command Line Options
 $args = $argv ?? [];
-$isFresh = in_array('--fresh', $args, true) || in_array('--clean', $args, true) || (!$isCli && !empty($_GET['fresh']));
-$schemaOnly = in_array('--schema-only', $args, true) || in_array('--no-seed', $args, true) || (!$isCli && !empty($_GET['schema_only']));
+$isFresh = in_array('--fresh', $args, true) || in_array('--clean', $args, true);
+$schemaOnly = in_array('--schema-only', $args, true) || in_array('--no-seed', $args, true);
 
 require_once __DIR__ . '/utils/env.php';
 
@@ -402,7 +390,6 @@ try {
 
 } catch (Exception $e) {
     out("Error during data seeding: " . $e->getMessage(), $isCli, 'error');
-    if (!$isCli) echo "</div></body></html>";
     exit(1);
 }
 
@@ -414,9 +401,3 @@ out("Retired Teacher: grace.hopper@college.edu (Login Disabled, Authored Records
 out("Default Student: student@college.edu / Student@123", $isCli);
 out("Live Test Exam:  'OS Surprise Quiz' (PIN: 4821)", $isCli);
 
-if (!$isCli) {
-    echo "<div style='margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; display: flex; gap: 12px;'>";
-    echo "<a href='admin/admin-login.php' style='background: #3b82f6; color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: bold;'>Go to Admin Login</a>";
-    echo "<a href='student/login.php' style='background: #334155; color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: bold;'>Go to Student Login</a>";
-    echo "</div></div></body></html>";
-}

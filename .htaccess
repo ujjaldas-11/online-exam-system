@@ -3,7 +3,7 @@
 # =========================================================
 
 # 1. Block Direct Access to Sensitive Files & Scripts
-<FilesMatch "(\.env|\.sql|\.log|\.git|composer\.json|\.editorconfig|\.yml|\.sh|\.ps1)$">
+<FilesMatch "(\.env|\.sql|\.log|\.git|composer\.json|\.editorconfig|\.yml|\.sh|\.ps1|init-db\.php)$">
     Require all denied
 </FilesMatch>
 
