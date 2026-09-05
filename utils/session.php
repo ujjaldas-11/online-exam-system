@@ -9,7 +9,9 @@ function init_secure_session(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
         if (!headers_sent() && ini_get('session.use_cookies')) {
-            $isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            $isSecure = (function_exists('is_ssl') && is_ssl())
+                || (function_exists('is_production') && is_production())
+                || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
                 || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
                 || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443);
 

@@ -8,7 +8,7 @@
     window.ExamifyProctor = {
         config: {
             examId: 0,
-            wsUrl: 'ws://' + window.location.hostname + ':8085',
+            wsUrl: (typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss://' : 'ws://') + (typeof window !== 'undefined' ? window.location.hostname : 'localhost') + ':8085',
             pollIntervalMs: 8000,
         },
         socket: null,
@@ -21,6 +21,9 @@
 
         init: function (config) {
             this.config = Object.assign(this.config, config || {});
+            if (typeof window !== 'undefined' && window.location.protocol === 'https:' && this.config.wsUrl && this.config.wsUrl.startsWith('ws://')) {
+                this.config.wsUrl = this.config.wsUrl.replace(/^ws:\/\//i, 'wss://');
+            }
             this.injectStyles();
             this.setupStatusIndicator();
             this.connectWebSocket();
@@ -118,6 +121,9 @@
                         channel: 'exam:' + self.config.examId
                     }));
 
+                    // Immediate State Catch-Up on connection/reconnection
+                    self.pollStatus();
+
                     // Setup heartbeat ping
                     clearInterval(self.pingTimer);
                     self.pingTimer = setInterval(function () {
@@ -151,18 +157,18 @@
         handleDisconnect: function () {
             clearInterval(this.pingTimer);
 
+            // Immediate fallback HTTP polling on disconnect to eliminate proctor blind spots
+            this.startFallbackPolling();
+
             if (this.reconnectAttempts < this.maxReconnectAttempts) {
                 this.reconnectAttempts++;
-                this.updateStatusBadge('connecting');
+                this.updateStatusBadge('polling');
                 const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 16000);
                 clearTimeout(this.reconnectTimer);
                 const self = this;
                 this.reconnectTimer = setTimeout(function () {
                     self.connectWebSocket();
                 }, delay);
-            } else {
-                // Max attempts reached: Activate HTTP polling fallback
-                this.startFallbackPolling();
             }
         },
 
@@ -211,6 +217,8 @@
                 this.updateStudentSubmitted(data.student_id, data.score);
             } else if (event === 'time_extended') {
                 this.handleTimeExtended(data.extra_minutes);
+            } else if (event === 'exam_ended') {
+                this.handleExamEnded(data);
             }
         },
 
@@ -298,6 +306,19 @@
             banner.textContent = `Emergency Time Extended: +${extraMinutes} minutes added to this exam.`;
             document.body.appendChild(banner);
             setTimeout(() => banner.remove(), 6000);
+        },
+
+        handleExamEnded: function (data) {
+            const banner = document.createElement('div');
+            banner.className = 'alert alert-info';
+            banner.style.position = 'fixed';
+            banner.style.top = '20px';
+            banner.style.right = '20px';
+            banner.style.zIndex = '9999';
+            banner.textContent = 'Examination Concluded: This exam has been marked as ended by administrator.';
+            document.body.appendChild(banner);
+            setTimeout(() => banner.remove(), 8000);
+            this.pollStatus();
         },
 
         applyFullSync: function (data) {

@@ -104,6 +104,41 @@ function send_cache_control_headers(): void
     }
 }
 
+function is_ssl(): bool
+{
+    if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
+        return true;
+    }
+    if (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443) {
+        return true;
+    }
+    if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
+        return true;
+    }
+    if (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_SSL']) === 'on') {
+        return true;
+    }
+    return false;
+}
+
+function enforce_ssl_in_production(): void
+{
+    if (php_sapi_name() === 'cli' || headers_sent()) {
+        return;
+    }
+
+    if (is_production()) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+
+        if (!is_ssl()) {
+            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            $uri = $_SERVER['REQUEST_URI'] ?? '/';
+            header('Location: https://' . $host . $uri, true, 301);
+            exit;
+        }
+    }
+}
+
 function send_security_headers(): void
 {
     if (php_sapi_name() === 'cli' || headers_sent()) {
@@ -119,4 +154,6 @@ function send_security_headers(): void
 load_env();
 date_default_timezone_set((string) get_env('APP_TIMEZONE', 'Asia/Kolkata'));
 send_security_headers();
+enforce_ssl_in_production();
 send_cache_control_headers();
+

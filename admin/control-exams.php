@@ -127,6 +127,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo->prepare("UPDATE exams SET status = 'ended' WHERE id = ?")->execute([$exam_id]);
             log_admin_action($pdo, 'end_exam', 'exam', $exam_id, "Ended exam #$exam_id for all students");
+
+            require_once __DIR__ . '/../utils/websocket-pusher.php';
+            WebSocketPusher::emit("exam:{$exam_id}", "exam_ended", [
+                'exam_id' => $exam_id,
+            ]);
+
             $message = "Exam has been ended for all students.";
             $message_type = 'success';
         } catch (PDOException $e) {

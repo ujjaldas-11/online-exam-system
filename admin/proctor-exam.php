@@ -321,7 +321,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 <script>
     ExamifyProctor.init({
         examId: <?= (int) $exam_id ?>,
-        wsUrl: '<?= htmlspecialchars((string) get_env('WS_PUBLIC_URL', 'ws://' . (!empty($_SERVER['HTTP_HOST']) ? explode(':', $_SERVER['HTTP_HOST'])[0] : 'localhost') . ':8085'), ENT_QUOTES, 'UTF-8') ?>'
+        wsUrl: '<?= htmlspecialchars((string) get_env('WS_PUBLIC_URL', ((function_exists('is_ssl') && is_ssl()) ? 'wss://' : 'ws://') . (!empty($_SERVER['HTTP_HOST']) ? explode(':', $_SERVER['HTTP_HOST'])[0] : 'localhost') . ':8085'), ENT_QUOTES, 'UTF-8') ?>'
     });
 </script>
 

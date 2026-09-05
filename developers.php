@@ -651,9 +651,7 @@ $testers = [
                         <div class="dev-card-header">
                             <?php
                             $localDevAvatar = 'assets/images/devs/' . $dev['username'] . '.png';
-                            $devAvatarSrc = file_exists(__DIR__ . '/' . $localDevAvatar)
-                                ? $localDevAvatar
-                                : 'https://github.com/' . e($dev['username']) . '.png?size=160';
+                            $hasDevAvatar = file_exists(__DIR__ . '/' . $localDevAvatar);
                             ?>
                             <div class="dev-avatar">
                                 <div
@@ -662,12 +660,14 @@ $testers = [
                                 >
                                     <?= e($dev['initials']) ?>
                                 </div>
-                                <img
-                                    src="<?= $devAvatarSrc ?>"
-                                    alt="<?= e($dev['name']) ?>"
-                                    loading="lazy"
-                                    onerror="this.style.display='none';"
-                                >
+                                <?php if ($hasDevAvatar): ?>
+                                    <img
+                                        src="<?= e($localDevAvatar) ?>"
+                                        alt="<?= e($dev['name']) ?>"
+                                        loading="lazy"
+                                        onerror="this.style.display='none';"
+                                    >
+                                <?php endif; ?>
                             </div>
 
                             <div class="dev-info">
@@ -759,9 +759,7 @@ $testers = [
                         <div class="dev-card-header">
                             <?php
                             $localTesterAvatar = 'assets/images/devs/' . $tester['username'] . '.png';
-                            $testerAvatarSrc = file_exists(__DIR__ . '/' . $localTesterAvatar)
-                                ? $localTesterAvatar
-                                : 'https://github.com/' . e($tester['username']) . '.png?size=160';
+                            $hasTesterAvatar = file_exists(__DIR__ . '/' . $localTesterAvatar);
                             ?>
                             <div class="dev-avatar">
                                 <div
@@ -770,12 +768,14 @@ $testers = [
                                 >
                                     <?= e($tester['initials']) ?>
                                 </div>
-                                <img
-                                    src="<?= $testerAvatarSrc ?>"
-                                    alt="<?= e($tester['name']) ?>"
-                                    loading="lazy"
-                                    onerror="this.style.display='none';"
-                                >
+                                <?php if ($hasTesterAvatar): ?>
+                                    <img
+                                        src="<?= e($localTesterAvatar) ?>"
+                                        alt="<?= e($tester['name']) ?>"
+                                        loading="lazy"
+                                        onerror="this.style.display='none';"
+                                    >
+                                <?php endif; ?>
                             </div>
 
                             <div class="dev-info">
