@@ -323,6 +323,7 @@ $testers = [
         }
 
         .dev-avatar {
+            position: relative;
             width: 56px;
             height: 56px;
             flex: 0 0 56px;
@@ -333,6 +334,8 @@ $testers = [
         }
 
         .dev-avatar img {
+            position: relative;
+            z-index: 2;
             width: 100%;
             height: 100%;
             display: block;
@@ -340,6 +343,9 @@ $testers = [
         }
 
         .dev-fallback {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
             width: 100%;
             height: 100%;
             display: grid;
@@ -643,27 +649,25 @@ $testers = [
                     >
 
                         <div class="dev-card-header">
-
+                            <?php
+                            $localDevAvatar = 'assets/images/devs/' . $dev['username'] . '.png';
+                            $devAvatarSrc = file_exists(__DIR__ . '/' . $localDevAvatar)
+                                ? $localDevAvatar
+                                : 'https://github.com/' . e($dev['username']) . '.png?size=160';
+                            ?>
                             <div class="dev-avatar">
-                                <img
-                                    src="https://github.com/<?= e($dev['username']) ?>.png?size=160"
-                                    alt="<?= e($dev['name']) ?>"
-                                    loading="lazy"
-                                    onerror="
-                                        this.style.display='none';
-                                        this.nextElementSibling.style.display='grid';
-                                    "
-                                >
-
                                 <div
                                     class="dev-fallback"
-                                    style="
-                                        display:none;
-                                        background:<?= e($dev['color']) ?>;
-                                    "
+                                    style="background:<?= e($dev['color']) ?>;"
                                 >
                                     <?= e($dev['initials']) ?>
                                 </div>
+                                <img
+                                    src="<?= $devAvatarSrc ?>"
+                                    alt="<?= e($dev['name']) ?>"
+                                    loading="lazy"
+                                    onerror="this.style.display='none';"
+                                >
                             </div>
 
                             <div class="dev-info">
@@ -753,29 +757,25 @@ $testers = [
                     >
 
                         <div class="dev-card-header">
-
+                            <?php
+                            $localTesterAvatar = 'assets/images/devs/' . $tester['username'] . '.png';
+                            $testerAvatarSrc = file_exists(__DIR__ . '/' . $localTesterAvatar)
+                                ? $localTesterAvatar
+                                : 'https://github.com/' . e($tester['username']) . '.png?size=160';
+                            ?>
                             <div class="dev-avatar">
-
-                                <img
-                                    src="https://github.com/<?= e($tester['username']) ?>.png?size=160"
-                                    alt="<?= e($tester['name']) ?>"
-                                    loading="lazy"
-                                    onerror="
-                                        this.style.display='none';
-                                        this.nextElementSibling.style.display='grid';
-                                    "
-                                >
-
                                 <div
                                     class="dev-fallback"
-                                    style="
-                                        display:none;
-                                        background:#d97706;
-                                    "
+                                    style="background:<?= !empty($tester['color']) ? e($tester['color']) : '#d97706' ?>;"
                                 >
                                     <?= e($tester['initials']) ?>
                                 </div>
-
+                                <img
+                                    src="<?= $testerAvatarSrc ?>"
+                                    alt="<?= e($tester['name']) ?>"
+                                    loading="lazy"
+                                    onerror="this.style.display='none';"
+                                >
                             </div>
 
                             <div class="dev-info">
