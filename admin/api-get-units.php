@@ -1,5 +1,6 @@
 <?php
-require_once '../config/database.php';
+require_once __DIR__ . '/admin-guard.php';
+require_once __DIR__ . '/../config/database.php';
 header('Content-Type: application/json');
 
 $subject_id = (int)($_GET['subject_id'] ?? 0);
