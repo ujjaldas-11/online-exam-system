@@ -32,6 +32,9 @@ function sanitize_csv_value(?string $value): string
     }
     $trimmed = trim(strip_tags($value));
     if ($trimmed !== '') {
+        if (is_numeric($trimmed)) {
+            return $trimmed;
+        }
         $firstChar = $trimmed[0];
         if (in_array($firstChar, ['=', '+', '-', '@', '%'], true)) {
             return "'" . $trimmed;
