@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/CsvService.php';
 
 try {
     $subjects = $pdo->query('SELECT id, name, department, semester FROM subjects ORDER BY name ASC')->fetchAll();
@@ -22,50 +23,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
     $subject_id = int_param($_POST['subject_id'] ?? 0);
     $csv_text = trim($_POST['csv_text'] ?? '');
     $maxFileSize = 5 * 1024 * 1024; // 5MB max
-    $allowedExtensions = ['csv', 'txt'];
-    $allowedMimes = [
-        'text/plain',
-        'text/csv',
-        'application/csv',
-        'text/x-csv',
-        'application/vnd.ms-excel',
-        'text/comma-separated-values',
-        'application/octet-stream',
-    ];
-
     $has_file = !empty($_FILES['csv_file']['name']);
 
     if (empty($subject_id)) {
         $error_message = 'Please select a subject.';
+    } elseif (!can_admin_manage_subject($pdo, $subject_id)) {
+        $error_message = 'Access Denied: You do not have permission to manage questions for this subject.';
     } elseif (!$has_file && empty($csv_text)) {
         $error_message = 'Please either upload a CSV file OR paste CSV content.';
-    } elseif ($has_file && $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
-        $error_message = 'File upload error code: ' . $_FILES['csv_file']['error'];
-    } elseif ($has_file && $_FILES['csv_file']['size'] > $maxFileSize) {
-        $error_message = 'Uploaded file too large. Maximum size allowed is 5MB.';
     } elseif (!$has_file && strlen($csv_text) > $maxFileSize) {
         $error_message = 'Pasted CSV content too large. Maximum size allowed is 5MB.';
     } else {
         $handle = false;
 
         if ($has_file) {
-            $tmpPath = $_FILES['csv_file']['tmp_name'];
-            $fileExt = strtolower(pathinfo($_FILES['csv_file']['name'], PATHINFO_EXTENSION));
-
-            if (!in_array($fileExt, $allowedExtensions, true)) {
-                $error_message = 'Invalid file extension. Only .csv and .txt files are allowed.';
-            } elseif (!is_uploaded_file($tmpPath)) {
-                $error_message = 'Uploaded file verification failed.';
+            $fileErr = CsvService::validateUploadedCsv($_FILES['csv_file'], $maxFileSize);
+            if ($fileErr !== null) {
+                $error_message = $fileErr;
             } else {
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $mimeType = finfo_file($finfo, $tmpPath);
-                finfo_close($finfo);
-
-                if (!in_array($mimeType, $allowedMimes, true)) {
-                    $error_message = "Invalid file type ($mimeType). Only CSV files are allowed.";
-                } else {
-                    $handle = fopen($tmpPath, 'r');
-                }
+                $handle = fopen($_FILES['csv_file']['tmp_name'], 'r');
             }
         } else {
             $handle = fopen('php://memory', 'r+');
