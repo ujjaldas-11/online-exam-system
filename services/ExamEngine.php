@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * High-Concurrency Exam Engine
  *
@@ -74,11 +76,23 @@ class ExamEngine
         }
 
         // 2. Check for Existing Attempt
-        $attemptStmt = $pdo->prepare("SELECT id, total_questions, score, status FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
+        $attemptStmt = $pdo->prepare("SELECT id, total_questions, score, status, options_order FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
         $attemptStmt->execute([$studentId, $examId]);
         $attempt = $attemptStmt->fetch();
 
         if ($attempt) {
+            $optionsOrder = !empty($attempt['options_order']) ? json_decode((string)$attempt['options_order'], true) : null;
+            if (empty($optionsOrder)) {
+                $qStmt = $pdo->prepare("SELECT question_id FROM student_answers WHERE attempt_id = ? ORDER BY id ASC");
+                $qStmt->execute([$attempt['id']]);
+                $qIds = $qStmt->fetchAll(PDO::FETCH_COLUMN);
+                if (!empty($qIds)) {
+                    $optionsOrder = self::generateOptionsOrder($qIds, $studentId, $examId);
+                    $pdo->prepare("UPDATE exam_attempts SET options_order = ? WHERE id = ?")
+                        ->execute([json_encode($optionsOrder), $attempt['id']]);
+                }
+            }
+            $attempt['options_order'] = $optionsOrder;
             return [
                 'success' => true,
                 'exam' => $exam,
@@ -103,6 +117,10 @@ class ExamEngine
 
             $availableQuestionIds = $qStmt->fetchAll(PDO::FETCH_COLUMN);
 
+            if ($qCount <= 0) {
+                throw new Exception("This examination has no questions configured.");
+            }
+
             if (count($availableQuestionIds) < $qCount) {
                 throw new Exception("The question bank does not have enough questions for this exam ($qCount required, " . count($availableQuestionIds) . " available).");
             }
@@ -111,12 +129,16 @@ class ExamEngine
             shuffle($availableQuestionIds);
             $selectedQuestionIds = array_slice($availableQuestionIds, 0, $qCount);
 
-            // Insert Attempt record
+            // Generate deterministic options permutation per question for candidate attempt to eliminate shoulder surfing
+            $optionsOrder = self::generateOptionsOrder($selectedQuestionIds, $studentId, $examId);
+            $optionsOrderJson = json_encode($optionsOrder, JSON_UNESCAPED_UNICODE);
+
+            // Insert Attempt record with options_order
             $insAttempt = $pdo->prepare("
-                INSERT INTO exam_attempts (student_id, exam_id, total_questions, status, started_at)
-                VALUES (?, ?, ?, 'in_progress', NOW())
+                INSERT INTO exam_attempts (student_id, exam_id, total_questions, status, started_at, options_order)
+                VALUES (?, ?, ?, 'in_progress', NOW(), ?)
             ");
-            $insAttempt->execute([$studentId, $examId, $qCount]);
+            $insAttempt->execute([$studentId, $examId, $qCount, $optionsOrderJson]);
             $attemptId = (int) $pdo->lastInsertId();
 
             // Bulk multi-row insert for all assigned questions in a single query
@@ -141,7 +163,8 @@ class ExamEngine
                     'id' => $attemptId,
                     'total_questions' => $qCount,
                     'score' => 0.00,
-                    'status' => 'in_progress'
+                    'status' => 'in_progress',
+                    'options_order' => $optionsOrder
                 ],
                 'is_new' => true
             ];
@@ -152,10 +175,13 @@ class ExamEngine
 
             // Handle race condition: Duplicate attempt inserted simultaneously by double-click
             if ($e->getCode() === '23000') {
-                $chk = $pdo->prepare("SELECT id, total_questions, score, status FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
+                $chk = $pdo->prepare("SELECT id, total_questions, score, status, options_order FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
                 $chk->execute([$studentId, $examId]);
                 $existing = $chk->fetch();
                 if ($existing) {
+                    if (!empty($existing['options_order']) && is_string($existing['options_order'])) {
+                        $existing['options_order'] = json_decode($existing['options_order'], true);
+                    }
                     return [
                         'success' => true,
                         'exam' => $exam,
@@ -302,7 +328,7 @@ class ExamEngine
 
             $checkStmt = $pdo->prepare("
                 SELECT ea.id, ea.score, ea.total_questions, ea.status,
-                       e.total_marks, e.total_questions_to_ask
+                       e.total_marks, e.total_questions_to_ask, e.negative_marks_per_question
                 FROM exam_attempts ea
                 JOIN exams e ON ea.exam_id = e.id
                 WHERE ea.student_id = ? AND ea.exam_id = ?
@@ -336,14 +362,15 @@ class ExamEngine
             $totalMarks = (float) $attempt['total_marks'];
             $totalQs = (int) $attempt['total_questions_to_ask'];
             $pointsPerQuestion = ($totalQs > 0) ? ($totalMarks / $totalQs) : 1.0;
+            $negativeMarksPerQuestion = isset($attempt['negative_marks_per_question']) ? (float)$attempt['negative_marks_per_question'] : 0.00;
 
-            // Fetch assigned answers with questions, locking answers FOR UPDATE
+            // Fetch assigned answers with questions to calculate score
+            // The attempt row is already exclusively locked with FOR UPDATE above, serializing this submission
             $ansSql = "
                 SELECT sa.id AS ans_id, q.id AS question_id, q.correct_option, sa.selected_option
                 FROM student_answers sa
                 JOIN questions q ON sa.question_id = q.id
                 WHERE sa.attempt_id = ?
-                FOR UPDATE
             ";
             $ansStmt = $pdo->prepare($ansSql);
             $ansStmt->execute([$attemptId]);
@@ -353,14 +380,18 @@ class ExamEngine
             $upAns = $pdo->prepare("UPDATE student_answers SET is_correct = ? WHERE id = ?");
 
             foreach ($answers as $row) {
-                $isCorrect = (!empty($row['selected_option']) && $row['selected_option'] === $row['correct_option']) ? 1 : 0;
+                $hasAnswered = (!empty($row['selected_option']) && trim($row['selected_option']) !== '');
+                $isCorrect = ($hasAnswered && $row['selected_option'] === $row['correct_option']) ? 1 : 0;
                 if ($isCorrect === 1) {
                     $totalScore += $pointsPerQuestion;
+                } elseif ($hasAnswered && $negativeMarksPerQuestion > 0.0) {
+                    $totalScore -= $negativeMarksPerQuestion;
                 }
                 $upAns->execute([$isCorrect, $row['ans_id']]);
             }
 
-            $totalScore = round($totalScore, 2);
+            // Floor score at 0.00 to avoid negative total scores
+            $totalScore = max(0.00, round($totalScore, 2));
 
             $upAttempt = $pdo->prepare("
                 UPDATE exam_attempts
@@ -422,5 +453,238 @@ class ExamEngine
         } catch (PDOException $e) {
             log_error("Failed to sync exam statuses", $e);
         }
+    }
+
+    /**
+     * Determine if an examination is concluded based on status, end time, and duration.
+     *
+     * @param array<string, mixed> $exam Associative array containing 'status' (or 'exam_status'), and optionally 'start_time', 'end_time', 'duration_minutes'
+     */
+    public static function isExamEnded(array $exam): bool
+    {
+        $status = (string)($exam['status'] ?? $exam['exam_status'] ?? '');
+        if ($status === 'ended' || $status === 'cancelled') {
+            return true;
+        }
+
+        // Check explicit end_time
+        if (!empty($exam['end_time'])) {
+            $endTime = strtotime((string)$exam['end_time']);
+            if ($endTime !== false && time() >= $endTime) {
+                return true;
+            }
+        }
+
+        // Check start_time + duration_minutes
+        if (!empty($exam['start_time']) && !empty($exam['duration_minutes'])) {
+            $startTime = strtotime((string)$exam['start_time']);
+            $durationSec = (int)$exam['duration_minutes'] * 60;
+            if ($startTime !== false && time() >= ($startTime + $durationSec)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Calculate aggregated answer statistics for a student attempt.
+     *
+     * @return array{total_questions: int, correct_count: int, wrong_count: int, skipped_count: int, score: float, percentage: float}
+     */
+    public static function getAttemptStats(PDO $pdo, int $attemptId): array
+    {
+        if ($attemptId <= 0) {
+            return [
+                'total_questions' => 0,
+                'correct_count' => 0,
+                'wrong_count' => 0,
+                'skipped_count' => 0,
+                'score' => 0.0,
+                'percentage' => 0.0,
+            ];
+        }
+
+        try {
+            $stmt = $pdo->prepare("
+                SELECT
+                    COUNT(*) AS total_questions,
+                    SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) AS correct_count,
+                    SUM(CASE WHEN is_correct = 0 AND selected_option IS NOT NULL AND selected_option != '' THEN 1 ELSE 0 END) AS wrong_count,
+                    SUM(CASE WHEN selected_option IS NULL OR selected_option = '' THEN 1 ELSE 0 END) AS skipped_count
+                FROM student_answers
+                WHERE attempt_id = ?
+            ");
+            $stmt->execute([$attemptId]);
+            $stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            $attStmt = $pdo->prepare("
+                SELECT ea.score, e.total_marks
+                FROM exam_attempts ea
+                JOIN exams e ON ea.exam_id = e.id
+                WHERE ea.id = ?
+            ");
+            $attStmt->execute([$attemptId]);
+            $att = $attStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            $score = (float)($att['score'] ?? 0.0);
+            $totalMarks = (float)($att['total_marks'] ?? 0.0);
+            $percentage = $totalMarks > 0 ? round(($score / $totalMarks) * 100, 2) : 0.0;
+
+            return [
+                'total_questions' => (int)($stats['total_questions'] ?? 0),
+                'correct_count' => (int)($stats['correct_count'] ?? 0),
+                'wrong_count' => (int)($stats['wrong_count'] ?? 0),
+                'skipped_count' => (int)($stats['skipped_count'] ?? 0),
+                'score' => $score,
+                'percentage' => $percentage,
+            ];
+        } catch (PDOException $e) {
+            log_error("Failed to fetch attempt stats for attempt $attemptId", $e);
+            return [
+                'total_questions' => 0,
+                'correct_count' => 0,
+                'wrong_count' => 0,
+                'skipped_count' => 0,
+                'score' => 0.0,
+                'percentage' => 0.0,
+            ];
+        }
+    }
+
+    /**
+     * Fetch joined questions and student responses for exam review or answer sheet export.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function getAttemptReviewQuestions(PDO $pdo, int $attemptId): array
+    {
+        if ($attemptId <= 0) {
+            return [];
+        }
+
+        try {
+            $stmt = $pdo->prepare("
+                SELECT 
+                    q.id AS question_id,
+                    q.question_text,
+                    q.option_a,
+                    q.option_b,
+                    q.option_c,
+                    q.option_d,
+                    q.correct_option,
+                    sa.selected_option,
+                    sa.is_correct,
+                    sa.marked_for_review
+                FROM student_answers sa
+                JOIN questions q ON sa.question_id = q.id
+                WHERE sa.attempt_id = ?
+                ORDER BY sa.id ASC
+            ");
+            $stmt->execute([$attemptId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            log_error("Failed to load review questions for attempt $attemptId", $e);
+            return [];
+        }
+    }
+
+    /**
+     * Generate a deterministic permutation of options (A, B, C, D) per question
+     * for a candidate attempt to eliminate shoulder surfing.
+     *
+     * @param array<int> $questionIds List of question IDs
+     * @param int $studentId Candidate ID
+     * @param int $examId Exam ID
+     * @return array<string, array<string>> Map of questionId => ['B', 'A', 'D', 'C']
+     */
+    public static function generateOptionsOrder(array $questionIds, int $studentId, int $examId): array
+    {
+        $orderMap = [];
+        $base = ['A', 'B', 'C', 'D'];
+
+        foreach ($questionIds as $qId) {
+            $opts = $base;
+            // Seed PRNG deterministically based on student, exam, and question
+            $seed = crc32("opt_seed_{$studentId}_{$examId}_{$qId}");
+            mt_srand($seed);
+
+            for ($i = count($opts) - 1; $i > 0; $i--) {
+                $j = mt_rand(0, $i);
+                $tmp = $opts[$i];
+                $opts[$i] = $opts[$j];
+                $opts[$j] = $tmp;
+            }
+
+            $orderMap[(string)$qId] = $opts;
+        }
+
+        mt_srand(); // Restore standard PRNG state
+        return $orderMap;
+    }
+
+    /**
+     * Retrieve the options permutation map for an attempt.
+     *
+     * @param PDO $pdo
+     * @param int $attemptId
+     * @return array<string, array<string>>
+     */
+    public static function getAttemptOptionsOrder(PDO $pdo, int $attemptId): array
+    {
+        if ($attemptId <= 0) {
+            return [];
+        }
+
+        try {
+            $stmt = $pdo->prepare("SELECT options_order FROM exam_attempts WHERE id = ?");
+            $stmt->execute([$attemptId]);
+            $raw = $stmt->fetchColumn();
+            if ($raw) {
+                $decoded = json_decode((string)$raw, true);
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+            return [];
+        } catch (PDOException $e) {
+            log_error("Failed fetching options_order for attempt $attemptId", $e);
+            return [];
+        }
+    }
+
+    /**
+     * Initialize or fetch an examination attempt with deterministic option permutation.
+     * Alias for getOrStartAttempt, automatically resolving student profile if omitted.
+     *
+     * @param PDO $pdo
+     * @param int $studentId
+     * @param int $examId
+     * @param int $studentSemester Optional semester override
+     * @param string $studentDepartment Optional department override
+     * @return array
+     */
+    public static function startExam(
+        PDO $pdo,
+        int $studentId,
+        int $examId,
+        int $studentSemester = 0,
+        string $studentDepartment = ''
+    ): array {
+        if ($studentSemester <= 0 || $studentDepartment === '') {
+            try {
+                $stmt = $pdo->prepare("SELECT semester, department FROM students WHERE id = ?");
+                $stmt->execute([$studentId]);
+                $stu = $stmt->fetch();
+                if ($stu) {
+                    $studentSemester = (int)$stu['semester'];
+                    $studentDepartment = (string)$stu['department'];
+                }
+            } catch (PDOException $e) {
+                log_error("Failed looking up student profile for startExam", $e);
+            }
+        }
+
+        return self::getOrStartAttempt($pdo, $studentId, $examId, $studentSemester, $studentDepartment);
     }
 }
