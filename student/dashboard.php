@@ -2,10 +2,14 @@
 
 require_once 'student-guard.php';
 require_once '../config/database.php';
+require_once '../services/ExamEngine.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 
 date_default_timezone_set('Asia/Kolkata');
+
+// Automatically sync exam statuses so due scheduled exams become active
+ExamEngine::syncExamStatuses($pdo);
 
 $student_name = $_SESSION['student_name'];
 $semester = (int) $_SESSION['semester'];
@@ -58,8 +62,12 @@ $filtered_exams = [];
 $active_count = 0;
 
 foreach ($available_exams as $exam) {
+    if ($exam['status'] === 'scheduled' && !empty($exam['start_time']) && time() >= strtotime($exam['start_time'])) {
+        $exam['status'] = 'active';
+    }
+
     if ($exam['status'] === 'active') {
-        $start_timestamp = strtotime($exam['start_time']);
+        $start_timestamp = !empty($exam['start_time']) ? strtotime($exam['start_time']) : time();
         $duration_seconds = $exam['duration_minutes'] * 60;
         $end_timestamp = $start_timestamp + $duration_seconds;
 
@@ -101,6 +109,9 @@ include __DIR__ . '/../components/student-navbar.php';
                 $is_completed = ($attempt_status === 'completed');
                 $is_ongoing = ($attempt_status === 'in_progress');
                 $status = $exam['status'];
+                if ($status === 'scheduled' && !empty($exam['start_time']) && time() >= strtotime($exam['start_time'])) {
+                    $status = 'active';
+                }
 
                 $is_exam_ended = ($status === 'ended');
                 if ($status === 'active' && !empty($exam['start_time'])) {

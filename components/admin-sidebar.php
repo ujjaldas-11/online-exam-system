@@ -36,7 +36,7 @@ if ($isAdminSuper) {
     $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school', 'title' => 'teachers'];
     $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long', 'title' => 'logs'];
     $admin_nav['import-students.php'] = ['label' => 'Import', 'icon' => 'upload_file', 'title' => 'import students'];
-
+    $admin_nav['settings.php'] = ['label' => 'Settings & Backup', 'icon' => 'settings', 'title' => 'system settings and backup'];
 } else {
     $admin_nav['audit-logs.php'] = ['label' => 'My Activity', 'icon' => 'history', 'title' => 'my history'];
 }

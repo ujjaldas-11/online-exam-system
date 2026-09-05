@@ -42,6 +42,7 @@ try {
     }
 
     $pdo = new PDO($dsn, $username, $password, $options);
+    $pdo->exec("SET time_zone = '" . date('P') . "'");
 } catch (PDOException $e) {
     log_error("Database connection failed", $e);
     if (is_development() || php_sapi_name() === 'cli') {

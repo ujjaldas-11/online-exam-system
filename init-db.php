@@ -128,6 +128,11 @@ try {
         $pdo->exec("ALTER TABLE students ADD COLUMN updated_at timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() AFTER created_at");
     }
 
+    $examCols = $pdo->query("SHOW COLUMNS FROM exams")->fetchAll(PDO::FETCH_COLUMN);
+    if (!in_array('end_time', $examCols, true)) {
+        $pdo->exec("ALTER TABLE exams ADD COLUMN end_time datetime DEFAULT NULL AFTER start_time");
+    }
+
     out("All 10 refined tables verified and updated successfully.", $isCli, 'success');
 } catch (PDOException $e) {
     out("Failed executing schema.sql: " . $e->getMessage(), $isCli, 'error');

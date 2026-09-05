@@ -76,7 +76,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     }
 
-    json_response(['success' => true]);
+    json_response([
+        'success' => true,
+        'seconds_left' => $res['seconds_left'] ?? null,
+    ]);
 }
 
 // Handle GET: Fetch Question and Map Data
@@ -93,8 +96,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     release_session_lock();
 
     try {
-        // 1. Fetch Attempt
-        $attemptStmt = $pdo->prepare("SELECT id, total_questions, status FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
+        // 1. Fetch Attempt & live timing
+        $attemptStmt = $pdo->prepare("
+            SELECT ea.id, ea.total_questions, ea.status,
+                   TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
+            FROM exam_attempts ea
+            JOIN exams e ON ea.exam_id = e.id
+            WHERE ea.student_id = ? AND ea.exam_id = ?
+        ");
         $attemptStmt->execute([$student_id, $exam_id]);
         $attempt = $attemptStmt->fetch();
 
@@ -157,6 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         json_response([
             'success' => true,
+            'seconds_left' => max(0, (int)($attempt['seconds_left'] ?? 0)),
             'question' => [
                 'id' => (int) $questionRow['id'],
                 'question_text' => clean_input($questionRow['question_text']),

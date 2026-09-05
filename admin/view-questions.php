@@ -41,6 +41,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
                 $message_type = 'error';
             }
         }
+    } elseif (isset($_POST['delete_question'])) {
+        $q_id = int_param($_POST['question_id'] ?? 0);
+        if ($q_id > 0) {
+            $canDelete = false;
+            if (is_superadmin()) {
+                $canDelete = true;
+            } else {
+                $chk = $pdo->prepare("
+                    SELECT q.created_by AS q_author, s.created_by AS s_author
+                    FROM questions q
+                    JOIN subjects s ON q.subject_id = s.id
+                    WHERE q.id = ?
+                ");
+                $chk->execute([$q_id]);
+                $authRow = $chk->fetch();
+                $adminId = (int)($_SESSION['admin_id'] ?? 0);
+                if ($authRow && ((int)$authRow['q_author'] === $adminId || (int)$authRow['s_author'] === $adminId)) {
+                    $canDelete = true;
+                }
+            }
+
+            if (!$canDelete) {
+                $message = "Unauthorized: You can only delete questions you authored or in subjects you created.";
+                $message_type = 'error';
+            } else {
+                try {
+                    $del = $pdo->prepare("DELETE FROM questions WHERE id = ?");
+                    $del->execute([$q_id]);
+                    log_admin_action($pdo, 'delete_question', 'question', $q_id, "Deleted question #$q_id from subject #$subject_id");
+                    $message = "Question deleted successfully.";
+                    $message_type = 'success';
+                } catch (PDOException $e) {
+                    $message = safe_db_error($e, "Failed to delete question.");
+                    $message_type = 'error';
+                }
+            }
+        }
+    } elseif (isset($_POST['edit_question'])) {
+        $q_id = int_param($_POST['question_id'] ?? 0);
+        $q_text = clean_input($_POST['question_text'] ?? '');
+        $opt_a = clean_input($_POST['option_a'] ?? '');
+        $opt_b = clean_input($_POST['option_b'] ?? '');
+        $opt_c = clean_input($_POST['option_c'] ?? '');
+        $opt_d = clean_input($_POST['option_d'] ?? '');
+        $correct_opt = strtoupper(clean_input($_POST['correct_option'] ?? ''));
+        $unit_num = int_param($_POST['unit_number'] ?? 1);
+
+        if (empty($q_text) || empty($opt_a) || empty($opt_b) || !in_array($correct_opt, ['A', 'B', 'C', 'D'], true)) {
+            $message = "Please provide question text, at least Options A & B, and a valid Correct Option (A, B, C, or D).";
+            $message_type = 'error';
+        } else {
+            $canEdit = false;
+            if (is_superadmin()) {
+                $canEdit = true;
+            } else {
+                $chk = $pdo->prepare("
+                    SELECT q.created_by AS q_author, s.created_by AS s_author
+                    FROM questions q
+                    JOIN subjects s ON q.subject_id = s.id
+                    WHERE q.id = ?
+                ");
+                $chk->execute([$q_id]);
+                $authRow = $chk->fetch();
+                $adminId = (int)($_SESSION['admin_id'] ?? 0);
+                if ($authRow && ((int)$authRow['q_author'] === $adminId || (int)$authRow['s_author'] === $adminId)) {
+                    $canEdit = true;
+                }
+            }
+
+            if (!$canEdit) {
+                $message = "Unauthorized: You can only edit questions you authored or in subjects you created.";
+                $message_type = 'error';
+            } else {
+                try {
+                    $up = $pdo->prepare("
+                        UPDATE questions
+                        SET question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_option = ?, unit_number = ?
+                        WHERE id = ?
+                    ");
+                    $up->execute([$q_text, $opt_a, $opt_b, $opt_c ?: null, $opt_d ?: null, $correct_opt, $unit_num, $q_id]);
+                    log_admin_action($pdo, 'edit_question', 'question', $q_id, "Updated question #$q_id in subject #$subject_id");
+                    $message = "Question updated successfully.";
+                    $message_type = 'success';
+                } catch (PDOException $e) {
+                    $message = safe_db_error($e, "Failed to update question.");
+                    $message_type = 'error';
+                }
+            }
+        }
     }
 }
 
@@ -112,9 +201,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?php if (!empty($all_questions)): ?>
                 <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!');">
                     <?= csrf_field() ?>
-                    <!-- <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px; cursor: not-allowed;">
-                        <span class="material-symbols-outlined icon-sm">delete</span> Delete All
-                    </button> -->
+                    <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-sm">delete_forever</span> Delete All
+                    </button>
                 </form>
             <?php endif; ?>
         </div>
@@ -142,8 +231,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <tr>
                             <th style="width: 50px;">#</th>
                             <th>Question Text</th>
-                            <th style="width: 140px; text-align: center;">Correct Option</th>
-                            <th style="width: 100px; text-align: center;">Unit</th>
+                            <th style="width: 130px; text-align: center;">Correct Option</th>
+                            <th style="width: 90px; text-align: center;">Unit</th>
+                            <th style="width: 140px; text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -178,6 +268,27 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td style="text-align: center;">
                                     <span class="badge badge-inactive">Unit <?= e((string)$row['unit_number']) ?></span>
                                 </td>
+                                <td style="text-align: right; white-space: nowrap;">
+                                    <button type="button" class="btn btn-secondary btn-sm btn-edit-question"
+                                        data-id="<?= (int)$row['id'] ?>"
+                                        data-text="<?= e($row['question_text']) ?>"
+                                        data-a="<?= e($row['option_a']) ?>"
+                                        data-b="<?= e($row['option_b']) ?>"
+                                        data-c="<?= e($row['option_c'] ?? '') ?>"
+                                        data-d="<?= e($row['option_d'] ?? '') ?>"
+                                        data-correct="<?= e($row['correct_option']) ?>"
+                                        data-unit="<?= e((string)$row['unit_number']) ?>"
+                                        style="display: inline-flex; align-items: center; gap: 4px;">
+                                        <span class="material-symbols-outlined icon-xs">edit</span> Edit
+                                    </button>
+                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this question?');">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="question_id" value="<?= (int)$row['id'] ?>">
+                                        <button type="submit" name="delete_question" class="btn btn-danger btn-sm" title="Delete Question" style="display: inline-flex; align-items: center;">
+                                            <span class="material-symbols-outlined icon-xs">delete</span>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -186,5 +297,97 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <?php endif; ?>
     </div>
 </div>
+
+<!-- Edit Question Modal -->
+<div id="editQuestionModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div class="card" style="max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; margin: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0;">Edit Question</h3>
+            <button type="button" id="closeEditModal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <form method="POST" id="editQuestionForm">
+            <?= csrf_field() ?>
+            <input type="hidden" name="question_id" id="modal_q_id" value="">
+
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 4px;">Question Text</label>
+                <textarea name="question_text" id="modal_q_text" rows="3" required class="form-control" style="width: 100%;"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option A</label>
+                    <input type="text" name="option_a" id="modal_opt_a" required class="form-control" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option B</label>
+                    <input type="text" name="option_b" id="modal_opt_b" required class="form-control" style="width: 100%;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option C (Optional)</label>
+                    <input type="text" name="option_c" id="modal_opt_c" class="form-control" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option D (Optional)</label>
+                    <input type="text" name="option_d" id="modal_opt_d" class="form-control" style="width: 100%;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                <div>
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Correct Option</label>
+                    <select name="correct_option" id="modal_correct_opt" required class="form-control" style="width: 100%;">
+                        <option value="A">Option A</option>
+                        <option value="B">Option B</option>
+                        <option value="C">Option C</option>
+                        <option value="D">Option D</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Unit Number</label>
+                    <input type="number" name="unit_number" id="modal_unit_num" min="1" max="20" required class="form-control" style="width: 100%;">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" name="edit_question" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('editQuestionModal');
+    const closeBtn = document.getElementById('closeEditModal');
+    const cancelBtn = document.getElementById('cancelEditBtn');
+
+    document.querySelectorAll('.btn-edit-question').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('modal_q_id').value = btn.dataset.id;
+            document.getElementById('modal_q_text').value = btn.dataset.text;
+            document.getElementById('modal_opt_a').value = btn.dataset.a;
+            document.getElementById('modal_opt_b').value = btn.dataset.b;
+            document.getElementById('modal_opt_c').value = btn.dataset.c;
+            document.getElementById('modal_opt_d').value = btn.dataset.d;
+            document.getElementById('modal_correct_opt').value = btn.dataset.correct;
+            document.getElementById('modal_unit_num').value = btn.dataset.unit;
+
+            modal.style.display = 'flex';
+        });
+    });
+
+    const hideModal = () => { if (modal) modal.style.display = 'none'; };
+    if (closeBtn) closeBtn.onclick = hideModal;
+    if (cancelBtn) cancelBtn.onclick = hideModal;
+    if (modal) {
+        modal.onclick = (e) => { if (e.target === modal) hideModal(); };
+    }
+});
+</script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

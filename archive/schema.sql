@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS `exams` (
   `access_pin` varchar(10) DEFAULT NULL,
   `target_units` varchar(50) NOT NULL DEFAULT 'all',
   `start_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),

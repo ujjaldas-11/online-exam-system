@@ -1,44 +1,114 @@
+/**
+ * Examify Examination Countdown Timer
+ * Supports dynamic time synchronization, extensions, and automated submission.
+ */
+(function(window) {
+    let timeLeft = 0;
+    let timerInterval = null;
+    let timerDisplay = null;
+    let examForm = null;
+    let submitBtn = null;
+    let timerText = null;
 
-document.addEventListener("DOMContentLoaded", function() {
-    const timerDisplay = document.getElementById('timerDisplay');
-    const examForm = document.getElementById('examForm');
-    const submitBtn = document.getElementById('submitBtn');
+    function formatTime(totalSeconds) {
+        if (totalSeconds < 0) totalSeconds = 0;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
 
-    if (!timerDisplay) return;
+    function renderDisplay() {
+        if (!timerDisplay) return;
 
-    let timeLeft = parseInt(timerDisplay.getAttribute('data-time-left'), 10);
-
-    // Update the timer every 1000ms (1 second)
-    const countdown = setInterval(() => {
-        if (timeLeft <= 0) {
-            // Time is up!
-            clearInterval(countdown);
-            timerDisplay.innerHTML = "Time's up! Submitting your exam...";
-            timerDisplay.style.background = "#333"; // Change color to dark gray
-
-            if (submitBtn) submitBtn.disabled = true; // Prevent double clicks
-
-            if (window.AntiCheat && typeof window.AntiCheat.stop === 'function') {
-                window.AntiCheat.stop();
-            }
-
-            // Automatically submit the form
-            if (examForm) examForm.submit();
+        if (timerText) {
+            timerText.textContent = formatTime(timeLeft);
         } else {
-            // Calculate minutes and seconds
-            let minutes = Math.floor(timeLeft / 60);
-            let seconds = timeLeft % 60;
+            timerDisplay.innerHTML = `⏳ Time Left: ${formatTime(timeLeft)}`;
+        }
 
-            // Add a leading zero if seconds is less than 10 (e.g., 9:05)
-            if (seconds < 10) {
-                seconds = "0" + seconds;
-            }
+        if (timeLeft <= 300 && timeLeft > 60) {
+            timerDisplay.style.color = 'var(--color-warning, #d97706)';
+        } else if (timeLeft <= 60) {
+            timerDisplay.style.color = 'var(--color-danger, #dc2626)';
+        } else {
+            timerDisplay.style.color = '';
+        }
+    }
 
-            // Update the screen
-            timerDisplay.innerHTML = `⏳ Time Left: ${minutes}:${seconds}`;
+    function onTimeExpired() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
 
-            // Decrease time left by 1 second
+        if (timerText) {
+            timerText.textContent = "Time's up!";
+        } else if (timerDisplay) {
+            timerDisplay.innerHTML = "Time's up! Submitting your exam...";
+        }
+
+        if (submitBtn) submitBtn.disabled = true;
+
+        if (window.AntiCheat && typeof window.AntiCheat.stop === 'function') {
+            window.AntiCheat.stop();
+        }
+
+        if (examForm) {
+            examForm.submit();
+        }
+    }
+
+    function tick() {
+        if (timeLeft <= 0) {
+            onTimeExpired();
+        } else {
+            renderDisplay();
             timeLeft--;
         }
-    }, 1000);
-});
+    }
+
+    function initTimer() {
+        timerDisplay = document.getElementById('timerDisplay');
+        examForm = document.getElementById('examForm');
+        submitBtn = document.getElementById('submitBtn') || document.getElementById('btn-confirm-submit');
+        timerText = document.getElementById('timerText');
+
+        if (!timerDisplay) return;
+
+        const initialSec = parseInt(timerDisplay.getAttribute('data-time-left'), 10);
+        timeLeft = isNaN(initialSec) ? 0 : Math.max(0, initialSec);
+
+        renderDisplay();
+
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(tick, 1000);
+    }
+
+    // Public API
+    window.Timer = {
+        init: initTimer,
+        getTimeLeft: () => timeLeft,
+        syncTimeLeft: function(seconds) {
+            if (typeof seconds === 'number' && !isNaN(seconds)) {
+                const serverSec = Math.max(0, Math.floor(seconds));
+                // Resync if drift exceeds 3 seconds or if time was extended by proctor
+                if (Math.abs(timeLeft - serverSec) > 3 || serverSec > timeLeft) {
+                    timeLeft = serverSec;
+                    renderDisplay();
+                }
+            }
+        },
+        addMinutes: function(minutes) {
+            if (typeof minutes === 'number' && minutes > 0) {
+                timeLeft += Math.floor(minutes * 60);
+                renderDisplay();
+            }
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTimer);
+    } else {
+        initTimer();
+    }
+})(window);

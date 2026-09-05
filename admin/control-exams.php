@@ -2,11 +2,15 @@
 
 require_once 'admin-guard.php';
 require_once '../config/database.php';
+require_once '../services/ExamEngine.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 
 date_default_timezone_set('Asia/Kolkata');
+
+// Automatically sync exam statuses
+ExamEngine::syncExamStatuses($pdo);
 
 $message = '';
 $message_type = '';
@@ -240,12 +244,21 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             $display_status = 'NOT STARTED';
                             $badge_class = 'badge-notstarted';
 
-                            if ($exam['status'] === 'active') {
-                                $start_timestamp = strtotime($exam['start_time']);
+                            if ($exam['status'] === 'scheduled') {
+                                if (!empty($exam['start_time']) && time() >= strtotime($exam['start_time'])) {
+                                    $exam['status'] = 'active';
+                                }
+                            }
+
+                            if ($exam['status'] === 'scheduled') {
+                                $display_status = 'SCHEDULED';
+                                $badge_class = 'badge-pending';
+                            } elseif ($exam['status'] === 'active') {
+                                $start_timestamp = !empty($exam['start_time']) ? strtotime($exam['start_time']) : time();
                                 $duration_seconds = $exam['duration_minutes'] * 60;
                                 $end_timestamp = $start_timestamp + $duration_seconds;
 
-                                if (time() >= $end_timestamp) {
+                                if (time() >= $end_timestamp || (!empty($exam['end_time']) && time() >= strtotime($exam['end_time']))) {
                                     $display_status = 'ENDED';
                                     $badge_class = 'badge-ended';
                                 } else {
@@ -274,8 +287,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 </td>
                                 <td>
                                     <div><?= e((string)$exam['total_questions_to_ask']) ?> Qs • <?= e((string)$exam['duration_minutes']) ?> mins</div>
-                                    <?php if ($exam['start_time']): ?>
-                                        <small style="color: var(--color-text-secondary);">Started: <?= date('h:i A', strtotime($exam['start_time'])) ?></small>
+                                    <?php if ($exam['status'] === 'scheduled' && !empty($exam['start_time'])): ?>
+                                        <small style="color: var(--color-text-secondary); display: block;">Starts: <?= date('M d, h:i A', strtotime($exam['start_time'])) ?></small>
+                                    <?php elseif (!empty($exam['start_time'])): ?>
+                                        <small style="color: var(--color-text-secondary); display: block;">Started: <?= date('h:i A', strtotime($exam['start_time'])) ?></small>
+                                    <?php endif; ?>
+                                    <?php if (!empty($exam['end_time'])): ?>
+                                        <small style="color: var(--color-text-secondary); display: block;">Closes: <?= date('M d, h:i A', strtotime($exam['end_time'])) ?></small>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -316,12 +334,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <a href="?download_offline=true&exam_id=<?= $exam['id'] ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
                                             <span class="material-symbols-outlined icon-sm">print</span> Print Offline Paper
                                         </a>
-                                        <?php if ($display_status === 'NOT STARTED'): ?>
+                                        <?php if ($display_status === 'NOT STARTED' || $display_status === 'SCHEDULED'): ?>
                                             <form method="POST" style="display: inline;" onsubmit="return confirm('Start this examination now? Students will be able to join immediately.');">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
                                                 <button type="submit" name="start_exam" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-                                                    <span class="material-symbols-outlined icon-xs">play_arrow</span> Start Exam
+                                                    <span class="material-symbols-outlined icon-xs">play_arrow</span> Start Now
                                                 </button>
                                             </form>
                                         <?php elseif ($display_status === 'RUNNING'): ?>

@@ -27,14 +27,14 @@ class ExamEngine
         // 1. Verify Exam Permissions & Timing
         $examSql = "
             SELECT e.id, e.title, e.duration_minutes, e.subject_id, e.total_questions_to_ask, e.total_marks,
-                   e.access_pin, e.target_units, e.status, e.start_time,
+                   e.access_pin, e.target_units, e.status, e.start_time, e.end_time,
                    TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
             FROM exams e
             JOIN subjects s ON e.subject_id = s.id
             WHERE e.id = :id
               AND s.semester = :semester
               AND s.department = :department
-              AND e.status = 'active'
+              AND e.status IN ('active', 'scheduled')
             LIMIT 1
         ";
 
@@ -51,7 +51,25 @@ class ExamEngine
             return ['error' => 'Exam not found, inactive, or not authorized for your department/semester.'];
         }
 
-        if ((int)$exam['seconds_left'] <= 0) {
+        // Automated schedule check: Auto-transition scheduled exam if start_time has arrived
+        if ($exam['status'] === 'scheduled') {
+            if (!empty($exam['start_time']) && strtotime($exam['start_time']) <= time()) {
+                $upd = $pdo->prepare("UPDATE exams SET status = 'active' WHERE id = ?");
+                $upd->execute([$examId]);
+                $exam['status'] = 'active';
+            } else {
+                $startFormatted = !empty($exam['start_time']) ? date('M d, Y h:i A', strtotime($exam['start_time'])) : 'a later date';
+                return ['error' => "This examination is scheduled to start at {$startFormatted}."];
+            }
+        }
+
+        // Check if scheduled end_time has passed
+        if (!empty($exam['end_time']) && strtotime($exam['end_time']) <= time()) {
+            $pdo->prepare("UPDATE exams SET status = 'ended' WHERE id = ?")->execute([$examId]);
+            return ['error' => 'The scheduled examination window for this exam has ended.'];
+        }
+
+        if (!empty($exam['start_time']) && (int)$exam['seconds_left'] <= 0) {
             return ['error' => 'Time is up! This examination has already concluded.'];
         }
 
@@ -171,7 +189,7 @@ class ExamEngine
         try {
             // Verify attempt ownership & active status
             $checkStmt = $pdo->prepare("
-                SELECT ea.id, ea.status,
+                SELECT ea.id, ea.status, e.end_time,
                        TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
                 FROM exam_attempts ea
                 JOIN exams e ON ea.exam_id = e.id
@@ -194,6 +212,11 @@ class ExamEngine
 
             if ($attempt['status'] !== 'in_progress') {
                 return ['error' => 'Exam is not in progress', 'code' => 400];
+            }
+
+            // Check if scheduled end_time has passed (with 30-sec latency grace period)
+            if (!empty($attempt['end_time']) && strtotime($attempt['end_time']) < (time() - 30)) {
+                return ['error' => 'Scheduled examination window has ended', 'code' => 400];
             }
 
             // Allow 30 seconds network latency grace period
@@ -261,6 +284,7 @@ class ExamEngine
                 'success' => true,
                 'attempt_id' => $attemptId,
                 'answered_count' => $answeredCount,
+                'seconds_left' => max(0, (int)$attempt['seconds_left']),
             ];
         } catch (PDOException $e) {
             log_error("Failed saving answer: student $studentId, question $questionId", $e);
@@ -359,6 +383,44 @@ class ExamEngine
             }
             log_error("Submission error for student $studentId, exam $examId", $e);
             return ['error' => 'Database error grading exam.'];
+        }
+    }
+
+    /**
+     * Synchronize exam lifecycle statuses across the system:
+     * 1. Auto-activates scheduled exams once start_time has arrived.
+     * 2. Automatically marks exams as ended once their window has elapsed.
+     */
+    public static function syncExamStatuses(PDO $pdo): void
+    {
+        try {
+            // 1. Scheduled exams whose start_time has arrived and are within window -> active
+            $pdo->exec("
+                UPDATE exams
+                SET status = 'active'
+                WHERE status = 'scheduled'
+                  AND start_time IS NOT NULL
+                  AND start_time <= NOW()
+                  AND (
+                      (end_time IS NOT NULL AND end_time > NOW())
+                      OR
+                      (end_time IS NULL AND NOW() < DATE_ADD(start_time, INTERVAL duration_minutes MINUTE))
+                  )
+            ");
+
+            // 2. Active or scheduled exams whose window has fully expired -> ended
+            $pdo->exec("
+                UPDATE exams
+                SET status = 'ended'
+                WHERE status IN ('active', 'scheduled')
+                  AND (
+                      (end_time IS NOT NULL AND end_time <= NOW())
+                      OR
+                      (end_time IS NULL AND start_time IS NOT NULL AND NOW() >= DATE_ADD(start_time, INTERVAL duration_minutes MINUTE))
+                  )
+            ");
+        } catch (PDOException $e) {
+            log_error("Failed to sync exam statuses", $e);
         }
     }
 }

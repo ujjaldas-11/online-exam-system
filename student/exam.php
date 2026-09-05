@@ -23,9 +23,11 @@ $student_department = (string) $_SESSION['department'];
 
 // 1. Fetch Exam Meta to check PIN requirements & access
 try {
+    ExamEngine::syncExamStatuses($pdo);
+
     $examMetaStmt = $pdo->prepare("
         SELECT e.id, e.title, e.duration_minutes, e.total_questions_to_ask, e.total_marks,
-               e.access_pin, e.target_units, e.status,
+               e.access_pin, e.target_units, e.status, e.start_time, e.end_time,
                s.department, s.semester, s.name AS subject_name,
                TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
         FROM exams e
@@ -38,6 +40,16 @@ try {
 
     if (!$exam) {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Exam not found or you do not have permission to access it.</h2>");
+    }
+
+    if ($exam['status'] === 'scheduled') {
+        if (!empty($exam['start_time']) && strtotime($exam['start_time']) <= time()) {
+            $pdo->prepare("UPDATE exams SET status = 'active' WHERE id = ?")->execute([$exam_id]);
+            $exam['status'] = 'active';
+        } else {
+            $startFormatted = !empty($exam['start_time']) ? date('d M Y, h:i A', strtotime($exam['start_time'])) : 'a later date';
+            die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>This examination is scheduled to start at {$startFormatted}. Please check back then.</h2>");
+        }
     }
 
     if ($exam['status'] !== 'active') {
@@ -335,6 +347,10 @@ include __DIR__ . '/../components/header.php';
                 currentIndex = data.currentIndex;
                 currentQuestionId = data.question.id;
 
+                if (typeof data.seconds_left === 'number' && window.Timer) {
+                    window.Timer.syncTimeLeft(data.seconds_left);
+                }
+
                 renderQuestion(data.question, data.selected_option, data.marked_for_review);
                 renderGrid(data.total, data.all_answers, data.all_reviews, data.question_ids);
                 updateNavButtons();
@@ -456,6 +472,9 @@ include __DIR__ . '/../components/header.php';
             if (data.concurrent_session) {
                 alert(data.error || "Your account was logged into from another device.");
                 window.location.href = 'login.php?error=concurrent_session';
+            }
+            if (typeof data.seconds_left === 'number' && window.Timer) {
+                window.Timer.syncTimeLeft(data.seconds_left);
             }
         } catch (e) {
             console.error("Auto-sync failed:", e);

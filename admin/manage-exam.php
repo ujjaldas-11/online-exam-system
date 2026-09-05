@@ -30,6 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
     $access_pin = clean_input($_POST['access_pin'] ?? '');
     $target_units = clean_input($_POST['target_units'] ?? '');
 
+    $start_time_raw = clean_input($_POST['start_time'] ?? '');
+    $end_time_raw = clean_input($_POST['end_time'] ?? '');
+    $start_time = !empty($start_time_raw) ? date('Y-m-d H:i:s', strtotime($start_time_raw)) : null;
+    $end_time = !empty($end_time_raw) ? date('Y-m-d H:i:s', strtotime($end_time_raw)) : null;
+
     if (empty($title) || empty($department_selected) || $semester_selected <= 0 || $subject_id <= 0 || $duration <= 0 || $duration > 1440 || $total_marks <= 0 || $total_marks > 10000 || $total_questions <= 0 || $total_questions > 1000 || empty($target_units)) {
         $message = 'Please fill all required fields with valid values.';
         $message_type = 'error';
@@ -38,6 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
         $message_type = 'error';
     } elseif (strlen($access_pin) > 10) {
         $message = 'Access PIN cannot exceed 10 characters.';
+        $message_type = 'error';
+    } elseif ($start_time && $end_time && strtotime($end_time) <= strtotime($start_time)) {
+        $message = 'Scheduled end time must be after the start time.';
         $message_type = 'error';
     } else {
         if ($target_units === 'all') {
@@ -57,17 +65,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
         } else {
             try {
                 $creator_id = $_SESSION['admin_id'] ?? null;
+                $initial_status = 'inactive';
+                if ($start_time) {
+                    $initial_status = (strtotime($start_time) > time()) ? 'scheduled' : 'active';
+                }
+
                 $stmt = $pdo->prepare("
                     INSERT INTO exams
-                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, access_pin, target_units, status, created_by)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'inactive', ?)
+                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, access_pin, target_units, status, start_time, end_time, created_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
-                $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions, $access_pin ?: null, $target_units, $creator_id]);
+                $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions, $access_pin ?: null, $target_units, $initial_status, $start_time, $end_time, $creator_id]);
                 $newExamId = (int) $pdo->lastInsertId();
 
-                log_admin_action($pdo, 'create_exam', 'exam', $newExamId, "Created exam: $title");
+                log_admin_action($pdo, 'create_exam', 'exam', $newExamId, "Created exam: $title (Status: $initial_status)");
 
-                $message = "Exam created successfully! Navigate to 'Control Exams' to start and monitor it.";
+                $message = ($initial_status === 'scheduled')
+                    ? "Exam scheduled successfully for " . date('M d, Y h:i A', strtotime($start_time)) . "! It will activate automatically."
+                    : "Exam created successfully! Navigate to 'Control Exams' to manage and monitor it.";
                 $message_type = 'success';
             } catch (PDOException $e) {
                 $message = safe_db_error($e, 'Failed to create examination.');
@@ -206,6 +221,20 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div class="exam-form__field">
                     <label>Classroom PIN <span class="exam-form__unit">optional</span></label>
                     <input type="text" name="access_pin" maxlength="10" placeholder="4821" value="<?= e($_POST['access_pin'] ?? '') ?>">
+                </div>
+            </div>
+
+            <div class="exam-form__section-label">Scheduling & Auto-Activation <span class="exam-form__unit">optional</span></div>
+            <div class="exam-form__row exam-form__row--2">
+                <div class="exam-form__field">
+                    <label>Scheduled Start Time</label>
+                    <input type="datetime-local" name="start_time" value="<?= e($_POST['start_time'] ?? '') ?>" class="form-control">
+                    <small style="color: var(--color-text-secondary); font-size: 0.78rem; margin-top: 4px; display: block;">Leave blank to activate manually from the Control Center</small>
+                </div>
+                <div class="exam-form__field">
+                    <label>Scheduled End Time</label>
+                    <input type="datetime-local" name="end_time" value="<?= e($_POST['end_time'] ?? '') ?>" class="form-control">
+                    <small style="color: var(--color-text-secondary); font-size: 0.78rem; margin-top: 4px; display: block;">Auto-closes exam access when this time arrives</small>
                 </div>
             </div>
 
