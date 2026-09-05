@@ -52,7 +52,7 @@ The release packaging workflow performs these automated optimizations:
 - **Static Asset Caching**: The setting `APP_ENV=production` enables browser caching headers.
 - **Enforced SSL / HTTPS**: Setting `APP_ENV=production` automatically forces 301 redirects to HTTPS, sets `Strict-Transport-Security` (HSTS) headers, and marks session cookies as `Secure`.
 - **CSS Minification**: The workflow minifies all files in `assets/css/` using `clean-css-cli`.
-- **JavaScript Minification**: The workflow minifies and mangles scripts in `utils/` using `terser`.
+- **JavaScript Minification**: The workflow minifies and mangles client scripts in `assets/js/` (and `utils/`) using `terser`.
 - **Zero Runtime Dependencies**: The workflow produces a pure Vanilla PHP deployment without build tools.
 
 ---

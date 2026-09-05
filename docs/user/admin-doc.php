@@ -978,6 +978,7 @@ $isSuper = is_superadmin();
                                 <li>Select the curriculum subject.</li>
                                 <li>Set test duration in minutes.</li>
                                 <li>Specify total examination marks and question count per student.</li>
+                                <li>(Optional) Configure <strong>Negative Marks Per Question</strong> (e.g. <code>0.25</code> or <code>0.50</code> deduction for wrong answers; score floored at 0.00).</li>
                                 <li>(Optional) Set a 4-digit <strong>Classroom PIN</strong> for surprise quizzes.</li>
                                 <li>Click <strong>Create Examination</strong>.</li>
                             </ol>
@@ -996,12 +997,12 @@ $isSuper = is_superadmin();
                                 <tr><th>State</th><th>Controls</th></tr>
                                 <tr>
                                     <td><span class="badge scheduled">Inactive</span></td>
-                                    <td><strong>Start:</strong> Publish test live · <strong>Delete:</strong> Remove test</td>
+                                    <td><strong>Start:</strong> Publish test live · <strong>Offline Paper:</strong> Download printable PDF with answer key · <strong>Delete:</strong> Remove test</td>
                                 </tr>
                                 <tr>
                                     <td><span class="badge live">Live</span></td>
                                     <td>
-                                        <strong>Live Proctor:</strong> Open surveillance · 
+                                        <strong>Live Proctor:</strong> Open surveillance & broadcasts · 
                                         <strong>+5 min / +10 min:</strong> Grant emergency time · 
                                         <strong>End Exam:</strong> Terminate test
                                     </td>
@@ -1016,12 +1017,12 @@ $isSuper = is_superadmin();
 
                     <details class="subsection" id="sec-3-9">
                         <summary>
-                            3.9 Live Classroom Proctoring Panel<span class="arrow">▸</span>
+                            3.9 Live Classroom Proctoring Panel & Broadcast Announcements<span class="arrow">▸</span>
                         </summary>
                         <div class="body">
                             <p>
                                 Open <strong>Live Proctor</strong> (<code>admin/proctor-exam.php?exam_id=...</code>) during tests.
-                                The dashboard refreshes metrics automatically every <strong>5 seconds</strong>.
+                                The dashboard connects to the real-time WebSocket daemon with fallback HTTP polling.
                             </p>
                             <h4>Real-Time Candidate Metrics</h4>
                             <ul>
@@ -1030,9 +1031,13 @@ $isSuper = is_superadmin();
                                 <li><strong>Submitted / Done:</strong> Candidates who completed the exam.</li>
                                 <li><strong>Total Cheating Flags:</strong> Fullscreen exits, tab switches, and window blur events detected.</li>
                             </ul>
+                            <h4>Live Proctor Broadcast Announcements</h4>
+                            <p>
+                                Instructors can click <strong>Announce to Candidates</strong> to type a message. The message is pushed instantly across the real-time WebSocket channel and rendered in a prominent announcement banner on all active candidate screens.
+                            </p>
                             <h4>Anti-Cheat Telemetry & Automated Disqualification</h4>
                             <p>
-                                The examination engine actively monitors candidate workstations for unauthorized behaviors (exiting fullscreen, switching browser tabs, or window blur). Candidates receive warnings on their screen, and after <strong>3 violations</strong>, the server automatically marks the attempt as <code>disqualified</code>, locks further submissions, and alerts the proctoring dashboard in real time.
+                                The examination engine actively monitors candidate workstations for unauthorized behaviors (exiting fullscreen, switching browser tabs, or window blur). Candidates receive warnings on their screen, and after <strong>3 violations</strong>, the server automatically marks the attempt as <code>disqualified</code>, locks further submissions, and alerts the proctoring dashboard in real time. Option letters are deterministically permuted per attempt to deter shoulder surfing.
                             </p>
                             <h4>Emergency Hardware Actions</h4>
                             <ul>
