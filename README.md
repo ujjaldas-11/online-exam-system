@@ -73,7 +73,7 @@ online-exam-system/
 │   ├── control-exams.php        # Start/stop exams, add emergency time, view PINs
 │   ├── export-pdf.php           # Institutional exam results PDF download
 │   ├── manage-exam.php          # Configure exams (duration, marks, PIN)
-│   ├── manage-questions.php     # Upload multiple-choice questions with JSON
+│   ├── manage-questions.php     # Upload multiple-choice questions via CSV
 │   ├── manage-students.php      # Student management and bulk promotion panel
 │   ├── manage-teachers.php      # Teacher account management
 │   ├── proctor-exam.php         # Live classroom proctoring dashboard

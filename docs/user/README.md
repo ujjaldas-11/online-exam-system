@@ -236,25 +236,20 @@ Follow these steps to create a subject:
 
 ### 3.6 Managing Question Banks
 
-Follow these steps to upload multiple-choice questions in bulk:
+Follow these steps to upload multiple-choice questions in bulk via CSV:
 
-1. Click the **Questions** link in the navigation bar.
+1. Click the **Questions** link in the navigation bar (`admin/manage-questions.php`).
 2. Select the target subject from the dropdown menu.
-3. (Optional) Click the **Copy LLM Prompt** button to generate questions with an AI tool.
-4. Paste the JSON question array into the text area:
-   ```json
-   [
-     {
-       "question_text": "What does HTTP stand for?",
-       "option_a": "HyperText Transfer Protocol",
-       "option_b": "High Text Transfer Program",
-       "option_c": "Hyperlink Text Transmission Protocol",
-       "option_d": "Hosting Text Transfer Provider",
-       "correct_option": "A"
-     }
-   ]
+3. (Optional) Click the **Download Template** button to obtain a pre-formatted CSV template.
+4. Upload your `.csv` or `.txt` file, or paste CSV records directly into the text area.
+   The CSV must contain the following columns:
+   `Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option`
+   ```csv
+   Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
+   "What does HTTP stand for?",1,"HyperText Transfer Protocol","High Text Transfer Program","Hyperlink Text Transmission Protocol","Hosting Text Transfer Provider",A
+   "Which OSI layer handles routing?",2,"Physical Layer","Network Layer","Transport Layer","Data Link Layer",B
    ```
-5. Click the **Upload All Questions** button.
+5. Click the **Upload Questions** button to validate and store the question bank.
 
 ### 3.7 Configuring Examinations
 

@@ -944,31 +944,25 @@ $isSuper = is_superadmin();
 
                     <details class="subsection" id="sec-3-6">
                         <summary>
-                            3.6 Managing Question Banks & Bulk JSON Upload<span class="arrow">▸</span>
+                            3.6 Managing Question Banks & Bulk CSV Upload<span class="arrow">▸</span>
                         </summary>
                         <div class="body">
-                            <p>Upload questions in bulk using structured JSON:</p>
+                            <p>Upload questions in bulk using standardized CSV format:</p>
                             <ol>
-                                <li>Click <strong>Questions</strong> in the navigation sidebar.</li>
-                                <li>Select the destination subject from the dropdown menu.</li>
-                                <li>(Optional) Click <strong>Copy LLM Prompt</strong> to generate question banks with an AI model.</li>
-                                <li>Paste the JSON array into the upload text area.</li>
-                                <li>Click <strong>Upload All Questions</strong>.</li>
+                                <li>Click <strong>Questions</strong> in the navigation sidebar (<code>admin/manage-questions.php</code>).</li>
+                                <li>Select the destination curriculum subject from the dropdown menu.</li>
+                                <li>(Optional) Click <strong>Download Template</strong> to inspect the exact column structure.</li>
+                                <li>Upload your <code>.csv</code> or <code>.txt</code> file, or paste CSV records directly into the text area.</li>
+                                <li>Click <strong>Upload Questions</strong>.</li>
                             </ol>
+                            <p>The CSV requires 7 columns: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option</code></p>
                             <div class="code-block">
                                 <button class="copy-btn" data-copy>Copy</button>
-                                <pre style="margin: 0; white-space: pre-wrap">
-[
-  {
-    <span class="key">"question_text"</span>: <span class="str">"What is an operating system?"</span>,
-    <span class="key">"option_a"</span>: <span class="str">"System software"</span>,
-    <span class="key">"option_b"</span>: <span class="str">"Application software"</span>,
-    <span class="key">"option_c"</span>: <span class="str">"Hardware component"</span>,
-    <span class="key">"option_d"</span>: <span class="str">"Malicious program"</span>,
-    <span class="key">"correct_option"</span>: <span class="str">"A"</span>
-  }
-]
-                                </pre>
+                                <pre style="margin: 0; white-space: pre-wrap">Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
+"What is an operating system?",1,"System software","Application software","Hardware component","Malicious program",A
+"Which memory management technique uses variable partition sizes?",2,"Paging","Segmentation","Thrashing","Compaction",B
+"What is a critical section in process synchronization?",3,"Code segment accessing shared variables","OS kernel code","Bootloader sector","CPU cache line",A
+"Which scheduling algorithm is non-preemptive?",4,"FCFS","Round Robin","SRTF","Multilevel Queue",A</pre>
                             </div>
                         </div>
                     </details>
@@ -1036,6 +1030,10 @@ $isSuper = is_superadmin();
                                 <li><strong>Submitted / Done:</strong> Candidates who completed the exam.</li>
                                 <li><strong>Total Cheating Flags:</strong> Fullscreen exits, tab switches, and window blur events detected.</li>
                             </ul>
+                            <h4>Anti-Cheat Telemetry & Automated Disqualification</h4>
+                            <p>
+                                The examination engine actively monitors candidate workstations for unauthorized behaviors (exiting fullscreen, switching browser tabs, or window blur). Candidates receive warnings on their screen, and after <strong>3 violations</strong>, the server automatically marks the attempt as <code>disqualified</code>, locks further submissions, and alerts the proctoring dashboard in real time.
+                            </p>
                             <h4>Emergency Hardware Actions</h4>
                             <ul>
                                 <li><strong>Unlock / Resume Attempt:</strong> If a student PC crashes, click Unlock to restore their test state to <code>in_progress</code> without losing saved answers.</li>

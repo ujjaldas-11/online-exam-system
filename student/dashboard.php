@@ -174,22 +174,22 @@ include __DIR__ . '/../components/student-navbar.php';
                                 <div class="alert alert-info" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <span class="material-symbols-outlined icon-sm">task_alt</span>
-                                        <div>Score: <strong><?= sprintf('%.2f', (float)$exam['score']) ?> / <?= e((string) $exam['total_marks']) ?></strong> <span style="font-size: 0.8rem; opacity: 0.85;">(Live Session)</span></div>
+                                        <div><strong>Submission Received</strong> <span class="badge badge-pending" style="font-size: 0.72rem; margin-left: 4px;">Live Session</span></div>
                                     </div>
                                     <div style="display: flex; gap: 6px; align-items: center;">
-                                        <a href="result.php?exam_id=<?= (int)$exam['id'] ?>" class="btn btn-secondary btn-sm" title="View Score">Score</a>
-                                        <span class="badge badge-pending" style="font-size: 0.72rem;">Review &amp; PDF Locked</span>
+                                        <a href="result.php?exam_id=<?= (int)$exam['id'] ?>" class="btn btn-secondary btn-sm" title="View Submission Status">Status</a>
+                                        <span class="badge badge-pending" style="font-size: 0.72rem;">Results Pending</span>
                                     </div>
                                 </div>
                             <?php else: ?>
                                 <div class="alert alert-warning" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <span class="material-symbols-outlined icon-sm">hourglass_top</span>
-                                        <div>Score: <strong><?= sprintf('%.2f', (float)$exam['score']) ?> / <?= e((string) $exam['total_marks']) ?></strong> <span style="font-size: 0.8rem; opacity: 0.85;">(Awaiting Publication)</span></div>
+                                        <div><strong>Submission Received</strong> <span class="badge badge-warning" style="font-size: 0.72rem; margin-left: 4px;">Results Pending</span></div>
                                     </div>
                                     <div style="display: flex; gap: 6px; align-items: center;">
-                                        <a href="result.php?exam_id=<?= (int)$exam['id'] ?>" class="btn btn-secondary btn-sm" title="View Score">Score</a>
-                                        <span class="badge badge-warning" style="font-size: 0.72rem;">Unpublished</span>
+                                        <a href="result.php?exam_id=<?= (int)$exam['id'] ?>" class="btn btn-secondary btn-sm" title="View Submission Status">Status</a>
+                                        <span class="badge badge-warning" style="font-size: 0.72rem;">Awaiting Publication</span>
                                     </div>
                                 </div>
                             <?php endif; ?>

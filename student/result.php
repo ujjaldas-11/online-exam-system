@@ -98,7 +98,7 @@ include __DIR__ . '/../components/student-navbar.php';
 
 <div class="container" style="max-width: 700px;">
     <?php if (!$can_view_results): ?>
-        <!-- PENDING RESULTS PUBLICATION VIEW (Score visible, review & PDF locked) -->
+        <!-- PENDING RESULTS PUBLICATION VIEW (Score confidential, review & PDF locked) -->
         <div class="card" style="text-align: center; padding: 40px 24px;">
             <div style="width: 64px; height: 64px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                 <span class="material-symbols-outlined" style="font-size: 36px;">task_alt</span>
@@ -108,17 +108,17 @@ include __DIR__ . '/../components/student-navbar.php';
                 Exam Submitted Successfully
             </h1>
             <p style="color: var(--color-text-secondary); font-size: 1rem; margin-bottom: 24px;">
-                Your responses for <strong><?= e($attempt['title']) ?></strong> have been securely recorded. Examination Result summary:
+                Your responses for <strong><?= e($attempt['title']) ?></strong> have been securely recorded.
             </p>
 
-            <!-- Student Total Score Display -->
+            <!-- Confidential Status Display (Score hidden until published) -->
             <div style="background: var(--color-primary-soft); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 24px;">
-                <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;">Your Total Score</div>
-                <div style="font-size: 2.8rem; font-weight: 800; color: var(--color-primary); line-height: 1.1; margin: 6px 0;">
-                    <?= sprintf('%.2f', $score) ?> <span style="font-size: 1.4rem; color: var(--color-text-secondary); font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
+                <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;">Assessment Outcome</div>
+                <div style="font-size: 1.65rem; font-weight: 800; color: var(--color-dark); line-height: 1.2; margin: 8px 0;">
+                    Submission Received — Results Pending
                 </div>
-                <div style="font-weight: 700; font-size: 1.05rem; color: <?= $percentage >= 50 ? 'var(--color-success)' : 'var(--color-error)' ?>;">
-                    Score Percentage: <?= $percentage ?>%
+                <div style="font-weight: 600; font-size: 0.95rem; color: var(--color-text-secondary);">
+                    Score evaluation and question breakdowns remain confidential until officially published by your instructor.
                 </div>
             </div>
 
