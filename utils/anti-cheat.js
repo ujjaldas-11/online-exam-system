@@ -11,8 +11,9 @@
 const AntiCheat = (function() {
     let isExamActive = false;
     let violationCount = 0;
-    const MAX_VIOLATIONS = 2;
+    const MAX_VIOLATIONS = 3;
     let attemptId = null;
+    let csrfToken = '';
     let violationCallback = null;
     let terminationCallback = null;
 
@@ -101,11 +102,16 @@ const AntiCheat = (function() {
 
         // Asynchronously log violation to server
         if (attemptId) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (csrfToken) {
+                headers['X-CSRF-Token'] = csrfToken;
+            }
             fetch(logEndpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify({
                     attempt_id: attemptId,
+                    csrf_token: csrfToken,
                     violation_type: reason,
                     details: 'Count: ' + violationCount
                 })
@@ -270,6 +276,9 @@ const AntiCheat = (function() {
         init: function(options = {}) {
             if (options.attemptId) {
                 attemptId = options.attemptId;
+            }
+            if (options.csrfToken) {
+                csrfToken = options.csrfToken;
             }
             if (options.endpoint) {
                 logEndpoint = options.endpoint;
