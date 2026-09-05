@@ -121,6 +121,11 @@ $marks_each = ($total_qs > 0) ? round($total_marks / $total_qs, 2) : 0;
 ?>
 
 <div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <div style="margin-bottom: 16px;">
+        <a href="dashboard.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-xs">arrow_back</span> Back to Dashboard
+        </a>
+    </div>
     <!-- Exam Summary Header -->
     <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
