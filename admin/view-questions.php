@@ -199,7 +199,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <span class="material-symbols-outlined icon-sm">upload</span> Upload Questions
             </a>
             <?php if (!empty($all_questions)): ?>
-                <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!');">
+                <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!" data-confirm-title="Delete All Questions" data-confirm-btn="Delete All">
                     <?= csrf_field() ?>
                     <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                         <span class="material-symbols-outlined icon-sm">delete_forever</span> Delete All
@@ -281,7 +281,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         style="display: inline-flex; align-items: center; gap: 4px;">
                                         <span class="material-symbols-outlined icon-xs">edit</span> Edit
                                     </button>
-                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this question?');">
+                                    <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete this question?" data-confirm-title="Delete Question" data-confirm-btn="Delete Question">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="question_id" value="<?= (int)$row['id'] ?>">
                                         <button type="submit" name="delete_question" class="btn btn-danger btn-sm" title="Delete Question" style="display: inline-flex; align-items: center;">
@@ -299,60 +299,62 @@ include __DIR__ . '/../components/admin-sidebar.php';
 </div>
 
 <!-- Edit Question Modal -->
-<div id="editQuestionModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div class="card" style="max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; margin: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin: 0;">Edit Question</h3>
-            <button type="button" id="closeEditModal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+<div id="editQuestionModal" class="admin-modal-overlay">
+    <div class="admin-modal-card admin-modal-card-wide">
+        <div class="admin-modal-header">
+            <h3><span class="material-symbols-outlined">edit</span> Edit Question</h3>
+            <button type="button" class="admin-modal-close" id="closeEditModal">&times;</button>
         </div>
         <form method="POST" id="editQuestionForm">
             <?= csrf_field() ?>
             <input type="hidden" name="question_id" id="modal_q_id" value="">
 
-            <div class="form-group" style="margin-bottom: 12px;">
-                <label style="font-weight: 600; display: block; margin-bottom: 4px;">Question Text</label>
-                <textarea name="question_text" id="modal_q_text" rows="3" required class="form-control" style="width: 100%;"></textarea>
+            <div class="admin-modal-body">
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Question Text</label>
+                    <textarea name="question_text" id="modal_q_text" rows="3" required class="form-control" style="width: 100%;"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option A</label>
+                        <input type="text" name="option_a" id="modal_opt_a" required class="form-control" style="width: 100%;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option B</label>
+                        <input type="text" name="option_b" id="modal_opt_b" required class="form-control" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option C (Optional)</label>
+                        <input type="text" name="option_c" id="modal_opt_c" class="form-control" style="width: 100%;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option D (Optional)</label>
+                        <input type="text" name="option_d" id="modal_opt_d" class="form-control" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Correct Option</label>
+                        <select name="correct_option" id="modal_correct_opt" required class="form-control" style="width: 100%;">
+                            <option value="A">Option A</option>
+                            <option value="B">Option B</option>
+                            <option value="C">Option C</option>
+                            <option value="D">Option D</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Unit Number</label>
+                        <input type="number" name="unit_number" id="modal_unit_num" min="1" max="20" required class="form-control" style="width: 100%;">
+                    </div>
+                </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                <div>
-                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option A</label>
-                    <input type="text" name="option_a" id="modal_opt_a" required class="form-control" style="width: 100%;">
-                </div>
-                <div>
-                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option B</label>
-                    <input type="text" name="option_b" id="modal_opt_b" required class="form-control" style="width: 100%;">
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                <div>
-                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option C (Optional)</label>
-                    <input type="text" name="option_c" id="modal_opt_c" class="form-control" style="width: 100%;">
-                </div>
-                <div>
-                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Option D (Optional)</label>
-                    <input type="text" name="option_d" id="modal_opt_d" class="form-control" style="width: 100%;">
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
-                <div>
-                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Correct Option</label>
-                    <select name="correct_option" id="modal_correct_opt" required class="form-control" style="width: 100%;">
-                        <option value="A">Option A</option>
-                        <option value="B">Option B</option>
-                        <option value="C">Option C</option>
-                        <option value="D">Option D</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Unit Number</label>
-                    <input type="number" name="unit_number" id="modal_unit_num" min="1" max="20" required class="form-control" style="width: 100%;">
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <div class="admin-modal-footer">
                 <button type="button" id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
                 <button type="submit" name="edit_question" class="btn btn-primary">Save Changes</button>
             </div>
@@ -390,4 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<?php include __DIR__ . '/../components/footer.php'; ?>
+<?php
+include __DIR__ . '/../components/confirm-modal.php';
+include __DIR__ . '/../components/footer.php';
+?>

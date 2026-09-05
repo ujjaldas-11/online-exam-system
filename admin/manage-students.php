@@ -443,6 +443,17 @@ try {
     $blockedCount = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'blocked'")->fetchColumn();
     $pendingCount = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'pending'")->fetchColumn();
 
+    // Total count for current filter
+    $countSql = "SELECT COUNT(*) FROM students s $whereClause";
+    $countStmt = $pdo->prepare($countSql);
+    $countStmt->execute($queryParams);
+    $total_students_count = (int) $countStmt->fetchColumn();
+
+    // Pagination parameters
+    $page = max(1, (int)($_GET['page'] ?? 1));
+    $per_page = 50;
+    $offset = ($page - 1) * $per_page;
+
     // Roster query
     $sql = "
         SELECT
@@ -452,7 +463,7 @@ try {
         FROM students s
         $whereClause
         ORDER BY s.id DESC
-        LIMIT 250
+        LIMIT $per_page OFFSET $offset
     ";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($queryParams);
@@ -699,7 +710,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
                                         <!-- Quick Block / Unblock Toggle -->
                                         <?php if ($st['status'] === 'active'): ?>
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Block student <?= e(addslashes($st['name'])) ?> (<?= e(addslashes($st['roll_number'])) ?>)? Login and exam access will be suspended immediately.');">
+                                            <form method="POST" style="display: inline;" data-confirm="Block student <?= e($st['name']) ?> (<?= e($st['roll_number']) ?>)? Login and exam access will be suspended immediately." data-confirm-title="Block Student" data-confirm-btn="Block Student">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="student_id" value="<?= (int) $st['id'] ?>">
                                                 <input type="hidden" name="target_status" value="blocked">
@@ -708,7 +719,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                 </button>
                                             </form>
                                         <?php elseif ($st['status'] === 'blocked'): ?>
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Unblock student <?= e(addslashes($st['name'])) ?>?');">
+                                            <form method="POST" style="display: inline;" data-confirm="Unblock student <?= e($st['name']) ?>?" data-confirm-title="Unblock Student" data-confirm-btn="Unblock" data-confirm-danger="false">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="student_id" value="<?= (int) $st['id'] ?>">
                                                 <input type="hidden" name="target_status" value="active">
@@ -720,7 +731,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
                                         <?php if ($isAdminSuper): ?>
                                             <!-- Delete Student Record (Superadmin Only) -->
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Permanently delete <?= e(addslashes($st['name'])) ?> (<?= e(addslashes($st['roll_number'])) ?>)? This will purge all their answers and scores.');">
+                                            <form method="POST" style="display: inline;" data-confirm="Permanently delete <?= e($st['name']) ?> (<?= e($st['roll_number']) ?>)? This will purge all their answers and scores." data-confirm-title="Delete Student Record" data-confirm-btn="Delete Permanently">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="student_id" value="<?= (int) $st['id'] ?>">
                                                 <button type="submit" name="delete_student" class="btn btn-secondary btn-sm" style="color: #991b1b;" title="Permanently Delete">
@@ -736,6 +747,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </tbody>
             </table>
         </div>
+        <?php
+        $total_items = $total_students_count;
+        include __DIR__ . '/../components/pagination.php';
+        ?>
     </div>
 </div>
 
@@ -1148,4 +1163,7 @@ document.querySelectorAll('.admin-modal-overlay').forEach(overlay => {
 });
 </script>
 
-<?php include __DIR__ . '/../components/footer.php'; ?>
+<?php
+include __DIR__ . '/../components/confirm-modal.php';
+include __DIR__ . '/../components/footer.php';
+?>

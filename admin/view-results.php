@@ -75,7 +75,7 @@ try {
     die("Database Error.");
 }
 
-$page_title = 'Results: ' . e($exam['title']) . ' • Examify';
+$page_title = 'Results: ' . ($exam['title'] ?? 'Exam') . ' • Examify';
 include __DIR__ . '/../components/header.php';
 ?>
 

@@ -216,10 +216,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <div class="form-group">
                 <label>Option 2: Paste CSV Text</label>
                 <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn" disabled style="display: inline-flex; align-items: center; gap: 4px; cursor: not-allowed;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn" style="display: inline-flex; align-items: center; gap: 4px;">
                         <span class="material-symbols-outlined icon-xs">content_copy</span> Copy LLM Prompt
                     </button>
-                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn" style="display: inline-flex; align-items: center; gap: 4px; cursor: not-allowed;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn" style="display: inline-flex; align-items: center; gap: 4px;">
                         <span class="material-symbols-outlined icon-xs">content_paste</span> Paste from Clipboard
                     </button>
                 </div>
@@ -240,35 +240,77 @@ include __DIR__ . '/../components/admin-sidebar.php';
     const pasteBtn = document.getElementById('paste-btn');
     const csvTextarea = document.getElementById('csv_text');
 
-    if (subjectSelect && copyPromptBtn) {
-        subjectSelect.addEventListener('change', function () {
-            copyPromptBtn.disabled = !this.value;
-        });
-
+    if (copyPromptBtn) {
         copyPromptBtn.addEventListener('click', function () {
-            if (!subjectSelect.value) return;
+            let subjectTitle = '[INSERT SUBJECT NAME, e.g. Operating Systems / Data Structures]';
+            let targetAudience = 'Undergraduate university students';
 
-            let subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
-            subjectText = subjectText.split('(')[0].trim();
+            if (subjectSelect && subjectSelect.value) {
+                const selectedText = subjectSelect.options[subjectSelect.selectedIndex].text.trim();
+                const match = selectedText.match(/^(.*?)\s*\((.*?)\)$/);
+                if (match) {
+                    subjectTitle = match[1].trim();
+                    targetAudience = match[2].trim();
+                } else {
+                    subjectTitle = selectedText;
+                }
+            }
 
-            const prompt = `Please generate 10 multiple-choice questions about ${subjectText} suitable for university students. Return the output STRICTLY as CSV text with no markdown code blocks and no extra text.
+            const prompt = `Act as an expert university professor and exam controller.
+Generate 15 high-quality multiple-choice questions (MCQs) for the following course:
+Course: ${subjectTitle}
+Target Audience: ${targetAudience}
 
-Columns format:
+STRICT OUTPUT FORMAT RULES:
+1. Return ONLY the raw CSV text. Do NOT wrap output in markdown code blocks (\`\`\`csv or \`\`\`). Zero commentary, notes, or conversational filler.
+2. The very first line MUST be this exact header row:
 Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
 
-Example:
-What is an operating system?,1,System software,Application software,Hardware component,Malware,A
+3. Field Constraints:
+   - Question Text: Clear, unambiguous question testing conceptual depth and practical application.
+   - Unit Number: An integer representing syllabus unit (1, 2, 3, 4, or 5). Distribute questions evenly across units.
+   - Option A, Option B, Option C, Option D: Distinct, plausible options. Do NOT prefix with "A)", "B.", "1.", or labels.
+   - Correct Option: Exactly one single uppercase letter: "A", "B", "C", or "D".
 
-Rules:
-- "Unit Number" must be an integer (e.g. 1, 2, 3, 4).
-- "Correct Option" must be exactly "A", "B", "C", or "D".
-- Do NOT wrap the output in backticks or markdown code blocks.`;
+4. CRITICAL CSV ESCAPING RULES:
+   - Any field that contains a comma (,), quotation mark ("), or semicolon MUST be enclosed inside standard double quotes (e.g. "Which of the following, if any, is...").
+   - Any quotation mark within a field must be escaped as two double quotes (e.g. "Use the ""volatile"" keyword").
+   - Each question must occupy exactly one single line.
 
-            navigator.clipboard.writeText(prompt).then(() => {
-                const original = copyPromptBtn.innerHTML;
+VALID OUTPUT EXAMPLE:
+Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
+"Which data structure operates on a Last-In, First-Out (LIFO) basis?",1,Queue,Stack,Array,Binary Tree,B
+"What is the average time complexity of searching in a balanced Binary Search Tree?",2,O(1),O(n),O(log n),O(n^2),C
+"In relational databases, which SQL clause is used to filter aggregated group results?",3,WHERE,HAVING,ORDER BY,GROUP BY,B`;
+
+            const copySuccess = () => {
+                const originalHtml = copyPromptBtn.innerHTML;
                 copyPromptBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">check</span> Copied Prompt!';
-                setTimeout(() => copyPromptBtn.innerHTML = original, 2000);
-            });
+                setTimeout(() => { copyPromptBtn.innerHTML = originalHtml; }, 2500);
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(prompt).then(copySuccess).catch(() => fallbackCopy(prompt));
+            } else {
+                fallbackCopy(prompt);
+            }
+
+            function fallbackCopy(text) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    copySuccess();
+                } catch (e) {
+                    alert('Could not copy prompt to clipboard. Please select and copy manually.');
+                }
+                document.body.removeChild(ta);
+            }
         });
     }
 

@@ -124,15 +124,20 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<div class="container exam-form-page">
+<div class="container main-content exam-form-page">
     <div class="page-header exam-form-page__header">
         <div>
             <h1>Create Examination</h1>
             <p>Configure exam parameters, duration, question pool, and classroom PIN</p>
         </div>
-        <a href="proctor-exam.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
-            <span class="material-symbols-outlined icon-sm">visibility</span> Proctor Exam
-        </a>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <a href="control-exams.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to Exams
+            </a>
+            <a href="proctor-exam.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">visibility</span> Proctor Exam
+            </a>
+        </div>
     </div>
 
     <?php if ($message): ?>

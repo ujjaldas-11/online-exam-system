@@ -252,7 +252,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             style="display: inline-flex; align-items: center; gap: 4px;">
                                             <span class="material-symbols-outlined icon-xs">edit</span> Edit
                                         </button>
-                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete subject \'<?= e(addslashes($sub['name'])) ?>\'?');">
+                                        <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete subject '<?= e($sub['name']) ?>' and all associated questions?" data-confirm-title="Delete Subject" data-confirm-btn="Delete Subject">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="subject_id" value="<?= (int)$sub['id'] ?>">
                                             <button type="submit" name="delete_subject" class="btn btn-danger btn-sm" title="Delete Subject" style="display: inline-flex; align-items: center;">
@@ -271,39 +271,41 @@ include __DIR__ . '/../components/admin-sidebar.php';
 </div>
 
 <!-- Edit Subject Modal -->
-<div id="editSubjectModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div class="card" style="max-width: 500px; width: 100%; margin: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin: 0;">Edit Subject</h3>
-            <button type="button" id="closeSubModal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+<div id="editSubjectModal" class="admin-modal-overlay">
+    <div class="admin-modal-card">
+        <div class="admin-modal-header">
+            <h3><span class="material-symbols-outlined">edit</span> Edit Subject</h3>
+            <button type="button" class="admin-modal-close" id="closeSubModal">&times;</button>
         </div>
         <form method="POST">
             <?= csrf_field() ?>
             <input type="hidden" name="subject_id" id="modal_sub_id" value="">
 
-            <div class="form-group" style="margin-bottom: 14px;">
-                <label style="font-weight: 600; display: block; margin-bottom: 4px;">Subject Name</label>
-                <input type="text" name="name" id="modal_sub_name" required class="form-control" style="width: 100%;">
+            <div class="admin-modal-body">
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Subject Name</label>
+                    <input type="text" name="name" id="modal_sub_name" required class="form-control" style="width: 100%;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Department</label>
+                    <select name="department" id="modal_sub_dept" required class="form-control" style="width: 100%;">
+                        <option value="BCA">BCA</option>
+                        <option value="BBA">BBA</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Semester</label>
+                    <select name="semester" id="modal_sub_sem" required class="form-control" style="width: 100%;">
+                        <?php for ($i = 1; $i <= 8; $i++): ?>
+                            <option value="<?= $i ?>">Semester <?= $i ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group" style="margin-bottom: 14px;">
-                <label style="font-weight: 600; display: block; margin-bottom: 4px;">Department</label>
-                <select name="department" id="modal_sub_dept" required class="form-control" style="width: 100%;">
-                    <option value="BCA">BCA</option>
-                    <option value="BBA">BBA</option>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label style="font-weight: 600; display: block; margin-bottom: 4px;">Semester</label>
-                <select name="semester" id="modal_sub_sem" required class="form-control" style="width: 100%;">
-                    <?php for ($i = 1; $i <= 8; $i++): ?>
-                        <option value="<?= $i ?>">Semester <?= $i ?></option>
-                    <?php endfor; ?>
-                </select>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <div class="admin-modal-footer">
                 <button type="button" id="cancelSubBtn" class="btn btn-secondary">Cancel</button>
                 <button type="submit" name="update_subject" class="btn btn-primary">Save Changes</button>
             </div>
@@ -337,4 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<?php include __DIR__ . '/../components/footer.php'; ?>
+<?php
+include __DIR__ . '/../components/confirm-modal.php';
+include __DIR__ . '/../components/footer.php';
+?>

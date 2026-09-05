@@ -42,6 +42,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
 <div class="container main-content">
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
     <div class="page-header">
         <div>
             <h1>Results & Performance Dashboard</h1>
@@ -121,9 +122,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                                             <span class="material-symbols-outlined icon-xs">leaderboard</span> View Results
                                         </a>
-                                        <!-- <a href="export-pdf.php?exam_id=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Download Results PDF">
-                                            <span class="material-symbols-outlined icon-xs">picture_as_pdf</span> PDF
-                                        </a> -->
                                     </div>
                                 </td>
                             </tr>

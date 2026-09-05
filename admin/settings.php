@@ -137,6 +137,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
 <div class="container main-content">
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
     <div class="page-header">
         <div>
             <h1>System Settings & Database Maintenance</h1>

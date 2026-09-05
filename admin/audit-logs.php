@@ -48,6 +48,22 @@ try {
     // Distinct actions for filter dropdown
     $allActions = $pdo->query("SELECT DISTINCT action FROM admin_audit_logs ORDER BY action ASC")->fetchAll(PDO::FETCH_COLUMN);
 
+    // Total count for current filter
+    $countSql = "
+        SELECT COUNT(*)
+        FROM admin_audit_logs l
+        LEFT JOIN admins a ON l.admin_id = a.id
+        $whereSql
+    ";
+    $countStmt = $pdo->prepare($countSql);
+    $countStmt->execute($params);
+    $total_logs_count = (int) $countStmt->fetchColumn();
+
+    // Pagination parameters
+    $page = max(1, (int)($_GET['page'] ?? 1));
+    $per_page = 50;
+    $offset = ($page - 1) * $per_page;
+
     // Main audit query
     $sql = "
         SELECT
@@ -58,7 +74,7 @@ try {
         LEFT JOIN admins a ON l.admin_id = a.id
         $whereSql
         ORDER BY l.id DESC
-        LIMIT 200
+        LIMIT $per_page OFFSET $offset
     ";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -353,6 +369,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </tbody>
             </table>
         </div>
+        <?php
+        $total_items = $total_logs_count;
+        include __DIR__ . '/../components/pagination.php';
+        ?>
     </div>
 </div>
 

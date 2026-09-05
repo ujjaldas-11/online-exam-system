@@ -6,6 +6,7 @@ require_once '../services/ExamEngine.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../components/status-badge.php';
 
 date_default_timezone_set('Asia/Kolkata');
 
@@ -312,12 +313,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <span class="badge <?= $badge_class ?>" style="display: inline-flex; align-items: center; gap: 4px;">
-                                        <?php if ($display_status === 'RUNNING'): ?>
-                                            <span class="material-symbols-outlined icon-xs">play_circle</span>
-                                        <?php endif; ?>
-                                        <?= $display_status ?>
-                                    </span>
+                                    <?= render_status_badge($display_status, 'exam') ?>
                                     <?php if ($display_status === 'ENDED' || $exam['status'] === 'ended'): ?>
                                         <div style="margin-top: 4px;">
                                             <?php if (!empty($exam['results_published'])): ?>
@@ -394,7 +390,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
                                         <!-- Delete Exam -->
                                         <?php if($isAdminSuper): ?>
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to permanently delete this exam?');">
+                                            <form method="POST" style="display: inline;" data-confirm="Are you sure you want to permanently delete this exam and all student submissions?" data-confirm-title="Delete Examination" data-confirm-btn="Delete Exam">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
                                                 <button type="submit" name="delete_exam" class="btn btn-danger btn-sm" title="Delete Exam" style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 8px;">
@@ -413,4 +409,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 </div>
 
-<?php include __DIR__ . '/../components/footer.php'; ?>
+<?php
+include __DIR__ . '/../components/confirm-modal.php';
+include __DIR__ . '/../components/footer.php';
+?>

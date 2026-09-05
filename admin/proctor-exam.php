@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../components/status-badge.php';
 
 date_default_timezone_set('Asia/Kolkata');
 
@@ -166,7 +167,7 @@ try {
     die("Database Error loading proctor panel.");
 }
 
-$page_title = 'Live Proctor: ' . e($exam['title']) . ' • Examify';
+$page_title = 'Live Proctor: ' . ($exam['title'] ?? 'Exam') . ' • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
@@ -185,7 +186,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </h1>
             <p>Monitoring: <strong><?= e($exam['title']) ?></strong> (<?= e($exam['subject_name']) ?> • <?= e($exam['department']) ?>, Sem <?= e((string)$exam['semester']) ?>)</p>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary btn-sm" id="openAnnouncementModalBtn" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-xs">campaign</span> Broadcast Announcement
+            </button>
             <div id="proctor-live-badge-container"></div>
             <?php if (!empty($exam['access_pin'])): ?>
                 <div class="badge badge-pending" style="font-size: 1rem; padding: 8px 16px; font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 6px;">
@@ -256,13 +260,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td><strong><?= e($st['roll_number']) ?></strong></td>
                                 <td><?= e($st['name']) ?></td>
                                 <td class="col-status">
-                                    <?php if (empty($st['attempt_id'])): ?>
-                                        <span class="badge badge-inactive">Not Started</span>
-                                    <?php elseif ($st['attempt_status'] === 'completed'): ?>
-                                        <span class="badge badge-active">Submitted</span>
-                                    <?php else: ?>
-                                        <span class="badge badge-running">In Progress</span>
-                                    <?php endif; ?>
+                                    <?= render_status_badge(empty($st['attempt_id']) ? 'not_started' : ($st['attempt_status'] ?? 'in_progress'), 'proctor') ?>
                                 </td>
                                 <td class="col-answered">
                                     <?php if (!empty($st['attempt_id'])): ?>
@@ -293,13 +291,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <?php if (!empty($st['attempt_id'])): ?>
                                         <div style="display: flex; gap: 6px; justify-content: flex-end;">
                                             <?php if ($st['attempt_status'] === 'completed'): ?>
-                                                <form method="POST" style="display: inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode('Allow student ' . $st['name'] . ' to resume and continue their attempt?'), ENT_QUOTES, 'UTF-8') ?>);">
+                                                <form method="POST" style="display: inline;" data-confirm="Allow student <?= e($st['name']) ?> to resume and continue their attempt?" data-confirm-title="Unlock / Resume Attempt" data-confirm-btn="Unlock Student" data-confirm-danger="false">
                                                     <?= csrf_field() ?>
                                                     <input type="hidden" name="student_id" value="<?= (int) $st['student_id'] ?>">
                                                     <button type="submit" name="reset_student_attempt" class="btn btn-secondary btn-sm">Unlock / Resume</button>
                                                 </form>
                                             <?php else: ?>
-                                                <form method="POST" style="display: inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode('Force submit examination for ' . $st['name'] . '?'), ENT_QUOTES, 'UTF-8') ?>);">
+                                                <form method="POST" style="display: inline;" data-confirm="Force submit examination for <?= e($st['name']) ?>?" data-confirm-title="Force Submit Examination" data-confirm-btn="Force Submit">
                                                     <?= csrf_field() ?>
                                                     <input type="hidden" name="attempt_id" value="<?= (int) $st['attempt_id'] ?>">
                                                     <button type="submit" name="force_submit_attempt" class="btn btn-warning btn-sm">Force Submit</button>
@@ -325,4 +323,92 @@ include __DIR__ . '/../components/admin-sidebar.php';
     });
 </script>
 
-<?php include __DIR__ . '/../components/footer.php'; ?>
+<!-- Broadcast Announcement Modal -->
+<div id="announcementModal" class="admin-modal-overlay" style="display: none;">
+    <div class="admin-modal-card">
+        <div class="admin-modal-header">
+            <h3 style="display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-outlined" style="color: var(--color-warning);">campaign</span>
+                <span>Broadcast Announcement</span>
+            </h3>
+            <button type="button" class="admin-modal-close" id="closeAnnouncementModalBtn">&times;</button>
+        </div>
+        <div class="admin-modal-body" style="padding: 20px;">
+            <p style="font-size: 0.88rem; color: var(--color-text-secondary); margin-top: 0; line-height: 1.5;">
+                Broadcast an instant notification or exam update to all candidates currently connected to <strong><?= e($exam['title']) ?></strong>.
+            </p>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 6px;">Announcement Message *</label>
+                <textarea id="announcementText" class="form-control" rows="4" placeholder="e.g. Note: You have 15 minutes remaining. Please review your answers." style="width: 100%;"></textarea>
+            </div>
+            <div id="announcementFeedback" style="font-size: 0.85rem; padding: 8px 12px; border-radius: var(--radius-sm); display: none;"></div>
+        </div>
+        <div class="admin-modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; background: var(--color-bg); border-top: 1px solid var(--color-border);">
+            <button type="button" class="btn btn-secondary" id="cancelAnnouncementBtn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="sendAnnouncementBtn" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-xs">send</span> Send Broadcast
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('announcementModal');
+    const openBtn = document.getElementById('openAnnouncementModalBtn');
+    const closeBtn = document.getElementById('closeAnnouncementModalBtn');
+    const cancelBtn = document.getElementById('cancelAnnouncementBtn');
+    const sendBtn = document.getElementById('sendAnnouncementBtn');
+    const txt = document.getElementById('announcementText');
+    const fb = document.getElementById('announcementFeedback');
+
+    const openM = () => {
+        if (modal) {
+            modal.style.display = 'flex';
+            if (txt) { txt.value = ''; txt.focus(); }
+            if (fb) fb.style.display = 'none';
+        }
+    };
+    const closeM = () => { if (modal) modal.style.display = 'none'; };
+
+    if (openBtn) openBtn.onclick = openM;
+    if (closeBtn) closeBtn.onclick = closeM;
+    if (cancelBtn) cancelBtn.onclick = closeM;
+    if (modal) {
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeM(); });
+    }
+
+    if (sendBtn) {
+        sendBtn.onclick = () => {
+            const message = txt.value.trim();
+            if (!message) {
+                alert('Please enter an announcement message.');
+                return;
+            }
+
+            if (window.ExamifyProctor && window.ExamifyProctor.socket && window.ExamifyProctor.socket.readyState === WebSocket.OPEN) {
+                window.ExamifyProctor.socket.send(JSON.stringify({
+                    action: 'broadcast_announcement',
+                    exam_id: <?= (int)$exam_id ?>,
+                    message: message,
+                    sender: '<?= htmlspecialchars($_SESSION['admin_name'] ?? 'Proctor', ENT_QUOTES, 'UTF-8') ?>'
+                }));
+                if (fb) {
+                    fb.style.display = 'block';
+                    fb.style.background = 'var(--color-success-bg)';
+                    fb.style.color = 'var(--color-success)';
+                    fb.textContent = 'Broadcast dispatched to candidates!';
+                }
+                setTimeout(closeM, 1200);
+            } else {
+                alert('WebSocket server is not currently connected on port 8085. Announcement could not be sent.');
+            }
+        };
+    }
+});
+</script>
+
+<?php
+include __DIR__ . '/../components/confirm-modal.php';
+include __DIR__ . '/../components/footer.php';
+?>
