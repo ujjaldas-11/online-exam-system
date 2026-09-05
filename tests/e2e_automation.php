@@ -1,4 +1,10 @@
 <?php
+declare(strict_types=1);
+
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("CLI execution only.\n");
+}
 
 /**
  * Examify — End-to-End Browser Automation & Verification Suite
@@ -10,9 +16,6 @@
  *
  * Run via CLI: php tests/e2e_automation.php
  */
-
-declare(strict_types=1);
-
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 

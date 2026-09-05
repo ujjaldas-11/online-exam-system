@@ -1,6 +1,10 @@
 <?php
-
 declare(strict_types=1);
+
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("CLI execution only.\n");
+}
 
 require_once __DIR__ . '/../lib/websocket/Server.php';
 require_once __DIR__ . '/../utils/websocket-pusher.php';

@@ -1,13 +1,16 @@
 <?php
+declare(strict_types=1);
+
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("CLI execution only.\n");
+}
 
 /**
  * Examify - Rate Limiter Automated Test Suite
  * Validates atomic sliding window rate limiting, dual-key authentication defense,
  * PIN throttling, and cache cleanup.
  */
-
-declare(strict_types=1);
-
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/rate-limiter.php';
 

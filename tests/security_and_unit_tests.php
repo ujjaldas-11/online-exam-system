@@ -1,12 +1,15 @@
 <?php
+declare(strict_types=1);
+
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("CLI execution only.\n");
+}
 
 /**
  * Examify - Automated Test Suite
  * Covers: Refined Database Schema, Concurrency Engine, Security, RBAC, and PDF Generation
  */
-
-declare(strict_types=1);
-
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../services/ExamEngine.php';
 require_once __DIR__ . '/../services/PdfService.php';

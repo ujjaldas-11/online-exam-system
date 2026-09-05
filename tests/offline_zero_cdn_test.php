@@ -1,13 +1,16 @@
 <?php
+declare(strict_types=1);
+
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("CLI execution only.\n");
+}
 
 /**
  * Examify - Offline Zero-CDN Verification Test Suite
  * Ensures all assets, fonts, icons, styles, and scripts are 100% self-hosted
  * for air-gapped college LAN exam environments with no internet access.
  */
-
-declare(strict_types=1);
-
 $totalTests = 0;
 $passedTests = 0;
 $failedTests = 0;

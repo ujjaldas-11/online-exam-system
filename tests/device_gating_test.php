@@ -1,11 +1,14 @@
 <?php
+declare(strict_types=1);
+
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("CLI execution only.\n");
+}
 
 /**
  * Examify - Device & Touchscreen Gating Automated Test Suite
  */
-
-declare(strict_types=1);
-
 require_once __DIR__ . '/../utils/device.php';
 
 $totalTests = 0;

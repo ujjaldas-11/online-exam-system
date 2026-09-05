@@ -1,11 +1,14 @@
 <?php
+declare(strict_types=1);
+
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("CLI execution only.\n");
+}
 
 /**
  * Examify - Password View Eye Button Verification Test Suite
  */
-
-declare(strict_types=1);
-
 $totalTests = 0;
 $passedTests = 0;
 $failedTests = 0;

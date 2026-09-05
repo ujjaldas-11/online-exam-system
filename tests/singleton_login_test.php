@@ -1,11 +1,14 @@
 <?php
+declare(strict_types=1);
+
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("CLI execution only.\n");
+}
 
 /**
  * Examify - Singleton Login & Single-Device Session Automated Test Suite
  */
-
-declare(strict_types=1);
-
 ob_start();
 ini_set('session.use_cookies', '0');
 

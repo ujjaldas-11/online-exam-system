@@ -1,4 +1,9 @@
 <?php
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("CLI execution only.\n");
+}
+
 /**
  * Test Suite: Documentation Access Control
  * Verifies that:
@@ -42,7 +47,8 @@ assert_test(strpos($userDocHtml, 'Submitting Answers (In-DOM Confirmation Modal)
 function run_isolated_test(string $setupPhp): string {
     $baseDir = dirname(__DIR__);
     $script = tempnam(sys_get_temp_dir(), 'doc_test_');
-    $code = "<?php\n" .
+    $code = "<?php
+\n" .
         "require_once " . var_export($baseDir . '/config/database.php', true) . ";\n" .
         "require_once " . var_export($baseDir . '/utils/session.php', true) . ";\n" .
         $setupPhp . "\n" .
