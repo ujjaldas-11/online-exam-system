@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
     $duration = int_param($_POST['duration_minutes'] ?? 0);
     $total_marks = int_param($_POST['total_marks'] ?? 0);
     $total_questions = int_param($_POST['total_questions_to_ask'] ?? 0);
+    $negative_marks = max(0.0, round((float)($_POST['negative_marks_per_question'] ?? 0.0), 2));
     $access_pin = clean_input($_POST['access_pin'] ?? '');
     $target_units = clean_input($_POST['target_units'] ?? '');
 
@@ -72,10 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
 
                 $stmt = $pdo->prepare("
                     INSERT INTO exams
-                    (title, subject_id, duration_minutes, total_marks, total_questions_to_ask, access_pin, target_units, status, start_time, end_time, created_by)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (title, subject_id, duration_minutes, total_marks, negative_marks_per_question, total_questions_to_ask, access_pin, target_units, status, start_time, end_time, created_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
-                $stmt->execute([$title, $subject_id, $duration, $total_marks, $total_questions, $access_pin ?: null, $target_units, $initial_status, $start_time, $end_time, $creator_id]);
+                $stmt->execute([$title, $subject_id, $duration, $total_marks, $negative_marks, $total_questions, $access_pin ?: null, $target_units, $initial_status, $start_time, $end_time, $creator_id]);
                 $newExamId = (int) $pdo->lastInsertId();
 
                 log_admin_action($pdo, 'create_exam', 'exam', $newExamId, "Created exam: $title (Status: $initial_status)");
@@ -224,6 +225,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div class="exam-form__field">
                     <label>Questions / student</label>
                     <input type="number" name="total_questions_to_ask" required min="1" placeholder="20" value="<?= e($_POST['total_questions_to_ask'] ?? '20') ?>">
+                </div>
+
+                <div class="exam-form__field">
+                    <label>Negative mark / wrong <span class="exam-form__unit">deduction</span></label>
+                    <input type="number" step="0.05" min="0" max="50" name="negative_marks_per_question" placeholder="0.00" value="<?= e($_POST['negative_marks_per_question'] ?? '0.00') ?>">
                 </div>
 
                 <div class="exam-form__field">

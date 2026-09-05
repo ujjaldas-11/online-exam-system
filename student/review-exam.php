@@ -4,6 +4,7 @@ require_once __DIR__ . '/student-guard.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/sanitize.php';
 require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../services/ExamEngine.php';
 
 
 $student_id = (int) $_SESSION['student_id'];
@@ -35,13 +36,7 @@ try {
         die('Exam not found or you do not have permission to view this.');
     }
 
-    $is_ended = ($examOverview['exam_status'] === 'ended');
-    if ($examOverview['exam_status'] === 'active' && !empty($examOverview['start_time'])) {
-        $durationSec = (int)$examOverview['duration_minutes'] * 60;
-        if (time() >= (strtotime($examOverview['start_time']) + $durationSec)) {
-            $is_ended = true;
-        }
-    }
+    $is_ended = ExamEngine::isExamEnded($examOverview);
     $is_published = !empty($examOverview['results_published']);
 
     if (!$is_ended || !$is_published) {
@@ -70,6 +65,8 @@ try {
         exit;
     }
 
+    $questions = ExamEngine::getAttemptReviewQuestions($pdo, $attempt_id);
+
     // Secure PDF Answer Sheet Generation (Only accessible after exam has ended & results are published)
     if (isset($_GET['download_answers'])) {
         require_once __DIR__ . '/../services/PdfService.php';
@@ -81,31 +78,10 @@ try {
         $pdfExam = [
             'title' => $examOverview['title']
         ];
-
-        $qaStmt = $pdo->prepare("
-            SELECT q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
-                   sa.selected_option, sa.is_correct
-            FROM student_answers sa
-            JOIN questions q ON sa.question_id = q.id
-            WHERE sa.attempt_id = ?
-            ORDER BY sa.id ASC
-        ");
-        $qaStmt->execute([$attempt_id]);
         
-        PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $qaStmt->fetchAll(PDO::FETCH_ASSOC), 'D');
+        PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $questions, 'D');
         exit;
     }
-
-    $qStmt = $pdo->prepare("
-        SELECT q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
-               q.correct_option, sa.selected_option, sa.is_correct
-        FROM student_answers sa
-        JOIN questions q ON sa.question_id = q.id
-        WHERE sa.attempt_id = ?
-        ORDER BY sa.id ASC
-    ");
-    $qStmt->execute([$attempt_id]);
-    $questions = $qStmt->fetchAll();
 } catch (PDOException $e) {
     log_error("Failed to load review for attempt $attempt_id", $e);
     die('Database error loading exam review. Please try again later.');

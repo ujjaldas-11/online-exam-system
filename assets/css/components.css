@@ -482,6 +482,18 @@
   width: 100%;
 }
 
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-border, #cbd5e1);
+  color: var(--color-text, #1e293b);
+}
+
+.btn-outline:hover {
+  background: var(--color-bg-secondary, #f8fafc);
+  border-color: var(--color-text-secondary, #64748b);
+  color: var(--color-text, #0f172a);
+}
+
 /* --- Form Elements --- */
 .form-group {
   margin-bottom: 16px;
@@ -763,9 +775,26 @@ tr:hover td {
   color: var(--color-success);
 }
 
-.badge-rejected {
+.badge-rejected,
+.badge-error,
+.badge-danger {
   background: var(--color-error-bg);
   color: var(--color-error);
+}
+
+.badge-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.badge-success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.badge-info {
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 /* --- Stats Grid --- */

@@ -15,14 +15,9 @@ if ($exam_id <= 0) {
 }
 
 // Enforce horizontal access control: only exam author or superadmin can proctor
-if (!is_superadmin()) {
-    $chkOwner = $pdo->prepare("SELECT created_by FROM exams WHERE id = ?");
-    $chkOwner->execute([$exam_id]);
-    $creator = $chkOwner->fetchColumn();
-    if ($creator !== false && $creator !== null && (int)$creator !== (int)($_SESSION['admin_id'] ?? 0)) {
-        set_flash('error', "Access Denied: You do not have permission to proctor this exam.");
-        redirect('control-exams.php');
-    }
+if (!can_admin_manage_exam($pdo, $exam_id)) {
+    set_flash('error', "Access Denied: You do not have permission to proctor this exam.");
+    redirect('control-exams.php');
 }
 
 $message = '';
@@ -386,7 +381,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (window.ExamifyProctor && window.ExamifyProctor.socket && window.ExamifyProctor.socket.readyState === WebSocket.OPEN) {
+            if (window.ExamifyProctor && typeof window.ExamifyProctor.broadcastAnnouncement === 'function') {
+                const sent = window.ExamifyProctor.broadcastAnnouncement(message, '<?= htmlspecialchars($_SESSION['admin_name'] ?? 'Proctor', ENT_QUOTES, 'UTF-8') ?>');
+                if (sent) {
+                    if (fb) {
+                        fb.style.display = 'block';
+                        fb.style.background = 'var(--color-success-bg)';
+                        fb.style.color = 'var(--color-success)';
+                        fb.textContent = 'Broadcast dispatched to candidates!';
+                    }
+                    setTimeout(closeM, 1200);
+                } else {
+                    alert('WebSocket server is not currently connected on port 8085. Announcement could not be sent.');
+                }
+            } else if (window.ExamifyProctor && window.ExamifyProctor.socket && window.ExamifyProctor.socket.readyState === WebSocket.OPEN) {
                 window.ExamifyProctor.socket.send(JSON.stringify({
                     action: 'broadcast_announcement',
                     exam_id: <?= (int)$exam_id ?>,
