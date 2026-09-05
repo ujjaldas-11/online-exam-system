@@ -8,9 +8,19 @@ require_once '../utils/response.php';
 $semester = (int) $_SESSION['semester'];
 $department = (string) $_SESSION['department'];
 
+// Throttle global status sync to at most once per minute per session to eliminate write-lock thrashing
+$lastSync = (int) ($_SESSION['last_exam_status_sync'] ?? 0);
+$shouldSync = (time() - $lastSync > 60);
+if ($shouldSync) {
+    $_SESSION['last_exam_status_sync'] = time();
+}
+release_session_lock();
+
 try {
-    // 1. Auto-synchronize scheduled exams that have arrived
-    ExamEngine::syncExamStatuses($pdo);
+    // 1. Auto-synchronize scheduled exams that have arrived (throttled)
+    if ($shouldSync) {
+        ExamEngine::syncExamStatuses($pdo);
+    }
 
     // 2. Count active exams in progress for this student cohort
     $stmt = $pdo->prepare("

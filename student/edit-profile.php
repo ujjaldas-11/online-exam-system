@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/CurriculumService.php';
 
 $student_id = (int) $_SESSION['student_id'];
 $message = '';
@@ -29,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_update']) && 
         $error = "Name cannot exceed 100 characters.";
     } elseif (strlen($roll_number) > 50) {
         $error = "Roll number cannot exceed 50 characters.";
-    } elseif (!in_array($department, ['BCA', 'BBA'], true)) {
+    } elseif (!CurriculumService::isValidDepartment($pdo, $department)) {
         $error = "Invalid department selected.";
     } else {
         try {
@@ -125,8 +126,9 @@ include __DIR__ . '/../components/student-navbar.php';
                 <div class="form-group">
                     <label>Department</label>
                     <select name="department" required <?= $has_pending_request ? 'disabled' : '' ?>>
-                        <option value="BCA" <?= $student['department'] === 'BCA' ? 'selected' : '' ?>>BCA</option>
-                        <option value="BBA" <?= $student['department'] === 'BBA' ? 'selected' : '' ?>>BBA</option>
+                        <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                            <option value="<?= e($d) ?>" <?= $student['department'] === $d ? 'selected' : '' ?>><?= e($d) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 

@@ -1,19 +1,21 @@
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
 
-if (!isset($pending_registration_requests_count) && isset($pdo)) {
+if ((!isset($pending_registration_requests_count) || !isset($pending_requests_count)) && isset($pdo)) {
     try {
-        $pending_registration_requests_count = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'pending'")->fetchColumn();
+        $sidebar_counts = $pdo->query("SELECT 
+            (SELECT COUNT(*) FROM students WHERE status = 'pending') AS pending_students,
+            (SELECT COUNT(*) FROM profile_requests WHERE status = 'pending') AS pending_requests"
+        )->fetch(PDO::FETCH_ASSOC);
+        if (!isset($pending_registration_requests_count)) {
+            $pending_registration_requests_count = (int) ($sidebar_counts['pending_students'] ?? 0);
+        }
+        if (!isset($pending_requests_count)) {
+            $pending_requests_count = (int) ($sidebar_counts['pending_requests'] ?? 0);
+        }
     } catch (PDOException) {
-        $pending_registration_requests_count = 0;
-    }
-}
-
-if (!isset($pending_requests_count) && isset($pdo)) {
-    try {
-        $pending_requests_count = (int) $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
-    } catch (PDOException) {
-        $pending_requests_count = 0;
+        $pending_registration_requests_count = $pending_registration_requests_count ?? 0;
+        $pending_requests_count = $pending_requests_count ?? 0;
     }
 }
 

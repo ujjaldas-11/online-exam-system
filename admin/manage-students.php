@@ -10,6 +10,8 @@ require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 require_once '../utils/auth.php';
+require_once '../services/CurriculumService.php';
+require_once '../services/CsvService.php';
 
 require_admin();
 
@@ -72,29 +74,20 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $exportRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $filename = "students_roster_" . date('Y-m-d_His') . ".csv";
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
-    header('Pragma: no-cache');
-    header('Expires: 0');
-
-    $out = fopen('php://output', 'w');
-    fputcsv($out, ['Roll Number', 'Full Name', 'Email Address', 'Phone Number', 'Department', 'Semester', 'Gender', 'Status', 'Registration Date']);
-
-    foreach ($exportRows as $r) {
-        fputcsv($out, [
-            sanitize_csv_value($r['roll_number']),
-            sanitize_csv_value($r['name']),
-            sanitize_csv_value($r['email']),
-            sanitize_csv_value($r['phone_number'] ?? ''),
-            sanitize_csv_value($r['department']),
+    $headers = ['Roll Number', 'Full Name', 'Email Address', 'Phone Number', 'Department', 'Semester', 'Gender', 'Status', 'Registration Date'];
+    CsvService::export($filename, $headers, $exportRows, function (array $r): array {
+        return [
+            $r['roll_number'],
+            $r['name'],
+            $r['email'],
+            $r['phone_number'] ?? '',
+            $r['department'],
             $r['semester'],
-            sanitize_csv_value(ucfirst($r['gender'] ?? 'N/A')),
-            sanitize_csv_value(ucfirst($r['status'])),
+            ucfirst($r['gender'] ?? 'N/A'),
+            ucfirst($r['status']),
             $r['created_at']
-        ]);
-    }
-    fclose($out);
-    exit;
+        ];
+    });
 }
 
 
@@ -559,8 +552,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <label>Department</label>
                 <select name="department">
                     <option value="">All Departments</option>
-                    <option value="BCA" <?= $filterDept === 'BCA' ? 'selected' : '' ?>>BCA</option>
-                    <option value="BBA" <?= $filterDept === 'BBA' ? 'selected' : '' ?>>BBA</option>
+                    <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                        <option value="<?= e($d) ?>" <?= $filterDept === $d ? 'selected' : '' ?>><?= e($d) ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
 
@@ -791,8 +785,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <label>Academic Department *</label>
                     <select name="source_dept" id="promote_dept" required onchange="updatePromotePreview()">
                         <option value="">Select Department</option>
-                        <option value="BCA">BCA (Computer Applications)</option>
-                        <option value="BBA">BBA (Business Administration)</option>
+                        <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                            <option value="<?= e($d) ?>"><?= e($d) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
@@ -877,8 +872,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <label>Department *</label>
                         <select name="department" required>
                             <option value="">Select Department</option>
-                            <option value="BCA">BCA (Computer Applications)</option>
-                            <option value="BBA">BBA (Business Administration)</option>
+                            <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                                <option value="<?= e($d) ?>"><?= e($d) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group">
@@ -959,8 +955,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <div class="form-group">
                         <label>Department *</label>
                         <select name="department" id="edit_department" required>
-                            <option value="BCA">BCA</option>
-                            <option value="BBA">BBA</option>
+                            <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                                <option value="<?= e($d) ?>"><?= e($d) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group">

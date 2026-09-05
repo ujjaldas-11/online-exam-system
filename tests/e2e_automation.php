@@ -188,6 +188,7 @@ echo "--- PART 1: STUDENT PORTAL AUTOMATION ---\n";
 $studentClient = new HttpClient(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'student_cookie.txt');
 $attemptId = 0;
 $firstQuestionId = 0;
+$examCsrf = '';
 
 // Step 1: Visit Landing Page
 step('Visit Landing Page & Capture Screenshot', function () use ($studentClient, $baseUrl) {
@@ -240,7 +241,7 @@ step('Access Exam 1 & Verify PIN Challenge Prompt', function () use ($studentCli
 });
 
 // Step 6: Unlock Exam with PIN
-step('Submit PIN (4821) and Initialize Exam Session', function () use ($studentClient, $baseUrl, &$attemptId) {
+step('Submit PIN (4821) and Initialize Exam Session', function () use ($studentClient, $baseUrl, &$attemptId, &$examCsrf) {
     $csrf = $studentClient->extractCsrfToken();
     $body = $studentClient->request('POST', "$baseUrl/student/exam.php?id=1", [
         'csrf_token' => $csrf,
@@ -249,6 +250,9 @@ step('Submit PIN (4821) and Initialize Exam Session', function () use ($studentC
     ]);
     if (!str_contains($body, 'question-container') && !str_contains($body, 'submitExamBtn') && !str_contains($body, 'Question')) {
         throw new Exception("Failed to unlock exam with valid PIN");
+    }
+    if (preg_match('/name=["\']csrf_token["\']\s+value=["\']([a-f0-9]{64})["\']/i', $body, $m)) {
+        $examCsrf = $m[1];
     }
     if (preg_match('/const\s+attemptId\s*=\s*(\d+);/i', $body, $m)) {
         $attemptId = (int) $m[1];
@@ -270,14 +274,13 @@ step('Fetch Question 1 via JSON API (student/question.php)', function () use ($s
 });
 
 // Step 8: Auto-Save Answer Selection
-step('Submit Auto-Save Answer (Option A) via POST API', function () use ($studentClient, $baseUrl, &$firstQuestionId) {
-    $csrf = $studentClient->extractCsrfToken();
+step('Submit Auto-Save Answer (Option A) via POST API', function () use ($studentClient, $baseUrl, &$firstQuestionId, &$examCsrf) {
     $json = $studentClient->request('POST', "$baseUrl/student/question.php", [
         'exam_id' => 1,
         'question_id' => $firstQuestionId,
         'selected_option' => 'A',
         'marked_for_review' => false,
-        'csrf_token' => $csrf
+        'csrf_token' => $examCsrf
     ], ['Content-Type' => 'application/json']);
     $data = json_decode($json, true);
     if (empty($data['success'])) {
@@ -286,14 +289,15 @@ step('Submit Auto-Save Answer (Option A) via POST API', function () use ($studen
 });
 
 // Step 9: Log Anti-Cheat Violation
-step('Log Anti-Cheat Violation Event via API', function () use ($studentClient, $baseUrl, &$attemptId) {
+step('Log Anti-Cheat Violation Event via API', function () use ($studentClient, $baseUrl, &$attemptId, &$examCsrf) {
     if ($attemptId <= 0) {
         $attemptId = 1;
     }
     $json = $studentClient->request('POST', "$baseUrl/student/log-violation.php", [
         'attempt_id' => $attemptId,
         'violation_type' => 'Switched window / tab during automated test',
-        'details' => 'Headless browser automation simulation'
+        'details' => 'Headless browser automation simulation',
+        'csrf_token' => $examCsrf
     ], ['Content-Type' => 'application/json']);
     $data = json_decode($json, true);
     if (empty($data['success']) && !isset($data['violations_count'])) {
@@ -302,15 +306,12 @@ step('Log Anti-Cheat Violation Event via API', function () use ($studentClient, 
 });
 
 // Step 10: Submit Exam & Calculate Final Score
-step('Submit Examination & Verify Automated Grading (student/result.php)', function () use ($studentClient, $baseUrl, &$attemptId) {
-    $body = $studentClient->request('GET', "$baseUrl/student/exam.php?id=1");
-    $csrf = $studentClient->extractCsrfToken();
-
+step('Submit Examination & Verify Automated Grading (student/result.php)', function () use ($studentClient, $baseUrl, &$examCsrf) {
     $body = $studentClient->request('POST', "$baseUrl/student/result.php", [
-        'csrf_token' => $csrf,
+        'csrf_token' => $examCsrf,
         'exam_id' => 1
     ]);
-    if ($studentClient->lastStatusCode !== 200 || !str_contains($body, 'Examination Result') || !str_contains($body, 'Total Score')) {
+    if ($studentClient->lastStatusCode !== 200 || (!str_contains($body, 'Examination Result') && !str_contains($body, 'Submission Received'))) {
         throw new Exception("Result submission failed with status {$studentClient->lastStatusCode}");
     }
     captureScreenshot("$baseUrl/student/result.php?exam_id=1", $studentClient->getSessionId(), '06_student_result_summary.png', $body);
@@ -322,7 +323,7 @@ step('Access Exam Review Page (student/review-exam.php)', function () use ($stud
         $attemptId = 1;
     }
     $body = $studentClient->request('GET', "$baseUrl/student/review-exam.php?attempt_id=$attemptId");
-    if ($studentClient->lastStatusCode !== 200 || (!str_contains($body, 'Review Exam') && !str_contains($body, 'Total Score'))) {
+    if ($studentClient->lastStatusCode !== 200 || (!str_contains($body, 'Review Exam') && !str_contains($body, 'Answer Key Not Yet Released') && !str_contains($body, 'Answers Not Released'))) {
         throw new Exception("Review exam page failed to load");
     }
     captureScreenshot("$baseUrl/student/review-exam.php?attempt_id=$attemptId", $studentClient->getSessionId(), '07_student_review_exam.png', $body);

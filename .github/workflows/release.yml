@@ -58,8 +58,8 @@ jobs:
           for f in assets/css/*.css; do
             [ -f "$f" ] && cleancss -o "$f" "$f"
           done
-          echo "Minifying JS files in utils/..."
-          for f in utils/*.js; do
+          echo "Minifying JS files in assets/js/ and utils/..."
+          for f in assets/js/*.js utils/*.js; do
             [ -f "$f" ] && terser "$f" -o "$f" --compress --mangle
           done
 

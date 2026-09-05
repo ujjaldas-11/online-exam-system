@@ -51,7 +51,7 @@ function load_env(?string $path = null): void
     $isLoaded = true;
 }
 
-function get_env(string $key, $default = null)
+function get_env(string $key, mixed $default = null): mixed
 {
     load_env();
 

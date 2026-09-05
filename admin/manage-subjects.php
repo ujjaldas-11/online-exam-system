@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/CurriculumService.php';
 
 $message = '';
 $message_type = '';
@@ -22,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     } elseif (strlen($name) > 200) {
         $message = "Subject name cannot exceed 200 characters.";
         $message_type = 'error';
-    } elseif (!in_array($department, ['BCA', 'BBA'], true)) {
+    } elseif (!CurriculumService::isValidDepartment($pdo, $department)) {
         $message = "Invalid department selected.";
         $message_type = 'error';
     } else {
@@ -53,17 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     } elseif (strlen($name) > 200) {
         $message = "Subject name cannot exceed 200 characters.";
         $message_type = 'error';
-    } elseif (!in_array($department, ['BCA', 'BBA'], true)) {
+    } elseif (!CurriculumService::isValidDepartment($pdo, $department)) {
         $message = "Invalid department selected.";
         $message_type = 'error';
     } else {
-        // Verify ownership
-        $chk = $pdo->prepare("SELECT created_by FROM subjects WHERE id = ?");
-        $chk->execute([$subId]);
-        $creator = $chk->fetchColumn();
-        $adminId = (int)($_SESSION['admin_id'] ?? 0);
-
-        if (!is_superadmin() && (int)$creator !== $adminId) {
+        if (!can_admin_manage_subject($pdo, $subId)) {
             $message = "Unauthorized: You can only edit subjects you created.";
             $message_type = 'error';
         } else {
@@ -83,16 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     verify_csrf();
     $subId = int_param($_POST['subject_id'] ?? 0);
     if ($subId > 0) {
-        // Verify ownership
-        $chk = $pdo->prepare("SELECT name, created_by FROM subjects WHERE id = ?");
+        $chk = $pdo->prepare("SELECT name FROM subjects WHERE id = ?");
         $chk->execute([$subId]);
         $sub = $chk->fetch();
-        $adminId = (int)($_SESSION['admin_id'] ?? 0);
 
         if (!$sub) {
             $message = "Subject not found.";
             $message_type = 'error';
-        } elseif (!is_superadmin() && (int)$sub['created_by'] !== $adminId) {
+        } elseif (!can_admin_manage_subject($pdo, $subId)) {
             $message = "Unauthorized: You can only delete subjects you created.";
             $message_type = 'error';
         } else {
@@ -176,8 +169,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <label>Department</label>
                     <select name="department" required>
                         <option value="">Select Department</option>
-                        <option value="BCA" <?= (($_POST['department'] ?? '') === 'BCA') ? 'selected' : '' ?>>BCA</option>
-                        <option value="BBA" <?= (($_POST['department'] ?? '') === 'BBA') ? 'selected' : '' ?>>BBA</option>
+                        <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                            <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
@@ -290,8 +284,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label style="font-weight: 600; display: block; margin-bottom: 4px;">Department</label>
                     <select name="department" id="modal_sub_dept" required class="form-control" style="width: 100%;">
-                        <option value="BCA">BCA</option>
-                        <option value="BBA">BBA</option>
+                        <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                            <option value="<?= e($d) ?>"><?= e($d) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 

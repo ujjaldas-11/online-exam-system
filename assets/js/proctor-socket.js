@@ -115,10 +115,11 @@
                     self.updateStatusBadge('live');
                     self.stopFallbackPolling();
 
-                    // Subscribe to exam channel
+                    // Subscribe to exam channel as proctor
                     self.socket.send(JSON.stringify({
                         action: 'subscribe',
-                        channel: 'exam:' + self.config.examId
+                        channel: 'exam:' + self.config.examId,
+                        role: 'proctor'
                     }));
 
                     // Immediate State Catch-Up on connection/reconnection
@@ -142,8 +143,9 @@
                     }
                 };
 
-                this.socket.onerror = function () {
-                    self.handleDisconnect();
+                this.socket.onerror = function (e) {
+                    // Log warning; onclose event handles disconnect and exponential backoff cleanly
+                    console.warn('[ExamifyProctor] WebSocket connection error:', e);
                 };
 
                 this.socket.onclose = function () {
@@ -219,6 +221,8 @@
                 this.handleTimeExtended(data.extra_minutes);
             } else if (event === 'exam_ended') {
                 this.handleExamEnded(data);
+            } else if (event === 'broadcast_announcement' || event === 'announcement') {
+                this.handleAnnouncementReceived(data);
             }
         },
 
@@ -319,6 +323,34 @@
             document.body.appendChild(banner);
             setTimeout(() => banner.remove(), 8000);
             this.pollStatus();
+        },
+
+        handleAnnouncementReceived: function (data) {
+            const banner = document.createElement('div');
+            banner.className = 'alert alert-warning';
+            banner.style.position = 'fixed';
+            banner.style.top = '20px';
+            banner.style.right = '20px';
+            banner.style.zIndex = '9999';
+            banner.style.maxWidth = '420px';
+            banner.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+            const sender = data.sender ? `[${data.sender}] ` : '';
+            banner.textContent = `Announcement: ${sender}${data.message || ''}`;
+            document.body.appendChild(banner);
+            setTimeout(() => banner.remove(), 8000);
+        },
+
+        broadcastAnnouncement: function (message, sender) {
+            if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+                return false;
+            }
+            this.socket.send(JSON.stringify({
+                action: 'broadcast_announcement',
+                exam_id: this.config.examId,
+                message: message,
+                sender: sender || 'Proctor'
+            }));
+            return true;
         },
 
         applyFullSync: function (data) {

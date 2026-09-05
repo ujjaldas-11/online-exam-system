@@ -325,8 +325,8 @@ include __DIR__ . '/../components/header.php';
     </div>
 </div>
 
-<script src="../utils/anti-cheat.js?v=<?= asset_version() ?>"></script>
-<script src="../utils/timer.js?v=<?= asset_version() ?>"></script>
+<script src="../assets/js/anti-cheat.js?v=<?= asset_version() ?>"></script>
+<script src="../assets/js/timer.js?v=<?= asset_version() ?>"></script>
 <script>
     const examId = <?= $exam_id ?>;
     const attemptId = <?= $attempt_id ?>;
@@ -417,6 +417,8 @@ include __DIR__ . '/../components/header.php';
 
     function renderQuestion(q, selected, marked) {
         const container = document.getElementById('question-container');
+        if (!container) return;
+
         const safeQuestionText = escapeHtml(q.question_text);
         let html = `
             <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''}</div>
@@ -424,15 +426,20 @@ include __DIR__ . '/../components/header.php';
             <div class="options-list">
         `;
 
-        ['A', 'B', 'C', 'D'].forEach(opt => {
+        const order = (q.options_order && Array.isArray(q.options_order)) ? q.options_order : ['A', 'B', 'C', 'D'];
+        const displayLetters = ['A', 'B', 'C', 'D'];
+        let renderedCount = 0;
+        order.forEach((opt) => {
             const text = q['option_' + opt.toLowerCase()];
             if (text !== null && text !== undefined && String(text).trim() !== '') {
                 const isSelected = selected === opt;
                 const safeText = escapeHtml(text);
+                const displayLetter = displayLetters[renderedCount] || opt;
+                renderedCount++;
                 html += `
                     <label class="option-item ${isSelected ? 'selected' : ''}">
                         <input type="radio" name="answer" value="${opt}" ${isSelected ? 'checked' : ''}>
-                        <span><strong>${opt}.</strong> ${safeText}</span>
+                        <span><strong>${displayLetter}.</strong> ${safeText}</span>
                     </label>
                 `;
             }

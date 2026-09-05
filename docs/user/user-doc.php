@@ -1018,10 +1018,12 @@
                         <div class="body">
                             <ol>
                                 <li>Click <strong>Enter Fullscreen & Begin</strong> to start the exam timer.</li>
-                                <li>Read the question text and select your answer option (A, B, C, or D).</li>
+                                <li>Read the question text and select your answer option (A, B, C, or D). Answer options are deterministically permuted for your specific test attempt to eliminate neighbor shoulder surfing.</li>
                                 <li>The system saves your selected option automatically in the background.</li>
                                 <li>Click <strong>Next</strong> or <strong>Previous</strong> to navigate questions.</li>
                                 <li>Click <strong>Mark for Review</strong> to flag questions for double-checking before final submission.</li>
+                                <li><strong>Negative Marking:</strong> If configured for this examination, incorrect answers deduct fractional marks as specified; overall score is protected by an automated floor of 0.00.</li>
+                                <li><strong>Proctor Announcements:</strong> Real-time instructions dispatched by proctors appear automatically in a prominent notification banner at the top of your test room.</li>
                             </ol>
                             <h4>Question Palette Navigation</h4>
                             <p>Use the Question Palette to track your test progress:</p>

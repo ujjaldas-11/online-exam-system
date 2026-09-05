@@ -355,11 +355,11 @@ try {
             }
         }
 
-        // Seed an attempt for Alex Johnson so leaderboards, analytics and PDF export have immediate data
-        $alexId = (int) $pdo->query("SELECT id FROM students WHERE email = 'student@college.edu'")->fetchColumn();
-        if ($alexId > 0 && $examId > 0) {
+        // Seed an attempt for Priya Sharma so leaderboards, analytics and PDF export have immediate data
+        $priyaId = (int) $pdo->query("SELECT id FROM students WHERE email = 'priya@college.edu'")->fetchColumn();
+        if ($priyaId > 0 && $examId > 0) {
             $chkAttempt = $pdo->prepare("SELECT id FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
-            $chkAttempt->execute([$alexId, $examId]);
+            $chkAttempt->execute([$priyaId, $examId]);
             $attemptId = $chkAttempt->fetchColumn();
 
             if (!$attemptId) {
@@ -367,7 +367,7 @@ try {
                     INSERT INTO exam_attempts (student_id, exam_id, total_questions, score, status, started_at, submitted_at)
                     VALUES (?, ?, 10, 10.00, 'completed', NOW() - INTERVAL 25 MINUTE, NOW() - INTERVAL 5 MINUTE)
                 ");
-                $insAtt->execute([$alexId, $examId]);
+                $insAtt->execute([$priyaId, $examId]);
                 $attemptId = (int) $pdo->lastInsertId();
 
                 $qs = $pdo->query("SELECT id, correct_option FROM questions WHERE subject_id = $osSubId LIMIT 10")->fetchAll();
@@ -378,7 +378,7 @@ try {
                 foreach ($qs as $qRow) {
                     $insAns->execute([$attemptId, $qRow['id'], $qRow['correct_option']]);
                 }
-                out("Seeded completed attempt for Alex Johnson (Score: 10.00 / 10).", $isCli, 'success');
+                out("Seeded completed attempt for Priya Sharma (Score: 10.00 / 10).", $isCli, 'success');
             }
         }
     }
