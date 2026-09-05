@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Failed to force submit attempt: " . ($result['error'] ?? 'Unknown error');
                 $message_type = 'error';
             }
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
             $message = safe_db_error($e, "Failed to submit attempt.");
             $message_type = 'error';
         }
