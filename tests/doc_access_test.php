@@ -40,12 +40,13 @@ assert_test(strpos($userDocHtml, 'Submitting Answers (In-DOM Confirmation Modal)
 
 // Helper script runner to test isolated execution
 function run_isolated_test(string $setupPhp): string {
+    $baseDir = dirname(__DIR__);
     $script = tempnam(sys_get_temp_dir(), 'doc_test_');
     $code = "<?php\n" .
-        "require_once 'F:/DEV/rewrite/online-exam/config/database.php';\n" .
-        "require_once 'F:/DEV/rewrite/online-exam/utils/session.php';\n" .
+        "require_once " . var_export($baseDir . '/config/database.php', true) . ";\n" .
+        "require_once " . var_export($baseDir . '/utils/session.php', true) . ";\n" .
         $setupPhp . "\n" .
-        "include 'F:/DEV/rewrite/online-exam/docs/user/admin-doc.php';\n";
+        "include " . var_export($baseDir . '/docs/user/admin-doc.php', true) . ";\n";
     file_put_contents($script, $code);
     $result = shell_exec("php \"$script\" 2>&1");
     @unlink($script);
