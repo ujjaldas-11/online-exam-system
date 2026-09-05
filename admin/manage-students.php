@@ -29,6 +29,10 @@ $adminId = (int) ($_SESSION['admin_id'] ?? 0);
 
 
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    if (!is_superadmin()) {
+        http_response_code(403);
+        die("Access Denied: Superadmin privileges required to export student data.");
+    }
     $q = clean_input($_GET['q'] ?? '');
     $dept = clean_input($_GET['department'] ?? '');
     $sem = int_param($_GET['semester'] ?? 0);
@@ -261,6 +265,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
     // 5. DELETE STUDENT RECORD
     elseif (isset($_POST['delete_student'])) {
+        if (!is_superadmin()) {
+            http_response_code(403);
+            die("Access Denied: Superadmin privileges required to delete student records.");
+        }
         $studentId = int_param($_POST['student_id'] ?? 0);
 
         if ($studentId > 0) {
@@ -288,6 +296,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
     // 6. BULK PROMOTE COHORT (BATCH ADVANCEMENT)
     elseif (isset($_POST['bulk_promote_cohort'])) {
+        if (!is_superadmin()) {
+            http_response_code(403);
+            die("Access Denied: Superadmin privileges required for cohort bulk promotion.");
+        }
         $sourceDept = clean_input($_POST['source_dept'] ?? '');
         $fromSem = int_param($_POST['from_semester'] ?? 0);
         $toSem = int_param($_POST['to_semester'] ?? 0);
@@ -334,6 +346,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
     // 7. BULK PROMOTE SELECTED STUDENTS (+1 SEMESTER)
     elseif (isset($_POST['bulk_promote_selected'])) {
+        if (!is_superadmin()) {
+            http_response_code(403);
+            die("Access Denied: Superadmin privileges required for student bulk promotion.");
+        }
         $rawIds = $_POST['selected_student_ids'] ?? '';
         $idList = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
         $studentIds = array_filter(array_map('intval', $idList), fn($id) => $id > 0);
