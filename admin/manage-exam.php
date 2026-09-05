@@ -130,6 +130,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <h1>Create Examination</h1>
             <p>Configure exam parameters, duration, question pool, and classroom PIN</p>
         </div>
+        <a href="proctor-exam.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm">visibility</span> Proctor Exam
+        </a>
     </div>
 
     <?php if ($message): ?>
@@ -238,10 +241,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
             </div>
 
-            <div class="exam-form__actions">
+            <div class="exam-form__actions" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <button type="submit" name="create_exam" class="btn btn-primary">
                     <span class="material-symbols-outlined icon-sm">add_circle</span> Create examination
                 </button>
+                <a href="proctor-exam.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-sm">visibility</span> Proctor Exam
+                </a>
                 <span class="exam-form__hint">Questions are picked at random from the selected scope for each student.</span>
             </div>
         </form>
