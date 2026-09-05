@@ -289,3 +289,43 @@
   color: #ffffff !important;
   border-color: #92400e;
 }
+
+/* Palette Filters & Mobile Drawer */
+.palette-filter-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.palette-filter-btn {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 6px);
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all 0.15s ease;
+}
+
+.palette-filter-btn:hover {
+  background: #e2e8f0;
+}
+
+.palette-filter-btn.active {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.btn-toggle-palette-mobile {
+  display: none;
+}
+
+@media (max-width: 850px) {
+  .btn-toggle-palette-mobile {
+    display: inline-flex !important;
+  }
+}

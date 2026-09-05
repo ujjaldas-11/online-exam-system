@@ -1,7 +1,7 @@
 :root {
     --nav-h: 54px;
-    --nav-deep: color-mix(in srgb, var(--color-header, #33422e) 82%, black 18%);
-    --nav-tint: color-mix(in srgb, var(--color-header-hover, #45573d) 70%, white 30%);
+    --nav-deep: color-mix(in srgb, var(--color-header, #0F172A) 82%, black 18%);
+    --nav-tint: color-mix(in srgb, var(--color-header-hover, #1b2848) 70%, white 30%);
     --nav-text: #ede9d9;
     --nav-active-text: rgb(212, 232, 197);
     --color-gold: #d8a457;
@@ -9,7 +9,7 @@
 }
 
 .student-navbar {
-    background: var(--color-header, #33422e);
+    background: var(--color-header, #0F172A);
     color: var(--nav-text);
     position: sticky;
     top: 0;
