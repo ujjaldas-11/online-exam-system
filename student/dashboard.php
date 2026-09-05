@@ -223,7 +223,10 @@ include __DIR__ . '/../components/student-navbar.php';
     <?php if (empty($filtered_exams)): ?>
         document.addEventListener("DOMContentLoaded", async function () {
             try {
-                const response = await fetch('../utils/funny_quotes.json?v=<?= asset_version() ?>');
+                let response = await fetch('../utils/quotes_dashboard.json?v=<?= asset_version() ?>');
+                if (!response.ok) {
+                    response = await fetch('../utils/funny_quotes.json?v=<?= asset_version() ?>');
+                }
                 if (response.ok) {
                     const data = await response.json();
                     if (data.quotes && data.quotes.length > 0) {
