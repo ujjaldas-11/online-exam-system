@@ -223,11 +223,34 @@ class ExamEngine
             }
 
             if (!empty($updates)) {
+                $setClauses = [];
+                foreach ($updates as $up) {
+                    $setClauses[] = "sa." . $up;
+                }
                 $params[] = $attemptId;
                 $params[] = $questionId;
-                $sql = "UPDATE student_answers SET " . implode(', ', $updates) . " WHERE attempt_id = ? AND question_id = ?";
+                $sql = "UPDATE student_answers sa
+                        JOIN exam_attempts ea ON sa.attempt_id = ea.id
+                        SET " . implode(', ', $setClauses) . "
+                        WHERE sa.attempt_id = ? AND sa.question_id = ? AND ea.status = 'in_progress'";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
+
+                if ($stmt->rowCount() === 0) {
+                    $statusCheck = $pdo->prepare("SELECT status FROM exam_attempts WHERE id = ?");
+                    $statusCheck->execute([$attemptId]);
+                    $currentStatus = $statusCheck->fetchColumn();
+
+                    if ($currentStatus === 'completed') {
+                        return ['error' => 'Exam already submitted', 'code' => 400];
+                    }
+                    if ($currentStatus === 'disqualified') {
+                        return ['error' => 'Attempt has been disqualified due to exam integrity violations', 'code' => 403];
+                    }
+                    if ($currentStatus !== 'in_progress') {
+                        return ['error' => 'Exam is not in progress', 'code' => 400];
+                    }
+                }
             }
 
             $ansCountStmt = $pdo->prepare("SELECT COUNT(*) FROM student_answers WHERE attempt_id = ? AND selected_option IS NOT NULL AND selected_option != ''");
@@ -251,31 +274,38 @@ class ExamEngine
     public static function submitExam(PDO $pdo, int $studentId, int $examId): array
     {
         try {
+            $pdo->beginTransaction();
+
             $checkStmt = $pdo->prepare("
                 SELECT ea.id, ea.score, ea.total_questions, ea.status,
                        e.total_marks, e.total_questions_to_ask
                 FROM exam_attempts ea
                 JOIN exams e ON ea.exam_id = e.id
                 WHERE ea.student_id = ? AND ea.exam_id = ?
+                FOR UPDATE
             ");
             $checkStmt->execute([$studentId, $examId]);
             $attempt = $checkStmt->fetch();
 
             if (!$attempt) {
+                $pdo->rollBack();
                 return ['error' => 'Attempt not found'];
             }
 
             $attemptId = (int) $attempt['id'];
 
             if ($attempt['status'] === 'disqualified') {
+                $pdo->rollBack();
                 return ['error' => 'Attempt has been disqualified due to exam integrity violations', 'disqualified' => true];
             }
 
             if ($attempt['status'] === 'completed') {
+                $pdo->rollBack();
                 return ['success' => true, 'already_submitted' => true, 'score' => (float)$attempt['score']];
             }
 
             if ($attempt['status'] !== 'in_progress') {
+                $pdo->rollBack();
                 return ['error' => 'Exam is not in progress'];
             }
 
@@ -283,18 +313,17 @@ class ExamEngine
             $totalQs = (int) $attempt['total_questions_to_ask'];
             $pointsPerQuestion = ($totalQs > 0) ? ($totalMarks / $totalQs) : 1.0;
 
-            // Fetch assigned answers with questions
+            // Fetch assigned answers with questions, locking answers FOR UPDATE
             $ansSql = "
                 SELECT sa.id AS ans_id, q.id AS question_id, q.correct_option, sa.selected_option
                 FROM student_answers sa
                 JOIN questions q ON sa.question_id = q.id
                 WHERE sa.attempt_id = ?
+                FOR UPDATE
             ";
             $ansStmt = $pdo->prepare($ansSql);
             $ansStmt->execute([$attemptId]);
             $answers = $ansStmt->fetchAll();
-
-            $pdo->beginTransaction();
 
             $totalScore = 0.00;
             $upAns = $pdo->prepare("UPDATE student_answers SET is_correct = ? WHERE id = ?");
@@ -312,7 +341,7 @@ class ExamEngine
             $upAttempt = $pdo->prepare("
                 UPDATE exam_attempts
                 SET score = ?, status = 'completed', submitted_at = NOW()
-                WHERE id = ?
+                WHERE id = ? AND status = 'in_progress'
             ");
             $upAttempt->execute([$totalScore, $attemptId]);
 

@@ -121,9 +121,19 @@ function verify_active_session(PDO $pdo, string $userType, int $userId): bool
     return true;
 }
 
-function clear_active_session(PDO $pdo, string $userType, int $userId): void
+function clear_active_session(PDO $pdo, string $userType, int $userId, ?string $sessionId = null, bool $force = false): void
 {
     $table = ($userType === 'admin') ? 'admins' : 'students';
-    $stmt = $pdo->prepare("UPDATE {$table} SET active_session_id = NULL WHERE id = ?");
-    $stmt->execute([$userId]);
+    $targetSession = $sessionId ?? (session_status() === PHP_SESSION_ACTIVE ? session_id() : '');
+
+    if ($force) {
+        $stmt = $pdo->prepare("UPDATE {$table} SET active_session_id = NULL WHERE id = ?");
+        $stmt->execute([$userId]);
+        return;
+    }
+
+    if (!empty($targetSession)) {
+        $stmt = $pdo->prepare("UPDATE {$table} SET active_session_id = NULL WHERE id = ? AND active_session_id = ?");
+        $stmt->execute([$userId, $targetSession]);
+    }
 }

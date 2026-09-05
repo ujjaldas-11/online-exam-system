@@ -185,7 +185,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
                     // If student was blocked or rejected, immediately terminate active session
                     if (in_array($status, ['blocked', 'rejected'], true)) {
-                        clear_active_session($pdo, 'student', $studentId);
+                        clear_active_session($pdo, 'student', $studentId, null, true);
                     }
 
                     log_admin_action($pdo, 'edit_student', 'student', $studentId, "Updated student $name (Roll: $roll, Status: $status)");
@@ -216,7 +216,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $up->execute([$newStatus, $studentId]);
 
                     if ($newStatus === 'blocked') {
-                        clear_active_session($pdo, 'student', $studentId);
+                        clear_active_session($pdo, 'student', $studentId, null, true);
                     }
 
                     $actionVerb = ($newStatus === 'blocked') ? 'Blocked' : 'Unblocked/Activated';
