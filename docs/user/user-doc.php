@@ -174,7 +174,7 @@
                 background: var(--topbar-input-bg);
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 color: #fff;
-                padding: 10px 16px 10px 40px;
+                padding: 10px 36px 10px 40px;
                 border-radius: 30px;
                 font-family: inherit;
                 font-size: 0.9rem;
@@ -200,6 +200,36 @@
                 top: 50%;
                 transform: translateY(-50%);
                 color: rgba(255, 255, 255, 0.6);
+                pointer-events: none;
+            }
+
+            .search-clear {
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: transparent;
+                border: none;
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 1.25rem;
+                line-height: 1;
+                cursor: pointer;
+                padding: 2px 6px;
+                border-radius: 50%;
+                transition: var(--transition);
+            }
+
+            .search-clear:hover {
+                color: #fff;
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            .doc-section.all-filtered-out {
+                display: none !important;
+            }
+
+            .toc-link.dimmed {
+                opacity: 0.25;
             }
 
             /* ===== Buttons (Navbar variations) ===== */
@@ -753,7 +783,8 @@
                         <circle cx="11" cy="11" r="8" />
                         <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
-                    <input id="searchInput" type="text" placeholder="Search topics, keywords..." />
+                    <input id="searchInput" type="text" placeholder="Search topics, keywords..." autocomplete="off" />
+                    <button type="button" id="searchClear" class="search-clear" title="Clear search" style="display: none;">&times;</button>
                 </div>
 
                 <div class="topbar-links">
@@ -797,6 +828,7 @@
                                 <li><a class="toc-link" href="#sec-2-8">2.8 Anti-Cheat Rules</a></li>
                                 <li><a class="toc-link" href="#sec-2-9">2.9 Submission</a></li>
                                 <li><a class="toc-link" href="#sec-2-10">2.10 Results</a></li>
+                                <li><a class="toc-link" href="#sec-2-11">2.11 Student Profile</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -842,7 +874,7 @@
                 <section class="doc-section" id="sec-1">
                     <div class="section-kicker">Getting oriented</div>
                     <h2>1. User Roles</h2>
-                    <details class="subsection" open>
+                    <details class="subsection" open id="sec-1-1">
                         <summary>
                             System User Personas
                             <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -892,53 +924,107 @@
                         </div>
                     </details>
 
-                    <details class="subsection" id="sec-2-3">
+                    <details class="subsection" id="sec-2-2">
                         <summary>
-                            2.3 Single-Device Session Rules
+                            2.2 Universal Password Visibility Toggle
                             <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
+                            <p>
+                                Every password input field across the student portal includes an interactive eye toggle button:
+                            </p>
+                            <ul>
+                                <li>Click the <strong>Eye Icon</strong> to unmask password characters and verify spelling.</li>
+                                <li>Click the <strong>Eye Icon</strong> again to re-mask password characters for confidentiality.</li>
+                            </ul>
+                            <div class="admonition">
+                                <span class="adm-label">Security Reminder</span>
+                                Always mask your password before beginning an examination if other students sit near your computer terminal.
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-2-3">
+                        <summary>
+                            2.3 Student Login and Single-Device Session Rules
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </summary>
+                        <div class="body">
+                            <ol>
+                                <li>Navigate to the student login page (<code>student/login.php</code>).</li>
+                                <li>Enter your registered institutional email address.</li>
+                                <li>Enter your account password.</li>
+                                <li>Click the <strong>Login</strong> button.</li>
+                            </ol>
                             <div class="admonition warning">
                                 <span class="adm-label">Singleton Login Policy</span>
-                                Examify allows only <strong>one active session per student</strong>. Logging into a second device will immediately terminate your previous session to prevent collaborative cheating.
+                                Examify allows only <strong>one active session per student</strong>. If you log into your account on a second device, your previous session terminates immediately to prevent unauthorized sharing and maintain exam integrity.
                             </div>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-2-4">
                         <summary>
-                            2.4 Hardware Requirements & Touchscreen
+                            2.4 Hardware Requirements & Touchscreen Gating
                             <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
+                            <p>Review these mandatory hardware and device gating policies before exam sessions:</p>
                             <ul>
-                                <li><strong>Desktop or Laptop Required:</strong> The exam room actively blocks mobile phones and tablets.</li>
-                                <li><strong>Touchscreen Suppression:</strong> Touch inputs are disabled during exams. You must use a mouse or trackpad to select answers.</li>
+                                <li><strong>Desktop or Laptop Required:</strong> You must take exams on a desktop or laptop computer. The exam room actively blocks mobile phones and tablets.</li>
+                                <li><strong>Lockout Screen:</strong> Attempting to access an active examination on a mobile phone or tablet displays a device lockout screen instructing you to switch to a computer.</li>
+                                <li><strong>Touchscreen Suppression:</strong> If you use a touchscreen laptop, the examination room suppresses touch taps to prevent cheating gestures. You must interact using your touchpad or an external mouse.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-2-5">
+                        <summary>
+                            2.5 Student Dashboard & Live Exam Discovery
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </summary>
+                        <div class="body">
+                            <p>
+                                The Student Dashboard automatically discovers examinations tailored to your registered department and semester:
+                            </p>
+                            <ul>
+                                <li><strong>Automatic Polling:</strong> The dashboard queries the server every 10 seconds in the background. When an instructor launches an examination, it appears without manual page reloads.</li>
+                                <li><strong>Status Badges:</strong> Cards display <span class="badge live">Live</span> for active tests, <span class="badge scheduled">Scheduled</span> for upcoming quizzes, and <span class="badge ended">Ended</span> for closed exams.</li>
+                                <li><strong>Assessment Details:</strong> Each card displays course subject, duration in minutes, total questions, and maximum marks.</li>
                             </ul>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-2-6">
                         <summary>
-                            2.6 Unlocking an Exam with a PIN
+                            2.6 Unlocking an Exam with a Classroom PIN
                             <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
+                            <p>Instructors frequently assign a 4-digit PIN to secure test sessions:</p>
                             <ol>
                                 <li>Click <strong>Start Exam</strong> on the active test card in your dashboard.</li>
-                                <li>If prompted, type the 4-digit PIN provided by your proctor.</li>
-                                <li>Click <strong>Unlock Exam</strong> to initialize the secure session.</li>
+                                <li>If prompted, type the 4-digit whiteboard PIN provided by your instructor or proctor.</li>
+                                <li>Click <strong>Unlock Exam</strong> to initialize your secure examination session.</li>
                             </ol>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-2-7">
                         <summary>
-                            2.7 Taking an Examination
+                            2.7 Taking an Examination (Interface Guide)
                             <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
-                            <p>Once you click <strong>Enter Fullscreen & Begin</strong>, the timer starts. Use the Question Palette to navigate:</p>
+                            <ol>
+                                <li>Click <strong>Enter Fullscreen & Begin</strong> to start the exam timer.</li>
+                                <li>Read the question text and select your answer option (A, B, C, or D).</li>
+                                <li>The system saves your selected option automatically in the background.</li>
+                                <li>Click <strong>Next</strong> or <strong>Previous</strong> to navigate questions.</li>
+                                <li>Click <strong>Mark for Review</strong> to flag questions for double-checking before final submission.</li>
+                            </ol>
+                            <h4>Question Palette Navigation</h4>
+                            <p>Use the Question Palette to track your test progress:</p>
                             <table>
                                 <tr><th>Color</th><th>Meaning</th></tr>
                                 <tr><td><strong style="color: var(--accent-green)">Green</strong></td><td>Answer successfully saved</td></tr>
@@ -950,23 +1036,86 @@
 
                     <details class="subsection" id="sec-2-8">
                         <summary>
-                            2.8 Anti-Cheat Security Rules
+                            2.8 Anti-Cheat Security Rules & Cheating Infractions
                             <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                         </summary>
                         <div class="body">
-                            <p>The system monitors browser integrity. Avoid the following actions:</p>
+                            <p>The system actively monitors examination room integrity. Avoid the following prohibited actions:</p>
                             <ul>
-                                <li>Exiting full-screen mode or minimizing the window.</li>
-                                <li>Switching browser tabs.</li>
-                                <li>Pressing <span class="kbd">F12</span> or <span class="kbd">Ctrl+Shift+I</span>.</li>
+                                <li>Exiting full-screen mode or minimizing the exam window.</li>
+                                <li>Switching browser tabs or launching other desktop applications.</li>
+                                <li>Pressing <span class="kbd">F12</span>, <span class="kbd">Ctrl+Shift+I</span>, or opening developer tools.</li>
                             </ul>
                             <div class="admonition warning">
                                 <span class="adm-label">Three-Strike Rule</span>
-                                After <strong>3 violations</strong>, the system instantly terminates your session and submits your current answers.
+                                When an infraction occurs, the exam pauses and records an audit log. After <strong>3 violations</strong>, the system instantly terminates your session and submits your current answers.
                             </div>
                         </div>
                     </details>
 
+                    <details class="subsection" id="sec-2-9">
+                        <summary>
+                            2.9 Submitting Answers (In-DOM Confirmation Modal)
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </summary>
+                        <div class="body">
+                            <ol>
+                                <li>Check your question palette to ensure all desired questions are answered.</li>
+                                <li>Click the <strong>Submit Exam</strong> button in the bottom navigation bar.</li>
+                                <li>
+                                    A custom in-DOM confirmation modal dialog opens on screen displaying live summary metrics:
+                                    <ul>
+                                        <li><strong>Answered Questions:</strong> Count of completed and saved items.</li>
+                                        <li><strong>Marked for Review:</strong> Items flagged for double-checking.</li>
+                                        <li><strong>Unanswered Questions:</strong> Items left blank.</li>
+                                    </ul>
+                                </li>
+                                <li>Click <strong>Confirm & Submit</strong> to finalize your examination.</li>
+                            </ol>
+                            <p>
+                                The anti-cheat monitoring automatically stops prior to form submission, preventing false window blur infractions during page transition.
+                            </p>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-2-10">
+                        <summary>
+                            2.10 Reviewing Results & Downloading PDF Scorecards
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </summary>
+                        <div class="body">
+                            <p>
+                                When exam results are published by your instructor, the results page displays your complete performance metrics:
+                            </p>
+                            <ul>
+                                <li>Total marks achieved and maximum possible marks.</li>
+                                <li>Percentage score and qualification status (<span class="role-pill student" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-green)">PASS</span> or <span class="role-pill" style="background: rgba(239, 68, 68, 0.2); color: #ef4444">FAIL</span>).</li>
+                                <li>Itemized breakdown of correct, incorrect, and unanswered questions.</li>
+                            </ul>
+                            <p>
+                                Click <strong>Download Scorecard PDF</strong> to generate an official institutional grade sheet powered by our local PDF engine.
+                            </p>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-2-11">
+                        <summary>
+                            2.11 Student Profile & Academic Detail Update Requests
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </summary>
+                        <div class="body">
+                            <ol>
+                                <li>Click your student profile in the navigation header.</li>
+                                <li>Review your enrolled department, semester, roll number, and test history.</li>
+                                <li>If your academic details need correction, click <strong>Request Profile Update</strong>.</li>
+                                <li>Submit your revised details for faculty verification.</li>
+                            </ol>
+                            <div class="admonition">
+                                <span class="adm-label">Pending Verification</span>
+                                Change requests require administrative approval before updates reflect across active test rosters.
+                            </div>
+                        </div>
+                    </details>
                 </section>
 
                 <div class="admin-callout">
@@ -979,7 +1128,7 @@
 
                 <div class="no-results" id="noResults">
                     <h3>No matching sections found.</h3>
-                    <p>Try searching for different keywords.</p>
+                    <p>No results found for <strong id="searchQueryDisplay"></strong>. Try searching for different keywords or press <span class="kbd">Esc</span> to reset.</p>
                 </div>
             </main>
         </div>
@@ -995,29 +1144,47 @@
             const themeToggle = document.getElementById('themeToggle');
             const moonIcon = document.getElementById('moonIcon');
             const sunIcon = document.getElementById('sunIcon');
-            
-            // Check saved theme
-            const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            if (currentTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                moonIcon.style.display = 'none';
-                sunIcon.style.display = 'block';
+
+            function getSavedTheme() {
+                try {
+                    return localStorage.getItem('theme');
+                } catch (e) {
+                    return null;
+                }
             }
 
-            themeToggle.addEventListener('click', () => {
-                let theme = document.documentElement.getAttribute('data-theme');
+            function setSavedTheme(theme) {
+                try {
+                    localStorage.setItem('theme', theme);
+                } catch (e) {}
+            }
+
+            function updateThemeUI(theme) {
                 if (theme === 'dark') {
-                    document.documentElement.removeAttribute('data-theme');
-                    localStorage.setItem('theme', 'light');
-                    moonIcon.style.display = 'block';
-                    sunIcon.style.display = 'none';
-                } else {
                     document.documentElement.setAttribute('data-theme', 'dark');
-                    localStorage.setItem('theme', 'dark');
-                    moonIcon.style.display = 'none';
-                    sunIcon.style.display = 'block';
+                    if (moonIcon) moonIcon.style.display = 'none';
+                    if (sunIcon) sunIcon.style.display = 'block';
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    if (moonIcon) moonIcon.style.display = 'block';
+                    if (sunIcon) sunIcon.style.display = 'none';
                 }
-            });
+            }
+
+            // Check saved theme or system preference
+            const savedTheme = getSavedTheme();
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+            updateThemeUI(initialTheme);
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    const newTheme = isDark ? 'light' : 'dark';
+                    updateThemeUI(newTheme);
+                    setSavedTheme(newTheme);
+                });
+            }
 
             // ===== Decorative Palette Grid =====
             const pattern = [
@@ -1048,72 +1215,159 @@
                 }, 1000);
             }
 
-            // ===== Efficient Debounced Search =====
+            // ===== Robust Instant Search & Filter =====
             const searchInput = document.getElementById("searchInput");
-            const allSubsections = Array.from(document.querySelectorAll(".subsection"));
+            const searchClear = document.getElementById("searchClear");
             const noResults = document.getElementById("noResults");
-            let searchTimeout;
+            const searchQueryDisplay = document.getElementById("searchQueryDisplay");
+            const heroSection = document.querySelector(".hero");
+            const adminCallout = document.querySelector(".admin-callout");
+            const docSections = Array.from(document.querySelectorAll(".doc-section"));
+            const allSubsections = Array.from(document.querySelectorAll(".subsection"));
+            const tocLinks = Array.from(document.querySelectorAll(".toc-link"));
+
+            // Cache initial default open state of subsections
+            const defaultOpenStates = new Map();
+            allSubsections.forEach((sec) => {
+                defaultOpenStates.set(sec, sec.hasAttribute("open"));
+            });
+
+            function performSearch() {
+                const rawQuery = searchInput ? searchInput.value : "";
+                const query = rawQuery.trim().toLowerCase();
+                const terms = query.split(/\s+/).filter(Boolean);
+                const isSearching = terms.length > 0;
+
+                // Toggle clear button
+                if (searchClear) {
+                    searchClear.style.display = isSearching ? "block" : "none";
+                }
+
+                // Hide/show hero & callouts during active search
+                if (heroSection) heroSection.style.display = isSearching ? "none" : "";
+                if (adminCallout) adminCallout.style.display = isSearching ? "none" : "";
+
+                let totalVisible = 0;
+
+                docSections.forEach((section) => {
+                    const sectionKicker = section.querySelector(".section-kicker")?.textContent.toLowerCase() || "";
+                    const sectionTitle = section.querySelector("h2")?.textContent.toLowerCase() || "";
+                    const sectionSubsections = Array.from(section.querySelectorAll(".subsection"));
+                    let sectionMatches = 0;
+
+                    sectionSubsections.forEach((sec) => {
+                        const secSummary = sec.querySelector("summary")?.textContent.toLowerCase() || "";
+                        const secBody = sec.querySelector(".body")?.textContent.toLowerCase() || "";
+                        const fullText = `${sectionKicker} ${sectionTitle} ${secSummary} ${secBody}`;
+
+                        // Check if all search terms match
+                        const match = !isSearching || terms.every((term) => fullText.includes(term));
+
+                        sec.classList.toggle("filtered-out", !match);
+
+                        if (match) {
+                            totalVisible++;
+                            sectionMatches++;
+                            if (isSearching) {
+                                sec.open = true; // Auto-expand when searching
+                            } else {
+                                sec.open = defaultOpenStates.get(sec) || false; // Restore default state
+                            }
+                        }
+                    });
+
+                    // Hide the entire section container if no subsections inside matched
+                    section.classList.toggle("all-filtered-out", isSearching && sectionMatches === 0);
+                });
+
+                // Filter / highlight TOC links
+                tocLinks.forEach((link) => {
+                    const href = link.getAttribute("href");
+                    if (!href || href === "#") return;
+                    if (!isSearching) {
+                        link.classList.remove("dimmed");
+                        return;
+                    }
+                    const targetEl = document.querySelector(href);
+                    if (targetEl) {
+                        const isHidden = targetEl.classList.contains("filtered-out") || targetEl.classList.contains("all-filtered-out");
+                        link.classList.toggle("dimmed", isHidden);
+                    }
+                });
+
+                if (noResults) {
+                    noResults.style.display = isSearching && totalVisible === 0 ? "block" : "none";
+                    if (searchQueryDisplay) {
+                        searchQueryDisplay.textContent = `"${rawQuery.trim()}"`;
+                    }
+                }
+            }
 
             if (searchInput) {
-                searchInput.addEventListener("input", (e) => {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        const query = e.target.value.trim().toLowerCase();
-                        let visibleCount = 0;
+                let searchDebounce;
+                searchInput.addEventListener("input", () => {
+                    clearTimeout(searchDebounce);
+                    searchDebounce = setTimeout(performSearch, 80);
+                });
 
-                        allSubsections.forEach((sec) => {
-                            const text = sec.textContent.toLowerCase();
-                            const isMatch = query === "" || text.includes(query);
-                            
-                            sec.classList.toggle("filtered-out", !isMatch);
-                            if (isMatch) {
-                                visibleCount++;
-                                if (query !== "") sec.open = true; // Auto-expand matches
-                            }
-                        });
+                searchInput.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape") {
+                        searchInput.value = "";
+                        performSearch();
+                        searchInput.blur();
+                    }
+                });
+            }
 
-                        if (noResults) {
-                            noResults.style.display = visibleCount === 0 ? "block" : "none";
-                        }
-                    }, 250); // 250ms debounce for efficiency
+            if (searchClear) {
+                searchClear.addEventListener("click", () => {
+                    searchInput.value = "";
+                    performSearch();
+                    searchInput.focus();
                 });
             }
 
             // ===== Active TOC Highlighting =====
-            const tocLinks = document.querySelectorAll(".toc-link");
-            const targets = Array.from(tocLinks)
-                .map((link) => document.querySelector(link.getAttribute("href")))
+            const targets = tocLinks
+                .map((link) => {
+                    const href = link.getAttribute("href");
+                    return href && href.startsWith("#") ? document.querySelector(href) : null;
+                })
                 .filter(Boolean);
 
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                            const id = "#" + entry.target.id;
-                            const activeLink = document.querySelector(`.toc-link[href="${id}"]`);
-                            if (activeLink) {
-                                tocLinks.forEach((l) => l.classList.remove("active"));
-                                activeLink.classList.add("active");
+            if (typeof IntersectionObserver !== "undefined" && targets.length > 0) {
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                const id = "#" + entry.target.id;
+                                const activeLink = document.querySelector(`.toc-link[href="${id}"]`);
+                                if (activeLink) {
+                                    tocLinks.forEach((l) => l.classList.remove("active"));
+                                    activeLink.classList.add("active");
+                                }
                             }
-                        }
-                    });
-                },
-                { rootMargin: "-10% 0px -80% 0px", threshold: 0 }
-            );
-            targets.forEach((target) => observer.observe(target));
+                        });
+                    },
+                    { rootMargin: "-10% 0px -80% 0px", threshold: 0 }
+                );
+                targets.forEach((target) => observer.observe(target));
+            }
 
             // ===== Scroll to Top Button =====
             const scrollTopBtn = document.getElementById("scrollTopBtn");
-            window.addEventListener("scroll", () => {
-                if (window.scrollY > 300) {
-                    scrollTopBtn.classList.add("visible");
-                } else {
-                    scrollTopBtn.classList.remove("visible");
-                }
-            });
-            scrollTopBtn.addEventListener("click", () => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            });
+            if (scrollTopBtn) {
+                window.addEventListener("scroll", () => {
+                    if (window.scrollY > 300) {
+                        scrollTopBtn.classList.add("visible");
+                    } else {
+                        scrollTopBtn.classList.remove("visible");
+                    }
+                });
+                scrollTopBtn.addEventListener("click", () => {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                });
+            }
         </script>
     </body>
 </html>
