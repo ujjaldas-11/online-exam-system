@@ -72,9 +72,26 @@ try {
         'total_violations' => $totalViolations,
     ]);
 
+    $maxViolations = 3;
+    $isDisqualified = false;
+
+    if ($totalViolations >= $maxViolations) {
+        $disqStmt = $pdo->prepare("UPDATE exam_attempts SET status = 'disqualified' WHERE id = ? AND status = 'in_progress'");
+        $disqStmt->execute([$attempt_id]);
+        $isDisqualified = true;
+
+        WebSocketPusher::emit("exam:{$attemptRow['exam_id']}", "student_disqualified", [
+            'student_id' => $student_id,
+            'attempt_id' => $attempt_id,
+            'total_violations' => $totalViolations,
+            'reason' => 'Maximum violation threshold exceeded'
+        ]);
+    }
+
     json_response([
         'success' => true,
         'violations_count' => $totalViolations,
+        'disqualified' => $isDisqualified,
     ]);
 } catch (PDOException $e) {
     json_response(['success' => false, 'message' => 'Logged locally'], 200);

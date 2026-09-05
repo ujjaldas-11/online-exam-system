@@ -184,8 +184,16 @@ class ExamEngine
                 return ['error' => 'Attempt not found', 'code' => 404];
             }
 
+            if ($attempt['status'] === 'disqualified') {
+                return ['error' => 'Attempt has been disqualified due to exam integrity violations', 'code' => 403];
+            }
+
             if ($attempt['status'] === 'completed') {
                 return ['error' => 'Exam already submitted', 'code' => 400];
+            }
+
+            if ($attempt['status'] !== 'in_progress') {
+                return ['error' => 'Exam is not in progress', 'code' => 400];
             }
 
             // Allow 30 seconds network latency grace period
@@ -259,8 +267,16 @@ class ExamEngine
 
             $attemptId = (int) $attempt['id'];
 
+            if ($attempt['status'] === 'disqualified') {
+                return ['error' => 'Attempt has been disqualified due to exam integrity violations', 'disqualified' => true];
+            }
+
             if ($attempt['status'] === 'completed') {
                 return ['success' => true, 'already_submitted' => true, 'score' => (float)$attempt['score']];
+            }
+
+            if ($attempt['status'] !== 'in_progress') {
+                return ['error' => 'Exam is not in progress'];
             }
 
             $totalMarks = (float) $attempt['total_marks'];
