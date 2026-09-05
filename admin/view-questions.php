@@ -16,15 +16,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
     verify_csrf();
 
     if (isset($_POST['delete_all'])) {
-        try {
-            $delStmt = $pdo->prepare("DELETE FROM questions WHERE subject_id = ?");
-            $delStmt->execute([$subject_id]);
-            log_admin_action($pdo, 'delete_questions', 'subject', $subject_id, "Deleted all questions for subject ID #$subject_id");
-            $message = "All questions for this subject have been deleted.";
-            $message_type = 'success';
-        } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to delete questions.");
+        $isOwnerOrSuper = true;
+        if (!is_superadmin()) {
+            $chkSub = $pdo->prepare("SELECT created_by FROM subjects WHERE id = ?");
+            $chkSub->execute([$subject_id]);
+            $subCreator = $chkSub->fetchColumn();
+            if ($subCreator !== false && $subCreator !== null && (int)$subCreator !== (int)($_SESSION['admin_id'] ?? 0)) {
+                $isOwnerOrSuper = false;
+            }
+        }
+
+        if (!$isOwnerOrSuper) {
+            $message = "Unauthorized: You can only manage questions for subjects you have created.";
             $message_type = 'error';
+        } else {
+            try {
+                $delStmt = $pdo->prepare("DELETE FROM questions WHERE subject_id = ?");
+                $delStmt->execute([$subject_id]);
+                log_admin_action($pdo, 'delete_questions', 'subject', $subject_id, "Deleted all questions for subject ID #$subject_id");
+                $message = "All questions for this subject have been deleted.";
+                $message_type = 'success';
+            } catch (PDOException $e) {
+                $message = safe_db_error($e, "Failed to delete questions.");
+                $message_type = 'error';
+            }
         }
     }
 }

@@ -13,6 +13,17 @@ if ($exam_id <= 0) {
     redirect('control-exams.php');
 }
 
+// Enforce horizontal access control: only exam author or superadmin can proctor
+if (!is_superadmin()) {
+    $chkOwner = $pdo->prepare("SELECT created_by FROM exams WHERE id = ?");
+    $chkOwner->execute([$exam_id]);
+    $creator = $chkOwner->fetchColumn();
+    if ($creator !== false && $creator !== null && (int)$creator !== (int)($_SESSION['admin_id'] ?? 0)) {
+        set_flash('error', "Access Denied: You do not have permission to proctor this exam.");
+        redirect('control-exams.php');
+    }
+}
+
 $message = '';
 $message_type = '';
 

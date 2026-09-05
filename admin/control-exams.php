@@ -46,8 +46,22 @@ if (isset($_GET['download_offline']) && isset($_GET['exam_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
-    if (isset($_POST['start_exam'])) {
-        $exam_id = int_param($_POST['exam_id'] ?? 0);
+    $exam_id = int_param($_POST['exam_id'] ?? 0);
+    $isOwnerOrSuper = true;
+
+    if ($exam_id > 0 && !is_superadmin()) {
+        $chkOwner = $pdo->prepare("SELECT created_by FROM exams WHERE id = ?");
+        $chkOwner->execute([$exam_id]);
+        $creator = $chkOwner->fetchColumn();
+        if ($creator !== false && $creator !== null && (int)$creator !== (int)($_SESSION['admin_id'] ?? 0)) {
+            $isOwnerOrSuper = false;
+        }
+    }
+
+    if (!$isOwnerOrSuper) {
+        $message = "Access Denied: You can only control exams you have authored.";
+        $message_type = 'error';
+    } elseif (isset($_POST['start_exam'])) {
         try {
             $stmt = $pdo->prepare("SELECT status FROM exams WHERE id = ?");
             $stmt->execute([$exam_id]);
