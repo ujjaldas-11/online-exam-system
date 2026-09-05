@@ -5,8 +5,6 @@ $placeholder = isset($search_placeholder) ? $search_placeholder : "Type to searc
 $assetVersion = asset_version();
 ?>
 
-<link rel="stylesheet" href="../assets/css/components.css?v=<?= $assetVersion ?>">
-
 <div class="search-wrapper no-print">
     <input type="text" id="globalTableSearch" class="search-input" placeholder="<?= htmlspecialchars($placeholder, ENT_QUOTES, 'UTF-8') ?>">
 </div>

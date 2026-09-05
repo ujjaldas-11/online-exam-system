@@ -27,10 +27,20 @@ $admin_nav = [
     'control-exams.php' => ['label' => 'Exams', 'icon' => 'fact_check', 'title' => 'exams'],
     'results.php' => ['label' => 'Results', 'icon' => 'bar_chart', 'title' => 'results'],
     'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications', 'title' => 'profile update request'],
-    'registration-request.php' => ['label' => 'registration request', 'icon' => 'person_add', 'title' => 'registration requests'],
-    'manage-students.php' => ['label' => 'manage students', 'icon' => 'group', 'title' => 'students'],
+    'registration-request.php' => ['label' => 'Registration Requests', 'icon' => 'person_add', 'title' => 'registration requests'],
+    'manage-students.php' => ['label' => 'Students', 'icon' => 'group', 'title' => 'students'],
 
 ];
+
+// Map secondary/child views to parent navigation item
+$route_parents = [
+    'manage-exam.php'    => 'control-exams.php',
+    'proctor-exam.php'   => 'control-exams.php',
+    'view-questions.php' => 'manage-questions.php',
+    'edit-question.php'  => 'manage-questions.php',
+    'view-results.php'   => 'results.php',
+];
+$effective_active_page = $route_parents[$current_page] ?? $current_page;
 
 if ($isAdminSuper) {
     $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school', 'title' => 'teachers'];
@@ -93,7 +103,7 @@ if ($isAdminSuper) {
     <nav class="sidebar-links">
         <?php foreach ($admin_nav as $page => $meta): ?>
             <a href="<?= $page ?>"
-            class="<?= $current_page === $page ? 'active' : '' ?>"
+            class="<?= $effective_active_page === $page ? 'active' : '' ?>"
             title="<?= $meta['title'] ?>"
             data-tooltip="<?= htmlspecialchars($meta['label']) ?>"
             >
@@ -112,8 +122,6 @@ if ($isAdminSuper) {
 </aside>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<link rel="stylesheet" href="../assets/css/admin-sidebar.css">
 
 <script>
 (function () {

@@ -8,13 +8,21 @@ $student_nav = [
 ];
 
 $student_name = $_SESSION['student_name'] ?? 'Student';
+$avatar_char = mb_strtoupper(mb_substr(trim($student_name), 0, 1, 'UTF-8')) ?: 'S';
+
+$student_child_routes = [
+    'edit-profile.php' => 'profile.php',
+    'result.php'       => 'dashboard.php',
+    'review-exam.php'  => 'dashboard.php',
+];
+$effective_student_page = $student_child_routes[$current_page] ?? $current_page;
 ?>
 
 <nav class="student-navbar">
     <div class="student-nav-inner">
         <a href="dashboard.php" class="student-brand">
             <div class="student-greeting-mobile-hidden">
-                <div class="avatar-badge"><?= strtoupper(substr($student_name, 0, 1)) ?></div>
+                <div class="avatar-badge"><?= $avatar_char ?></div>
                 <span class="student-greeting">Hi, <?= htmlspecialchars($student_name, ENT_QUOTES, 'UTF-8') ?></span>
             </div>
         </a>
@@ -24,12 +32,12 @@ $student_name = $_SESSION['student_name'] ?? 'Student';
 
         <div class="student-nav-links" id="navLinks">
             <div class="drawer-profile">
-                <div class="avatar-badge lg"><?= strtoupper(substr($student_name, 0, 1)) ?></div>
+                <div class="avatar-badge lg"><?= $avatar_char ?></div>
                 <span class="student-greeting">Hi, <?= htmlspecialchars($student_name, ENT_QUOTES, 'UTF-8') ?></span>
             </div>
 
             <?php foreach ($student_nav as $page => $meta): ?>
-                <a href="<?= $page ?>" class="<?= $current_page === $page ? 'active' : '' ?>">
+                <a href="<?= $page ?>" class="<?= $effective_student_page === $page ? 'active' : '' ?>">
                     <span class="material-symbols-outlined"><?= $meta['icon'] ?></span>
                     <span><?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?></span>
                 </a>
@@ -45,7 +53,6 @@ $student_name = $_SESSION['student_name'] ?? 'Student';
     <div class="student-nav-overlay" id="navOverlay"></div>
 </nav>
 
-<link rel="stylesheet" href="../assets/css/student-navbar.css">
 <script defer>
 (function () {
     const menuBtn = document.getElementById('menuBtn');

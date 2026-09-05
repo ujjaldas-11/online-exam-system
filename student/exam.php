@@ -159,17 +159,39 @@ try {
     die("Database Error. Please contact your instructor.");
 }
 
-$page_title = e($exam['title']) . ' • Examify';
+$page_title = ($exam['title'] ?? 'Exam') . ' • Examify';
 $extra_css = ['exam.css'];
 include __DIR__ . '/../components/header.php';
 ?>
 
 <div class="exam-header">
     <h1><?= e($exam['title']) ?></h1>
-    <div class="timer-box">
-        <div class="timer" id="timerDisplay" data-time-left="<?= max(0, (int)$exam['seconds_left']) ?>" style="display: inline-flex; align-items: center; gap: 6px;">
-            <span class="material-symbols-outlined icon-sm">timer</span> <span id="timerText">--:--</span>
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" id="btn-toggle-palette" class="btn btn-secondary btn-sm btn-toggle-palette-mobile" style="display: none;">
+            <span class="material-symbols-outlined icon-xs">grid_view</span> Palette
+        </button>
+        <div class="timer-box">
+            <div class="timer" id="timerDisplay" data-time-left="<?= max(0, (int)$exam['seconds_left']) ?>" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">timer</span> <span id="timerText">--:--</span>
+            </div>
         </div>
+    </div>
+</div>
+
+<!-- Proctor Live Announcement Banner Container -->
+<div id="examAnnouncementBanner" style="display: none; background: #fef3c7; border: 1px solid #f59e0b; border-radius: var(--radius-md); padding: 12px 16px; margin: 0 0 16px 0; color: #92400e; box-shadow: var(--shadow-sm);">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="color: #d97706; font-size: 24px;">campaign</span>
+            <div>
+                <strong style="font-size: 0.95rem;">Proctor Announcement:</strong>
+                <span id="announcementBannerMessage" style="font-size: 0.95rem; display: block; margin-top: 2px;"></span>
+                <small id="announcementBannerTime" style="color: #b45309; font-size: 0.78rem;"></small>
+            </div>
+        </div>
+        <button type="button" onclick="document.getElementById('examAnnouncementBanner').style.display='none'" style="background: none; border: none; cursor: pointer; color: inherit; padding: 2px;" aria-label="Dismiss announcement">
+            <span class="material-symbols-outlined icon-xs">close</span>
+        </button>
     </div>
 </div>
 
@@ -199,8 +221,20 @@ include __DIR__ . '/../components/header.php';
         </div>
 
         <!-- Sidebar Question Map -->
-        <div class="exam-sidebar">
-            <h3>Question Palette</h3>
+        <div class="exam-sidebar" id="examSidebar">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin: 0;">Question Palette</h3>
+                <span style="font-size: 0.75rem; color: var(--color-text-secondary);"><?= $total_questions ?> Qs</span>
+            </div>
+
+            <!-- Palette Filter Buttons -->
+            <div class="palette-filter-bar">
+                <button type="button" class="palette-filter-btn active" data-filter="all">All (<span id="count-all">0</span>)</button>
+                <button type="button" class="palette-filter-btn" data-filter="answered">Answered (<span id="count-ans">0</span>)</button>
+                <button type="button" class="palette-filter-btn" data-filter="unanswered">Pending (<span id="count-unans">0</span>)</button>
+                <button type="button" class="palette-filter-btn" data-filter="review">Flagged (<span id="count-rev">0</span>)</button>
+            </div>
+
             <div class="question-grid" id="grid-container"></div>
 
             <div class="exam-legend">
@@ -410,9 +444,33 @@ include __DIR__ . '/../components/header.php';
         setReviewButtonState(!!marked);
     }
 
+    let currentPaletteFilter = 'all';
+
+    function filterPalette() {
+        const gridBtns = document.querySelectorAll('#grid-container .grid-btn');
+        gridBtns.forEach(btn => {
+            const isAnswered = btn.classList.contains('answered');
+            const isReview = btn.classList.contains('review');
+            const isUnanswered = !isAnswered;
+
+            if (currentPaletteFilter === 'all') {
+                btn.style.display = 'flex';
+            } else if (currentPaletteFilter === 'answered') {
+                btn.style.display = isAnswered ? 'flex' : 'none';
+            } else if (currentPaletteFilter === 'unanswered') {
+                btn.style.display = isUnanswered ? 'flex' : 'none';
+            } else if (currentPaletteFilter === 'review') {
+                btn.style.display = isReview ? 'flex' : 'none';
+            }
+        });
+    }
+
     function renderGrid(total, answers, reviews, allIds) {
         const grid = document.getElementById('grid-container');
         grid.innerHTML = '';
+
+        let answeredCount = 0;
+        let reviewCount = 0;
 
         for (let i = 0; i < total; i++) {
             const qId = allIds[i];
@@ -421,13 +479,32 @@ include __DIR__ . '/../components/header.php';
             btn.innerText = i + 1;
             btn.id = `grid-btn-${i}`;
 
-            if (answers[qId]) btn.classList.add('answered');
-            if (reviews[qId]) btn.classList.add('review');
+            if (answers[qId]) {
+                btn.classList.add('answered');
+                answeredCount++;
+            }
+            if (reviews[qId]) {
+                btn.classList.add('review');
+                reviewCount++;
+            }
             if (i === currentIndex) btn.classList.add('active');
 
             btn.onclick = () => saveCurrentAnswer().then(() => loadQuestion(i));
             grid.appendChild(btn);
         }
+
+        const unansCount = Math.max(0, total - answeredCount);
+        const cAll = document.getElementById('count-all');
+        const cAns = document.getElementById('count-ans');
+        const cUnans = document.getElementById('count-unans');
+        const cRev = document.getElementById('count-rev');
+
+        if (cAll) cAll.textContent = total;
+        if (cAns) cAns.textContent = answeredCount;
+        if (cUnans) cUnans.textContent = unansCount;
+        if (cRev) cRev.textContent = reviewCount;
+
+        filterPalette();
     }
 
     function updateNavButtons() {
@@ -563,6 +640,63 @@ include __DIR__ . '/../components/header.php';
             document.getElementById('examForm').submit();
         };
     }
+
+    // Palette Filter Tab Listeners
+    document.querySelectorAll('.palette-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.palette-filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentPaletteFilter = this.dataset.filter || 'all';
+            filterPalette();
+        });
+    });
+
+    // Mobile Palette Drawer Toggle
+    const togglePaletteBtn = document.getElementById('btn-toggle-palette');
+    const examSidebar = document.getElementById('examSidebar');
+    if (togglePaletteBtn && examSidebar) {
+        togglePaletteBtn.addEventListener('click', () => {
+            examSidebar.classList.toggle('mobile-open');
+        });
+    }
+
+    // Real-Time Proctor Announcement WebSocket Client
+    (function initAnnouncementListener() {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const wsHost = window.location.hostname || 'localhost';
+        const wsUrl = wsProtocol + wsHost + ':8085';
+
+        try {
+            const socket = new WebSocket(wsUrl);
+            socket.onopen = function () {
+                socket.send(JSON.stringify({
+                    action: 'candidate_join',
+                    exam_id: examId,
+                    student_id: <?= (int)($_SESSION['student_id'] ?? 0) ?>
+                }));
+            };
+            socket.onmessage = function (e) {
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.action === 'announcement' && (!data.exam_id || data.exam_id == examId)) {
+                        const banner = document.getElementById('examAnnouncementBanner');
+                        const msgEl = document.getElementById('announcementBannerMessage');
+                        const timeEl = document.getElementById('announcementBannerTime');
+                        if (banner && msgEl) {
+                            msgEl.textContent = data.message;
+                            if (timeEl) timeEl.textContent = 'Received at ' + (new Date()).toLocaleTimeString();
+                            banner.style.display = 'block';
+                            banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error parsing announcement message:', err);
+                }
+            };
+        } catch (e) {
+            // Silently ignore if offline socket server is unreachable
+        }
+    })();
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

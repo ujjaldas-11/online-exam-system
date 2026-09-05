@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../services/ExamEngine.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../components/status-badge.php';
 
 date_default_timezone_set('Asia/Kolkata');
 
@@ -87,6 +88,7 @@ include __DIR__ . '/../components/student-navbar.php';
 ?>
 
 <div class="container">
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
     <div class="page-header">
         <div>
             <h1>Available Examinations</h1>
@@ -128,19 +130,7 @@ include __DIR__ . '/../components/student-navbar.php';
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px;">
                             <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-dark);"><?= e($exam['title']) ?></h3>
-                            <?php if ($status === 'active'): ?>
-                                <span class="badge badge-active" style="display: inline-flex; align-items: center; gap: 3px;">
-                                    <span class="material-symbols-outlined icon-xs">sensors</span> Live
-                                </span>
-                            <?php elseif ($status === 'scheduled'): ?>
-                                <span class="badge badge-scheduled" style="display: inline-flex; align-items: center; gap: 3px;">
-                                    <span class="material-symbols-outlined icon-xs">schedule</span> Scheduled
-                                </span>
-                            <?php else: ?>
-                                <span class="badge badge-ended" style="display: inline-flex; align-items: center; gap: 3px;">
-                                    <span class="material-symbols-outlined icon-xs">lock</span> Ended
-                                </span>
-                            <?php endif; ?>
+                            <?= render_status_badge($status, 'student') ?>
                         </div>
 
                         <?php if (!empty($exam['description'])): ?>

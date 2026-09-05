@@ -70,11 +70,14 @@ include __DIR__ . '/../components/student-navbar.php';
 ?>
 
 <div class="container" style="max-width: 600px;">
-    <div class="page-header">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h1>Request Profile Change</h1>
             <p>Updates must be reviewed by your course coordinator</p>
         </div>
+        <a href="profile.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-xs">arrow_back</span> Back to Profile
+        </a>
     </div>
 
     <?php if ($message): ?>

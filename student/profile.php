@@ -37,6 +37,7 @@ include __DIR__ . '/../components/student-navbar.php';
 ?>
 
 <div class="container">
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
     <div class="page-header">
         <div>
             <h1>Student Profile</h1>
