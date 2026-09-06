@@ -106,7 +106,30 @@ Avoid duplicating layout blocks, headers, or modal logic. Leverage the centraliz
 
 ---
 
-## 5. Forbidden Files & Git Cleanliness Rules
+## 5. Feature Preservation & Non-Regression Invariants (Zero Feature Loss)
+
+### A. Absolute Prohibition of Accidental Feature Deletion
+- **Preserve All Existing Functionality**: When refactoring, modernizing, styling, or resolving bugs, agents **must never remove, disable, or stub out existing features, buttons, controls, handlers, or endpoints**.
+- **Elements That Must Always Be Preserved**:
+  - **Action Buttons & Modals**: Features like "Copy LLM Prompt", "Export PDF", "Emergency Time (+5m/+10m)", "Bulk Promote", "Edit/Delete Question", "Edit/Delete Subject", and all confirmation modals (`#editSubjectModal`, in-DOM submission dialog, etc.) must remain fully functional.
+  - **Form Inputs & Hidden Fields**: Never remove existing form fields, especially security tokens (`<?= csrf_field() ?>`), entity IDs (`subject_id`, `exam_id`, `question_id`), or filter parameters.
+  - **Backend Handlers & Endpoints**: Refactoring a page's layout must never omit or remove existing `isset($_POST['...'])` handlers or API query parameters.
+  - **Workflow Integrations**: Anti-cheat violation logging, student timer synchronization, option permutation, negative marking calculation, proctor announcements, and quotes JSON must never be disabled or bypassed.
+
+### B. Mandatory Diff & Feature Regression Self-Audit
+Before staging or proposing any changes, every agent **must** perform a structured self-audit:
+1. **Run `git diff` on all modified files**:
+   - Inspect every deleted line (`-`). Ask: *Did this deletion remove a user-facing button, an input field, a modal dialog, an event listener, a database constraint check, or a POST handler?*
+   - If the user did not explicitly request the removal of that feature, **restore it immediately**.
+2. **Verify Remediation & Regression Test Assertions**:
+   - Key system features are safeguarded by `tests/remediation_test.php` and `tests/phase4_remediation_test.php`.
+   - Never modify a test to make it pass by deleting an assertion for a feature; always fix the implementation to preserve the feature.
+3. **Verify Portal Workflows**:
+   - Confirm that related actions in the student exam workflow, teacher question management, and superadmin settings remain unbroken after changes.
+
+---
+
+## 6. Forbidden Files & Git Cleanliness Rules
 
 The following files and patterns are **strictly forbidden** from being committed or staged to git:
 
@@ -121,7 +144,7 @@ The following files and patterns are **strictly forbidden** from being committed
 
 ---
 
-## 6. Mandatory Pre-Commit Verification Suite
+## 7. Mandatory Pre-Commit Verification Suite
 
 Before proposing or committing any code, agents and contributors **must** execute the following verification steps:
 
@@ -153,7 +176,7 @@ echo "ALL TESTS PASSED!"
 
 ---
 
-## 7. Git Workflow & Review Protocols
+## 8. Git Workflow & Review Protocols
 
 1. **No Direct Pushes to `main`**: All features, bug fixes, and design updates must be developed on a dedicated branch (e.g. `feat/<name>`, `fix/<name>`, `refactor/<name>`).
 2. **Conventional Commits**: Commit messages must follow the Conventional Commits specification:
