@@ -62,11 +62,11 @@ $isSuper = is_superadmin();
         <!-- Self-contained typography with system fallbacks for zero-CDN offline access -->
         <style>
             :root {
-                --ink: #1b2a41;
+                --ink: #14213d; 
                 --ink-soft: #3d4d63;
-                --paper: #eeebe1;
-                --paper-panel: #fbfaf6;
-                --rule: #d9d3c1;
+                --paper: #f4f1ea;
+                --paper-panel: #ffffff;
+                --rule: #e2dcd0;
                 --rule-strong: #c3bca6;
                 --blue: #2c6e9e;
                 --blue-deep: #1f5378;
@@ -871,7 +871,8 @@ $isSuper = is_superadmin();
 
                     <details class="subsection" id="sec-3-3">
                         <summary>
-                            3.3 Student Management Panel (<code>admin/manage-students.php</code>)<span class="arrow">▸</span>
+                            <span>3.3 Student Management Panel <code style="font-size: 0.85em; opacity: 0.85;">(admin/manage-students.php)</code></span>
+                            <span class="arrow">▸</span>
                         </summary>
                         <div class="body">
                             <p>
@@ -1103,7 +1104,8 @@ $isSuper = is_superadmin();
 
                     <details class="subsection" id="sec-3-14">
                         <summary>
-                            3.14 Institutional Audit Trail (<code>admin/audit-logs.php</code>)<span class="arrow">▸</span>
+                            <span>3.14 Institutional Audit Trail <code style="font-size: 0.85em; opacity: 0.85;">(admin/audit-logs.php)</code></span>
+                            <span class="arrow">▸</span>
                         </summary>
                         <div class="body">
                             <p>
@@ -1115,7 +1117,8 @@ $isSuper = is_superadmin();
 
                     <details class="subsection" id="sec-3-15">
                         <summary>
-                            3.15 First-Time Master Setup Wizard (<code>admin/setup.php</code>)<span class="arrow">▸</span>
+                            <span>3.15 First-Time Master Setup Wizard <code style="font-size: 0.85em; opacity: 0.85;">(admin/setup.php)</code></span>
+                            <span class="arrow">▸</span>
                         </summary>
                         <div class="body">
                             <p>
