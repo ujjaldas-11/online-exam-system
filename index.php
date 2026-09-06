@@ -102,7 +102,7 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
         <div class="footer-center">
             <a href="developers.php" class="footer-nav-link">
                 <span class="material-symbols-outlined icon-xs">group</span>
-                <span>Meet the Developers</span>
+                <span>Contributors</span>
             </a>
             
     
