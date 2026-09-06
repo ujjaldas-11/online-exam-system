@@ -134,16 +134,128 @@ try {
     $subjects = [];
 }
 
+$totalSubjects = count($subjects);
+$totalQuestionsCount = 0;
+$departmentsList = [];
+foreach ($subjects as $s) {
+    $totalQuestionsCount += (int)($s['question_count'] ?? 0);
+    if (!empty($s['department'])) {
+        $departmentsList[$s['department']] = true;
+    }
+}
+$totalDepartmentsCount = count($departmentsList);
+
 $page_title = 'Manage Subjects • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
+<style>
+.subjects-layout-grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.subjects-table {
+    width: 100%;
+    min-width: 580px;
+}
+
+.subject-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.card-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 1024px) {
+    .subjects-layout-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .mobile-add-btn {
+        display: inline-flex !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .page-header h1 {
+        font-size: 1.45rem;
+    }
+
+    .action-btn-label {
+        display: none;
+    }
+
+    .subject-actions .btn-sm {
+        padding: 6px 8px;
+    }
+
+    .subjects-table {
+        min-width: 480px;
+    }
+
+    .table-wrap th,
+    .table-wrap td {
+        padding: 10px 12px;
+    }
+
+    .admin-modal-card {
+        margin: 12px;
+        max-width: calc(100% - 24px);
+    }
+}
+</style>
+
 <div class="container main-content">
-    <div class="page-header">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
         <div>
             <h1>Manage Curriculum Subjects</h1>
             <p>Add department subjects and configure question banks</p>
+        </div>
+        <a href="#addSubjectCard" class="btn btn-primary btn-sm mobile-add-btn" style="display: none; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-xs">add_circle</span> Add Subject
+        </a>
+    </div>
+
+    <!-- Curriculum Stats Overview -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-num"><?= $totalSubjects ?></div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">auto_stories</span> Total Subjects
+            </div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid var(--color-primary, #33422e);">
+            <div class="stat-num"><?= $totalQuestionsCount ?></div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">quiz</span> Total Questions
+            </div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid var(--color-warning, #d97706);">
+            <div class="stat-num"><?= $totalDepartmentsCount ?></div>
+            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">domain</span> Active Departments
+            </div>
         </div>
     </div>
 
@@ -152,22 +264,26 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?= e($message) ?>
         </div>
     <?php endif; ?>
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
-    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: start;">
+    <div class="subjects-layout-grid">
         <!-- Create Subject Form -->
-        <div class="card">
-            <div class="card-title">Add New Subject</div>
+        <div class="card" id="addSubjectCard">
+            <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-outlined icon-sm" style="color: var(--color-primary);">add_circle</span>
+                <span>Add New Subject</span>
+            </div>
             <form method="POST">
                 <?= csrf_field() ?>
 
                 <div class="form-group">
-                    <label>Subject Name</label>
-                    <input type="text" name="name" required placeholder="e.g. Cloud Computing" value="<?= e($_POST['name'] ?? '') ?>">
+                    <label for="new_sub_name">Subject Name</label>
+                    <input type="text" id="new_sub_name" name="name" required placeholder="e.g. Cloud Computing" value="<?= e($_POST['name'] ?? '') ?>" class="form-control" style="width: 100%; box-sizing: border-box;">
                 </div>
 
                 <div class="form-group">
-                    <label>Department</label>
-                    <select name="department" required>
+                    <label for="new_sub_dept">Department</label>
+                    <select id="new_sub_dept" name="department" required class="form-control" style="width: 100%; box-sizing: border-box;">
                         <option value="">Select Department</option>
                         <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
                             <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
@@ -176,8 +292,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
 
                 <div class="form-group">
-                    <label>Semester</label>
-                    <select name="semester" required>
+                    <label for="new_sub_sem">Semester</label>
+                    <select id="new_sub_sem" name="semester" required class="form-control" style="width: 100%; box-sizing: border-box;">
                         <option value="">Select Semester</option>
                         <?php for ($i = 1; $i <= 8; $i++): ?>
                             <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>
@@ -187,7 +303,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </select>
                 </div>
 
-                <button type="submit" name="create_subject" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <button type="submit" name="create_subject" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px;">
                     <span class="material-symbols-outlined icon-sm">add_circle</span> Add Subject
                 </button>
             </form>
@@ -195,14 +311,19 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
         <!-- Subjects List Table -->
         <div class="card">
-            <div class="card-title">Curriculum Subjects (<?= count($subjects) ?>)</div>
+            <div class="card-header-bar">
+                <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-outlined icon-sm" style="color: var(--color-primary);">menu_book</span>
+                    <span>Curriculum Subjects (<?= count($subjects) ?>)</span>
+                </div>
+            </div>
 
-            <div style="margin-bottom: 10px;">
+            <div style="margin-bottom: 14px;">
                 <?php include '../components/searchbar.php' ?>
             </div>
 
             <div class="table-wrap">
-                <table>
+                <table class="subjects-table">
                     <thead>
                         <tr>
                             <th>Subject</th>
@@ -235,24 +356,27 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <span class="badge badge-active"><?= (int)$sub['question_count'] ?> Qs</span>
                                     </td>
                                     <td style="text-align: right; white-space: nowrap;">
-                                        <a href="view-questions.php?subject_id=<?= (int)$sub['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-                                            <span class="material-symbols-outlined icon-xs">visibility</span> View Qs
-                                        </a>
-                                        <button type="button" class="btn btn-outline btn-sm btn-edit-subject"
-                                            data-id="<?= (int)$sub['id'] ?>"
-                                            data-name="<?= e($sub['name']) ?>"
-                                            data-department="<?= e($sub['department']) ?>"
-                                            data-semester="<?= (int)$sub['semester'] ?>"
-                                            style="display: inline-flex; align-items: center; gap: 4px;">
-                                            <span class="material-symbols-outlined icon-xs">edit</span> Edit
-                                        </button>
-                                        <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete subject '<?= e($sub['name']) ?>' and all associated questions?" data-confirm-title="Delete Subject" data-confirm-btn="Delete Subject">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="subject_id" value="<?= (int)$sub['id'] ?>">
-                                            <button type="submit" name="delete_subject" class="btn btn-danger btn-sm" title="Delete Subject" style="display: inline-flex; align-items: center;">
-                                                <span class="material-symbols-outlined icon-xs">delete</span>
+                                        <div class="subject-actions">
+                                            <a href="view-questions.php?subject_id=<?= (int)$sub['id'] ?>" class="btn btn-secondary btn-sm" title="View Questions" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                <span class="material-symbols-outlined icon-xs">visibility</span> <span class="action-btn-label">View Qs</span>
+                                            </a>
+                                            <button type="button" class="btn btn-outline btn-sm btn-edit-subject"
+                                                data-id="<?= (int)$sub['id'] ?>"
+                                                data-name="<?= e($sub['name']) ?>"
+                                                data-department="<?= e($sub['department']) ?>"
+                                                data-semester="<?= (int)$sub['semester'] ?>"
+                                                title="Edit Subject"
+                                                style="display: inline-flex; align-items: center; gap: 4px;">
+                                                <span class="material-symbols-outlined icon-xs">edit</span> <span class="action-btn-label">Edit</span>
                                             </button>
-                                        </form>
+                                            <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete subject '<?= e($sub['name']) ?>' and all associated questions?" data-confirm-title="Delete Subject" data-confirm-btn="Delete Subject">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="subject_id" value="<?= (int)$sub['id'] ?>">
+                                                <button type="submit" name="delete_subject" class="btn btn-danger btn-sm" title="Delete Subject" style="display: inline-flex; align-items: center;">
+                                                    <span class="material-symbols-outlined icon-xs">delete</span>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
