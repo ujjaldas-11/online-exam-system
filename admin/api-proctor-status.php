@@ -29,6 +29,12 @@ try {
         json_response(['success' => false, 'error' => 'Exam not found'], 404);
     }
 
+    if (!can_admin_manage_exam($pdo, $exam_id)) {
+        json_response(['success' => false, 'error' => 'Forbidden: You do not have permission to proctor this exam.'], 403);
+    }
+
+    release_session_lock();
+
     $rosterStmt = $pdo->prepare("
         SELECT st.id AS student_id, st.name, st.roll_number, st.email,
             ea.id AS attempt_id, ea.status AS attempt_status, ea.score, ea.started_at, ea.submitted_at,

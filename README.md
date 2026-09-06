@@ -43,7 +43,9 @@ Institutions deploy Examify on local area networks (LAN) for quizzes, semester t
 - **Universal Password Visibility**: Every password input field includes an interactive eye toggle button.
 - **Automated Registration Redirect**: Successful student registration shows a 30-second progress bar and redirects to the homepage.
 - **Classroom Access PIN**: Instructors can set an optional PIN on examinations.
-- **Live Classroom Proctoring**: Instructors monitor student progress and violation counts in real time.
+- **Live Classroom Proctoring & Announcements**: Real-time event-driven monitoring via custom RFC 6455 WebSocket daemon with instant live broadcast announcements to all candidate workstations.
+- **Negative Marking Support**: Configurable fractional penalty deduction (`negative_marks_per_question`) with automated score floor at zero.
+- **Deterministic Option Permutation**: Attempt-level option shuffling (`options_order`) seeded by candidate ID to eliminate shoulder surfing.
 - **Hardware Crash Recovery**: Instructors can unlock student attempts and grant emergency time (+5 or +10 minutes).
 - **Pure-PHP PDF Reports**: The system generates institutional result summaries and individual student scorecards without external operating system tools.
 
@@ -97,23 +99,33 @@ online-exam-system/
 │   └── images/                  # Application logos and graphics
 ├── components/
 │   ├── admin-sidebar.php        # Admin sidebar navigation partial
+│   ├── confirm-modal.php        # Declarative in-DOM confirmation dialog
 │   ├── desktop-required.php     # Mobile lockout notification screen
+│   ├── flash-messages.php       # Reusable session flash alert banners
 │   ├── footer.php               # Shared footer and password toggle handler
 │   ├── header.php               # Shared HTML head partial
-│   ├── navbar.php               # Navigation bar component
-│   └── searchbar.php            # Search input component
+│   ├── pagination.php           # Accessible pagination control component
+│   ├── searchbar.php            # Search input component
+│   ├── status-badge.php         # Semantic exam & candidate status badge helper
+│   └── student-navbar.php       # Student top navigation bar component
 ├── config/
+│   ├── ca.crt                   # Offline LAN SSL CA root certificate
 │   └── database.php             # Environment loader and PDO connection
 ├── docs/
 │   ├── dev/
 │   │   └── README.md            # Developer documentation (ASD-STE100)
 │   ├── user/
+│   │   ├── admin-doc.php        # Comprehensive administrator & teacher user manual
+│   │   ├── user-doc.php         # Public student & candidate examination guide
 │   │   └── README.md            # User guide documentation (ASD-STE100)
 │   └── README.md                # Documentation index
 ├── lib/
-│   └── fpdf/                    # Pure-PHP PDF generation engine
+│   ├── fpdf/                    # Pure-PHP PDF generation engine
+│   └── websocket/               # RFC 6455 real-time WebSocket server daemon
 ├── services/
-│   ├── ExamEngine.php           # High-concurrency exam delivery and grading engine
+│   ├── CsvService.php           # Secure streaming CSV import/export service
+│   ├── CurriculumService.php    # Department, semester, and unit curriculum service
+│   ├── ExamEngine.php           # High-concurrency exam delivery, permutation & grading engine
 │   └── PdfService.php           # PDF report layout service
 ├── student/
 │   ├── check-exams.php          # Live examination polling endpoint
@@ -129,17 +141,21 @@ online-exam-system/
 │   └── student-guard.php        # Student session authorization gate
 ├── tests/                       # Automated unit, security, and concurrency test suites
 ├── utils/
-│   ├── anti-cheat.js            # Client-side integrity, fullscreen, and touch suppression
-│   ├── auth.php                 # Role verification and singleton session helpers
+│   ├── auth.php                 # Role verification, RBAC helpers, singleton session
 │   ├── csrf.php                 # CSRF token generator and validator
 │   ├── device.php               # Device detection and desktop requirement helpers
+│   ├── env.php                  # Type-safe .env environment configuration loader
 │   ├── logger.php               # Safe exception logging
-│   ├── sanitize.php             # HTML escaping and CSV sanitization
-│   └── timer.js                 # Synchronized exam timer countdown
+│   ├── rate-limiter.php         # Database-backed rate limiting & IP brute force defense
+│   ├── response.php             # JSON response formatting helpers
+│   ├── sanitize.php             # HTML escaping and CSV formula sanitization
+│   ├── session.php              # Secure session lifecycle and lock release helpers
+│   └── websocket-pusher.php     # Non-blocking IPC TCP event dispatcher for WebSocket daemon
 ├── init-db.php                  # Database initializer and seeder tool
 ├── index.php                    # Application landing page
+├── server.php                   # CLI entrypoint for WebSocket daemon
 ├── LICENSE                      # Project license
-├── PRODUCTION.md                # Production build and deployment guide
+├── production.md                # Production build and deployment guide
 └── README.md                    # Main system documentation
 ```
 

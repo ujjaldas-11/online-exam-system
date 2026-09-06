@@ -11,6 +11,11 @@ if ($exam_id <= 0) {
     die("Invalid request: No examination specified.");
 }
 
+if (!can_admin_manage_exam($pdo, $exam_id)) {
+    http_response_code(403);
+    die("Access Denied: You can only export results for exams you have authored.");
+}
+
 try {
     // 1. Fetch Exam Meta
     $examStmt = $pdo->prepare("

@@ -41,6 +41,12 @@ try {
     // Handle Publish / Unpublish Actions
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verify_csrf();
+
+        if (!can_admin_manage_exam($pdo, $exam_id)) {
+            set_flash('error', "Access Denied: You can only publish or manage results for exams you have authored.");
+            redirect("view-results.php?exam_id=$exam_id");
+        }
+
         if (isset($_POST['publish_results'])) {
             if ($is_ongoing) {
                 set_flash('error', "Cannot publish results while the examination is still ongoing.");
@@ -109,16 +115,7 @@ include __DIR__ . '/../components/header.php';
         </div>
     </div>
 
-    <?php if ($flash = get_flash('success')): ?>
-        <div class="alert alert-success no-print" style="margin-bottom: 20px;">
-            <?= e($flash) ?>
-        </div>
-    <?php endif; ?>
-    <?php if ($flashError = get_flash('error')): ?>
-        <div class="alert alert-error no-print" style="margin-bottom: 20px;">
-            <?= e($flashError) ?>
-        </div>
-    <?php endif; ?>
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <!-- Publication Status Banner -->
     <div class="card no-print" style="margin-bottom: 24px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: <?= !empty($exam['results_published']) ? '#f0fdf4' : ($is_ongoing ? '#fefce8' : '#fffbeb') ?>; border-color: <?= !empty($exam['results_published']) ? '#bbf7d0' : ($is_ongoing ? '#fef08a' : '#fde68a') ?>;">

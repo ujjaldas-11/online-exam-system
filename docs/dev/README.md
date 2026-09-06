@@ -345,8 +345,11 @@ Examify implements database-backed, sliding window rate limiting with atomic SQL
 ### 5.8 Authentication and Authorization (`utils/auth.php`)
 
 - `is_admin_logged_in()`: Returns `true` if the session contains an authenticated `admin_id`.
-- `is_superadmin()`: Returns `true` if the administrator holds the `superadmin` role.
-- `is_teacher()`: Returns `true` if the administrator holds the `teacher` role.
+- `is_superadmin(?int $adminId = null)`: Returns `true` if the administrator holds the `superadmin` role.
+- `get_admin_role(?int $adminId = null)`: Returns `'superadmin'`, `'teacher'`, or `''`.
+- `can_admin_manage_exam(PDO $pdo, int $examId, ?int $adminId = null)`: Verifies superadmin role or exam creator ownership.
+- `can_admin_manage_subject(PDO $pdo, int $subjectId, ?int $adminId = null)`: Verifies superadmin role or subject creator ownership.
+- `can_admin_manage_question(PDO $pdo, int $questionId, ?int $adminId = null)`: Verifies superadmin role or question/subject creator ownership.
 - `require_admin()`: Redirects unauthenticated visitors to `admin/admin-login.php`.
 - `require_superadmin()`: Restricts access to Superadmin-only management modules.
 - `admin/admin-guard.php`: Guard file included at the top of all admin pages.
@@ -390,6 +393,9 @@ Examify implements an event-driven real-time architecture replacing full-page re
   If an attempt already exists, the engine returns the existing record without duplicate queries.
 - **Bulk Answer Seeding**: The engine generates all question rows for the attempt using a single multi-row `INSERT` statement.
 - **Atomic Answer Persistence**: Question responses save directly with an indexed atomic `UPDATE` query.
+- **Deterministic Option Permutation**: Each candidate attempt stores a seeded JSON permutation array (`exam_attempts.options_order JSON`), dynamically permuting options A, B, C, D to deter shoulder surfing while maintaining deterministic grading.
+- **Negative Marking Support**: Configurable fractional penalty deduction (`exams.negative_marks_per_question DECIMAL(4,2)`). Deducted in `ExamEngine::submitExam()` for incorrect responses, with an automated total score floor at `0.00`.
+- **Deadlock-Free Concurrency**: Final submissions lock the student attempt row exclusively (`FOR UPDATE`), allowing answer calculations to evaluate immutable questions without lock contention or MySQL 1213 deadlocks.
 - **Decimal Scoring Precision**: Scores calculate as exact decimal values (`DECIMAL(6,2)`), supporting fractional grading schemes.
 
 ### 6.2 Client-Side Anti-Cheat Detection (`utils/anti-cheat.js`)

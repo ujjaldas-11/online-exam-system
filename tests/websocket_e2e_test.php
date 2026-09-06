@@ -39,6 +39,7 @@ try {
     if (!$wsClient) {
         throw new RuntimeException("Could not connect to WebSocket port: $errstr");
     }
+    stream_set_timeout($wsClient, 2);
 
     // 2. Perform RFC 6455 Handshake
     $key = base64_encode(random_bytes(16));
@@ -50,7 +51,12 @@ try {
         "Sec-WebSocket-Version: 13\r\n\r\n";
 
     fwrite($wsClient, $handshake);
-    $response = fread($wsClient, 2048);
+    $response = '';
+    while (!str_contains($response, "\r\n\r\n")) {
+        $chunk = fread($wsClient, 1024);
+        if ($chunk === false || $chunk === '') break;
+        $response .= $chunk;
+    }
 
     $expectedAccept = Server::computeAcceptKey($key);
     if (!str_contains($response, "Sec-WebSocket-Accept: {$expectedAccept}")) {
@@ -58,8 +64,12 @@ try {
     }
     echo " [PASS] End-to-end WebSocket Handshake succeeded\n";
 
-    // Read welcome frame
-    $welcomeFrame = fread($wsClient, 2048);
+    // Read welcome frame (may be appended after headers)
+    $parts = explode("\r\n\r\n", $response, 2);
+    $welcomeFrame = $parts[1] ?? '';
+    if (empty($welcomeFrame)) {
+        $welcomeFrame = fread($wsClient, 2048);
+    }
     $decodedWelcome = Server::decode($welcomeFrame);
     echo " [PASS] Welcome frame received: " . ($decodedWelcome['payload'] ?? '') . "\n";
 

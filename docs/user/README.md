@@ -260,8 +260,9 @@ Follow these steps to configure a test:
 3. Select the curriculum subject.
 4. Set the test duration in minutes.
 5. Set total marks and the question quota per student.
-6. (Optional) Type a 4-digit classroom PIN for surprise quizzes.
-7. Click the **Create Examination** button.
+6. (Optional) Set **Negative Marks Per Question** (e.g. `0.25` or `0.50` marks deducted per incorrect answer; score is floored at 0.00).
+7. (Optional) Type a 4-digit classroom PIN for surprise quizzes.
+8. Click the **Create Examination** button.
 
 ### 3.8 Examination Controls & Emergency Time
 
@@ -270,13 +271,16 @@ Open the **Exam Controls** page (`admin/control-exams.php`) to govern tests:
 - **Start Exam**: Click to publish a scheduled test to student dashboards.
 - **+5 min / +10 min**: Click to extend the remaining duration for all active candidates.
 - **End Exam**: Click to conclude testing and lock submissions.
+- **Offline Question Paper**: Download printable offline question paper PDFs with answer keys for pencil-and-paper exams.
 
-### 3.9 Live Classroom Proctoring Panel
+### 3.9 Live Classroom Proctoring Panel & Announcements
 
 Open the live proctoring dashboard (`admin/proctor-exam.php?exam_id=<ID>`) during a test:
 
-- The screen updates candidate statistics every 5 seconds.
+- Real-time updates via WebSocket (with automatic 8-second HTTP polling fallback).
 - Monitor active attempts, completed tests, and cumulative cheating flags.
+- **Broadcast Announcement**: Click **Announce to Candidates** to push instant alerts directly onto student screens in real time.
+- **Option Permutation**: Every candidate attempt automatically features permuted option ordering to prevent neighbor shoulder surfing.
 - **Unlock / Resume**: Click to restore an attempt if a student computer crashes.
 - **Force Submit**: Click to submit an attempt immediately if a candidate departs.
 

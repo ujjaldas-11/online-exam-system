@@ -20,7 +20,13 @@ $assetVersion = asset_version();
             if ($safeJs === null) {
                 continue;
             }
-            $jsSrc = (str_contains($safeJs, '/')) ? $safeJs : "$assetsPath/js/$safeJs";
+            if (str_ends_with($safeJs, 'anti-cheat.js')) {
+                $jsSrc = "$assetsPath/js/anti-cheat.js";
+            } elseif (str_ends_with($safeJs, 'timer.js')) {
+                $jsSrc = "$assetsPath/js/timer.js";
+            } else {
+                $jsSrc = (str_contains($safeJs, '/')) ? $safeJs : "$assetsPath/js/$safeJs";
+            }
             ?>
             <script src="<?= htmlspecialchars($jsSrc, ENT_QUOTES, 'UTF-8') ?>?v=<?= $assetVersion ?>"></script>
         <?php endforeach; ?>

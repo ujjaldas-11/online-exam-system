@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/fpdf/fpdf.php';
 
+#[\AllowDynamicProperties]
 class ExamifyPdf extends FPDF
 {
     public string $examTitle = '';
@@ -76,6 +77,7 @@ class ExamifyPdf extends FPDF
     }
 }
 
+#[\AllowDynamicProperties]
 class ExamifyScorecardPdf extends FPDF
 {
     public function Footer(): void

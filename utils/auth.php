@@ -24,14 +24,6 @@ function is_superadmin(): bool
     return $role === 'superadmin';
 }
 
-function is_teacher(): bool
-{
-    if (!is_admin_logged_in()) {
-        return false;
-    }
-    $role = $_SESSION['admin_role'] ?? $_SESSION['role'] ?? '';
-    return $role === 'teacher';
-}
 
 function get_admin_role(): string
 {
@@ -135,5 +127,91 @@ function clear_active_session(PDO $pdo, string $userType, int $userId, ?string $
     if (!empty($targetSession)) {
         $stmt = $pdo->prepare("UPDATE {$table} SET active_session_id = NULL WHERE id = ? AND active_session_id = ?");
         $stmt->execute([$userId, $targetSession]);
+    }
+}
+
+/**
+ * Check if the currently logged-in admin has permission to manage an exam.
+ * Superadmins can manage all exams. Other instructors must be the creator.
+ */
+function can_admin_manage_exam(PDO $pdo, int $examId, ?int $adminId = null): bool
+{
+    if (is_superadmin()) {
+        return true;
+    }
+
+    $adminId = $adminId ?? (int)($_SESSION['admin_id'] ?? 0);
+    if ($adminId <= 0 || $examId <= 0) {
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT created_by FROM exams WHERE id = ? LIMIT 1");
+        $stmt->execute([$examId]);
+        $creator = $stmt->fetchColumn();
+        return $creator !== false && (int)$creator === $adminId;
+    } catch (PDOException) {
+        return false;
+    }
+}
+
+/**
+ * Check if the currently logged-in admin has permission to manage a subject.
+ * Superadmins can manage all subjects. Other instructors must be the creator.
+ */
+function can_admin_manage_subject(PDO $pdo, int $subjectId, ?int $adminId = null): bool
+{
+    if (is_superadmin()) {
+        return true;
+    }
+
+    $adminId = $adminId ?? (int)($_SESSION['admin_id'] ?? 0);
+    if ($adminId <= 0 || $subjectId <= 0) {
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT created_by FROM subjects WHERE id = ? LIMIT 1");
+        $stmt->execute([$subjectId]);
+        $creator = $stmt->fetchColumn();
+        return $creator !== false && (int)$creator === $adminId;
+    } catch (PDOException) {
+        return false;
+    }
+}
+
+/**
+ * Check if the currently logged-in admin has permission to manage a question.
+ * Superadmins can manage all questions. Other instructors must be question creator or subject creator.
+ */
+function can_admin_manage_question(PDO $pdo, int $questionId, ?int $adminId = null): bool
+{
+    if (is_superadmin()) {
+        return true;
+    }
+
+    $adminId = $adminId ?? (int)($_SESSION['admin_id'] ?? 0);
+    if ($adminId <= 0 || $questionId <= 0) {
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare("
+            SELECT q.created_by AS question_creator, s.created_by AS subject_creator
+            FROM questions q
+            LEFT JOIN subjects s ON q.subject_id = s.id
+            WHERE q.id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$questionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+
+        return ((int)$row['question_creator'] === $adminId) ||
+               (!empty($row['subject_creator']) && (int)$row['subject_creator'] === $adminId);
+    } catch (PDOException) {
+        return false;
     }
 }

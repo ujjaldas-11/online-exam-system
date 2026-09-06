@@ -1,20 +1,18 @@
 <?php
 require_once __DIR__ . '/admin-guard.php';
 require_once __DIR__ . '/../config/database.php';
-header('Content-Type: application/json');
+require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../services/CurriculumService.php';
+
+release_session_lock();
 
 $department = $_GET['department'] ?? '';
 $semester = (int)($_GET['semester'] ?? 0);
 
 if (empty($department) || $semester <= 0) {
-    echo json_encode([]);
-    exit;
+    json_response([]);
 }
 
-try {
-    $stmt = $pdo->prepare("SELECT id, name FROM subjects WHERE department = ? AND semester = ? ORDER BY name ASC");
-    $stmt->execute([$department, $semester]);
-    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-} catch (PDOException $e) {
-    echo json_encode([]);
-}
+$subjects = CurriculumService::getSubjects($pdo, (string)$department, $semester);
+$result = array_map(fn($s) => ['id' => $s['id'], 'name' => $s['name']], $subjects);
+json_response($result);

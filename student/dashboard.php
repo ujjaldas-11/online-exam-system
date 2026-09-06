@@ -213,10 +213,7 @@ include __DIR__ . '/../components/student-navbar.php';
     <?php if (empty($filtered_exams)): ?>
         document.addEventListener("DOMContentLoaded", async function () {
             try {
-                let response = await fetch('../utils/quotes_dashboard.json?v=<?= asset_version() ?>');
-                if (!response.ok) {
-                    response = await fetch('../utils/funny_quotes.json?v=<?= asset_version() ?>');
-                }
+                const response = await fetch('../assets/data/quotes_dashboard.json?v=<?= asset_version() ?>');
                 if (response.ok) {
                     const data = await response.json();
                     if (data.quotes && data.quotes.length > 0) {
@@ -224,11 +221,21 @@ include __DIR__ . '/../components/student-navbar.php';
                         const target = document.getElementById('funny-quote');
                         if (target && randomQuote.quote) {
                             target.innerText = '"' + randomQuote.quote + '"';
+                            return;
                         }
                     }
                 }
             } catch (e) {
-                // Ignore quote error
+                // Ignore network error and proceed to embedded fallback
+            }
+            const fallbackQuotes = [
+                "The only way to do great work is to love what you do.",
+                "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+                "Believe you can and you're halfway there."
+            ];
+            const target = document.getElementById('funny-quote');
+            if (target) {
+                target.innerText = '"' + fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)] + '"';
             }
         });
     <?php endif; ?>

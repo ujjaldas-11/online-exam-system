@@ -16,15 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
     verify_csrf();
 
     if (isset($_POST['delete_all'])) {
-        $isOwnerOrSuper = true;
-        if (!is_superadmin()) {
-            $chkSub = $pdo->prepare("SELECT created_by FROM subjects WHERE id = ?");
-            $chkSub->execute([$subject_id]);
-            $subCreator = $chkSub->fetchColumn();
-            if ($subCreator !== false && $subCreator !== null && (int)$subCreator !== (int)($_SESSION['admin_id'] ?? 0)) {
-                $isOwnerOrSuper = false;
-            }
-        }
+        $isOwnerOrSuper = can_admin_manage_subject($pdo, $subject_id);
 
         if (!$isOwnerOrSuper) {
             $message = "Unauthorized: You can only manage questions for subjects you have created.";
@@ -44,23 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
     } elseif (isset($_POST['delete_question'])) {
         $q_id = int_param($_POST['question_id'] ?? 0);
         if ($q_id > 0) {
-            $canDelete = false;
-            if (is_superadmin()) {
-                $canDelete = true;
-            } else {
-                $chk = $pdo->prepare("
-                    SELECT q.created_by AS q_author, s.created_by AS s_author
-                    FROM questions q
-                    JOIN subjects s ON q.subject_id = s.id
-                    WHERE q.id = ?
-                ");
-                $chk->execute([$q_id]);
-                $authRow = $chk->fetch();
-                $adminId = (int)($_SESSION['admin_id'] ?? 0);
-                if ($authRow && ((int)$authRow['q_author'] === $adminId || (int)$authRow['s_author'] === $adminId)) {
-                    $canDelete = true;
-                }
-            }
+            $canDelete = can_admin_manage_question($pdo, $q_id);
 
             if (!$canDelete) {
                 $message = "Unauthorized: You can only delete questions you authored or in subjects you created.";
@@ -92,23 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
             $message = "Please provide question text, at least Options A & B, and a valid Correct Option (A, B, C, or D).";
             $message_type = 'error';
         } else {
-            $canEdit = false;
-            if (is_superadmin()) {
-                $canEdit = true;
-            } else {
-                $chk = $pdo->prepare("
-                    SELECT q.created_by AS q_author, s.created_by AS s_author
-                    FROM questions q
-                    JOIN subjects s ON q.subject_id = s.id
-                    WHERE q.id = ?
-                ");
-                $chk->execute([$q_id]);
-                $authRow = $chk->fetch();
-                $adminId = (int)($_SESSION['admin_id'] ?? 0);
-                if ($authRow && ((int)$authRow['q_author'] === $adminId || (int)$authRow['s_author'] === $adminId)) {
-                    $canEdit = true;
-                }
-            }
+            $canEdit = can_admin_manage_question($pdo, $q_id);
 
             if (!$canEdit) {
                 $message = "Unauthorized: You can only edit questions you authored or in subjects you created.";

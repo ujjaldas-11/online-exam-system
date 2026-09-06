@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/CsvService.php';
 
 $success_count = 0;
 $skip_count = 0;
@@ -16,42 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_csv'])) {
 
     $csv_content = '';
     $maxFileSize = 5 * 1024 * 1024; // 5MB limit
-    $allowedExtensions = ['csv', 'txt'];
-    $allowedMimes = [
-        'text/plain',
-        'text/csv',
-        'application/csv',
-        'text/x-csv',
-        'application/vnd.ms-excel',
-        'text/comma-separated-values',
-        'application/octet-stream',
-    ];
 
     if (!empty($_FILES['csv_file']['name'])) {
-        $fileError = $_FILES['csv_file']['error'];
-        if ($fileError !== UPLOAD_ERR_OK) {
-            $errors[] = "File upload failed with error code: " . $fileError;
-        } elseif ($_FILES['csv_file']['size'] > $maxFileSize) {
-            $errors[] = "File too large. Maximum size allowed is 5MB.";
+        $fileErr = CsvService::validateUploadedCsv($_FILES['csv_file'], $maxFileSize);
+        if ($fileErr !== null) {
+            $errors[] = $fileErr;
         } else {
-            $tmpPath = $_FILES['csv_file']['tmp_name'];
-            $fileExt = strtolower(pathinfo($_FILES['csv_file']['name'], PATHINFO_EXTENSION));
-
-            if (!in_array($fileExt, $allowedExtensions, true)) {
-                $errors[] = "Invalid file extension. Only .csv files are permitted.";
-            } elseif (!is_uploaded_file($tmpPath)) {
-                $errors[] = "Uploaded file validation failed.";
-            } else {
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $mimeType = finfo_file($finfo, $tmpPath);
-                finfo_close($finfo);
-
-                if (!in_array($mimeType, $allowedMimes, true)) {
-                    $errors[] = "Invalid file format ($mimeType). Only plain CSV files are allowed.";
-                } else {
-                    $csv_content = file_get_contents($tmpPath);
-                }
-            }
+            $csv_content = (string) file_get_contents($_FILES['csv_file']['tmp_name']);
         }
     } elseif (!empty($_POST['csv_raw'])) {
         if (strlen($_POST['csv_raw']) > $maxFileSize) {

@@ -22,7 +22,7 @@ Topics include:
 - Student profile review and academic detail change requests.
 - Administrator dashboard overview and quick actions.
 - Curriculum subject management.
-- Question bank management with bulk JSON upload and AI prompts.
+- Question bank management with bulk CSV upload and AI prompts.
 - Examination configuration, question pools, and duration settings.
 - Live examination controls and emergency time extensions (+5 / +10 minutes).
 - Live Classroom Proctoring Panel and hardware crash recovery.

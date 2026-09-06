@@ -44,6 +44,9 @@ class Server
     /** @var array<int, array<string, bool>> */
     private array $clientChannels = [];
 
+    /** @var array<int, string> */
+    private array $clientRoles = [];
+
     private bool $running = false;
 
     public function __construct(
@@ -175,6 +178,19 @@ class Server
                     'timestamp' => date('c'),
                 ]);
 
+                // Also mirror exam-wide notifications to candidates channel
+                if (in_array($event, ['time_extended', 'exam_ended', 'broadcast_announcement', 'announcement'], true)) {
+                    if (str_starts_with($channel, 'exam:') && !str_ends_with($channel, ':candidates')) {
+                        $candChannel = "{$channel}:candidates";
+                        $count += $this->broadcast($candChannel, [
+                            'event' => $event,
+                            'channel' => $candChannel,
+                            'data' => $eventData,
+                            'timestamp' => date('c'),
+                        ]);
+                    }
+                }
+
                 @fwrite($ipcClient, json_encode(['success' => true, 'recipients' => $count]) . "\n");
                 $this->log("[IPC Event] '{$event}' on channel '{$channel}' broadcast to {$count} client(s)");
             } else {
@@ -251,9 +267,68 @@ class Server
             $channel = (string) ($json['channel'] ?? '');
 
             if ($action === 'subscribe' && !empty($channel)) {
+                if (isset($json['role']) && $json['role'] === 'proctor') {
+                    $this->clientRoles[$id] = 'proctor';
+                }
                 $this->subscribe($id, $channel);
             } elseif ($action === 'unsubscribe' && !empty($channel)) {
                 $this->unsubscribe($id, $channel);
+            } elseif ($action === 'candidate_join') {
+                $examId = (int) ($json['exam_id'] ?? 0);
+                if ($examId > 0) {
+                    $this->clientRoles[$id] = 'candidate';
+                    $examChannel = "exam:{$examId}:candidates";
+                    $this->subscribe($id, $examChannel);
+                    $this->send($id, [
+                        'event' => 'joined_exam',
+                        'channel' => $examChannel,
+                        'exam_id' => $examId,
+                        'message' => "Candidate joined channel {$examChannel}",
+                    ]);
+                }
+            } elseif ($action === 'broadcast_announcement') {
+                if (($this->clientRoles[$id] ?? '') === 'candidate') {
+                    $this->send($id, [
+                        'event' => 'error',
+                        'message' => 'Unauthorized: Candidates cannot broadcast announcements.',
+                    ]);
+                    return;
+                }
+
+                $examId = (int) ($json['exam_id'] ?? 0);
+                $message = trim((string) ($json['message'] ?? ''));
+                $sender = trim((string) ($json['sender'] ?? 'Proctor'));
+                $targetChannel = !empty($channel) ? $channel : ($examId > 0 ? "exam:{$examId}" : '');
+
+                if (!empty($targetChannel) && !empty($message)) {
+                    $announcementPayload = [
+                        'action' => 'announcement',
+                        'event' => 'broadcast_announcement',
+                        'channel' => $targetChannel,
+                        'exam_id' => $examId,
+                        'message' => $message,
+                        'sender' => $sender,
+                        'timestamp' => date('c'),
+                        'data' => [
+                            'exam_id' => $examId,
+                            'message' => $message,
+                            'sender' => $sender,
+                            'timestamp' => date('c'),
+                        ],
+                    ];
+                    $recipients = $this->broadcast($targetChannel, $announcementPayload);
+                    if (str_starts_with($targetChannel, 'exam:') && !str_ends_with($targetChannel, ':candidates')) {
+                        $recipients += $this->broadcast("{$targetChannel}:candidates", $announcementPayload);
+                    }
+                    $this->log("[Announcement] Broadcast on '{$targetChannel}' to {$recipients} client(s): {$message}");
+
+                    $this->send($id, [
+                        'event' => 'announcement_sent',
+                        'channel' => $targetChannel,
+                        'recipients' => $recipients,
+                        'message' => $message,
+                    ]);
+                }
             } elseif ($action === 'ping') {
                 $this->send($id, ['event' => 'pong', 'timestamp' => time()]);
             }
@@ -336,6 +411,7 @@ class Server
             @fclose($this->clients[$id]);
             unset($this->clients[$id]);
             unset($this->handshakes[$id]);
+            unset($this->clientRoles[$id]);
             $this->log("[WS Disconnect] Client #{$id} disconnected");
         }
     }
@@ -364,8 +440,12 @@ class Server
      *
      * @return array{opcode: int, payload: string}|null
      */
-    public static function decode(string $data): ?array
+    public static function decode(mixed $data): ?array
     {
+        if (!is_string($data)) {
+            return null;
+        }
+
         $len = strlen($data);
         if ($len < 2) {
             return null;

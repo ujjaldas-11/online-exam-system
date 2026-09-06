@@ -416,11 +416,17 @@ $testedBy = [
                             <div class="dev-fallback" style="background:<?= e($dev['color']) ?>;">
                                 <?= e($dev['initials']) ?>
                             </div>
+                            <?php
+                            $localDevAvatar = 'assets/images/devs/' . $dev['username'] . '.png';
+                            $devAvatarSrc = file_exists(__DIR__ . '/' . $localDevAvatar)
+                                ? $localDevAvatar
+                                : "https://github.com/" . urlencode((string)$dev['username']) . ".png?size=96";
+                            ?>
                             <img
-                                src="https://github.com/<?= e($dev['username']) ?>.png?size=96"
+                                src="<?= $devAvatarSrc ?>"
                                 alt="<?= e($dev['name']) ?>"
                                 loading="lazy"
-                                onerror="this.style.display='none'"
+                                onerror="this.style.display='none';"
                             >
                         </div>
                         <div class="dev-info">
@@ -451,11 +457,17 @@ $testedBy = [
                             <div class="dev-fallback" style="background:<?= e($dev['color']) ?>;">
                                 <?= e($dev['initials']) ?>
                             </div>
+                            <?php
+                            $localDevAvatar = 'assets/images/devs/' . $dev['username'] . '.png';
+                            $devAvatarSrc = file_exists(__DIR__ . '/' . $localDevAvatar)
+                                ? $localDevAvatar
+                                : "https://github.com/" . urlencode((string)$dev['username']) . ".png?size=96";
+                            ?>
                             <img
-                                src="https://github.com/<?= e($dev['username']) ?>.png?size=96"
+                                src="<?= $devAvatarSrc ?>"
                                 alt="<?= e($dev['name']) ?>"
                                 loading="lazy"
-                                onerror="this.style.display='none'"
+                                onerror="this.style.display='none';"
                             >
                         </div>
                         <div class="dev-info">
@@ -486,11 +498,17 @@ $testedBy = [
                             <div class="dev-fallback" style="background:<?= e($dev['color']) ?>;">
                                 <?= e($dev['initials']) ?>
                             </div>
+                            <?php
+                            $localDevAvatar = 'assets/images/devs/' . $dev['username'] . '.png';
+                            $devAvatarSrc = file_exists(__DIR__ . '/' . $localDevAvatar)
+                                ? $localDevAvatar
+                                : "https://github.com/" . urlencode((string)$dev['username']) . ".png?size=96";
+                            ?>
                             <img
-                                src="https://github.com/<?= e($dev['username']) ?>.png?size=96"
+                                src="<?= $devAvatarSrc ?>"
                                 alt="<?= e($dev['name']) ?>"
                                 loading="lazy"
-                                onerror="this.style.display='none'"
+                                onerror="this.style.display='none';"
                             >
                         </div>
                         <div class="dev-info">
@@ -521,11 +539,17 @@ $testedBy = [
                             <div class="dev-fallback" style="background:<?= e($dev['color']) ?>;">
                                 <?= e($dev['initials']) ?>
                             </div>
+                            <?php
+                            $localDevAvatar = 'assets/images/devs/' . $dev['username'] . '.png';
+                            $devAvatarSrc = file_exists(__DIR__ . '/' . $localDevAvatar)
+                                ? $localDevAvatar
+                                : "https://github.com/" . urlencode((string)$dev['username']) . ".png?size=96";
+                            ?>
                             <img
-                                src="https://github.com/<?= e($dev['username']) ?>.png?size=96"
+                                src="<?= $devAvatarSrc ?>"
                                 alt="<?= e($dev['name']) ?>"
                                 loading="lazy"
-                                onerror="this.style.display='none'"
+                                onerror="this.style.display='none';"
                             >
                         </div>
                         <div class="dev-info">

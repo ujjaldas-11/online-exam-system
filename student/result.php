@@ -57,32 +57,16 @@ try {
     }
 
     // Determine if the entire exam is finished and published by admin
-    $is_exam_ended = ($attempt['exam_status'] === 'ended');
-    if ($attempt['exam_status'] === 'active' && !empty($attempt['start_time'])) {
-        $durationSec = (int)$attempt['duration_minutes'] * 60;
-        if (time() >= (strtotime($attempt['start_time']) + $durationSec)) {
-            $is_exam_ended = true;
-        }
-    }
+    $is_exam_ended = ExamEngine::isExamEnded($attempt);
     $is_published = !empty($attempt['results_published']);
     $can_view_results = $is_exam_ended && $is_published;
 
     // 2. Fetch Detailed Stats only if results can be viewed
     if ($can_view_results) {
-        $statsStmt = $pdo->prepare("
-            SELECT
-                SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) as correct_count,
-                SUM(CASE WHEN is_correct = 0 AND selected_option IS NOT NULL AND selected_option != '' THEN 1 ELSE 0 END) as wrong_count,
-                SUM(CASE WHEN selected_option IS NULL OR selected_option = '' THEN 1 ELSE 0 END) as skipped_count
-            FROM student_answers
-            WHERE attempt_id = :attempt_id
-        ");
-        $statsStmt->execute([':attempt_id' => $attempt_id]);
-        $stats = $statsStmt->fetch();
-
-        $correct_count = (int) ($stats['correct_count'] ?? 0);
-        $wrong_count = (int) ($stats['wrong_count'] ?? 0);
-        $skipped_count = (int) ($stats['skipped_count'] ?? 0);
+        $stats = ExamEngine::getAttemptStats($pdo, $attempt_id);
+        $correct_count = $stats['correct_count'];
+        $wrong_count = $stats['wrong_count'];
+        $skipped_count = $stats['skipped_count'];
     }
 
 } catch (PDOException $e) {

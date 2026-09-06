@@ -14,7 +14,7 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: var(--color-bg-gradient);
+  background: var(--color-bg);
   color: var(--color-text);
   line-height: 1.6;
   min-height: 100vh;
@@ -23,12 +23,13 @@ body {
 }
 
 a {
-  color: var(--color-accent);
+  color: var(--color-primary);
   text-decoration: none;
   transition: color 0.15s ease;
 }
+
 a:hover {
-  color: var(--color-accent-hover);
+  color: var(--color-primary-hover);
 }
 
 img {
@@ -44,7 +45,7 @@ img {
 }
 
 .auth-body {
-  background: var(--color-bg-gradient);
+  background: rgb(171, 171, 177);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -65,13 +66,8 @@ img {
 
 .page-header h1 {
   font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #0F172A 40%, #1E4ED8 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: #0F172A;
+  font-weight: 700;
+  color: var(--color-dark);
 }
 
 .page-header p {

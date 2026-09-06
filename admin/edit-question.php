@@ -27,13 +27,8 @@ try {
         die("Question not found.");
     }
 
-    $canEdit = false;
-    $adminId = (int)($_SESSION['admin_id'] ?? 0);
-    if (is_superadmin() || (int)$question['created_by'] === $adminId || (int)$question['subject_creator'] === $adminId) {
-        $canEdit = true;
-    }
-
-    if (!$canEdit) {
+    // Check ownership (is_superadmin or creator via can_admin_manage_question)
+    if (!can_admin_manage_question($pdo, $questionId)) {
         http_response_code(403);
         die("Forbidden: You do not have permission to edit this question.");
     }

@@ -17,8 +17,14 @@ $message = '';
 $message_type = '';
 
 if (isset($_GET['download_offline']) && isset($_GET['exam_id'])) {
-    require_once '../services/PdfService.php';
     $dl_exam_id = (int)$_GET['exam_id'];
+
+    if (!can_admin_manage_exam($pdo, $dl_exam_id)) {
+        http_response_code(403);
+        die('Access Denied: You do not have permission to download offline papers for this examination.');
+    }
+
+    require_once '../services/PdfService.php';
 
     // 1. Fetch Exam Meta
     $stmt = $pdo->prepare("
@@ -32,7 +38,7 @@ if (isset($_GET['download_offline']) && isset($_GET['exam_id'])) {
     $examMeta = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($examMeta) {
-        $limit = (int) $examMeta['total_questions_to_ask'];
+        $limit = max(1, (int) $examMeta['total_questions_to_ask']);
         // 2. Fetch Questions based on target unit
         if ($examMeta['target_units'] === 'all') {
             $qStmt = $pdo->prepare("SELECT * FROM questions WHERE subject_id = ? ORDER BY RAND() LIMIT $limit");
@@ -52,16 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
     $exam_id = int_param($_POST['exam_id'] ?? 0);
-    $isOwnerOrSuper = true;
-
-    if ($exam_id > 0 && !is_superadmin()) {
-        $chkOwner = $pdo->prepare("SELECT created_by FROM exams WHERE id = ?");
-        $chkOwner->execute([$exam_id]);
-        $creator = $chkOwner->fetchColumn();
-        if ($creator !== false && $creator !== null && (int)$creator !== (int)($_SESSION['admin_id'] ?? 0)) {
-            $isOwnerOrSuper = false;
-        }
-    }
+    $isOwnerOrSuper = can_admin_manage_exam($pdo, $exam_id);
 
     if (!$isOwnerOrSuper) {
         $message = "Access Denied: You can only control exams you have authored.";

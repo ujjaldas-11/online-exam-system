@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
         // 1. Fetch Attempt & live timing
         $attemptStmt = $pdo->prepare("
-            SELECT ea.id, ea.total_questions, ea.status,
+            SELECT ea.id, ea.total_questions, ea.status, ea.options_order,
                    TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
             FROM exam_attempts ea
             JOIN exams e ON ea.exam_id = e.id
@@ -164,6 +164,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
         }
 
+        $optionsOrder = !empty($attempt['options_order']) ? json_decode((string)$attempt['options_order'], true) : [];
+        $qIdStr = (string)$questionRow['id'];
+        $qOptionOrder = (isset($optionsOrder[$qIdStr]) && is_array($optionsOrder[$qIdStr])) ? $optionsOrder[$qIdStr] : ['A', 'B', 'C', 'D'];
+
         json_response([
             'success' => true,
             'seconds_left' => max(0, (int)($attempt['seconds_left'] ?? 0)),
@@ -174,6 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'option_b' => clean_input($questionRow['option_b']),
                 'option_c' => clean_input($questionRow['option_c']),
                 'option_d' => clean_input($questionRow['option_d']),
+                'options_order' => $qOptionOrder,
             ],
             'total' => $total_questions,
             'currentIndex' => $index,

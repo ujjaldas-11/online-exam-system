@@ -6,6 +6,7 @@ require_once __DIR__ . '/../utils/csrf.php';
 require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/logger.php';
 require_once __DIR__ . '/../utils/sanitize.php';
+require_once __DIR__ . '/../services/CurriculumService.php';
 
 init_secure_session();
 
@@ -47,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Invalid email address format.";
         } elseif (strlen($roll) > 50) {
             $error = "Roll number cannot exceed 50 characters.";
-        } elseif (!in_array($dept, ['BCA', 'BBA'], true)) {
+        } elseif (!CurriculumService::isValidDepartment($pdo, $dept)) {
             $error = "Invalid department selected.";
         } elseif (!in_array($gender, ['male', 'female', 'others'], true)) {
             $error = "Invalid gender selected.";
@@ -242,8 +243,9 @@ include __DIR__ . '/../components/header.php';
                 <label>Department</label>
                 <select name="department" required>
                     <option value="">Select Department</option>
-                    <option value="BCA" <?= (($_POST['department'] ?? '') === 'BCA') ? 'selected' : '' ?>>BCA</option>
-                    <option value="BBA" <?= (($_POST['department'] ?? '') === 'BBA') ? 'selected' : '' ?>>BBA</option>
+                    <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                        <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
 
