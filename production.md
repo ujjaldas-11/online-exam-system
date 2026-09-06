@@ -396,7 +396,7 @@ sudo systemctl status examify-websocket.service
 The release packaging workflow automatically applies these performance optimizations:
 
 - **Static Asset Caching**: Setting `APP_ENV=production` sets browser caching headers (`max-age=2592000`).
-- **Enforced HTTPS**: Production mode automatically marks session cookies as `Secure` and sets `Strict-Transport-Security` headers.
+- **Enforced SSL / HTTPS**: Production mode automatically forces 301 redirects to HTTPS, sets Strict-Transport-Security (HSTS) headers, and marks session cookies as Secure.
 - **CSS Minification**: Combines and minifies all styles in `assets/css/` into single cached distribution bundles.
 - **JavaScript Minification**: Minifies client scripts in `assets/js/` and `utils/` using `terser`.
 - **Zero Runtime Dependencies**: Delivers a pure Vanilla PHP deployment requiring zero Composer or npm runtime packages.
