@@ -117,7 +117,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <span class="material-symbols-outlined icon-xl">add_circle</span>
                 <div style="text-align: left;">
                     <div><strong>Create New Exam</strong></div>
-                    <small style="color: var(--color-text-secondary); font-weight: normal;">Configure time & questions</small>
+                    <small style="font-weight: normal;">Configure time & questions</small>
                 </div>
             </a>
 
@@ -125,7 +125,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <span class="material-symbols-outlined icon-xl">help</span>
                 <div style="text-align: left;">
                     <div><strong>Add Questions</strong></div>
-                    <small style="color: var(--color-text-secondary); font-weight: normal;">Expand question bank</small>
+                    <small style="font-weight: normal;">Expand question bank</small>
                 </div>
             </a>
 
@@ -133,7 +133,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <span class="material-symbols-outlined icon-xl">leaderboard</span>
                 <div style="text-align: left;">
                     <div><strong>View Results & Reports</strong></div>
-                    <small style="color: var(--color-text-secondary); font-weight: normal;">Student scores & analytics</small>
+                    <small style="font-weight: normal;">Student scores & analytics</small>
                 </div>
             </a>
 
@@ -141,7 +141,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <span class="material-symbols-outlined icon-xl">manage_accounts</span>
                 <div style="text-align: left;">
                     <div><strong>Manage Requests</strong></div>
-                    <small style="color: var(--color-text-secondary); font-weight: normal;">Profile edits & password resets</small>
+                    <small style="font-weight: normal;">Profile edits & password resets</small>
                 </div>
             </a>
 
@@ -158,7 +158,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <span class="material-symbols-outlined icon-xl">receipt_long</span>
                     <div style="text-align: left;">
                         <div><strong>System Audit Trail</strong></div>
-                        <small style="color: var(--color-text-secondary); font-weight: normal;">Review teacher & record history</small>
+                        <small style="font-weight: normal;">Review teacher & record history</small>
                     </div>
                 </a>
 
@@ -166,7 +166,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <span class="material-symbols-outlined icon-xl">upload_file</span>
                     <div style="text-align: left;">
                         <div><strong>Import Students (CSV)</strong></div>
-                        <small style="color: var(--color-text-secondary); font-weight: normal;">Bulk roster creation</small>
+                        <small style="font-weight: normal;">Bulk roster creation</small>
                     </div>
                 </a>
             <?php else: ?>
