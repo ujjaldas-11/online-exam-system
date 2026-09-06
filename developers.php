@@ -250,14 +250,16 @@ $testedBy = [
             margin-bottom: 14px;
         }
 
+        /* Avatar with GitHub profile */
         .dev-avatar {
             position: relative;
-            width: 48px;
-            height: 48px;
+            width: 52px;
+            height: 52px;
             flex-shrink: 0;
             border-radius: 50%;
             overflow: hidden;
             background: #F1F5F9;
+            border: 2px solid #E2E8F0;
         }
         .dev-avatar img {
             position: relative;
@@ -408,19 +410,18 @@ $testedBy = [
         </h2>
         <div class="dev-grid">
             <?php foreach ($codeBy as $dev): ?>
-                <?php
-                $local = 'assets/images/devs/' . $dev['username'] . '.png';
-                $has   = file_exists(__DIR__ . '/' . $local);
-                ?>
                 <article class="dev-card is-important">
                     <div class="dev-card-top">
                         <div class="dev-avatar">
                             <div class="dev-fallback" style="background:<?= e($dev['color']) ?>;">
                                 <?= e($dev['initials']) ?>
                             </div>
-                            <?php if ($has): ?>
-                                <img src="<?= e($local) ?>" alt="<?= e($dev['name']) ?>" loading="lazy" onerror="this.style.display='none'">
-                            <?php endif; ?>
+                            <img
+                                src="https://github.com/<?= e($dev['username']) ?>.png?size=96"
+                                alt="<?= e($dev['name']) ?>"
+                                loading="lazy"
+                                onerror="this.style.display='none'"
+                            >
                         </div>
                         <div class="dev-info">
                             <div class="dev-name"><?= e($dev['name']) ?></div>
@@ -444,19 +445,18 @@ $testedBy = [
         </h2>
         <div class="dev-grid">
             <?php foreach ($designBy as $dev): ?>
-                <?php
-                $local = 'assets/images/devs/' . $dev['username'] . '.png';
-                $has   = file_exists(__DIR__ . '/' . $local);
-                ?>
                 <article class="dev-card">
                     <div class="dev-card-top">
                         <div class="dev-avatar">
                             <div class="dev-fallback" style="background:<?= e($dev['color']) ?>;">
                                 <?= e($dev['initials']) ?>
                             </div>
-                            <?php if ($has): ?>
-                                <img src="<?= e($local) ?>" alt="<?= e($dev['name']) ?>" loading="lazy" onerror="this.style.display='none'">
-                            <?php endif; ?>
+                            <img
+                                src="https://github.com/<?= e($dev['username']) ?>.png?size=96"
+                                alt="<?= e($dev['name']) ?>"
+                                loading="lazy"
+                                onerror="this.style.display='none'"
+                            >
                         </div>
                         <div class="dev-info">
                             <div class="dev-name"><?= e($dev['name']) ?></div>
@@ -480,19 +480,18 @@ $testedBy = [
         </h2>
         <div class="dev-grid">
             <?php foreach ($documentationBy as $dev): ?>
-                <?php
-                $local = 'assets/images/devs/' . $dev['username'] . '.png';
-                $has   = file_exists(__DIR__ . '/' . $local);
-                ?>
                 <article class="dev-card">
                     <div class="dev-card-top">
                         <div class="dev-avatar">
                             <div class="dev-fallback" style="background:<?= e($dev['color']) ?>;">
                                 <?= e($dev['initials']) ?>
                             </div>
-                            <?php if ($has): ?>
-                                <img src="<?= e($local) ?>" alt="<?= e($dev['name']) ?>" loading="lazy" onerror="this.style.display='none'">
-                            <?php endif; ?>
+                            <img
+                                src="https://github.com/<?= e($dev['username']) ?>.png?size=96"
+                                alt="<?= e($dev['name']) ?>"
+                                loading="lazy"
+                                onerror="this.style.display='none'"
+                            >
                         </div>
                         <div class="dev-info">
                             <div class="dev-name"><?= e($dev['name']) ?></div>
@@ -516,19 +515,18 @@ $testedBy = [
         </h2>
         <div class="dev-grid">
             <?php foreach ($testedBy as $dev): ?>
-                <?php
-                $local = 'assets/images/devs/' . $dev['username'] . '.png';
-                $has   = file_exists(__DIR__ . '/' . $local);
-                ?>
                 <article class="dev-card">
                     <div class="dev-card-top">
                         <div class="dev-avatar">
                             <div class="dev-fallback" style="background:<?= e($dev['color']) ?>;">
                                 <?= e($dev['initials']) ?>
                             </div>
-                            <?php if ($has): ?>
-                                <img src="<?= e($local) ?>" alt="<?= e($dev['name']) ?>" loading="lazy" onerror="this.style.display='none'">
-                            <?php endif; ?>
+                            <img
+                                src="https://github.com/<?= e($dev['username']) ?>.png?size=96"
+                                alt="<?= e($dev['name']) ?>"
+                                loading="lazy"
+                                onerror="this.style.display='none'"
+                            >
                         </div>
                         <div class="dev-info">
                             <div class="dev-name"><?= e($dev['name']) ?></div>
