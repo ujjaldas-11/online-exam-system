@@ -298,7 +298,7 @@ server {
 
 When the database runs on a separate machine, virtual host, or container across the LAN, **unencrypted database communication exposes student records, passwords, and live examination scores**.
 
-Examify's database connection layer ([`config/database.php`](file:///config/workspace/online-exam-system/config/database.php)) includes built-in support for encrypted TLS connections and server certificate verification.
+Examify's database connection layer ([`config/database.php`](config/database.php)) includes built-in support for encrypted TLS connections and server certificate verification.
 
 ### Step 1: Verify and Configure SSL on MySQL Server
 Check if your MySQL server supports SSL connections:
@@ -330,7 +330,7 @@ DB_SSL=true
 DB_SSL_CA=/etc/ssl/certs/mysql-ca.pem
 ```
 
-#### How Examify Enforces Database SSL:
+#### How Examify Enforces Database SSL
 - When `DB_SSL_CA` points to a valid file, PDO sets:
   - `PDO::MYSQL_ATTR_SSL_CA = $sslCa`
   - `PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT = true`

@@ -102,7 +102,7 @@ Avoid duplicating layout blocks, headers, or modal logic. Leverage the centraliz
 | **Confirm Modal** | `components/confirm-modal.php` | Accessible in-DOM dialog triggered via `data-confirm="..."`. |
 | **Searchbar** | `components/searchbar.php` | Unified instant search input component. |
 | **Pagination** | `components/pagination.php` | Clean pagination link builder for large dataset tables. |
-| **Desktop Gating** | `components/desktop-required.php`| Lockout view preventing smartphones/tablets from taking exams. |
+| **Desktop Gating** | `components/desktop-required.php` | Lockout view preventing smartphones/tablets from taking exams. |
 
 ---
 
