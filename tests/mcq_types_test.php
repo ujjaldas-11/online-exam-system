@@ -300,6 +300,55 @@ assert_test("Row 7 (unquoted multi-answer) parsed as 'multiple' with correct 'A,
 assert_test("Row 8 (quoted assertion_reason) parsed as 'assertion_reason' with correct 'A'", $parsedRows[7]['type'] === 'assertion_reason' && $parsedRows[7]['correct'] === 'A');
 
 // --------------------------------------------------------------------------
+// 6. Testing Questions Download in CSV & Native XLSX Formats
+// --------------------------------------------------------------------------
+echo "\n--- 6. Testing Questions Download in CSV & Native XLSX Formats ---\n";
+
+// Test Sample Question Rows definition
+$samples = CsvService::getSampleQuestionRows();
+assert_test("CsvService::getSampleQuestionRows returns 5 diverse samples", count($samples) === 5);
+$sampleTypes = array_column($samples, 'question_type');
+assert_test("Sample rows cover 'single' archetype", in_array('single', $sampleTypes, true));
+assert_test("Sample rows cover 'multiple' archetype", in_array('multiple', $sampleTypes, true));
+assert_test("Sample rows cover 'case_study' archetype", in_array('case_study', $sampleTypes, true));
+assert_test("Sample rows cover 'assertion_reason' archetype", in_array('assertion_reason', $sampleTypes, true));
+assert_test("Sample rows cover 'matching' archetype", in_array('matching', $sampleTypes, true));
+
+// Test SimpleXLSXGen generation of valid XLSX binary workbook
+require_once $rootDir . '/lib/simplexlsxgen/SimpleXLSXGen.php';
+$xlsxHeaders = array_map(fn($h) => '<b>' . $h . '</b>', CsvService::QUESTION_HEADERS);
+$xlsxRows = [$xlsxHeaders];
+foreach ($samples as $s) {
+    $xlsxRows[] = [
+        $s['question_text'],
+        $s['unit_number'],
+        $s['option_a'],
+        $s['option_b'],
+        $s['option_c'],
+        $s['option_d'],
+        $s['correct_option'],
+        $s['question_type']
+    ];
+}
+$xlsxObj = \Shuchkin\SimpleXLSXGen::fromArray($xlsxRows);
+$binaryXlsx = (string)$xlsxObj;
+assert_test("SimpleXLSXGen output starts with ZIP/XLSX PK magic header", str_starts_with($binaryXlsx, "PK\x03\x04"));
+assert_test("SimpleXLSXGen binary output is valid non-trivial size (>2KB)", strlen($binaryXlsx) > 2048);
+
+// Verify UI elements and handlers in templates
+$manageQuestionsContent = (string)file_get_contents($rootDir . '/admin/manage-questions.php');
+assert_test("manage-questions.php contains download_template action handler", str_contains($manageQuestionsContent, "'download_template'"));
+assert_test("manage-questions.php provides Download CSV template link", str_contains($manageQuestionsContent, 'action=download_template&format=csv'));
+assert_test("manage-questions.php provides Download Excel (.xlsx) template link", str_contains($manageQuestionsContent, 'action=download_template&format=xlsx'));
+assert_test("manage-questions.php provides Preview Questions button", str_contains($manageQuestionsContent, 'id="preview-btn"'));
+assert_test("manage-questions.php contains in-DOM previewQuestionsModal", str_contains($manageQuestionsContent, 'id="previewQuestionsModal"'));
+
+$viewQuestionsContent = (string)file_get_contents($rootDir . '/admin/view-questions.php');
+assert_test("view-questions.php contains export_questions action handler", str_contains($viewQuestionsContent, "'export_questions'"));
+assert_test("view-questions.php provides Export CSV button", str_contains($viewQuestionsContent, 'action=export_questions&format=csv'));
+assert_test("view-questions.php provides Export XLSX button", str_contains($viewQuestionsContent, 'action=export_questions&format=xlsx'));
+
+// --------------------------------------------------------------------------
 // Summary Results
 // --------------------------------------------------------------------------
 echo "\n=======================================================\n";

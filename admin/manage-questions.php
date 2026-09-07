@@ -17,6 +17,12 @@ try {
 $success_message = '';
 $error_message = '';
 
+if (isset($_GET['action']) && $_GET['action'] === 'download_template') {
+    $format = (($_GET['format'] ?? 'csv') === 'xlsx') ? 'xlsx' : 'csv';
+    CsvService::downloadSampleQuestionsTemplate($format);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
     verify_csrf();
 
@@ -206,13 +212,28 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <div class="card-title">Bulk Insert Questions (CSV)</div>
 
         <div class="alert alert-info" style="text-align: left; margin-bottom: 20px;">
-            <strong>Instructions:</strong> Upload a CSV file OR paste comma-separated text.<br>
-            • 7 columns required: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option</code><br>
-            • <code>Correct Option</code> must be A, B, C, or D. For <em>Multiple-Answer</em> questions, list multiple letters separated by commas (e.g. <code>A,C,D</code> or <code>ACD</code>).<br>
-            • <em>Optional 8th Column:</em> <code>Question Type</code> (<code>single</code>, <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>, <code>matching</code>). Auto-detected as <code>multiple</code> if multiple correct options are provided.
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 280px;">
+                    <strong>Instructions:</strong> Upload a CSV file OR paste comma-separated text.<br>
+                    • 7 columns required: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option</code><br>
+                    • <code>Correct Option</code> must be A, B, C, or D. For <em>Multiple-Answer</em> questions, list multiple letters separated by commas (e.g. <code>A,C,D</code> or <code>ACD</code>).<br>
+                    • <em>Optional 8th Column:</em> <code>Question Type</code> (<code>single</code>, <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>, <code>matching</code>). Auto-detected as <code>multiple</code> if multiple correct options are provided.
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px;">Sample Templates</span>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <a href="manage-questions.php?action=download_template&format=csv" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Download sample questions CSV template">
+                            <span class="material-symbols-outlined icon-xs">download</span> CSV (.csv)
+                        </a>
+                        <a href="manage-questions.php?action=download_template&format=xlsx" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Download sample questions Excel XLSX template">
+                            <span class="material-symbols-outlined icon-xs">table_view</span> Excel (.xlsx)
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" id="upload-questions-form">
             <?= csrf_field() ?>
 
             <div class="form-group">
@@ -229,7 +250,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <div class="form-group">
                 <label>Option 1: Upload .CSV File</label>
-                <input type="file" name="csv_file" accept=".csv,text/csv" class="form-control">
+                <input type="file" name="csv_file" id="csv_file" accept=".csv,text/csv" class="form-control">
             </div>
 
             <div style="text-align: center; margin: 15px 0; color: #64748b; font-weight: bold;">OR</div>
@@ -243,15 +264,74 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <button type="button" class="btn btn-secondary btn-sm" id="paste-btn" style="display: inline-flex; align-items: center; gap: 4px;">
                         <span class="material-symbols-outlined icon-xs">content_paste</span> Paste from Clipboard
                     </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="preview-btn" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-xs">preview</span> Preview Questions
+                    </button>
                 </div>
                 <textarea name="csv_text" id="csv_text" rows="8" class="form-control"
                 placeholder='What is an operating system?,1,System software,Application software,Hardware component,Malware,A,single&#10;Which of the following are valid IPC mechanisms?,2,Pipes,Shared Memory,Queues,Registers,"A,B,C",multiple&#10;"Assertion (A): Paging eliminates external fragmentation.&#10;Reason (R): Frames are fixed size.",3,"Both A and R are true, and R is the correct explanation of A","Both A and R are true, but R is NOT the correct explanation of A","A is true, but R is false","A is false, but R is true",A,assertion_reason'></textarea>
             </div>
 
-            <button type="submit" name="add_bulk_csv" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 15px;">
+            <button type="submit" name="add_bulk_csv" id="submit-upload-btn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 15px;">
                 <span class="material-symbols-outlined icon-sm">upload</span> Upload Questions
             </button>
         </form>
+    </div>
+
+    <!-- In-DOM Accessible Question Preview Modal -->
+    <div id="previewQuestionsModal" class="admin-modal-overlay" style="display: none;">
+        <div class="admin-modal-card admin-modal-card-wide" style="max-width: 1100px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="admin-modal-header" style="flex-shrink: 0;">
+                <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.15rem; color: var(--color-dark);">
+                        <span class="material-symbols-outlined" style="color: var(--color-primary);">preview</span>
+                        <span>Questions Import Preview</span>
+                    </h3>
+                    <p id="preview-summary-subtext" style="margin: 3px 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
+                        Review parsed questions and verified question types before committing
+                    </p>
+                </div>
+                <button type="button" class="admin-modal-close" id="closePreviewModalBtn">&times;</button>
+            </div>
+
+            <div id="preview-summary-badges" style="padding: 10px 20px; background: var(--bg-body, #f8fafc); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 0.85rem;">
+                <!-- Badges will be dynamically injected here -->
+            </div>
+
+            <div class="admin-modal-body" style="padding: 15px 20px; overflow-y: auto; flex: 1;">
+                <div class="table-wrap">
+                    <table style="width: 100%; font-size: 0.85rem;" id="previewTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="min-width: 220px;">Question Text</th>
+                                <th style="width: 55px; text-align: center;">Unit</th>
+                                <th style="width: 115px; text-align: center;">Type</th>
+                                <th>Option A</th>
+                                <th>Option B</th>
+                                <th>Option C</th>
+                                <th>Option D</th>
+                                <th style="width: 80px; text-align: center;">Correct</th>
+                                <th style="width: 75px; text-align: center;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewTableBody">
+                            <!-- Injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-modal-footer" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                <span id="previewValidationError" style="font-size: 0.85rem; color: var(--color-danger, #ef4444); font-weight: 600;"></span>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" id="dismissPreviewModalBtn">Close</button>
+                    <button type="button" class="btn btn-primary" id="confirmUploadFromModalBtn" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined icon-sm">upload</span> Proceed to Upload
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -368,6 +448,387 @@ Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Que
                 alert('Could not read clipboard automatically. Please press Ctrl+V to paste manually.');
             }
         });
+    }
+
+    // --- In-DOM Questions Preview System ---
+    const previewBtn = document.getElementById('preview-btn');
+    const previewModal = document.getElementById('previewQuestionsModal');
+    const closePreviewBtn = document.getElementById('closePreviewModalBtn');
+    const dismissPreviewBtn = document.getElementById('dismissPreviewModalBtn');
+    const confirmUploadBtn = document.getElementById('confirmUploadFromModalBtn');
+    const previewTableBody = document.getElementById('previewTableBody');
+    const previewSummaryBadges = document.getElementById('preview-summary-badges');
+    const previewSummarySubtext = document.getElementById('preview-summary-subtext');
+    const previewValidationError = document.getElementById('previewValidationError');
+    const csvFileInput = document.getElementById('csv_file');
+    const uploadForm = document.getElementById('upload-questions-form');
+
+    function closePreview() {
+        if (previewModal) previewModal.style.display = 'none';
+    }
+
+    if (closePreviewBtn) closePreviewBtn.addEventListener('click', closePreview);
+    if (dismissPreviewBtn) dismissPreviewBtn.addEventListener('click', closePreview);
+    if (previewModal) {
+        previewModal.addEventListener('click', function (e) {
+            if (e.target === previewModal) closePreview();
+        });
+    }
+
+    if (confirmUploadBtn) {
+        confirmUploadBtn.addEventListener('click', function () {
+            if (subjectSelect && !subjectSelect.value) {
+                alert('Please select a Target Subject before proceeding with the upload.');
+                closePreview();
+                subjectSelect.focus();
+                return;
+            }
+            closePreview();
+            // Submit form with original submit button name
+            const submitHidden = document.createElement('input');
+            submitHidden.type = 'hidden';
+            submitHidden.name = 'add_bulk_csv';
+            submitHidden.value = '1';
+            uploadForm.appendChild(submitHidden);
+            uploadForm.submit();
+        });
+    }
+
+    // Robust CSV parsing helper supporting quoted fields, inner commas, and escaped quotes
+    function parseCsvString(text) {
+        const rows = [];
+        let currentRow = [];
+        let currentCell = '';
+        let insideQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const nextChar = text[i + 1];
+
+            if (char === '"') {
+                if (insideQuotes && nextChar === '"') {
+                    currentCell += '"';
+                    i++;
+                } else {
+                    insideQuotes = !insideQuotes;
+                }
+            } else if (char === ',' && !insideQuotes) {
+                currentRow.push(currentCell);
+                currentCell = '';
+            } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+                if (char === '\r' && nextChar === '\n') {
+                    i++;
+                }
+                currentRow.push(currentCell);
+                if (currentRow.some(c => c.trim() !== '')) {
+                    rows.push(currentRow);
+                }
+                currentRow = [];
+                currentCell = '';
+            } else {
+                currentCell += char;
+            }
+        }
+        if (currentCell.length > 0 || currentRow.length > 0) {
+            currentRow.push(currentCell);
+            if (currentRow.some(c => c.trim() !== '')) {
+                rows.push(currentRow);
+            }
+        }
+        return rows;
+    }
+
+    // Client-side mirror of CsvService::normalizeQuestionRow
+    function normalizeClientRow(raw) {
+        if (!Array.isArray(raw) || raw.length <= 6) return raw;
+
+        let data = [...raw];
+
+        // 1. Repair unquoted question text if unit is displaced
+        if (isNaN(parseInt(data[1], 10))) {
+            let uIdx = -1;
+            for (let i = 1; i < data.length - 5; i++) {
+                const val = (data[i] || '').trim();
+                const num = parseInt(val, 10);
+                if (!isNaN(num) && num >= 1 && num <= 20) {
+                    uIdx = i;
+                    break;
+                }
+            }
+            if (uIdx > 1) {
+                const qText = data.slice(0, uIdx).map(s => s.trim()).join(', ');
+                const uNum = data[uIdx].trim();
+                data = [qText, uNum, ...data.slice(uIdx + 1)];
+            }
+        }
+
+        if (data.length === 7 || data.length === 8) {
+            return data;
+        }
+
+        const validTypes = ['single', 'multiple', 'case_study', 'assertion_reason', 'matching'];
+        let detectedType = null;
+        const lastVal = (data[data.length - 1] || '').trim().toLowerCase();
+        if (validTypes.includes(lastVal)) {
+            detectedType = lastVal;
+            data.pop();
+        }
+
+        const allowedLetters = ['A', 'B', 'C', 'D'];
+        const correctLetters = [];
+
+        while (data.length > 6) {
+            const candidate = (data[data.length - 1] || '').trim().toUpperCase();
+            if (allowedLetters.includes(candidate)) {
+                correctLetters.unshift(data.pop());
+                if (detectedType && detectedType !== 'multiple') break;
+            } else if (/^[A-D](\s*,\s*[A-D])+$/.test(candidate)) {
+                const toks = candidate.split(',').map(s => s.trim());
+                for (const t of toks) {
+                    if (allowedLetters.includes(t) && !correctLetters.includes(t)) {
+                        correctLetters.push(t);
+                    }
+                }
+                data.pop();
+                break;
+            } else {
+                break;
+            }
+        }
+
+        let rawCorrect = correctLetters.length > 0 ? correctLetters.join(',') : (data.pop() || '').trim().toUpperCase();
+        const qText = data[0] || '';
+        const uNum = data[1] || '1';
+        const middle = data.slice(2);
+
+        let opts = [];
+        if (middle.length === 4) {
+            opts = middle;
+        } else if (middle.length > 4) {
+            const isAssertion = (detectedType === 'assertion_reason' || /assertion/i.test(qText));
+            if (isAssertion) {
+                const starts = [];
+                middle.forEach((frag, idx) => {
+                    const trimmed = frag.trim();
+                    if (idx === 0) starts[0] = idx;
+                    else if (starts.length === 1 && /^both\b/i.test(trimmed)) starts[1] = idx;
+                    else if (starts.length === 2 && /^(\(?a\)?|assertion)\s+is\s+true\b/i.test(trimmed)) starts[2] = idx;
+                    else if (starts.length === 3 && /^(\(?a\)?|assertion)\s+is\s+false\b/i.test(trimmed)) starts[3] = idx;
+                });
+                if (starts.length === 4) {
+                    for (let i = 0; i < 4; i++) {
+                        const from = starts[i];
+                        const to = (i < 3) ? starts[i + 1] : middle.length;
+                        opts.push(middle.slice(from, to).map(s => s.trim()).join(', '));
+                    }
+                    if (!detectedType) detectedType = 'assertion_reason';
+                }
+            }
+
+            if (opts.length === 0 && middle.length % 4 === 0) {
+                const chunkSize = middle.length / 4;
+                for (let i = 0; i < 4; i++) {
+                    opts.push(middle.slice(i * chunkSize, (i + 1) * chunkSize).map(s => s.trim()).join(', '));
+                }
+            }
+
+            if (opts.length === 0) {
+                opts = [middle[0] || '', middle[1] || '', middle[2] || '', middle.slice(3).map(s => s.trim()).join(', ')];
+            }
+        } else {
+            opts = middle;
+            while (opts.length < 4) opts.push('');
+        }
+
+        const res = [qText, uNum, opts[0] || '', opts[1] || '', opts[2] || '', opts[3] || '', rawCorrect];
+        if (detectedType) res.push(detectedType);
+        return res;
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    async function handlePreviewClick() {
+        let rawContent = '';
+
+        if (csvFileInput && csvFileInput.files && csvFileInput.files.length > 0) {
+            const file = csvFileInput.files[0];
+            try {
+                rawContent = await file.text();
+            } catch (err) {
+                alert('Could not read the selected CSV file: ' + err.message);
+                return;
+            }
+        } else if (csvTextarea && csvTextarea.value.trim() !== '') {
+            rawContent = csvTextarea.value.trim();
+        } else {
+            alert('Please select a .CSV file or paste CSV text before opening the preview.');
+            if (csvTextarea) csvTextarea.focus();
+            return;
+        }
+
+        const rawRows = parseCsvString(rawContent);
+        if (rawRows.length === 0) {
+            alert('No valid CSV rows could be extracted from the input.');
+            return;
+        }
+
+        const parsedQuestions = [];
+        let isHeader = true;
+        const validTypes = ['single', 'multiple', 'case_study', 'assertion_reason', 'matching'];
+        const allowedOptions = ['A', 'B', 'C', 'D'];
+
+        const typeCounts = {
+            single: 0,
+            multiple: 0,
+            case_study: 0,
+            assertion_reason: 0,
+            matching: 0
+        };
+        let errorCount = 0;
+
+        for (let i = 0; i < rawRows.length; i++) {
+            let row = rawRows[i];
+            if (row.every(cell => (cell || '').trim() === '')) continue;
+
+            if (isHeader) {
+                const col0 = (row[0] || '').toLowerCase().trim();
+                const col1 = (row[1] || '').trim();
+                if (col0.includes('question') || isNaN(parseInt(col1, 10))) {
+                    isHeader = false;
+                    continue;
+                }
+                isHeader = false;
+            }
+
+            row = normalizeClientRow(row);
+
+            let qText = (row[0] || '').trim().replace(/\\r\\n|\\r|\\n/g, '\n');
+            let uNum = parseInt((row[1] || '1').trim(), 10) || 1;
+            let optA = (row[2] || '').trim();
+            let optB = (row[3] || '').trim();
+            let optC = (row[4] || '').trim();
+            let optD = (row[5] || '').trim();
+            let rawCorrect = (row[6] || '').trim().toUpperCase();
+            let rawType = (row[7] || '').trim().toLowerCase();
+
+            // Validate correct letters
+            const letters = [];
+            const tokens = rawCorrect.split(/[\s,;]+/).filter(Boolean);
+            let hasInvalidToken = false;
+            for (const tok of tokens) {
+                for (let ch of tok) {
+                    if (allowedOptions.includes(ch)) {
+                        if (!letters.includes(ch)) letters.push(ch);
+                    } else {
+                        hasInvalidToken = true;
+                    }
+                }
+            }
+            letters.sort();
+            const correctClean = letters.join(',');
+
+            let qType = 'single';
+            if (validTypes.includes(rawType)) {
+                qType = rawType;
+            } else {
+                qType = (letters.length > 1) ? 'multiple' : 'single';
+            }
+
+            let error = null;
+            if (!qText) error = 'Missing Question Text';
+            else if (!optA || !optB) error = 'Missing Option A or Option B';
+            else if (letters.length === 0 || hasInvalidToken) error = 'Invalid Correct Option (' + rawCorrect + ')';
+
+            if (error) {
+                errorCount++;
+            } else if (typeCounts[qType] !== undefined) {
+                typeCounts[qType]++;
+            }
+
+            parsedQuestions.push({
+                index: parsedQuestions.length + 1,
+                text: qText,
+                unit: uNum,
+                type: qType,
+                optA: optA,
+                optB: optB,
+                optC: optC,
+                optD: optD,
+                correct: correctClean || rawCorrect,
+                error: error
+            });
+        }
+
+        if (parsedQuestions.length === 0) {
+            alert('No questions were found after filtering empty rows or headers.');
+            return;
+        }
+
+        // Render summary badges
+        let badgeHtml = `
+            <span class="badge badge-active" style="font-weight: 700;">${parsedQuestions.length} Total Questions</span>
+            ${typeCounts.single > 0 ? `<span class="badge badge-info">${typeCounts.single} Single</span>` : ''}
+            ${typeCounts.multiple > 0 ? `<span class="badge badge-warning">${typeCounts.multiple} Multiple</span>` : ''}
+            ${typeCounts.case_study > 0 ? `<span class="badge badge-primary">${typeCounts.case_study} Case Study</span>` : ''}
+            ${typeCounts.assertion_reason > 0 ? `<span class="badge badge-secondary">${typeCounts.assertion_reason} Assertion-Reason</span>` : ''}
+            ${typeCounts.matching > 0 ? `<span class="badge badge-outline">${typeCounts.matching} Matching</span>` : ''}
+            ${errorCount > 0 ? `<span class="badge badge-rejected" style="font-weight: bold;"><span class="material-symbols-outlined icon-xs">warning</span> ${errorCount} Invalid Row(s)</span>` : `<span class="badge badge-active"><span class="material-symbols-outlined icon-xs">check_circle</span> 100% Valid</span>`}
+        `;
+        if (previewSummaryBadges) previewSummaryBadges.innerHTML = badgeHtml;
+
+        if (previewSummarySubtext) {
+            previewSummarySubtext.textContent = `Found ${parsedQuestions.length} questions across ${typeCounts.single + typeCounts.multiple + typeCounts.case_study + typeCounts.assertion_reason + typeCounts.matching} categorized items (${errorCount} errors detected).`;
+        }
+
+        // Render table body
+        let tableRowsHtml = '';
+        parsedQuestions.forEach(q => {
+            const trClass = q.error ? 'style="background-color: rgba(239, 68, 68, 0.06);"' : '';
+            const typeBadgeStyle = q.type === 'multiple' ? 'badge-warning'
+                : q.type === 'case_study' ? 'badge-primary'
+                : q.type === 'assertion_reason' ? 'badge-secondary'
+                : q.type === 'matching' ? 'badge-outline'
+                : 'badge-info';
+
+            const statusBadge = q.error
+                ? `<span class="badge badge-rejected" title="${escapeHtml(q.error)}">Error</span>`
+                : `<span class="badge badge-active">Ready</span>`;
+
+            tableRowsHtml += `
+                <tr ${trClass}>
+                    <td style="font-weight: bold; text-align: center;">${q.index}</td>
+                    <td style="white-space: pre-line; word-break: break-word; font-weight: 500;">${escapeHtml(q.text)}</td>
+                    <td style="text-align: center;"><span class="badge" style="background: #f1f5f9; color: #334155;">Unit ${q.unit}</span></td>
+                    <td style="text-align: center;"><span class="badge ${typeBadgeStyle}">${escapeHtml(q.type)}</span></td>
+                    <td style="max-width: 140px; word-break: break-word;">${escapeHtml(q.optA)}</td>
+                    <td style="max-width: 140px; word-break: break-word;">${escapeHtml(q.optB)}</td>
+                    <td style="max-width: 140px; word-break: break-word;">${escapeHtml(q.optC || '—')}</td>
+                    <td style="max-width: 140px; word-break: break-word;">${escapeHtml(q.optD || '—')}</td>
+                    <td style="text-align: center; font-weight: 700; color: var(--color-primary);">${escapeHtml(q.correct)}</td>
+                    <td style="text-align: center;">${statusBadge}</td>
+                </tr>
+            `;
+        });
+
+        if (previewTableBody) previewTableBody.innerHTML = tableRowsHtml;
+
+        if (previewValidationError) {
+            previewValidationError.textContent = errorCount > 0 ? `⚠️ ${errorCount} row(s) contain validation errors. Hover over 'Error' badges to see details.` : '';
+        }
+
+        if (previewModal) previewModal.style.display = 'flex';
+    }
+
+    if (previewBtn) {
+        previewBtn.addEventListener('click', handlePreviewClick);
     }
 </script>
 

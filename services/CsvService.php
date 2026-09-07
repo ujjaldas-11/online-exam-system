@@ -4,9 +4,23 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../utils/sanitize.php';
 
+if (!function_exists('mb_strlen')) {
+    function mb_strlen(string $string, ?string $encoding = null): int { return strlen($string); }
+}
+if (!function_exists('mb_substr')) {
+    function mb_substr(string $string, int $start, ?int $length = null, ?string $encoding = null): string {
+        return $length === null ? substr($string, $start) : substr($string, $start, $length);
+    }
+}
+if (!function_exists('mb_strpos')) {
+    function mb_strpos(string $haystack, string $needle, int $offset = 0, ?string $encoding = null): int|false {
+        return strpos($haystack, $needle, $offset);
+    }
+}
+
 /**
- * CSV Service
- * Centralizes CSV export streaming, formula sanitization, and upload validation.
+ * CSV & Spreadsheet Service
+ * Centralizes CSV and XLSX export streaming, formula sanitization, and upload validation.
  */
 class CsvService
 {
@@ -20,6 +34,20 @@ class CsvService
         'application/vnd.ms-excel',
         'text/comma-separated-values',
         'application/octet-stream',
+    ];
+
+    /**
+     * Standard Question Bank Column Headers
+     */
+    public const QUESTION_HEADERS = [
+        'Question Text',
+        'Unit Number',
+        'Option A',
+        'Option B',
+        'Option C',
+        'Option D',
+        'Correct Option',
+        'Question Type'
     ];
 
     /**
@@ -71,6 +99,159 @@ class CsvService
 
         fclose($out);
         exit;
+    }
+
+    /**
+     * Stream an Excel XLSX file download directly to the client.
+     *
+     * @param string $filename Name of downloaded file (e.g. questions_template.xlsx)
+     * @param string[] $headers Column headers
+     * @param array $rows Array of records (associative or indexed)
+     * @param (callable(array): array)|null $rowFormatter Optional mapper transforming row before output
+     */
+    public static function exportXlsx(
+        string $filename,
+        array $headers,
+        array $rows,
+        ?callable $rowFormatter = null
+    ): void {
+        if (!str_ends_with(strtolower($filename), '.xlsx')) {
+            $filename .= '.xlsx';
+        }
+
+        require_once __DIR__ . '/../lib/simplexlsxgen/SimpleXLSXGen.php';
+
+        // Format header row with bold text for SimpleXLSXGen
+        $headerRow = array_map(fn($h) => '<b>' . htmlspecialchars((string)$h, ENT_QUOTES, 'UTF-8') . '</b>', $headers);
+
+        $xlsxRows = [$headerRow];
+        foreach ($rows as $row) {
+            $formattedRow = $rowFormatter !== null ? $rowFormatter($row) : (array)$row;
+            $sanitizedRow = array_map(function ($val) {
+                if ($val === null) {
+                    return '';
+                }
+                return sanitize_csv_value((string)$val);
+            }, $formattedRow);
+            $xlsxRows[] = array_values($sanitizedRow);
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($xlsxRows);
+
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . rawurlencode($filename) . '"');
+        header('Cache-Control: max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        echo (string)$xlsx;
+        exit;
+    }
+
+    /**
+     * Export a list of question records to CSV or XLSX format.
+     *
+     * @param string $filename Base filename without extension
+     * @param array $questions Array of question rows from database
+     * @param string $format 'csv' or 'xlsx'
+     */
+    public static function exportQuestions(string $filename, array $questions, string $format = 'csv'): void
+    {
+        $headers = self::QUESTION_HEADERS;
+        $formatter = function (array $q): array {
+            return [
+                $q['question_text'] ?? '',
+                $q['unit_number'] ?? 1,
+                $q['option_a'] ?? '',
+                $q['option_b'] ?? '',
+                $q['option_c'] ?? '',
+                $q['option_d'] ?? '',
+                $q['correct_option'] ?? 'A',
+                $q['question_type'] ?? 'single'
+            ];
+        };
+
+        if (strtolower($format) === 'xlsx') {
+            self::exportXlsx($filename, $headers, $questions, $formatter);
+        } else {
+            self::export($filename, $headers, $questions, $formatter);
+        }
+    }
+
+    /**
+     * Return high-quality sample template question rows covering all 5 supported question types.
+     *
+     * @return array
+     */
+    public static function getSampleQuestionRows(): array
+    {
+        return [
+            [
+                'question_text' => 'Which data structure operates on a Last-In, First-Out (LIFO) basis?',
+                'unit_number' => 1,
+                'option_a' => 'Queue',
+                'option_b' => 'Stack',
+                'option_c' => 'Array',
+                'option_d' => 'Binary Tree',
+                'correct_option' => 'B',
+                'question_type' => 'single'
+            ],
+            [
+                'question_text' => 'Which of the following are standard inter-process communication (IPC) mechanisms in UNIX-like systems? (Select all that apply)',
+                'unit_number' => 1,
+                'option_a' => 'Message Queues',
+                'option_b' => 'Shared Memory',
+                'option_c' => 'Pipes',
+                'option_d' => 'Floating-Point Registers',
+                'correct_option' => 'A,B,C',
+                'question_type' => 'multiple'
+            ],
+            [
+                'question_text' => "Scenario: A high-frequency trading server experiences severe throughput degradation due to lock contention on shared queues. Which architectural pattern should the engineers evaluate?",
+                'unit_number' => 2,
+                'option_a' => 'Lock-free ring buffers with atomic CAS',
+                'option_b' => 'Coarse-grained recursive mutexes',
+                'option_c' => 'Single-threaded synchronous I/O',
+                'option_d' => 'Global Interpreter Lock',
+                'correct_option' => 'A',
+                'question_type' => 'case_study'
+            ],
+            [
+                'question_text' => "Assertion (A): Virtual memory paging completely eliminates external fragmentation.\nReason (R): In paging, physical memory is partitioned into uniform, fixed-size page frames.",
+                'unit_number' => 3,
+                'option_a' => 'Both A and R are true, and R is the correct explanation of A',
+                'option_b' => 'Both A and R are true, but R is NOT the correct explanation of A',
+                'option_c' => 'A is true, but R is false',
+                'option_d' => 'A is false, but R is true',
+                'correct_option' => 'A',
+                'question_type' => 'assertion_reason'
+            ],
+            [
+                'question_text' => "Match the disk scheduling algorithms with their operational behaviors:\n1. FCFS - P. Services nearest request\n2. SSTF - Q. Strict arrival order\n3. SCAN - R. Elevates in one direction then reverses",
+                'unit_number' => 4,
+                'option_a' => '1-Q, 2-P, 3-R',
+                'option_b' => '1-P, 2-Q, 3-R',
+                'option_c' => '1-R, 2-P, 3-Q',
+                'option_d' => '1-Q, 2-R, 3-P',
+                'correct_option' => 'A',
+                'question_type' => 'matching'
+            ]
+        ];
+    }
+
+    /**
+     * Trigger immediate download of sample questions template in CSV or XLSX format.
+     *
+     * @param string $format 'csv' or 'xlsx'
+     */
+    public static function downloadSampleQuestionsTemplate(string $format = 'csv'): void
+    {
+        $rows = self::getSampleQuestionRows();
+        self::exportQuestions('questions_template', $rows, $format);
     }
 
     /**

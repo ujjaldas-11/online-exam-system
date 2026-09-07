@@ -5,12 +5,36 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/CsvService.php';
 
 $subjects = $pdo->query("SELECT id, name, department, semester FROM subjects ORDER BY name ASC")->fetchAll();
 
 $subject_id = int_param($_GET['subject_id'] ?? ($subjects[0]['id'] ?? 0));
 $message = '';
 $message_type = '';
+
+if (isset($_GET['action']) && $_GET['action'] === 'export_questions' && $subject_id > 0) {
+    if (!can_admin_manage_subject($pdo, $subject_id)) {
+        $message = "Unauthorized: You can only export questions for subjects you have access to.";
+        $message_type = 'error';
+    } else {
+        $format = (($_GET['format'] ?? 'csv') === 'xlsx') ? 'xlsx' : 'csv';
+        $stmt = $pdo->prepare("SELECT question_text, unit_number, option_a, option_b, option_c, option_d, correct_option, question_type FROM questions WHERE subject_id = ? ORDER BY unit_number ASC, id ASC");
+        $stmt->execute([$subject_id]);
+        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $subjName = 'subject_' . $subject_id;
+        foreach ($subjects as $s) {
+            if ($s['id'] == $subject_id) {
+                $subjName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $s['name']);
+                break;
+            }
+        }
+        log_admin_action($pdo, 'export_questions', 'subject', $subject_id, "Exported " . count($questions) . " questions for subject #$subject_id as $format");
+        CsvService::exportQuestions("questions_{$subjName}", $questions, $format);
+        exit;
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
     verify_csrf();
@@ -180,6 +204,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <span class="material-symbols-outlined icon-sm">upload</span> Upload Questions
             </a>
             <?php if (!empty($all_questions)): ?>
+                <a href="view-questions.php?subject_id=<?= $subject_id ?>&action=export_questions&format=csv" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Export questions as CSV">
+                    <span class="material-symbols-outlined icon-sm">download</span> Export CSV
+                </a>
+                <a href="view-questions.php?subject_id=<?= $subject_id ?>&action=export_questions&format=xlsx" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Export questions as Excel (.xlsx)">
+                    <span class="material-symbols-outlined icon-sm">table_view</span> Export XLSX
+                </a>
                 <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!" data-confirm-title="Delete All Questions" data-confirm-btn="Delete All">
                     <?= csrf_field() ?>
                     <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
