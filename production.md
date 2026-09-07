@@ -23,6 +23,8 @@ Follow these steps to download the production build:
 
 ## 2. Web Server Deployment
 
+> **Containerized Deployment**: For automated, containerized production setups using Docker and Docker Compose (built per `release.yml`), refer to [DOCKER.md](DOCKER.md).
+
 Follow these steps to deploy the extracted application:
 
 1. Move all extracted files to your web root directory (for example, `/var/www/html/examify/` or `/opt/lampp/htdocs/examify/`).

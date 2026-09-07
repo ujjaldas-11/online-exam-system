@@ -1,0 +1,138 @@
+# ==============================================================================
+# Examify - Production Docker Compose Orchestration
+# Stack: Apache + PHP 8.2 Web Server, RFC 6455 WebSocket Daemon, MySQL 8.0
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # Web Application (Apache 2.4 + PHP 8.2)
+  # ----------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    container_name: examify_web
+    restart: unless-stopped
+    ports:
+      - "${EXAMIFY_PORT:-8080}:80"
+    environment:
+      APP_ENV: production
+      APP_NAME: Examify
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Kolkata}
+
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-examify}
+      DB_USERNAME: ${DB_USERNAME:-examify_prod}
+      DB_PASSWORD: ${DB_PASSWORD:-examify_secure_production_password_change_me}
+      DB_CHARSET: utf8mb4
+      DB_SSL: "false"
+
+      SESSION_LIFETIME: 1800
+      CSRF_SECRET: ${CSRF_SECRET:-replace_with_random_64_character_hex_secret_key_in_production}
+
+      WS_ENABLED: "true"
+      WS_HOST: 0.0.0.0
+      WS_PORT: 8085
+      WS_IPC_HOST: websocket
+      WS_IPC_PORT: 8086
+      WS_PUBLIC_URL: ${WS_PUBLIC_URL:-ws://localhost:8085}
+
+      WS_BACKEND_HOST: websocket
+      WS_BACKEND_PORT: 8085
+
+      DB_WAIT: "true"
+      DB_AUTO_MIGRATE: "true"
+      DB_SEED_DEMO: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+      websocket:
+        condition: service_started
+    volumes:
+      - app_logs:/var/www/html/logs
+    networks:
+      - examify_net
+
+  # ----------------------------------------------------------------------------
+  # Real-Time WebSocket & IPC Proctoring Daemon
+  # ----------------------------------------------------------------------------
+  websocket:
+    build:
+      context: .
+      dockerfile: Dockerfile.websocket
+    container_name: examify_websocket
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      APP_ENV: production
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Kolkata}
+
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-examify}
+      DB_USERNAME: ${DB_USERNAME:-examify_prod}
+      DB_PASSWORD: ${DB_PASSWORD:-examify_secure_production_password_change_me}
+      DB_CHARSET: utf8mb4
+      DB_SSL: "false"
+
+      WS_ENABLED: "true"
+      WS_HOST: 0.0.0.0
+      WS_PORT: 8085
+      WS_IPC_HOST: 0.0.0.0
+      WS_IPC_PORT: 8086
+
+      DB_WAIT: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - app_logs:/var/www/html/logs
+    networks:
+      - examify_net
+
+  # ----------------------------------------------------------------------------
+  # Database Server (MySQL 8.0)
+  # ----------------------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: examify_db
+    restart: unless-stopped
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-examify_root_secure_password_change_me}
+      MYSQL_DATABASE: ${DB_DATABASE:-examify}
+      MYSQL_USER: ${DB_USERNAME:-examify_prod}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-examify_secure_production_password_change_me}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - examify_net
+
+# ------------------------------------------------------------------------------
+# Persistent Storage Volumes
+# ------------------------------------------------------------------------------
+volumes:
+  db_data:
+    driver: local
+  app_logs:
+    driver: local
+
+# ------------------------------------------------------------------------------
+# Internal Bridge Network
+# ------------------------------------------------------------------------------
+networks:
+  examify_net:
+    driver: bridge

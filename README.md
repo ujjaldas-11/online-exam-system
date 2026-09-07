@@ -93,6 +93,13 @@ Open `http://127.0.0.1:8000` in your web browser.
 #### Option B: Apache or Nginx
 Deploy the project directory to your web server root (for example, `/var/www/html/examify` or `htdocs/examify`). Ensure Apache `mod_rewrite` is enabled to support `.htaccess` security rules.
 
+#### Option C: Production Docker (Containers)
+Deploy the pre-configured production container stack (Apache + PHP 8.2, WebSocket daemon, MySQL 8.0):
+```bash
+docker compose up -d --build
+```
+See [DOCKER.md](DOCKER.md) for complete architecture, SSL termination, and environment configuration.
+
 ### 5. Start the WebSocket Daemon (Optional)
 To enable real-time proctoring updates and live announcements:
 ```bash

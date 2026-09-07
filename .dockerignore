@@ -1,0 +1,82 @@
+# ==============================================================================
+# Examify - Docker Build Ignore Rules
+# Strictly excludes dev, testing, secret, and scratch files from Docker context
+# ==============================================================================
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD workflows and Linters
+.github/
+.mega-linter.yml
+
+# IDE & Code Editor Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.fleet/
+
+# Test suites and test questions
+tests/
+
+# Sensitive environment credentials & local certificates (CRITICAL)
+.env
+.env.*
+!.env.example
+config/ca.crt
+
+# Database backups & local dumps
+*.sql.bak
+*.dump
+*.backup
+db_backup/
+backups/
+
+# Runtime logs & debug output
+*.log
+logs/*.log
+error_log
+access_log
+php_errors.log
+report/
+
+# Temporary scratch scripts & notes
+count_lines.py
+changes.md
+mcq-types.md
+task.md
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Local build and distribution packaging
+dist/
+build/
+out/
+releases/
+*.zip
+*.tar.gz
+*.tgz
+
+# Node.js and PHP dependency caches
+node_modules/
+vendor/
+.npm/
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/

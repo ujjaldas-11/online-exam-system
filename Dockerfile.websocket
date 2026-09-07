@@ -1,0 +1,79 @@
+# ==============================================================================
+# Examify - Dedicated Production WebSocket & IPC Daemon Dockerfile
+# Architected strictly according to .github/workflows/release.yml
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Stage 1: Asset Builder (Node.js 20 per release.yml)
+# ------------------------------------------------------------------------------
+FROM node:20-alpine AS asset-builder
+
+WORKDIR /build
+
+# Install asset minification tools specified in release.yml
+RUN npm install -g clean-css-cli terser
+
+# Copy static assets and utilities
+COPY assets/ ./assets/
+COPY utils/ ./utils/
+
+# Minify CSS and JS files exactly as in release.yml
+RUN for f in assets/css/*.css; do \
+      [ -f "$f" ] && cleancss -o "$f" "$f"; \
+    done \
+    && for f in assets/js/*.js utils/*.js; do \
+      [ -f "$f" ] && terser "$f" -o "$f" --compress --mangle; \
+    done
+
+# ------------------------------------------------------------------------------
+# Stage 2: Production PHP CLI Runtime (PHP 8.2 per release.yml)
+# ------------------------------------------------------------------------------
+FROM php:8.2-cli-bookworm
+
+LABEL maintainer="Bibekananda Mudi" \
+      description="Examify Online Examination System - Real-Time WebSocket & IPC Daemon"
+
+# Install production PHP extensions
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libonig-dev \
+    && docker-php-ext-install -j$(nproc) pdo_mysql mbstring \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Apply production PHP configuration
+COPY docker/php.ini $PHP_INI_DIR/conf.d/examify-production.ini
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+WORKDIR /var/www/html
+
+# Copy application runtime files
+COPY bin/ ./bin/
+COPY config/ ./config/
+COPY lib/ ./lib/
+COPY services/ ./services/
+COPY archive/ ./archive/
+COPY init-db.php server.php .env.example LICENSE ./
+
+# Copy optimized assets and utils from Stage 1
+COPY --from=asset-builder /build/assets/ ./assets/
+COPY --from=asset-builder /build/utils/ ./utils/
+
+# Ensure logs directory exists with appropriate permissions
+RUN mkdir -p logs && chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html && chmod -R 775 logs
+
+# Run PHP syntax verification across all production PHP files (per release.yml)
+RUN find . -type f -name "*.php" -print0 | xargs -0 -n1 -P4 php -l
+
+# Install websocket entrypoint script
+COPY docker/websocket-entrypoint.sh /usr/local/bin/websocket-entrypoint.sh
+RUN chmod +x /usr/local/bin/websocket-entrypoint.sh
+
+USER www-data
+
+EXPOSE 8085 8086
+
+# Healthcheck verifying WebSocket/IPC port is listening
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD php -r "if (!@fsockopen('127.0.0.1', (int)(getenv('WS_IPC_PORT') ?: 8086), \$errno, \$errstr, 2)) exit(1);"
+
+ENTRYPOINT ["websocket-entrypoint.sh"]
+CMD ["php", "bin/websocket-server.php"]
