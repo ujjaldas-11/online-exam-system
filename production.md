@@ -23,8 +23,6 @@ Follow these steps to download the production build:
 
 ## 2. Web Server Deployment
 
-> **Containerized Deployment**: For automated, containerized production setups using Docker and Docker Compose (built per `release.yml`), refer to [DOCKER.md](DOCKER.md).
-
 Follow these steps to deploy the extracted application:
 
 1. Move all extracted files to your web root directory (for example, `/var/www/html/examify/` or `/opt/lampp/htdocs/examify/`).
@@ -298,7 +296,7 @@ server {
 
 ## 5. Enforcing Database SSL (MySQL / MariaDB)
 
-When the database runs on a separate machine, virtual host, or container across the LAN, **unencrypted database communication exposes student records, passwords, and live examination scores**.
+When the database runs on a separate server or virtual host across the LAN, **unencrypted database communication exposes student records, passwords, and live examination scores**.
 
 Examify's database connection layer ([`config/database.php`](config/database.php)) includes built-in support for encrypted TLS connections and server certificate verification.
 

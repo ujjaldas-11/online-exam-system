@@ -30,7 +30,9 @@ Examify is engineered to run in physically isolated network environments where i
 
 ### Faculty and Administration Tools
 - **Role-Based Access Control**: Granular separation between Superadmin and Teacher accounts, with departmental and ownership scoping across curriculum subjects and question banks.
-- **Question Bank Management**: Teachers can author questions manually or import multiple-choice questions in bulk via CSV (`admin/manage-questions.php`).
+- **Multi-Type Question Bank Management**: Supports single-choice, multi-select checkboxes (All-or-Nothing grading with negative marking), case studies, assertion-reason, and matching archetypes (`admin/manage-questions.php`).
+- **CSV & Native Excel (.xlsx) Operations**: Download formatted sample templates in CSV and native Excel, inspect columns via in-browser preview modals, and export complete question banks to CSV or XLSX (`admin/view-questions.php`).
+- **Faculty Management & Audit Trail**: Superadmins can provision teacher accounts, reset faculty or superadmin passwords, and preserve authored questions permanently upon staff retirement (`admin/manage-teachers.php`).
 - **Student Cohort Management**: Administrators can filter, verify, suspend, or perform bulk cohort promotions across academic semesters.
 - **Pure-PHP PDF Generation**: Exports complete institutional exam score sheets and individual student result cards using an embedded FPDF engine without requiring external command-line binaries.
 
