@@ -249,7 +249,7 @@ Examify supports five distinct multiple-choice question archetypes:
 - **Assertion & Reason (`assertion_reason`)**: Evaluates Assertion (A) and Reason (R) statements.
 - **Matching (`matching`)**: Matches items between Column I and Column II.
 
-Follow these steps to upload questions in bulk:
+Follow these steps to upload multiple-choice questions in bulk via CSV (or Excel):
 
 1. Click the **Questions** link in the navigation bar (`admin/manage-questions.php`).
 2. Select the target curriculum subject from the dropdown menu.
