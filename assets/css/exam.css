@@ -71,6 +71,7 @@
   margin-bottom: 24px;
   line-height: 1.6;
   color: var(--color-dark);
+  white-space: pre-line;
 }
 
 .options-list {

@@ -14,6 +14,7 @@ $rootDir = dirname(__DIR__);
 require_once $rootDir . '/config/database.php';
 require_once $rootDir . '/services/ExamEngine.php';
 require_once $rootDir . '/services/PdfService.php';
+require_once $rootDir . '/services/CsvService.php';
 
 $totalTests = 0;
 $passedTests = 0;
@@ -217,12 +218,16 @@ try {
 // --------------------------------------------------------------------------
 echo "\n--- 5. Testing CSV Import Parsing for Multi-Type MCQs ---\n";
 
-// Test parsing logic simulating manage-questions.php
+// Test parsing logic simulating manage-questions.php with CsvService::normalizeQuestionRow
 $testCsvData = "Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Question Type\n"
     . "\"What is an OS?\",1,System Software,Application,Hardware,Firmware,A,single\n"
     . "\"Select valid IPC mechanisms\",2,Pipes,Shared Memory,Queues,Registers,\"A,B,C\",multiple\n"
     . "\"Select contiguous options\",2,Pipes,Shared Memory,Queues,Registers,ABC,multiple\n"
-    . "\"A scenario question\",3,Alpha,Beta,Gamma,Delta,D,case_study\n";
+    . "\"A scenario question\",3,Alpha,Beta,Gamma,Delta,D,case_study\n"
+    . "\"Assertion (A): Multiprogramming increases CPU utilization.\\nReason (R): It allows multiple processes to reside in memory simultaneously.\",1,Both A and R are true, and R is the correct explanation of A,Both A and R are true, but R is NOT the correct explanation of A,A is true, but R is false,A is false, but R is true,A,assertion_reason\n"
+    . "\"Match List-I with List-II:\",4,1-Q, 2-P, 3-R,1-P, 2-Q, 3-R,1-R, 2-P, 3-Q,1-Q, 2-R, 3-P,A,matching\n"
+    . "\"Which are valid IPCs?\",2,Pipes,Shared Memory,Queues,Registers,A,B,C,multiple\n"
+    . "\"Assertion (A): Paging eliminates external fragmentation.\\nReason (R): Frames are fixed size.\",3,\"Both A and R are true, and R is the correct explanation of A\",\"Both A and R are true, but R is NOT the correct explanation of A\",\"A is true, but R is false\",\"A is false, but R is true\",A,assertion_reason\n";
 
 $stream = fopen('php://memory', 'r+');
 fwrite($stream, $testCsvData);
@@ -238,6 +243,8 @@ while (($data = fgetcsv($stream, 4000, ',')) !== false) {
         $isHeader = false;
         continue;
     }
+
+    $data = CsvService::normalizeQuestionRow($data);
 
     $rawCorrect = strtoupper(trim($data[6] ?? ''));
     $letters = [];
@@ -269,17 +276,28 @@ while (($data = fgetcsv($stream, 4000, ',')) !== false) {
 
     $parsedRows[] = [
         'q' => $data[0],
+        'opt_a' => $data[2] ?? '',
+        'opt_b' => $data[3] ?? '',
+        'opt_c' => $data[4] ?? '',
+        'opt_d' => $data[5] ?? '',
         'correct' => $correct,
         'type' => $qType
     ];
 }
 fclose($stream);
 
-assert_test("CSV parsed 4 rows successfully", count($parsedRows) === 4);
+assert_test("CSV parsed 8 rows successfully", count($parsedRows) === 8);
 assert_test("Row 1 parsed as 'single' with correct 'A'", $parsedRows[0]['type'] === 'single' && $parsedRows[0]['correct'] === 'A');
 assert_test("Row 2 parsed comma-separated multi 'A,B,C'", $parsedRows[1]['type'] === 'multiple' && $parsedRows[1]['correct'] === 'A,B,C');
 assert_test("Row 3 parsed contiguous letters 'ABC' as 'A,B,C'", $parsedRows[2]['type'] === 'multiple' && $parsedRows[2]['correct'] === 'A,B,C');
 assert_test("Row 4 parsed case_study archetype", $parsedRows[3]['type'] === 'case_study' && $parsedRows[3]['correct'] === 'D');
+assert_test("Row 5 (unquoted assertion_reason) parsed as 'assertion_reason' with correct 'A'", $parsedRows[4]['type'] === 'assertion_reason' && $parsedRows[4]['correct'] === 'A');
+assert_test("Row 5 reconstructed Option A with comma properly", $parsedRows[4]['opt_a'] === 'Both A and R are true, and R is the correct explanation of A');
+assert_test("Row 5 reconstructed Option C with comma properly", $parsedRows[4]['opt_c'] === 'A is true, but R is false');
+assert_test("Row 6 (unquoted matching) parsed as 'matching' with correct 'A'", $parsedRows[5]['type'] === 'matching' && $parsedRows[5]['correct'] === 'A');
+assert_test("Row 6 reconstructed Option A with matching pairs", $parsedRows[5]['opt_a'] === '1-Q, 2-P, 3-R');
+assert_test("Row 7 (unquoted multi-answer) parsed as 'multiple' with correct 'A,B,C'", $parsedRows[6]['type'] === 'multiple' && $parsedRows[6]['correct'] === 'A,B,C');
+assert_test("Row 8 (quoted assertion_reason) parsed as 'assertion_reason' with correct 'A'", $parsedRows[7]['type'] === 'assertion_reason' && $parsedRows[7]['correct'] === 'A');
 
 // --------------------------------------------------------------------------
 // Summary Results

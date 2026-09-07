@@ -83,7 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                         throw new Exception('Too many questions. Maximum 1,000 questions per import.');
                     }
 
+                    // Auto-heal and normalize raw CSV data (e.g. unquoted commas in assertion-reason/matching options)
+                    $data = CsvService::normalizeQuestionRow($data);
+
                     $q_text  = clean_input($data[0] ?? '');
+                    // Normalize literal \n or \r\n to real newlines so questions render with proper line breaks
+                    $q_text  = str_replace(['\r\n', '\r', '\n'], "\n", $q_text);
                     $u_num   = (int) clean_input($data[1] ?? '1');
                     $opt_a   = trim($data[2] ?? '');
                     $opt_b   = trim($data[3] ?? '');
@@ -240,7 +245,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </button>
                 </div>
                 <textarea name="csv_text" id="csv_text" rows="8" class="form-control"
-                placeholder='What is an operating system?,1,System software,Application software,Hardware component,Malware,A&#10;Is HTML a programming language?,2,Yes,No,,,B'></textarea>
+                placeholder='What is an operating system?,1,System software,Application software,Hardware component,Malware,A,single&#10;Which of the following are valid IPC mechanisms?,2,Pipes,Shared Memory,Queues,Registers,"A,B,C",multiple&#10;"Assertion (A): Paging eliminates external fragmentation.&#10;Reason (R): Frames are fixed size.",3,"Both A and R are true, and R is the correct explanation of A","Both A and R are true, but R is NOT the correct explanation of A","A is true, but R is false","A is false, but R is true",A,assertion_reason'></textarea>
             </div>
 
             <button type="submit" name="add_bulk_csv" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 15px;">
@@ -273,31 +278,52 @@ include __DIR__ . '/../components/admin-sidebar.php';
             }
 
             const prompt = `Act as an expert university professor and exam controller.
-Generate 15 high-quality multiple-choice questions (MCQs) for the following course:
+Generate 15 high-quality, academically rigorous questions for the following course:
 Course: ${subjectTitle}
 Target Audience: ${targetAudience}
 
+SUPPORTED QUESTION TYPES (Multi-Type MCQ Architecture):
+1. single           - Standard single-choice question with exactly one correct option (A, B, C, or D).
+2. multiple         - Multiple-Answer question where multiple options are correct (e.g. "Select all that apply"). Correct Option MUST be comma-separated letters inside quotes (e.g. "A,C,D" or "A,B").
+3. case_study       - Scenario-based / problem-solving question presenting a realistic technical scenario followed by a focused diagnostic or architectural decision question.
+4. assertion_reason - "Assertion (A): [statement]\\nReason (R): [statement]" with standard options (MUST be enclosed in double quotes):
+                      A) "Both A and R are true, and R is the correct explanation of A"
+                      B) "Both A and R are true, but R is NOT the correct explanation of A"
+                      C) "A is true, but R is false"
+                      D) "A is false, but R is true"
+5. matching         - Column matching question (e.g. "Match List-I with List-II: 1-..., 2-...") with options formatted as combinations enclosed in double quotes (e.g. "1-P, 2-Q, 3-R").
+
 STRICT OUTPUT FORMAT RULES:
 1. Return ONLY the raw CSV text. Do NOT wrap output in markdown code blocks (\`\`\`csv or \`\`\`). Zero commentary, notes, or conversational filler.
-2. The very first line MUST be this exact header row:
-Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
+2. The very first line MUST be this exact 8-column header row:
+Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Question Type
 
 3. Field Constraints:
-   - Question Text: Clear, unambiguous question testing conceptual depth and practical application.
+   - Question Text: Clear, rigorous academic question testing conceptual mastery and practical problem solving.
    - Unit Number: An integer representing syllabus unit (1, 2, 3, 4, or 5). Distribute questions evenly across units.
    - Option A, Option B, Option C, Option D: Distinct, plausible options. Do NOT prefix with "A)", "B.", "1.", or labels.
-   - Correct Option: Exactly one single uppercase letter: "A", "B", "C", or "D".
+   - Correct Option:
+     * For single, case_study, assertion_reason, matching: exactly one uppercase letter ("A", "B", "C", or "D").
+     * For multiple: comma-separated uppercase letters enclosed in quotes (e.g. "A,C" or "A,B,D").
+   - Question Type: Must be exactly one of: single, multiple, case_study, assertion_reason, matching.
 
 4. CRITICAL CSV ESCAPING RULES:
-   - Any field that contains a comma (,), quotation mark ("), or semicolon MUST be enclosed inside standard double quotes (e.g. "Which of the following, if any, is...").
+   - Any field that contains a comma (,), quotation mark ("), or semicolon MUST be enclosed inside standard double quotes.
+   - For assertion_reason and matching questions, options contain commas and MUST be enclosed in double quotes (e.g. "Both A and R are true, and R is the correct explanation of A" or "1-Q, 2-P, 3-R").
    - Any quotation mark within a field must be escaped as two double quotes (e.g. "Use the ""volatile"" keyword").
-   - Each question must occupy exactly one single line.
+   - Each question must occupy exactly one single line. Use \\n for internal line breaks inside quoted question text.
+
+5. DISTRIBUTION REQUIREMENT:
+   - Distribute questions evenly across units 1 to 5.
+   - Include diverse question types: ~8 single, ~3 multiple, ~2 case_study, ~1 assertion_reason, ~1 matching.
 
 VALID OUTPUT EXAMPLE:
-Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
-"Which data structure operates on a Last-In, First-Out (LIFO) basis?",1,Queue,Stack,Array,Binary Tree,B
-"What is the average time complexity of searching in a balanced Binary Search Tree?",2,O(1),O(n),O(log n),O(n^2),C
-"In relational databases, which SQL clause is used to filter aggregated group results?",3,WHERE,HAVING,ORDER BY,GROUP BY,B`;
+Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Question Type
+"Which data structure operates on a Last-In, First-Out (LIFO) basis?",1,Queue,Stack,Array,Binary Tree,B,single
+"Which of the following are standard inter-process communication (IPC) mechanisms in UNIX-like systems? (Select all that apply)",1,Message Queues,Shared Memory,Pipes,Floating-Point Registers,"A,B,C",multiple
+"Scenario: A high-frequency trading server experiences severe throughput degradation due to lock contention on shared queues. Which architectural pattern should the engineers evaluate?",2,Lock-free ring buffers with atomic CAS,Coarse-grained recursive mutexes,Single-threaded synchronous I/O,Global Interpreter Lock,A,case_study
+"Assertion (A): Virtual memory paging completely eliminates external fragmentation.\\nReason (R): In paging, physical memory is partitioned into uniform, fixed-size page frames.",3,"Both A and R are true, and R is the correct explanation of A","Both A and R are true, but R is NOT the correct explanation of A","A is true, but R is false","A is false, but R is true",A,assertion_reason
+"Match the disk scheduling algorithms with their operational behaviors:\\n1. FCFS - P. Services nearest request\\n2. SSTF - Q. Strict arrival order\\n3. SCAN - R. Elevates in one direction then reverses",4,"1-Q, 2-P, 3-R","1-P, 2-Q, 3-R","1-R, 2-P, 3-Q","1-Q, 2-R, 3-P",A,matching`;
 
             const copySuccess = () => {
                 const originalHtml = copyPromptBtn.innerHTML;
