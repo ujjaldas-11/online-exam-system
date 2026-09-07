@@ -40,26 +40,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sem = int_param($_POST['semester'] ?? 0);
 
         if (!$name || !$email || !$pass || !$roll || !$sem || !$dept || !$phone || !$gender) {
-            $error = "All fields are required.";
+            $error = "Invalid Credentials";
             RateLimiter::hit($pdo, "register:ip:{$ip}", 900, 5);
         } elseif (strlen($name) > 100) {
-            $error = "Name cannot exceed 100 characters.";
+            $error = "Invalid Credentials";
         } elseif (strlen($email) > 100 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = "Invalid email address format.";
+            $error = "Invalid Credentials";
         } elseif (strlen($roll) > 50) {
-            $error = "Roll number cannot exceed 50 characters.";
+            $error = "Invalid Credentials";
         } elseif (!CurriculumService::isValidDepartment($pdo, $dept)) {
-            $error = "Invalid department selected.";
+            $error = "Invalid Credentials";
         } elseif (!in_array($gender, ['male', 'female', 'others'], true)) {
-            $error = "Invalid gender selected.";
+            $error = "Invalid Credentials";
         } elseif ($pass !== $cpass) {
-            $error = "Passwords do not match.";
+            $error = "Invalid Credentials";
         } elseif (strlen($pass) < 6) {
-            $error = "Password must be at least 6 characters.";
+            $error = "Invalid Credentials";
         } elseif (!preg_match('/^[0-9]{10}$/', $phone)) {
-            $error = "Phone number must be exactly 10 numeric digits.";
+            $error = "Invalid Credentials";
         } elseif ($sem < 1 || $sem > 8) {
-            $error = "Semester must be between 1 and 8.";
+            $error = "Invalid Credentials";
         } else {
             try {
                 $stmt = $pdo->prepare("SELECT id, status FROM students WHERE email = ? LIMIT 1");
@@ -67,18 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $existingEmail = $stmt->fetch();
 
                 if ($existingEmail) {
-                    if ($existingEmail['status'] === 'pending') {
-                        $error = "An account with this email is already registered and awaiting administrator approval.";
-                    } else {
-                        $error = "An account with this email already exists. Please log in.";
-                    }
+                    $error = "Invalid Credentials";
                 } else {
                     $stmt = $pdo->prepare("SELECT id, status FROM students WHERE roll_number = ? LIMIT 1");
                     $stmt->execute([$roll]);
                     $existingRoll = $stmt->fetch();
 
                     if ($existingRoll) {
-                        $error = "Roll number is already registered.";
+                        $error = "Invalid Credentials";
                     } else {
                         $hashed = password_hash($pass, PASSWORD_DEFAULT);
 
@@ -107,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             } catch (PDOException $e) {
-                $error = safe_db_error($e, "Registration failed. Please check your information.");
+                $error = safe_db_error($e, "Invalid Credentials");
             }
         }
     }
