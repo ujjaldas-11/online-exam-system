@@ -195,6 +195,16 @@
   width: 100%;
 }
 
+/* Suppress browser native password reveal/clear buttons (e.g. Edge/IE ::-ms-reveal) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+.password-wrapper input::-ms-reveal,
+.password-wrapper input::-ms-clear {
+  display: none !important;
+  width: 0;
+  height: 0;
+}
+
 .password-toggle-btn {
   position: absolute;
   right: 6px;
