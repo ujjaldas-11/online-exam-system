@@ -16,10 +16,11 @@ services:
     restart: unless-stopped
     ports:
       - "${EXAMIFY_PORT:-8080}:80"
+      - "${EXAMIFY_SSL_PORT:-8443}:443"
     environment:
       APP_ENV: production
       APP_NAME: Examify
-      APP_URL: ${APP_URL:-http://localhost:8080}
+      APP_URL: ${APP_URL:-https://localhost:8443}
       APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Kolkata}
 
       DB_HOST: db
@@ -38,7 +39,8 @@ services:
       WS_PORT: 8085
       WS_IPC_HOST: websocket
       WS_IPC_PORT: 8086
-      WS_PUBLIC_URL: ${WS_PUBLIC_URL:-ws://localhost:8085}
+      WS_PUBLIC_URL: ${WS_PUBLIC_URL:-wss://localhost:8443/ws/}
+      SSL_SAN: ${SSL_SAN:-DNS:localhost,DNS:*.localhost,DNS:examify.local,IP:127.0.0.1,IP:::1}
 
       WS_BACKEND_HOST: websocket
       WS_BACKEND_PORT: 8085

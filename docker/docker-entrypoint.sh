@@ -9,6 +9,28 @@ set -e
 export WS_BACKEND_HOST="${WS_BACKEND_HOST:-websocket}"
 export WS_BACKEND_PORT="${WS_BACKEND_PORT:-8085}"
 
+# SSL Certificate Management (Self-Signed / Production Fallback)
+export SSL_CERT_FILE="${SSL_CERT_FILE:-/etc/ssl/certs/examify.crt}"
+export SSL_KEY_FILE="${SSL_KEY_FILE:-/etc/ssl/private/examify.key}"
+export SSL_SAN="${SSL_SAN:-DNS:localhost,DNS:*.localhost,DNS:examify.local,IP:127.0.0.1,IP:::1}"
+
+if [ ! -f "$SSL_CERT_FILE" ] || [ ! -f "$SSL_KEY_FILE" ]; then
+    echo "[Examify Entrypoint] Generating self-signed SSL certificate for HTTPS..."
+    mkdir -p "$(dirname "$SSL_CERT_FILE")" "$(dirname "$SSL_KEY_FILE")"
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "$SSL_KEY_FILE" \
+        -out "$SSL_CERT_FILE" \
+        -subj "/C=IN/ST=State/L=City/O=Examify/CN=localhost" \
+        -addext "subjectAltName=${SSL_SAN}" 2>/dev/null || \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "$SSL_KEY_FILE" \
+        -out "$SSL_CERT_FILE" \
+        -subj "/C=IN/ST=State/L=City/O=Examify/CN=localhost"
+    chmod 600 "$SSL_KEY_FILE"
+    chmod 644 "$SSL_CERT_FILE"
+    echo "[Examify Entrypoint] SSL certificate generated at $SSL_CERT_FILE"
+fi
+
 # Ensure .env exists (Examify config/database.php requires .env file in project root)
 if [ ! -f /var/www/html/.env ]; then
     if [ -f /var/www/html/.env.example ]; then

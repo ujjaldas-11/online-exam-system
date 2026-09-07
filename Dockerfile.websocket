@@ -17,12 +17,23 @@ RUN npm install -g clean-css-cli terser
 COPY assets/ ./assets/
 COPY utils/ ./utils/
 
-# Minify CSS and JS files exactly as in release.yml
-RUN for f in assets/css/*.css; do \
-      [ -f "$f" ] && cleancss -o "$f" "$f"; \
+# Restore symlinks if checked out on Windows as pointer files, then minify CSS and JS files
+RUN for f in utils/*.js; do \
+      if [ -f "$f" ] && [ ! -L "$f" ]; then \
+        target=$(cat "$f"); \
+        case "$target" in \
+          ../*) rm -f "$f" && ln -s "$target" "$f" ;; \
+        esac; \
+      fi; \
     done \
-    && for f in assets/js/*.js utils/*.js; do \
-      [ -f "$f" ] && terser "$f" -o "$f" --compress --mangle; \
+    && for f in assets/css/*.css; do \
+      if [ -f "$f" ]; then cleancss -o "$f" "$f"; fi; \
+    done \
+    && for f in assets/js/*.js; do \
+      if [ -f "$f" ]; then terser "$f" -o "$f" --compress --mangle; fi; \
+    done \
+    && for f in utils/*.js; do \
+      if [ -f "$f" ] && [ ! -L "$f" ]; then terser "$f" -o "$f" --compress --mangle; fi; \
     done
 
 # ------------------------------------------------------------------------------

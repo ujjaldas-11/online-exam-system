@@ -21,12 +21,23 @@ RUN npm install -g clean-css-cli terser
 COPY assets/ ./assets/
 COPY utils/ ./utils/
 
-# Minify CSS and JS files exactly as executed in release.yml
-RUN for f in assets/css/*.css; do \
-      [ -f "$f" ] && cleancss -o "$f" "$f"; \
+# Restore symlinks if checked out on Windows as pointer files, then minify CSS and JS files
+RUN for f in utils/*.js; do \
+      if [ -f "$f" ] && [ ! -L "$f" ]; then \
+        target=$(cat "$f"); \
+        case "$target" in \
+          ../*) rm -f "$f" && ln -s "$target" "$f" ;; \
+        esac; \
+      fi; \
     done \
-    && for f in assets/js/*.js utils/*.js; do \
-      [ -f "$f" ] && terser "$f" -o "$f" --compress --mangle; \
+    && for f in assets/css/*.css; do \
+      if [ -f "$f" ]; then cleancss -o "$f" "$f"; fi; \
+    done \
+    && for f in assets/js/*.js; do \
+      if [ -f "$f" ]; then terser "$f" -o "$f" --compress --mangle; fi; \
+    done \
+    && for f in utils/*.js; do \
+      if [ -f "$f" ] && [ ! -L "$f" ]; then terser "$f" -o "$f" --compress --mangle; fi; \
     done
 
 # ------------------------------------------------------------------------------
@@ -47,8 +58,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-install -j$(nproc) pdo_mysql mbstring gd opcache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Enable essential Apache modules for .htaccess, proxying, and client IP resolution
-RUN a2enmod rewrite headers expires deflate remoteip proxy proxy_http proxy_wstunnel
+# Enable essential Apache modules for .htaccess, proxying, SSL, and client IP resolution
+RUN a2enmod rewrite headers expires deflate remoteip proxy proxy_http proxy_wstunnel ssl socache_shmcb
 
 # Apply production VirtualHost and PHP configurations
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
@@ -79,15 +90,15 @@ RUN mkdir -p logs && chown -R www-data:www-data /var/www/html && chmod -R 755 /v
 # Run PHP syntax verification across all production PHP files (per release.yml)
 RUN find . -type f -name "*.php" -print0 | xargs -0 -n1 -P4 php -l
 
-# Healthcheck verifying HTTP service
+# Healthcheck verifying HTTPS service
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD php -r "if (@file_get_contents('http://127.0.0.1/index.php') === false) exit(1);"
+    CMD php -r "\$c = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false], 'http' => ['timeout' => 3]]); if (@file_get_contents('https://127.0.0.1/index.php', false, \$c) === false) exit(1);"
 
 # Install production entrypoint script
 COPY docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-EXPOSE 80
+EXPOSE 80 443
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["apache2-foreground"]

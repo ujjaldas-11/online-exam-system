@@ -59,8 +59,11 @@ jobs:
             [ -f "$f" ] && cleancss -o "$f" "$f"
           done
           echo "Minifying JS files in assets/js/ and utils/..."
-          for f in assets/js/*.js utils/*.js; do
+          for f in assets/js/*.js; do
             [ -f "$f" ] && terser "$f" -o "$f" --compress --mangle
+          done
+          for f in utils/*.js; do
+            [ -f "$f" ] && [ ! -L "$f" ] && terser "$f" -o "$f" --compress --mangle
           done
 
       - name: Determine Release Tag & Version
