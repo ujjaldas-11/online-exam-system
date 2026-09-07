@@ -280,8 +280,9 @@ putenv("APP_ENV=development");
 $_ENV['APP_ENV'] = 'development';
 
 // Check production.md documentation
-$prodMdContent = file_get_contents($rootDir . '/production.md');
-$hasProdMdSslDoc = str_contains($prodMdContent, "Enforced SSL / HTTPS");
+$prodMdPath = $rootDir . '/production.md';
+$prodMdContent = file_exists($prodMdPath) ? (string)file_get_contents($prodMdPath) : '';
+$hasProdMdSslDoc = !empty($prodMdContent) && str_contains($prodMdContent, "Enforced SSL / HTTPS");
 assert_test_bool($hasProdMdSslDoc, "production.md documents enforced SSL/HTTPS and HSTS in production");
 
 // --- 6. Live HTTP Server Test of Force SSL on APP_ENV=production ---
@@ -294,8 +295,20 @@ try {
     $prodEnvContent = preg_replace('/APP_ENV=.*/', 'APP_ENV=production', (string) $origEnv);
     file_put_contents($envFilePath, $prodEnvContent);
 
+    $httpBase = 'http://127.0.0.1:8080';
+    $chTest = curl_init('http://127.0.0.1:8080/index.php');
+    curl_setopt_array($chTest, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_NOBODY => true,
+        CURLOPT_TIMEOUT => 1,
+    ]);
+    if (curl_exec($chTest) === false) {
+        $httpBase = 'http://127.0.0.1';
+    }
+    curl_close($chTest);
+
     // Call plain HTTP endpoint
-    $ch = curl_init('http://127.0.0.1:8080/index.php');
+    $ch = curl_init($httpBase . '/index.php');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HEADER => true,
@@ -311,7 +324,7 @@ try {
     assert_test_bool(str_contains((string) $response, "Strict-Transport-Security"), "Live server outputs HSTS header in production");
 
     // 6B. Test simulated HTTPS request with X-Forwarded-Proto
-    $ch = curl_init('http://127.0.0.1:8080/index.php');
+    $ch = curl_init($httpBase . '/index.php');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HEADER => true,
@@ -330,7 +343,7 @@ try {
     $devEnvContent = preg_replace('/APP_ENV=.*/', 'APP_ENV=development', (string) $origEnv);
     file_put_contents($envFilePath, $devEnvContent);
 
-    $ch = curl_init('http://127.0.0.1:8080/index.php');
+    $ch = curl_init($httpBase . '/index.php');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HEADER => true,

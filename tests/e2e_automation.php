@@ -19,7 +19,20 @@ if (php_sapi_name() !== 'cli') {
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-$baseUrl = 'http://127.0.0.1:8080';
+$baseUrl = getenv('E2E_BASE_URL') ?: '';
+if (empty($baseUrl)) {
+    $code8080 = trim((string)@shell_exec('curl -s -o /dev/null -w "%{http_code}" --connect-timeout 1 http://127.0.0.1:8080'));
+    if ($code8080 === '200' || $code8080 === '301' || $code8080 === '302') {
+        $baseUrl = 'http://127.0.0.1:8080';
+    } else {
+        $codeHttps = trim((string)@shell_exec('curl -k -s -o /dev/null -w "%{http_code}" --connect-timeout 1 https://127.0.0.1'));
+        if ($codeHttps === '200' || $codeHttps === '301' || $codeHttps === '302') {
+            $baseUrl = 'https://127.0.0.1';
+        } else {
+            $baseUrl = 'http://127.0.0.1:8080';
+        }
+    }
+}
 $screenshotsDir = __DIR__ . '/screenshots';
 @mkdir($screenshotsDir, 0777, true);
 
@@ -54,7 +67,7 @@ class HttpClient
     public function request(string $method, string $url, array $data = [], array $headers = []): string
     {
         $args = [
-            'curl', '-s',
+            'curl', '-s', '-k',
             '-c', $this->cookieFile,
             '-b', $this->cookieFile,
             '-L', '--max-redirs', '5',
