@@ -93,11 +93,16 @@ Follow these steps during your test:
 1. Click the **Click to Enter Fullscreen & Begin** button.
 2. The browser enters full-screen mode.
 3. Read the question statement and options.
-4. Click an option (A, B, C, or D) to select your answer.
-   The system saves your answer automatically.
-5. Click the **Next** button to advance to the next question.
-6. Click the **Previous** button to revisit the prior question.
-7. Click the **Mark for Review** button to flag questions for later check.
+4. Note the question type displayed above the question text:
+   - **Single Choice**: Click the radio button for your chosen option (A, B, C, or D).
+   - **Multiple Choice**: Check the boxes for all correct options. The system saves your combined selection (for example, A and C).
+   - **Case Study**: Review the scenario text before you choose the correct option.
+   - **Assertion & Reason**: Evaluate statements A and R, then select the relationship option.
+   - **Matching**: Match Column I with Column II, then select the corresponding option code.
+5. The system saves your answer automatically.
+6. Click the **Next** button to advance to the next question.
+7. Click the **Previous** button to revisit the prior question.
+8. Click the **Mark for Review** button to flag questions for later check.
 
 #### Question Palette Indicators
 
@@ -236,20 +241,37 @@ Follow these steps to create a subject:
 
 ### 3.6 Managing Question Banks
 
-Follow these steps to upload multiple-choice questions in bulk via CSV:
+Examify supports five distinct multiple-choice question archetypes:
+
+- **Single Choice (`single`)**: Questions with exactly one correct option (A, B, C, or D).
+- **Multiple Choice (`multiple`)**: Questions with one or more correct options (for example, `A,C`).
+- **Case Study (`case_study`)**: Scenario-based evaluations with technical or clinical narratives.
+- **Assertion & Reason (`assertion_reason`)**: Evaluates Assertion (A) and Reason (R) statements.
+- **Matching (`matching`)**: Matches items between Column I and Column II.
+
+Follow these steps to upload questions in bulk:
 
 1. Click the **Questions** link in the navigation bar (`admin/manage-questions.php`).
-2. Select the target subject from the dropdown menu.
-3. (Optional) Click the **Download Template** button to obtain a pre-formatted CSV template.
-4. Upload your `.csv` or `.txt` file, or paste CSV records directly into the text area.
-   The CSV must contain the following columns:
-   `Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option`
+2. Select the target curriculum subject from the dropdown menu.
+3. Choose your template format:
+   - Click **Download CSV Template** to obtain a pre-formatted CSV template.
+   - Click **Download XLSX Template** to obtain a native Microsoft Excel workbook template.
+4. (Optional) Click the **Preview Template** button to inspect sample questions and accepted structures in your browser.
+5. Upload your `.csv` or `.txt` file, or paste CSV records directly into the text area.
+   The upload requires the following columns:
+   `Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option, Question Type`
    ```csv
-   Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
-   "What does HTTP stand for?",1,"HyperText Transfer Protocol","High Text Transfer Program","Hyperlink Text Transmission Protocol","Hosting Text Transfer Provider",A
-   "Which OSI layer handles routing?",2,"Physical Layer","Network Layer","Transport Layer","Data Link Layer",B
+   Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Question Type
+   "What does HTTP stand for?",1,"HyperText Transfer Protocol","High Text Transfer Program","Hyperlink Text Transmission Protocol","Hosting Text Transfer Provider",A,single
+   "Which protocols operate at the transport layer?",2,"TCP","IP","UDP","ICMP","A,C",multiple
+   "Assertion (A): Virtual memory increases address space.\nReason (R): It maps virtual to physical pages.",3,"Both A and R are true, and R is the correct explanation of A","Both A and R are true, but R is NOT the correct explanation of A","A is true, but R is false","A is false, but R is true",A,assertion_reason
    ```
-5. Click the **Upload Questions** button to validate and store the question bank.
+6. Click the **Upload Questions** button to validate records and update the question bank.
+
+#### Exporting Question Banks
+Open the question inventory page (`admin/view-questions.php`) to export your questions:
+- Click **Export CSV** to download questions in CSV format.
+- Click **Export XLSX** to download questions in native Microsoft Excel format.
 
 ### 3.7 Configuring Examinations
 
@@ -307,4 +329,31 @@ Follow these steps to release results to candidates:
 
 Examify compiles an official institutional PDF report.
 The report contains KPI metric boxes, student rankings, scores, and official endorsement signature lines.
+
+### 3.12 Faculty Management & Teacher Provisioning (`admin/manage-teachers.php`)
+
+Superadmins manage faculty accounts and credential lifecycles in the **Faculty** portal:
+
+#### Provisioning Faculty Accounts
+1. Click the **Faculty** link in the navigation sidebar.
+2. Complete the **Add Teacher** form with the faculty member's full name, college email, assigned academic department, and initial temporary password.
+3. Click the **Create Teacher Account** button.
+
+#### Resetting Faculty Passwords
+1. Locate the faculty member in the faculty directory.
+2. Click the **Reset Password** button.
+3. Type the new temporary password into the dialog.
+4. Click the **Update Password** button to apply the change immediately.
+
+#### Superadmin Credential Reset
+Superadmins can also reset their own master account password directly from this panel:
+1. Locate your account entry in the Superadmin section of the table.
+2. Click the **Reset My Password** button.
+3. Type your new password into the confirmation modal and confirm.
+
+#### Permanent Record Retention
+When a faculty member departs or retires:
+- Click the **Retire Account** button to revoke portal access.
+- The system permanently retains 100% of their authored questions, examinations, and student scores.
+- Historical author attribution displays permanently across curriculum records as `Prof. Name [Retired]`.
 
