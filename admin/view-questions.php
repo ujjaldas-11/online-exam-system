@@ -61,11 +61,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
         $opt_b = clean_input($_POST['option_b'] ?? '');
         $opt_c = clean_input($_POST['option_c'] ?? '');
         $opt_d = clean_input($_POST['option_d'] ?? '');
-        $correct_opt = strtoupper(clean_input($_POST['correct_option'] ?? ''));
+        $q_type = clean_input($_POST['question_type'] ?? 'single');
+        $validTypes = ['single', 'multiple', 'case_study', 'assertion_reason', 'matching'];
+        if (!in_array($q_type, $validTypes, true)) {
+            $q_type = 'single';
+        }
+
+        $rawCorrect = '';
+        if (isset($_POST['correct_options']) && is_array($_POST['correct_options'])) {
+            $rawCorrect = implode(',', $_POST['correct_options']);
+        } elseif (isset($_POST['correct_option'])) {
+            $rawCorrect = (string)$_POST['correct_option'];
+        }
+        $rawCorrect = strtoupper(trim($rawCorrect));
+        $allowedOptions = ['A', 'B', 'C', 'D'];
+        $cleanTokens = [];
+        foreach (array_filter(array_map('trim', explode(',', $rawCorrect))) as $tok) {
+            if (in_array($tok, $allowedOptions, true) && !in_array($tok, $cleanTokens, true)) {
+                $cleanTokens[] = $tok;
+            }
+        }
+        sort($cleanTokens);
+        $correct_opt = implode(',', $cleanTokens);
         $unit_num = int_param($_POST['unit_number'] ?? 1);
 
-        if (empty($q_text) || empty($opt_a) || empty($opt_b) || !in_array($correct_opt, ['A', 'B', 'C', 'D'], true)) {
-            $message = "Please provide question text, at least Options A & B, and a valid Correct Option (A, B, C, or D).";
+        if (empty($q_text) || empty($opt_a) || empty($opt_b) || empty($correct_opt)) {
+            $message = "Please provide question text, at least Options A & B, and valid Correct Option(s).";
             $message_type = 'error';
         } else {
             $canEdit = can_admin_manage_question($pdo, $q_id);
@@ -77,10 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
                 try {
                     $up = $pdo->prepare("
                         UPDATE questions
-                        SET question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_option = ?, unit_number = ?
+                        SET question_text = ?, question_type = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_option = ?, unit_number = ?
                         WHERE id = ?
                     ");
-                    $up->execute([$q_text, $opt_a, $opt_b, $opt_c ?: null, $opt_d ?: null, $correct_opt, $unit_num, $q_id]);
+                    $up->execute([$q_text, $q_type, $opt_a, $opt_b, $opt_c ?: null, $opt_d ?: null, $correct_opt, $unit_num, $q_id]);
                     log_admin_action($pdo, 'edit_question', 'question', $q_id, "Updated question #$q_id in subject #$subject_id");
                     $message = "Question updated successfully.";
                     $message_type = 'success';
@@ -104,7 +125,7 @@ if ($subject_id > 0) {
 
         if ($subject) {
             $resultsSql = "
-                SELECT q.id, q.unit_number, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
+                SELECT q.id, q.unit_number, q.question_type, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
                        a.name as creator_name, a.status as creator_status
                 FROM questions q
                 LEFT JOIN admins a ON q.created_by = a.id
@@ -191,14 +212,29 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <tr>
                             <th style="width: 50px;">#</th>
                             <th>Question Text</th>
-                            <th style="width: 130px; text-align: center;">Correct Option</th>
+                            <th style="width: 130px; text-align: center;">Type</th>
+                            <th style="width: 140px; text-align: center;">Correct Option</th>
                             <th style="width: 90px; text-align: center;">Unit</th>
                             <th style="width: 140px; text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $counter = 1; ?>
+                        <?php
+                        $counter = 1;
+                        $typeBadges = [
+                            'single' => ['label' => 'Single Select', 'class' => 'badge-active'],
+                            'multiple' => ['label' => 'Multiple Answer', 'class' => 'badge-warning'],
+                            'case_study' => ['label' => 'Case Study', 'class' => 'badge-info'],
+                            'assertion_reason' => ['label' => 'Assertion-Reason', 'class' => 'badge-secondary'],
+                            'matching' => ['label' => 'Matching', 'class' => 'badge-outline'],
+                        ];
+                        ?>
                         <?php foreach ($all_questions as $row): ?>
+                            <?php
+                            $qType = $row['question_type'] ?? 'single';
+                            $badgeInfo = $typeBadges[$qType] ?? ['label' => ucfirst($qType), 'class' => 'badge-inactive'];
+                            $isMulti = ($qType === 'multiple');
+                            ?>
                             <tr>
                                 <td><strong><?= $counter++ ?></strong></td>
                                 <td>
@@ -223,7 +259,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td style="text-align: center;">
-                                    <span class="badge badge-active" style="font-size: 0.9rem;">Option <?= e($row['correct_option']) ?></span>
+                                    <span class="badge <?= $badgeInfo['class'] ?>" style="font-size: 0.75rem; white-space: nowrap;"><?= e($badgeInfo['label']) ?></span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <?php if ($isMulti): ?>
+                                        <span class="badge badge-warning" style="font-size: 0.85rem;">Options <?= e($row['correct_option']) ?></span>
+                                    <?php else: ?>
+                                        <span class="badge badge-active" style="font-size: 0.9rem;">Option <?= e($row['correct_option']) ?></span>
+                                    <?php endif; ?>
                                 </td>
                                 <td style="text-align: center;">
                                     <span class="badge badge-inactive">Unit <?= e((string)$row['unit_number']) ?></span>
@@ -231,6 +274,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td style="text-align: right; white-space: nowrap;">
                                     <button type="button" class="btn btn-secondary btn-sm btn-edit-question"
                                         data-id="<?= (int)$row['id'] ?>"
+                                        data-type="<?= e($qType) ?>"
                                         data-text="<?= e($row['question_text']) ?>"
                                         data-a="<?= e($row['option_a']) ?>"
                                         data-b="<?= e($row['option_b']) ?>"
@@ -297,19 +341,42 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                     <div>
-                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Correct Option</label>
-                        <select name="correct_option" id="modal_correct_opt" required class="form-control" style="width: 100%;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Question Type</label>
+                        <select name="question_type" id="modal_q_type" class="form-control" style="width: 100%;">
+                            <option value="single">Standard Single-Select</option>
+                            <option value="multiple">Multiple-Answer (Select all that apply)</option>
+                            <option value="case_study">Case-Study / Scenario-Based</option>
+                            <option value="assertion_reason">Assertion-Reason</option>
+                            <option value="matching">Matching Columns</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Unit Number</label>
+                        <input type="number" name="unit_number" id="modal_unit_num" min="1" max="20" required class="form-control" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Correct Option(s)</label>
+                    <div id="modal_single_correct_container">
+                        <select name="correct_option" id="modal_correct_opt" class="form-control" style="width: 100%;">
                             <option value="A">Option A</option>
                             <option value="B">Option B</option>
                             <option value="C">Option C</option>
                             <option value="D">Option D</option>
                         </select>
                     </div>
-                    <div>
-                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Unit Number</label>
-                        <input type="number" name="unit_number" id="modal_unit_num" min="1" max="20" required class="form-control" style="width: 100%;">
+                    <div id="modal_multi_correct_container" style="display: none; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-surface);">
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <?php foreach (['A', 'B', 'C', 'D'] as $letter): ?>
+                                <label style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500; cursor: pointer;">
+                                    <input type="checkbox" name="correct_options[]" id="modal_multi_opt_<?= $letter ?>" value="<?= $letter ?>">
+                                    Option <?= $letter ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -327,17 +394,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('editQuestionModal');
     const closeBtn = document.getElementById('closeEditModal');
     const cancelBtn = document.getElementById('cancelEditBtn');
+    const qTypeSelect = document.getElementById('modal_q_type');
+    const singleContainer = document.getElementById('modal_single_correct_container');
+    const multiContainer = document.getElementById('modal_multi_correct_container');
+    const singleSelect = document.getElementById('modal_correct_opt');
+    const multiCheckboxes = multiContainer.querySelectorAll('input[type="checkbox"]');
+
+    function syncTypeUI(isMulti) {
+        if (isMulti) {
+            singleContainer.style.display = 'none';
+            singleSelect.disabled = true;
+            multiContainer.style.display = 'block';
+            multiCheckboxes.forEach(cb => cb.disabled = false);
+        } else {
+            multiContainer.style.display = 'none';
+            multiCheckboxes.forEach(cb => cb.disabled = true);
+            singleContainer.style.display = 'block';
+            singleSelect.disabled = false;
+        }
+    }
+
+    if (qTypeSelect) {
+        qTypeSelect.addEventListener('change', () => {
+            syncTypeUI(qTypeSelect.value === 'multiple');
+        });
+    }
 
     document.querySelectorAll('.btn-edit-question').forEach(btn => {
         btn.addEventListener('click', () => {
+            const qType = btn.dataset.type || 'single';
+            const correctVal = btn.dataset.correct || 'A';
+            const isMulti = (qType === 'multiple');
+
             document.getElementById('modal_q_id').value = btn.dataset.id;
             document.getElementById('modal_q_text').value = btn.dataset.text;
             document.getElementById('modal_opt_a').value = btn.dataset.a;
             document.getElementById('modal_opt_b').value = btn.dataset.b;
             document.getElementById('modal_opt_c').value = btn.dataset.c;
             document.getElementById('modal_opt_d').value = btn.dataset.d;
-            document.getElementById('modal_correct_opt').value = btn.dataset.correct;
             document.getElementById('modal_unit_num').value = btn.dataset.unit;
+            document.getElementById('modal_q_type').value = qType;
+
+            const correctTokens = correctVal.split(',').map(s => s.trim().toUpperCase());
+            multiCheckboxes.forEach(cb => {
+                cb.checked = correctTokens.includes(cb.value);
+            });
+            singleSelect.value = correctTokens[0] || 'A';
+
+            syncTypeUI(isMulti);
 
             modal.style.display = 'flex';
         });

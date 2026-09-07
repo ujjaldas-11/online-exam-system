@@ -152,12 +152,13 @@ Before proposing or committing any code, agents and contributors **must** execut
 # 1. PHP Syntax Check across all PHP files
 find . -type f -name "*.php" -not -path "*/vendor/*" -exec php -l {} +
 
-# 2. Run the Full Automated Test Suite (All 15 Suites Must Pass)
+# 2. Run the Full Automated Test Suite (All 16 Suites Must Pass)
 for t in tests/bulk_promote_test.php \
          tests/concurrency_test.php \
          tests/device_gating_test.php \
          tests/doc_access_test.php \
          tests/e2e_automation.php \
+         tests/mcq_types_test.php \
          tests/offline_zero_cdn_test.php \
          tests/password_visibility_test.php \
          tests/phase4_remediation_test.php \

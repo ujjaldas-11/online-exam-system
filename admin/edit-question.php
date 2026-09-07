@@ -48,20 +48,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $opt_b = clean_input($_POST['option_b'] ?? '');
     $opt_c = clean_input($_POST['option_c'] ?? '');
     $opt_d = clean_input($_POST['option_d'] ?? '');
-    $correct_opt = strtoupper(clean_input($_POST['correct_option'] ?? ''));
+    $q_type = clean_input($_POST['question_type'] ?? 'single');
+    $validTypes = ['single', 'multiple', 'case_study', 'assertion_reason', 'matching'];
+    if (!in_array($q_type, $validTypes, true)) {
+        $q_type = 'single';
+    }
+
+    $rawCorrect = '';
+    if (isset($_POST['correct_options']) && is_array($_POST['correct_options'])) {
+        $rawCorrect = implode(',', $_POST['correct_options']);
+    } elseif (isset($_POST['correct_option'])) {
+        $rawCorrect = (string)$_POST['correct_option'];
+    }
+    $rawCorrect = strtoupper(trim($rawCorrect));
+    $allowedOptions = ['A', 'B', 'C', 'D'];
+    $cleanTokens = [];
+    foreach (array_filter(array_map('trim', explode(',', $rawCorrect))) as $tok) {
+        if (in_array($tok, $allowedOptions, true) && !in_array($tok, $cleanTokens, true)) {
+            $cleanTokens[] = $tok;
+        }
+    }
+    sort($cleanTokens);
+    $correct_opt = implode(',', $cleanTokens);
     $unit_num = int_param($_POST['unit_number'] ?? 1);
 
-    if (empty($q_text) || empty($opt_a) || empty($opt_b) || !in_array($correct_opt, ['A', 'B', 'C', 'D'], true)) {
-        $message = "Please provide question text, Options A & B, and a valid Correct Option (A, B, C, or D).";
+    if (empty($q_text) || empty($opt_a) || empty($opt_b) || empty($correct_opt)) {
+        $message = "Please provide question text, at least Options A & B, and valid Correct Option(s).";
         $message_type = 'error';
     } else {
         try {
             $up = $pdo->prepare("
                 UPDATE questions
-                SET question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_option = ?, unit_number = ?
+                SET question_text = ?, question_type = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_option = ?, unit_number = ?
                 WHERE id = ?
             ");
-            $up->execute([$q_text, $opt_a, $opt_b, $opt_c ?: null, $opt_d ?: null, $correct_opt, $unit_num, $questionId]);
+            $up->execute([$q_text, $q_type, $opt_a, $opt_b, $opt_c ?: null, $opt_d ?: null, $correct_opt, $unit_num, $questionId]);
             log_admin_action($pdo, 'edit_question', 'question', $questionId, "Updated question #$questionId");
 
             redirect("view-questions.php?subject_id={$question['subject_id']}");
@@ -129,15 +150,42 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
             </div>
 
+            <?php
+            $currentType = $question['question_type'] ?? 'single';
+            $correctTokens = array_filter(array_map('trim', explode(',', (string)$question['correct_option'])));
+            ?>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="font-weight: 600; display: block; margin-bottom: 6px;">Question Type</label>
+                <select name="question_type" id="question_type" class="form-control" style="width: 100%;">
+                    <option value="single" <?= $currentType === 'single' ? 'selected' : '' ?>>Standard Single-Select</option>
+                    <option value="multiple" <?= $currentType === 'multiple' ? 'selected' : '' ?>>Multiple-Answer (Select all that apply)</option>
+                    <option value="case_study" <?= $currentType === 'case_study' ? 'selected' : '' ?>>Case-Study / Scenario-Based</option>
+                    <option value="assertion_reason" <?= $currentType === 'assertion_reason' ? 'selected' : '' ?>>Assertion-Reason</option>
+                    <option value="matching" <?= $currentType === 'matching' ? 'selected' : '' ?>>Matching Columns</option>
+                </select>
+            </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                 <div class="form-group">
-                    <label style="font-weight: 600; display: block; margin-bottom: 6px;">Correct Option</label>
-                    <select name="correct_option" required class="form-control" style="width: 100%;">
-                        <option value="A" <?= $question['correct_option'] === 'A' ? 'selected' : '' ?>>Option A</option>
-                        <option value="B" <?= $question['correct_option'] === 'B' ? 'selected' : '' ?>>Option B</option>
-                        <option value="C" <?= $question['correct_option'] === 'C' ? 'selected' : '' ?>>Option C</option>
-                        <option value="D" <?= $question['correct_option'] === 'D' ? 'selected' : '' ?>>Option D</option>
-                    </select>
+                    <label style="font-weight: 600; display: block; margin-bottom: 6px;">Correct Option(s)</label>
+                    <div id="single_correct_container" style="<?= $currentType === 'multiple' ? 'display: none;' : '' ?>">
+                        <select name="correct_option" id="single_correct_opt" class="form-control" style="width: 100%;" <?= $currentType === 'multiple' ? 'disabled' : '' ?>>
+                            <option value="A" <?= in_array('A', $correctTokens, true) ? 'selected' : '' ?>>Option A</option>
+                            <option value="B" <?= in_array('B', $correctTokens, true) ? 'selected' : '' ?>>Option B</option>
+                            <option value="C" <?= in_array('C', $correctTokens, true) ? 'selected' : '' ?>>Option C</option>
+                            <option value="D" <?= in_array('D', $correctTokens, true) ? 'selected' : '' ?>>Option D</option>
+                        </select>
+                    </div>
+                    <div id="multi_correct_container" style="<?= $currentType !== 'multiple' ? 'display: none;' : '' ?> padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-surface);">
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <?php foreach (['A', 'B', 'C', 'D'] as $letter): ?>
+                                <label style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500; cursor: pointer;">
+                                    <input type="checkbox" name="correct_options[]" value="<?= $letter ?>" <?= in_array($letter, $correctTokens, true) ? 'checked' : '' ?> <?= $currentType !== 'multiple' ? 'disabled' : '' ?>>
+                                    Option <?= $letter ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label style="font-weight: 600; display: block; margin-bottom: 6px;">Unit Number</label>
@@ -154,5 +202,30 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const qTypeSelect = document.getElementById('question_type');
+    const singleContainer = document.getElementById('single_correct_container');
+    const multiContainer = document.getElementById('multi_correct_container');
+    const singleSelect = document.getElementById('single_correct_opt');
+    const multiCheckboxes = multiContainer.querySelectorAll('input[type="checkbox"]');
+
+    qTypeSelect.addEventListener('change', () => {
+        const isMulti = qTypeSelect.value === 'multiple';
+        if (isMulti) {
+            singleContainer.style.display = 'none';
+            singleSelect.disabled = true;
+            multiContainer.style.display = 'block';
+            multiCheckboxes.forEach(cb => cb.disabled = false);
+        } else {
+            multiContainer.style.display = 'none';
+            multiCheckboxes.forEach(cb => cb.disabled = true);
+            singleContainer.style.display = 'block';
+            singleSelect.disabled = false;
+        }
+    });
+});
+</script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

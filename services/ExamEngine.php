@@ -257,13 +257,30 @@ class ExamEngine
             $params = [];
 
             if ($selectedOption !== null) {
-                $validOptions = ['A', 'B', 'C', 'D', ''];
-                $val = strtoupper(trim($selectedOption));
-                if (!in_array($val, $validOptions, true)) {
-                    return ['error' => 'Invalid option choice', 'code' => 400];
+                $rawVal = strtoupper(trim($selectedOption));
+                if ($rawVal === '') {
+                    $updates[] = "selected_option = ?";
+                    $params[] = null;
+                } else {
+                    $tokens = array_filter(array_map('trim', explode(',', $rawVal)));
+                    $validTokens = ['A', 'B', 'C', 'D'];
+                    $cleanTokens = [];
+                    foreach ($tokens as $t) {
+                        if (!in_array($t, $validTokens, true)) {
+                            return ['error' => 'Invalid option choice', 'code' => 400];
+                        }
+                        if (!in_array($t, $cleanTokens, true)) {
+                            $cleanTokens[] = $t;
+                        }
+                    }
+                    if (empty($cleanTokens)) {
+                        return ['error' => 'Invalid option choice', 'code' => 400];
+                    }
+                    sort($cleanTokens);
+                    $val = implode(',', $cleanTokens);
+                    $updates[] = "selected_option = ?";
+                    $params[] = $val;
                 }
-                $updates[] = "selected_option = ?";
-                $params[] = ($val === '') ? null : $val;
             }
 
             if ($markedForReview !== null) {
@@ -367,7 +384,7 @@ class ExamEngine
             // Fetch assigned answers with questions to calculate score
             // The attempt row is already exclusively locked with FOR UPDATE above, serializing this submission
             $ansSql = "
-                SELECT sa.id AS ans_id, q.id AS question_id, q.correct_option, sa.selected_option
+                SELECT sa.id AS ans_id, q.id AS question_id, q.question_type, q.correct_option, sa.selected_option
                 FROM student_answers sa
                 JOIN questions q ON sa.question_id = q.id
                 WHERE sa.attempt_id = ?
@@ -381,7 +398,22 @@ class ExamEngine
 
             foreach ($answers as $row) {
                 $hasAnswered = (!empty($row['selected_option']) && trim($row['selected_option']) !== '');
-                $isCorrect = ($hasAnswered && $row['selected_option'] === $row['correct_option']) ? 1 : 0;
+                $qType = $row['question_type'] ?? 'single';
+
+                $isCorrect = 0;
+                if ($hasAnswered) {
+                    if ($qType === 'multiple') {
+                        $studentTokens = array_filter(array_map('trim', explode(',', (string)$row['selected_option'])));
+                        $correctTokens = array_filter(array_map('trim', explode(',', (string)$row['correct_option'])));
+                        sort($studentTokens);
+                        sort($correctTokens);
+                        $isCorrect = ($studentTokens === $correctTokens && !empty($studentTokens)) ? 1 : 0;
+                    } else {
+                        // Single-select variants (single, case_study, assertion_reason, matching)
+                        $isCorrect = (trim((string)$row['selected_option']) === trim((string)$row['correct_option'])) ? 1 : 0;
+                    }
+                }
+
                 if ($isCorrect === 1) {
                     $totalScore += $pointsPerQuestion;
                 } elseif ($hasAnswered && $negativeMarksPerQuestion > 0.0) {
@@ -567,6 +599,7 @@ class ExamEngine
             $stmt = $pdo->prepare("
                 SELECT 
                     q.id AS question_id,
+                    q.question_type,
                     q.question_text,
                     q.option_a,
                     q.option_b,

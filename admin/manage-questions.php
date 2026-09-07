@@ -55,13 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
 
                 $creator_id = $_SESSION['admin_id'] ?? null;
                 $sql = 'INSERT INTO questions
-                        (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option, created_by)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+                        (subject_id, question_text, unit_number, question_type, option_a, option_b, option_c, option_d, correct_option, created_by)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
                 $stmt = $pdo->prepare($sql);
 
                 $count = 0;
                 $is_header = true;
                 $allowedOptions = ['A', 'B', 'C', 'D'];
+                $validTypes = ['single', 'multiple', 'case_study', 'assertion_reason', 'matching'];
 
                 while (($data = fgetcsv($handle, 4000, ',')) !== false) {
                     if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) {
@@ -88,20 +89,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                     $opt_b   = trim($data[3] ?? '');
                     $opt_c   = isset($data[4]) ? trim($data[4]) : null;
                     $opt_d   = isset($data[5]) ? trim($data[5]) : null;
-                    $correct = strtoupper(clean_input($data[6] ?? ''));
+                    $rawCorrect = strtoupper(clean_input($data[6] ?? ''));
 
-                    if (empty($q_text) || empty($opt_a) || empty($opt_b) || empty($correct)) {
+                    if (empty($q_text) || empty($opt_a) || empty($opt_b) || empty($rawCorrect)) {
                         throw new Exception('Row ' . ($count + 1) . ' is missing required fields (Question Text, Option A, Option B, Correct Option). Transaction aborted.');
                     }
 
-                    if (!in_array($correct, $allowedOptions, true)) {
-                        throw new Exception("Row " . ($count + 1) . " has invalid Correct Option '$correct'. Must be A, B, C, or D.");
+                    // Parse correct options (single e.g. "A", or multi e.g. "A,C,D" or "ACD")
+                    $letters = [];
+                    if (str_contains($rawCorrect, ',')) {
+                        $tokens = array_filter(array_map('trim', explode(',', $rawCorrect)));
+                        foreach ($tokens as $tok) {
+                            if (in_array($tok, $allowedOptions, true)) {
+                                if (!in_array($tok, $letters, true)) {
+                                    $letters[] = $tok;
+                                }
+                            } else {
+                                throw new Exception("Row " . ($count + 1) . " has invalid Correct Option '$rawCorrect'. Must be A, B, C, or D.");
+                            }
+                        }
+                    } else {
+                        $len = strlen($rawCorrect);
+                        for ($i = 0; $i < $len; $i++) {
+                            $ch = $rawCorrect[$i];
+                            if (in_array($ch, $allowedOptions, true)) {
+                                if (!in_array($ch, $letters, true)) {
+                                    $letters[] = $ch;
+                                }
+                            } elseif ($ch !== ' ' && $ch !== ';') {
+                                throw new Exception("Row " . ($count + 1) . " has invalid Correct Option '$rawCorrect'. Must be A, B, C, or D.");
+                            }
+                        }
+                    }
+
+                    if (empty($letters)) {
+                        throw new Exception("Row " . ($count + 1) . " has invalid Correct Option '$rawCorrect'. Must be A, B, C, or D.");
+                    }
+                    sort($letters);
+                    $correct = implode(',', $letters);
+
+                    // Parse optional 8th column: question_type
+                    $rawType = strtolower(trim((string)($data[7] ?? '')));
+                    if (!empty($rawType) && in_array($rawType, $validTypes, true)) {
+                        $q_type = $rawType;
+                    } else {
+                        $q_type = (count($letters) > 1) ? 'multiple' : 'single';
                     }
 
                     $stmt->execute([
                         $subject_id,
                         $q_text,
                         $u_num,
+                        $q_type,
                         $opt_a,
                         $opt_b,
                         $opt_c ?: null,
@@ -164,7 +203,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <div class="alert alert-info" style="text-align: left; margin-bottom: 20px;">
             <strong>Instructions:</strong> Upload a CSV file OR paste comma-separated text.<br>
             • 7 columns required: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option</code><br>
-            • <code>Correct Option</code> must be A, B, C, or D.
+            • <code>Correct Option</code> must be A, B, C, or D. For <em>Multiple-Answer</em> questions, list multiple letters separated by commas (e.g. <code>A,C,D</code> or <code>ACD</code>).<br>
+            • <em>Optional 8th Column:</em> <code>Question Type</code> (<code>single</code>, <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>, <code>matching</code>). Auto-detected as <code>multiple</code> if multiple correct options are provided.
         </div>
 
         <form method="POST" enctype="multipart/form-data">

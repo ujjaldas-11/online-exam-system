@@ -135,12 +135,27 @@ $marks_each = ($total_qs > 0) ? round($total_marks / $total_qs, 2) : 0;
                 </div>
                 <h3 style="margin: 0; padding-top: 6px; color: #1e293b; font-size: 16px; line-height: 1.5;">
                     <?= nl2br(e($q['question_text'])) ?>
+                    <?php if (($q['question_type'] ?? 'single') === 'multiple'): ?>
+                        <span class="badge badge-warning" style="font-size: 0.72rem; margin-left: 8px; vertical-align: middle;">Multiple Answer</span>
+                    <?php elseif (($q['question_type'] ?? '') === 'case_study'): ?>
+                        <span class="badge badge-info" style="font-size: 0.72rem; margin-left: 8px; vertical-align: middle;">Case Study</span>
+                    <?php elseif (($q['question_type'] ?? '') === 'assertion_reason'): ?>
+                        <span class="badge badge-secondary" style="font-size: 0.72rem; margin-left: 8px; vertical-align: middle;">Assertion-Reason</span>
+                    <?php elseif (($q['question_type'] ?? '') === 'matching'): ?>
+                        <span class="badge badge-outline" style="font-size: 0.72rem; margin-left: 8px; vertical-align: middle;">Matching</span>
+                    <?php endif; ?>
                 </h3>
             </div>
 
             <?php if (empty($q['selected_option'])): ?>
                 <div style="background: #fef08a; color: #854d0e; padding: 8px 12px; border-radius: 6px; font-size: 14px; margin-bottom: 16px; font-weight: 500;">
-                    You did not answer this question.
+                    You did not answer this question. (Correct Key: Option <?= e((string)$q['correct_option']) ?>)
+                </div>
+            <?php else: ?>
+                <div style="font-size: 0.85rem; margin-bottom: 12px; color: <?= (int)$q['is_correct'] === 1 ? '#059669' : '#dc2626' ?>; font-weight: 600;">
+                    Result: <?= (int)$q['is_correct'] === 1 ? '✓ Correct' : '✗ Incorrect' ?>
+                    &nbsp;•&nbsp; Your Answer: <strong>Option <?= e((string)$q['selected_option']) ?></strong>
+                    &nbsp;•&nbsp; Correct Key: <strong>Option <?= e((string)$q['correct_option']) ?></strong>
                 </div>
             <?php endif; ?>
 
@@ -153,6 +168,9 @@ $marks_each = ($total_qs > 0) ? round($total_marks / $total_qs, 2) : 0;
                     'D' => $q['option_d'] ?? ''
                 ];
 
+                $correctTokens = array_filter(array_map('trim', explode(',', (string)($q['correct_option'] ?? ''))));
+                $selectedTokens = array_filter(array_map('trim', explode(',', (string)($q['selected_option'] ?? ''))));
+
                 foreach ($options as $letter => $text):
                     if ($text === '' || $text === null) {
                         continue;
@@ -161,18 +179,26 @@ $marks_each = ($total_qs > 0) ? round($total_marks / $total_qs, 2) : 0;
                     $bgColor = '#f8fafc';
                     $borderColor = '#e2e8f0';
                     $textColor = '#475569';
-                    $icon = '';
+                    $badgeText = '';
 
-                    if ($letter === $q['correct_option']) {
+                    $isTargetCorrect = in_array($letter, $correctTokens, true);
+                    $isSelected = in_array($letter, $selectedTokens, true);
+
+                    if ($isTargetCorrect && $isSelected) {
                         $bgColor = '#ecfdf5';
                         $borderColor = '#10b981';
                         $textColor = '#065f46';
-                        $icon = '✓';
-                    } elseif ($letter === $q['selected_option'] && (int)$q['is_correct'] === 0) {
+                        $badgeText = '<span style="color: #059669; font-weight: bold; font-size: 0.85rem;">✓ Selected & Correct</span>';
+                    } elseif ($isTargetCorrect) {
+                        $bgColor = '#ecfdf5';
+                        $borderColor = '#10b981';
+                        $textColor = '#065f46';
+                        $badgeText = '<span style="color: #059669; font-weight: bold; font-size: 0.85rem;">✓ Correct Key</span>';
+                    } elseif ($isSelected) {
                         $bgColor = '#fef2f2';
                         $borderColor = '#ef4444';
                         $textColor = '#991b1b';
-                        $icon = '✗';
+                        $badgeText = '<span style="color: #dc2626; font-weight: bold; font-size: 0.85rem;">✗ Your Choice</span>';
                     }
                     ?>
 
@@ -181,8 +207,8 @@ $marks_each = ($total_qs > 0) ? round($total_marks / $total_qs, 2) : 0;
                             <strong style="margin-right: 8px; opacity: 0.7;"><?= $letter ?>.</strong>
                             <?= e((string) $text) ?>
                         </div>
-                        <?php if ($icon): ?>
-                            <span style="font-weight: bold; font-size: 18px;"><?= $icon ?></span>
+                        <?php if ($badgeText): ?>
+                            <div><?= $badgeText ?></div>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
