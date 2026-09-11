@@ -7,16 +7,15 @@
   --sidebar-w-collapsed: 78px;
   --topbar-h: 56px;
 
-  
-  --sidebar-bg: #0f172a;
-  --sidebar-bg-hover: #1e293b;
-  --sidebar-active-bg: #1e3a5f;
+  --sidebar-bg: #33422e;
+  --sidebar-bg-hover: #394d2f;
+  --sidebar-active-bg: #475543;
   --sidebar-text: #e2e8f0;
-  --sidebar-text-dim: #94a3b8;
-  --sidebar-gold: #fbbf24;
-  --sidebar-gold-hover: #f59e0b;
+  --sidebar-text-dim: #eef2ea;
+  --sidebar-gold: #d8a457;
+  --sidebar-gold-hover: #edb055;
 
-  --topbar-bg: #0f172a;
+  --topbar-bg: #33422e;
   --radius: 8px;
   --transition: 0.25s ease;
 }
@@ -150,7 +149,7 @@ body.sidebar-collapsed .main-content {
 /* ---------- Sidebar ---------- */
 .admin-sidebar {
   position: fixed;
-  top: var(--topbar-h);
+  top: 35px;
   left: 0;
   bottom: 0;
   width: var(--sidebar-w);
