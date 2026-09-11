@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         // 2. Fetch specific question by offset (Zero-leakage: correct_option is NEVER selected)
         $qSql = "
-            SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+            SELECT q.id, q.question_type, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
                    sa.selected_option, sa.marked_for_review
             FROM student_answers sa
             JOIN questions q ON sa.question_id = q.id
@@ -173,6 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             'seconds_left' => max(0, (int)($attempt['seconds_left'] ?? 0)),
             'question' => [
                 'id' => (int) $questionRow['id'],
+                'question_type' => clean_input($questionRow['question_type'] ?? 'single'),
                 'question_text' => clean_input($questionRow['question_text']),
                 'option_a' => clean_input($questionRow['option_a']),
                 'option_b' => clean_input($questionRow['option_b']),

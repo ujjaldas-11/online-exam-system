@@ -341,16 +341,26 @@ class PdfService
                 $pdf->MultiCell(158, 6, 'Skipped / Unanswered', 0, 'L');
             } else {
                 $pdf->SetTextColor($isCorrect ? 34 : 239, $isCorrect ? 197 : 68, $isCorrect ? 94 : 68); // Green if right, Red if wrong
-                $selectedText = $qa['option_' . strtolower($selected)] ?? '';
-                $pdf->MultiCell(158, 6, "[$selected] " . str_replace("\r", "", $selectedText), 0, 'L');
+                $selTokens = array_filter(array_map('trim', explode(',', (string)$selected)));
+                $selParts = [];
+                foreach ($selTokens as $tok) {
+                    $txt = $qa['option_' . strtolower($tok)] ?? '';
+                    $selParts[] = "[$tok] " . str_replace("\r", "", (string)$txt);
+                }
+                $pdf->MultiCell(158, 6, implode('  |  ', $selParts), 0, 'L');
             }
 
             if (!$isCorrect) {
                 $pdf->SetTextColor(100, 116, 139);
                 $pdf->Cell(32, 6, "Correct Answer: ", 0, 0, 'L');
                 $pdf->SetTextColor(34, 197, 94); // Always Green
-                $correctText = $qa['option_' . strtolower($correct)] ?? '';
-                $pdf->MultiCell(158, 6, "[$correct] " . str_replace("\r", "", $correctText), 0, 'L');
+                $corrTokens = array_filter(array_map('trim', explode(',', (string)$correct)));
+                $corrParts = [];
+                foreach ($corrTokens as $tok) {
+                    $txt = $qa['option_' . strtolower($tok)] ?? '';
+                    $corrParts[] = "[$tok] " . str_replace("\r", "", (string)$txt);
+                }
+                $pdf->MultiCell(158, 6, implode('  |  ', $corrParts), 0, 'L');
             }
 
             $pdf->Ln(2);

@@ -420,25 +420,42 @@ include __DIR__ . '/../components/header.php';
         if (!container) return;
 
         const safeQuestionText = escapeHtml(q.question_text);
+        const qType = q.question_type || 'single';
+        const isMulti = (qType === 'multiple');
+
+        let typeBadge = '';
+        if (isMulti) {
+            typeBadge = `<span class="badge badge-warning" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;"><span class="material-symbols-outlined" style="font-size: 13px; vertical-align: -2px;">check_box</span> Select all that apply</span>`;
+        } else if (qType === 'case_study') {
+            typeBadge = `<span class="badge badge-info" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;">Case Study</span>`;
+        } else if (qType === 'assertion_reason') {
+            typeBadge = `<span class="badge badge-secondary" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;">Assertion-Reason</span>`;
+        } else if (qType === 'matching') {
+            typeBadge = `<span class="badge badge-outline" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;">Matching</span>`;
+        }
+
         let html = `
-            <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''}</div>
+            <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''} ${typeBadge}</div>
             <div class="question-text">${safeQuestionText}</div>
             <div class="options-list">
         `;
 
         const order = (q.options_order && Array.isArray(q.options_order)) ? q.options_order : ['A', 'B', 'C', 'D'];
         const displayLetters = ['A', 'B', 'C', 'D'];
+        const selectedTokens = selected ? String(selected).split(',').map(s => s.trim().toUpperCase()) : [];
         let renderedCount = 0;
+        const inputType = isMulti ? 'checkbox' : 'radio';
+
         order.forEach((opt) => {
             const text = q['option_' + opt.toLowerCase()];
             if (text !== null && text !== undefined && String(text).trim() !== '') {
-                const isSelected = selected === opt;
+                const isSelected = selectedTokens.includes(opt);
                 const safeText = escapeHtml(text);
                 const displayLetter = displayLetters[renderedCount] || opt;
                 renderedCount++;
                 html += `
                     <label class="option-item ${isSelected ? 'selected' : ''}">
-                        <input type="radio" name="answer" value="${opt}" ${isSelected ? 'checked' : ''}>
+                        <input type="${inputType}" name="answer" value="${opt}" ${isSelected ? 'checked' : ''}>
                         <span><strong>${displayLetter}.</strong> ${safeText}</span>
                     </label>
                 `;
@@ -524,17 +541,23 @@ include __DIR__ . '/../components/header.php';
     async function saveCurrentAnswer() {
         if (!currentQuestionId) return;
 
-        const selected = document.querySelector('input[name="answer"]:checked')?.value || null;
+        const checkedInputs = Array.from(document.querySelectorAll('input[name="answer"]:checked'));
+        let selected = null;
+        if (checkedInputs.length > 0) {
+            const tokens = checkedInputs.map(el => el.value.trim().toUpperCase()).sort();
+            selected = tokens.join(',');
+        }
+
         const reviewBtn = document.getElementById('btn-review');
         const isMarked = reviewBtn ? reviewBtn.dataset.marked === "1" : false;
 
         const payload = {
             exam_id: examId,
             question_id: currentQuestionId,
+            selected_option: selected !== null ? selected : '',
             marked_for_review: isMarked,
             csrf_token: csrfToken
         };
-        if (selected) payload.selected_option = selected;
 
         try {
             const res = await fetch('question.php', {
@@ -565,14 +588,31 @@ include __DIR__ . '/../components/header.php';
         }
     }
 
-    // Auto-save when option is selected
+    // Auto-save when option is selected or deselected
     document.getElementById('question-container').addEventListener('change', e => {
         if (e.target.name === 'answer') {
-            document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
-            e.target.closest('.option-item')?.classList.add('selected');
+            const isCheckbox = e.target.type === 'checkbox';
+            if (isCheckbox) {
+                if (e.target.checked) {
+                    e.target.closest('.option-item')?.classList.add('selected');
+                } else {
+                    e.target.closest('.option-item')?.classList.remove('selected');
+                }
+            } else {
+                document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+                e.target.closest('.option-item')?.classList.add('selected');
+            }
 
             saveCurrentAnswer().then(() => {
-                document.getElementById(`grid-btn-${currentIndex}`)?.classList.add('answered');
+                const hasAnyChecked = document.querySelectorAll('input[name="answer"]:checked').length > 0;
+                const gridBtn = document.getElementById(`grid-btn-${currentIndex}`);
+                if (gridBtn) {
+                    if (hasAnyChecked) {
+                        gridBtn.classList.add('answered');
+                    } else {
+                        gridBtn.classList.remove('answered');
+                    }
+                }
             });
         }
     });

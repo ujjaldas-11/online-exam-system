@@ -131,6 +131,21 @@ function enforce_ssl_in_production(): void
         header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 
         if (!is_ssl()) {
+            $appUrl = (string) get_env('APP_URL', '');
+            if (!empty($appUrl) && str_starts_with($appUrl, 'https://')) {
+                $parsed = parse_url($appUrl);
+                $sslHost = $parsed['host'] ?? '';
+                $sslPort = isset($parsed['port']) ? ':' . $parsed['port'] : '';
+                $rawHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                $currentHost = explode(':', $rawHost)[0] ?: 'localhost';
+
+                if (!empty($sslHost) && ($currentHost === $sslHost || $currentHost === 'localhost' || $currentHost === '127.0.0.1')) {
+                    $uri = $_SERVER['REQUEST_URI'] ?? '/';
+                    header('Location: https://' . $sslHost . $sslPort . $uri, true, 301);
+                    exit;
+                }
+            }
+
             $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
             $uri = $_SERVER['REQUEST_URI'] ?? '/';
             header('Location: https://' . $host . $uri, true, 301);

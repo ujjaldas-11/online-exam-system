@@ -140,11 +140,12 @@ Stores multiple-choice questions belonging to subjects.
 - `subject_id` (INT, FOREIGN KEY -> `subjects.id` ON DELETE CASCADE)
 - `question_text` (TEXT)
 - `unit_number` (INT, DEFAULT 1)
+- `question_type` (VARCHAR(32), DEFAULT 'single'): Archetypes include `single`, `multiple`, `case_study`, `assertion_reason`, and `matching`.
 - `option_a` (TEXT)
 - `option_b` (TEXT)
 - `option_c` (TEXT, NULLABLE)
 - `option_d` (TEXT, NULLABLE)
-- `correct_option` (ENUM('A', 'B', 'C', 'D'))
+- `correct_option` (VARCHAR(32)): Stores a single option key (`A`) or comma-separated keys (`A,C`) for multi-select questions.
 - `marks` (INT, DEFAULT 1)
 - `created_by` (INT, NULLABLE, FOREIGN KEY -> `admins.id` ON DELETE SET NULL)
 - `created_at` (TIMESTAMP)
@@ -182,7 +183,7 @@ Stores question assignments and saved responses per attempt.
 - `id` (INT, PRIMARY KEY, AUTO_INCREMENT)
 - `attempt_id` (INT, FOREIGN KEY -> `exam_attempts.id` ON DELETE CASCADE)
 - `question_id` (INT, FOREIGN KEY -> `questions.id` ON DELETE CASCADE)
-- `selected_option` (ENUM('A', 'B', 'C', 'D'), NULLABLE)
+- `selected_option` (VARCHAR(32), NULLABLE): Stores a single selected option (`A`) or comma-separated selections (`A,C`).
 - `marked_for_review` (TINYINT(1), DEFAULT 0): Persists review flags across page reloads.
 - `is_correct` (TINYINT(1), DEFAULT 0)
 - `answered_at` (TIMESTAMP, NULLABLE)
@@ -260,8 +261,11 @@ online-exam-system/
 ├── docs/                # Technical documentation library
 │   ├── dev/             # Developer specifications (ASD-STE100)
 │   └── user/            # User guide documentation (ASD-STE100)
-├── lib/                 # Third-party and internal engines (FPDF, WebSocket)
-├── services/            # Core business logic services (ExamEngine, PdfService)
+├── lib/                 # Third-party and internal engines (FPDF, SimpleXLSXGen, WebSocket)
+│   ├── fpdf/            # Pure-PHP PDF generation engine
+│   ├── simplexlsxgen/   # Zero-dependency native Excel (.xlsx) generator
+│   └── websocket/       # RFC 6455 real-time daemon
+├── services/            # Core business logic services (ExamEngine, PdfService, CsvService)
 ├── student/             # Student portal views and examination endpoints
 ├── tests/               # Automated unit, security, and concurrency test suites
 ├── utils/               # Core utility modules (auth, CSRF, device, logger, sanitize, timer, pusher)
@@ -397,6 +401,9 @@ Examify implements an event-driven real-time architecture replacing full-page re
 - **Negative Marking Support**: Configurable fractional penalty deduction (`exams.negative_marks_per_question DECIMAL(4,2)`). Deducted in `ExamEngine::submitExam()` for incorrect responses, with an automated total score floor at `0.00`.
 - **Deadlock-Free Concurrency**: Final submissions lock the student attempt row exclusively (`FOR UPDATE`), allowing answer calculations to evaluate immutable questions without lock contention or MySQL 1213 deadlocks.
 - **Decimal Scoring Precision**: Scores calculate as exact decimal values (`DECIMAL(6,2)`), supporting fractional grading schemes.
+- **Multi-Type MCQ Evaluation**:
+  - `multiple`: The engine splits comma-separated response tokens, sorts them alphabetically, and requires an exact match with sorted correct keys (`sort($studentTokens) === sort($correctTokens)`).
+  - Single-choice archetypes (`single`, `case_study`, `assertion_reason`, `matching`): The engine evaluates trimmed candidate choices against correct keys directly.
 
 ### 6.2 Client-Side Anti-Cheat Detection (`utils/anti-cheat.js`)
 
@@ -451,6 +458,23 @@ Examify generates official academic records using the bundled pure-PHP FPDF libr
   - Renders a complete performance breakdown table and centered official signature blocks.
   - Appends official timestamps and dynamic page numbers (`Page X of Y`).
 
+### 7.2 Spreadsheet & Data Interchange Architecture (`services/CsvService.php`)
+
+Examify provides native spreadsheet import, export, and preview operations:
+
+- **Zero-Dependency Native Excel (`lib/simplexlsxgen/SimpleXLSXGen.php`)**:
+  - Builds valid Office Open XML zip archives directly using pure PHP.
+  - Operates with zero Composer libraries, external PECL extensions, or Node.js runtimes.
+  - Formats bold header rows (`<b>Header</b>`), computes automated column widths, and enforces UTF-8 encoding.
+- **Dual-Format Question Template Downloads**:
+  - `CsvService::downloadSampleQuestionsTemplate('csv')`: Delivers a standard CSV template with RFC 4180 quotes.
+  - `CsvService::downloadSampleQuestionsTemplate('xlsx')`: Delivers a formatted Excel workbook with sample archetype records.
+- **In-Browser Interactive Question Preview (`#previewQuestionsModal`)**:
+  - Instructors can preview template questions before importing.
+  - Renders formatted question cards with badges for each question archetype directly in the browser DOM.
+- **Question Bank Exports**:
+  - `CsvService::exportQuestions()` streams complete question banks to CSV or native `.xlsx` via `admin/view-questions.php`.
+
 ---
 
 ## 8. CSS Design System and Tokens
@@ -476,15 +500,42 @@ Examify organizes styles modularly under `assets/css/`:
 
 ### 9.2 Automated Verification Commands
 ```powershell
-# Windows PowerShell
+# Windows PowerShell: Verify syntax and run all test suites
 Get-ChildItem -Filter *.php -Recurse | ForEach-Object { php -l $_.FullName }
-php tests/security_and_unit_tests.php
+
+$tests = @(
+    "bulk_promote_test.php", "concurrency_test.php", "device_gating_test.php",
+    "doc_access_test.php", "e2e_automation.php", "mcq_types_test.php",
+    "offline_zero_cdn_test.php", "password_visibility_test.php", "phase4_remediation_test.php",
+    "rate_limiter_test.php", "remediation_test.php", "scheduled_exam_test.php",
+    "security_and_unit_tests.php", "singleton_login_test.php", "websocket_test.php",
+    "websocket_e2e_test.php"
+)
+foreach ($t in $tests) { php "tests/$t" }
 ```
 
 ```bash
-# Linux / macOS Bash
+# Linux / macOS Bash: Verify syntax and run all test suites
 find . -type f -name "*.php" -exec php -l {} +
-php tests/security_and_unit_tests.php
+
+for t in tests/bulk_promote_test.php \
+         tests/concurrency_test.php \
+         tests/device_gating_test.php \
+         tests/doc_access_test.php \
+         tests/e2e_automation.php \
+         tests/mcq_types_test.php \
+         tests/offline_zero_cdn_test.php \
+         tests/password_visibility_test.php \
+         tests/phase4_remediation_test.php \
+         tests/rate_limiter_test.php \
+         tests/remediation_test.php \
+         tests/scheduled_exam_test.php \
+         tests/security_and_unit_tests.php \
+         tests/singleton_login_test.php \
+         tests/websocket_test.php \
+         tests/websocket_e2e_test.php; do
+    php "$t" || exit 1
+done
 ```
 
 ### 9.3 GitHub Actions Workflows

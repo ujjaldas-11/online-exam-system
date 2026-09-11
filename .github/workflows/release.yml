@@ -49,18 +49,29 @@ jobs:
       - name: Setup Node.js (Asset Optimization)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Optimize & Minify Assets
         run: |
           npm install -g clean-css-cli terser
           echo "Minifying CSS files in assets/css/..."
           for f in assets/css/*.css; do
-            [ -f "$f" ] && cleancss -o "$f" "$f"
+            if [ -f "$f" ]; then
+              cleancss -o "$f" "$f"
+            fi
           done
           echo "Minifying JS files in assets/js/ and utils/..."
-          for f in assets/js/*.js utils/*.js; do
-            [ -f "$f" ] && terser "$f" -o "$f" --compress --mangle
+          for f in assets/js/*.js; do
+            if [ -f "$f" ]; then
+              terser "$f" -o "$f" --compress --mangle
+            fi
+          done
+          for f in utils/*.js; do
+            if [ -f "$f" ] && [ ! -L "$f" ]; then
+              if ! head -n 1 "$f" | grep -q '^\.\./'; then
+                terser "$f" -o "$f" --compress --mangle
+              fi
+            fi
           done
 
       - name: Determine Release Tag & Version
@@ -92,26 +103,26 @@ jobs:
           # Copy runtime production directories
           cp -r admin/ dist/examify/
           cp -r assets/ dist/examify/
-          [ -d bin/ ] && cp -r bin/ dist/examify/
+          if [ -d bin/ ]; then cp -r bin/ dist/examify/; fi
           cp -r components/ dist/examify/
           cp -r config/ dist/examify/
-          [ -d docs/ ] && cp -r docs/ dist/examify/
-          [ -d lib/ ] && cp -r lib/ dist/examify/
-          [ -d services/ ] && cp -r services/ dist/examify/
+          if [ -d docs/ ]; then cp -r docs/ dist/examify/; fi
+          if [ -d lib/ ]; then cp -r lib/ dist/examify/; fi
+          if [ -d services/ ]; then cp -r services/ dist/examify/; fi
           cp -r student/ dist/examify/
           cp -r utils/ dist/examify/
 
           # Copy database migration / initialization files
           mkdir -p dist/examify/archive
-          [ -f archive/schema.sql ] && cp archive/schema.sql dist/examify/archive/
-          [ -f init-db.php ] && cp init-db.php dist/examify/
+          if [ -f archive/schema.sql ]; then cp archive/schema.sql dist/examify/archive/; fi
+          if [ -f init-db.php ]; then cp init-db.php dist/examify/; fi
 
           # Copy entry points and server configurations
           cp index.php dist/examify/
-          [ -f .htaccess ] && cp .htaccess dist/examify/
-          [ -f .env.example ] && cp .env.example dist/examify/
-          [ -f README.md ] && cp README.md dist/examify/
-          [ -f LICENSE ] && cp LICENSE dist/examify/
+          if [ -f .htaccess ]; then cp .htaccess dist/examify/; fi
+          if [ -f .env.example ]; then cp .env.example dist/examify/; fi
+          if [ -f README.md ]; then cp README.md dist/examify/; fi
+          if [ -f LICENSE ]; then cp LICENSE dist/examify/; fi
 
           # Ensure logs directory exists but exclude actual log content
           rm -rf dist/examify/logs/*.log 2>/dev/null || true

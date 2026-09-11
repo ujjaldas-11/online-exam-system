@@ -1018,7 +1018,13 @@
                         <div class="body">
                             <ol>
                                 <li>Click <strong>Enter Fullscreen & Begin</strong> to start the exam timer.</li>
-                                <li>Read the question text and select your answer option (A, B, C, or D). Answer options are deterministically permuted for your specific test attempt to eliminate neighbor shoulder surfing.</li>
+                                <li><strong>Read Question & Select Answer:</strong> Note the question type displayed above each item:
+                                    <ul>
+                                        <li><strong>Single Choice / Case Study / Assertion-Reason / Matching:</strong> Click the radio button for your chosen option (A, B, C, or D).</li>
+                                        <li><strong>Multiple Choice:</strong> Select checkboxes for all correct options. The system records your combined selection (for example, A and C).</li>
+                                    </ul>
+                                    Answer options are deterministically permuted for your specific test attempt to eliminate neighbor shoulder surfing.
+                                </li>
                                 <li>The system saves your selected option automatically in the background.</li>
                                 <li>Click <strong>Next</strong> or <strong>Previous</strong> to navigate questions.</li>
                                 <li>Click <strong>Mark for Review</strong> to flag questions for double-checking before final submission.</li>

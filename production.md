@@ -296,7 +296,7 @@ server {
 
 ## 5. Enforcing Database SSL (MySQL / MariaDB)
 
-When the database runs on a separate machine, virtual host, or container across the LAN, **unencrypted database communication exposes student records, passwords, and live examination scores**.
+When the database runs on a separate server or virtual host across the LAN, **unencrypted database communication exposes student records, passwords, and live examination scores**.
 
 Examify's database connection layer ([`config/database.php`](config/database.php)) includes built-in support for encrypted TLS connections and server certificate verification.
 

@@ -133,6 +133,13 @@ try {
         $pdo->exec("ALTER TABLE exams ADD COLUMN end_time datetime DEFAULT NULL AFTER start_time");
     }
 
+    $qCols = $pdo->query("SHOW COLUMNS FROM questions")->fetchAll(PDO::FETCH_COLUMN);
+    if (!in_array('question_type', $qCols, true)) {
+        $pdo->exec("ALTER TABLE questions ADD COLUMN question_type varchar(32) NOT NULL DEFAULT 'single' AFTER unit_number");
+    }
+    $pdo->exec("ALTER TABLE questions MODIFY correct_option varchar(32) NOT NULL");
+    $pdo->exec("ALTER TABLE student_answers MODIFY selected_option varchar(32) DEFAULT NULL");
+
     out("All 10 refined tables verified and updated successfully.", $isCli, 'success');
 } catch (PDOException $e) {
     out("Failed executing schema.sql: " . $e->getMessage(), $isCli, 'error');
@@ -267,8 +274,8 @@ try {
     ];
 
     $insQ = $pdo->prepare("
-        INSERT INTO questions (subject_id, question_text, unit_number, option_a, option_b, option_c, option_d, correct_option, marks, created_by)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO questions (subject_id, question_text, unit_number, question_type, option_a, option_b, option_c, option_d, correct_option, marks, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $totalImported = 0;
@@ -301,10 +308,12 @@ try {
                 continue;
             }
             $unitNum = isset($q['unit_number']) ? (int) $q['unit_number'] : (($idx % 5) + 1);
+            $qType = trim($q['question_type'] ?? 'single');
             $insQ->execute([
                 $subId,
                 trim(strip_tags($q['question_text'])),
                 $unitNum,
+                $qType,
                 trim($q['option_a']),
                 trim($q['option_b']),
                 isset($q['option_c']) ? trim($q['option_c']) : null,
@@ -321,6 +330,73 @@ try {
         out("Imported $totalImported test questions attributed to instructors.", $isCli, 'success');
     } else {
         out("Question bank already populated.", $isCli);
+    }
+
+    // 4.3b Seed sample multi-type MCQ archetypes for Operating Systems
+    $osSubId = $subjectIds['Operating Systems'] ?? null;
+    if ($osSubId) {
+        $sampleArchetypes = [
+            [
+                'q' => 'Which of the following are standard inter-process communication (IPC) mechanisms in UNIX-like systems? (Select all that apply)',
+                'unit' => 1,
+                'type' => 'multiple',
+                'a' => 'Message Queues',
+                'b' => 'Shared Memory',
+                'c' => 'Pipes',
+                'd' => 'Floating-Point Registers',
+                'correct' => 'A,B,C',
+            ],
+            [
+                'q' => "Scenario: A high-frequency trading server experiences severe throughput degradation due to CPU thrashing and constant cache line invalidation across concurrent threads. Which concurrency mechanism should the architects evaluate to minimize locking contention?",
+                'unit' => 2,
+                'type' => 'case_study',
+                'a' => 'Lock-free ring buffers with atomic compare-and-swap',
+                'b' => 'Coarse-grained recursive mutexes',
+                'c' => 'Single-threaded event loop with synchronous I/O',
+                'd' => 'Global Interpreter Lock',
+                'correct' => 'A',
+            ],
+            [
+                'q' => "Assertion (A): Virtual memory paging completely eliminates external fragmentation.\nReason (R): In paging, physical memory is partitioned into uniform, fixed-size blocks called page frames.",
+                'unit' => 3,
+                'type' => 'assertion_reason',
+                'a' => 'Both A and R are true, and R is the correct explanation of A',
+                'b' => 'Both A and R are true, but R is NOT the correct explanation of A',
+                'c' => 'A is true, but R is false',
+                'd' => 'A is false, but R is true',
+                'correct' => 'A',
+            ],
+            [
+                'q' => "Match the disk scheduling algorithms with their operational behaviors:\n1. FCFS - P. Services nearest request\n2. SSTF - Q. Strict order of arrival\n3. SCAN - R. Elevates in one direction then reverses",
+                'unit' => 4,
+                'type' => 'matching',
+                'a' => '1-Q, 2-P, 3-R',
+                'b' => '1-P, 2-Q, 3-R',
+                'c' => '1-R, 2-P, 3-Q',
+                'd' => '1-Q, 2-R, 3-P',
+                'correct' => 'A',
+            ],
+        ];
+
+        foreach ($sampleArchetypes as $archQ) {
+            $chk = $pdo->prepare("SELECT id FROM questions WHERE subject_id = ? AND question_text = ?");
+            $chk->execute([$osSubId, $archQ['q']]);
+            if (!$chk->fetchColumn()) {
+                $insQ->execute([
+                    $osSubId,
+                    $archQ['q'],
+                    $archQ['unit'],
+                    $archQ['type'],
+                    $archQ['a'],
+                    $archQ['b'],
+                    $archQ['c'],
+                    $archQ['d'],
+                    $archQ['correct'],
+                    1,
+                    $teacherActiveId
+                ]);
+            }
+        }
     }
 
     // 4.4 Create Sample Active Exam for Live Testing

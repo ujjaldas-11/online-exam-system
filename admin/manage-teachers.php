@@ -148,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = 'error';
         } else {
             try {
-                $chk = $pdo->prepare("SELECT id, name FROM admins WHERE id = ?");
+                $chk = $pdo->prepare("SELECT id, name, role FROM admins WHERE id = ?");
                 $chk->execute([$teacher_id]);
                 $teacher = $chk->fetch();
 
@@ -157,16 +157,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $up = $pdo->prepare("UPDATE admins SET password = ? WHERE id = ?");
                     $up->execute([$hashed, $teacher_id]);
 
+                    $isSuperadminTarget = ($teacher['role'] === 'superadmin');
+                    $actionType = $isSuperadminTarget ? 'reset_admin_password' : 'reset_teacher_password';
+                    $roleLabel = $isSuperadminTarget ? 'Superadmin' : 'instructor';
+
                     log_admin_action(
                         $pdo,
-                        'reset_teacher_password',
+                        $actionType,
                         'admin',
                         $teacher_id,
-                        "Reset password for instructor {$teacher['name']} (#$teacher_id)."
+                        "Reset password for {$roleLabel} {$teacher['name']} (#$teacher_id)."
                     );
 
                     $message = "Password updated successfully for {$teacher['name']}.";
                     $message_type = 'success';
+                } else {
+                    $message = "Account not found.";
+                    $message_type = 'error';
                 }
             } catch (PDOException $e) {
                 $message = safe_db_error($e, "Failed to update password.");
@@ -385,12 +392,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             <span class="material-symbols-outlined icon-xs">history</span> Activity
                                         </a>
 
-                                        <?php if (!$isSuper): ?>
-                                            <!-- Reset Password Button / Trigger -->
-                                            <button type="button" class="btn btn-secondary btn-sm" onclick="promptResetPassword(<?= $row['id'] ?>, '<?= e(addslashes($row['name'])) ?>')" title="Reset Password">
-                                                <span class="material-symbols-outlined icon-xs">key</span>
-                                            </button>
+                                        <!-- Reset Password Button / Trigger -->
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="promptResetPassword(<?= $row['id'] ?>, '<?= e(addslashes($row['name'])) ?>')" title="Reset Password">
+                                            <span class="material-symbols-outlined icon-xs">key</span>
+                                        </button>
 
+                                        <?php if (!$isSuper): ?>
                                             <?php if ($isRetired): ?>
                                                 <!-- Reactivate Teacher -->
                                                 <form method="POST" style="display: inline;" onsubmit="return confirm('Reactivate login access for <?= e(addslashes($row['name'])) ?>?');">

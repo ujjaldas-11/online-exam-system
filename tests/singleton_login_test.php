@@ -11,6 +11,7 @@ if (php_sapi_name() !== 'cli') {
  */
 ob_start();
 ini_set('session.use_cookies', '0');
+ini_set('session.use_strict_mode', '0');
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/auth.php';

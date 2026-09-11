@@ -948,23 +948,43 @@ $isSuper = is_superadmin();
                             3.6 Managing Question Banks & Bulk CSV Upload<span class="arrow">▸</span>
                         </summary>
                         <div class="body">
-                            <p>Upload questions in bulk using standardized CSV format:</p>
+                            <p>Examify supports five distinct multiple-choice question archetypes:</p>
+                            <ul>
+                                <li><strong>Single Choice (<code>single</code>):</strong> Questions with one correct option (A, B, C, or D).</li>
+                                <li><strong>Multiple Choice (<code>multiple</code>):</strong> Questions with one or more correct options (for example, <code>A,C</code>).</li>
+                                <li><strong>Case Study (<code>case_study</code>):</strong> Scenario-based questions evaluating clinical or technical contexts.</li>
+                                <li><strong>Assertion & Reason (<code>assertion_reason</code>):</strong> Questions evaluating Assertion (A) and Reason (R) statements.</li>
+                                <li><strong>Matching (<code>matching</code>):</strong> Column matching relationships with paired answer codes.</li>
+                            </ul>
+                            <p>Follow these steps to upload questions in bulk:</p>
                             <ol>
                                 <li>Click <strong>Questions</strong> in the navigation sidebar (<code>admin/manage-questions.php</code>).</li>
                                 <li>Select the destination curriculum subject from the dropdown menu.</li>
-                                <li>(Optional) Click <strong>Download Template</strong> to inspect the exact column structure.</li>
+                                <li>Choose your template download format:
+                                    <ul>
+                                        <li>Click <strong>Download CSV Template</strong> for a standard CSV template.</li>
+                                        <li>Click <strong>Download XLSX Template</strong> for a native Microsoft Excel template.</li>
+                                    </ul>
+                                </li>
+                                <li>(Optional) Click <strong>Preview Template</strong> to inspect sample questions and accepted schemas in your browser.</li>
                                 <li>Upload your <code>.csv</code> or <code>.txt</code> file, or paste CSV records directly into the text area.</li>
-                                <li>Click <strong>Upload Questions</strong>.</li>
+                                <li>Click <strong>Upload Questions</strong> to validate and import your questions.</li>
                             </ol>
-                            <p>The CSV requires 7 columns: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option</code></p>
+                            <p>The upload structure requires 8 columns: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option, Question Type</code></p>
                             <div class="code-block">
                                 <button class="copy-btn" data-copy>Copy</button>
-                                <pre style="margin: 0; white-space: pre-wrap">Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option
-"What is an operating system?",1,"System software","Application software","Hardware component","Malicious program",A
-"Which memory management technique uses variable partition sizes?",2,"Paging","Segmentation","Thrashing","Compaction",B
-"What is a critical section in process synchronization?",3,"Code segment accessing shared variables","OS kernel code","Bootloader sector","CPU cache line",A
-"Which scheduling algorithm is non-preemptive?",4,"FCFS","Round Robin","SRTF","Multilevel Queue",A</pre>
+                                <pre style="margin: 0; white-space: pre-wrap">Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Question Type
+"What is an operating system?",1,"System software","Application software","Hardware component","Malicious program",A,single
+"Which protocols operate at the transport layer?",2,"TCP","IP","UDP","ICMP","A,C",multiple
+"Assertion (A): Virtual memory increases address space.\nReason (R): It maps virtual to physical pages.",3,"Both A and R are true, and R is the correct explanation of A","Both A and R are true, but R is NOT the correct explanation of A","A is true, but R is false","A is false, but R is true",A,assertion_reason
+"Which scheduling algorithm is non-preemptive?",4,"FCFS","Round Robin","SRTF","Multilevel Queue",A,single</pre>
                             </div>
+                            <h4>Exporting Question Banks</h4>
+                            <p>Open <code>admin/view-questions.php</code> to export existing questions:</p>
+                            <ul>
+                                <li>Click <strong>Export CSV</strong> to download the question bank in CSV format.</li>
+                                <li>Click <strong>Export XLSX</strong> to download the question bank in native Microsoft Excel format.</li>
+                            </ul>
                         </div>
                     </details>
 
@@ -1098,8 +1118,24 @@ $isSuper = is_superadmin();
                         </summary>
                         <div class="body">
                             <p>
-                                Superadmins manage faculty credentials in <code>admin/manage-teachers.php</code>.
+                                Superadmins manage faculty accounts and credential lifecycles in <code>admin/manage-teachers.php</code>.
                             </p>
+                            <h4>Teacher Provisioning</h4>
+                            <ol>
+                                <li>Click <strong>Faculty</strong> in the navigation sidebar.</li>
+                                <li>Complete the <strong>Add Teacher</strong> form with full name, college email, assigned department, and initial temporary password.</li>
+                                <li>Click <strong>Create Teacher Account</strong>.</li>
+                            </ol>
+                            <h4>Faculty Credential Resets</h4>
+                            <p>Superadmins can reset passwords for any faculty member directly from the faculty directory:</p>
+                            <ol>
+                                <li>Locate the target faculty member in the roster.</li>
+                                <li>Click <strong>Reset Password</strong>.</li>
+                                <li>Type the new temporary password into the dialog.</li>
+                                <li>Click <strong>Update Password</strong> to persist the change immediately.</li>
+                            </ol>
+                            <h4>Superadmin Self-Credential Reset</h4>
+                            <p>Superadmins can also reset their own master password directly from this panel using the <strong>Reset My Password</strong> button in their account row.</p>
                             <div class="admonition">
                                 <span class="adm-label">Institutional Guarantee</span>
                                 When faculty leave or retire, their authored questions, exams, and student grades are <strong>100% retained</strong>. Foreign keys preserve author attribution permanently as <code>Prof. Name [Retired]</code>.

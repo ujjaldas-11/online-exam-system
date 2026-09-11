@@ -33,6 +33,7 @@ $css = file_get_contents(__DIR__ . '/../assets/css/components.css');
 assert_test("components.css defines .password-wrapper", str_contains($css, '.password-wrapper'));
 assert_test("components.css defines .password-toggle-btn", str_contains($css, '.password-toggle-btn'));
 assert_test("components.css defines right padding offset for input", str_contains($css, 'padding-right: 38px !important'));
+assert_test("components.css suppresses browser native ::-ms-reveal button", str_contains($css, '::-ms-reveal'));
 
 // 2. Global Script Verification
 echo "\n--- 2. Testing Global Footer Handler ---\n";
