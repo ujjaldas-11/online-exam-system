@@ -1,7 +1,8 @@
 :root {
     --nav-h: 54px;
-    --nav-deep: color-mix(in srgb, var(--color-header, #0F172A) 82%, black 18%);
-    --nav-tint: color-mix(in srgb, var(--color-header-hover, #1b2848) 70%, white 30%);
+    --nav-deep: #33422e;
+    --nav-tint: #263320;
+    --nav-hover: #475543;
     --nav-text: #ede9d9;
     --nav-active-text: rgb(212, 232, 197);
     --color-gold: #d8a457;
@@ -9,7 +10,7 @@
 }
 
 .student-navbar {
-    background: var(--color-header, #0F172A);
+    background: var(--nav-deep);
     color: var(--nav-text);
     position: sticky;
     top: 0;
@@ -39,6 +40,10 @@
     flex-shrink: 0;
 }
 
+.student-brand :hover {
+    color: var(--color-gold);
+}
+
 .student-greeting-mobile-hidden {
     display: flex;
     align-items: center;
@@ -51,8 +56,8 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: var(--nav-tint);
-    color: var(--nav-deep);
+    background: var(--color-gold);
+    color: var(--nav-text);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -90,7 +95,7 @@
 
 .student-nav-links a:hover,
 .student-nav-links a.active {
-    background: var(--color-header-hover, #45573d);
+    background: var(--nav-hover);
     color: var(--color-gold);
 }
 
@@ -100,7 +105,7 @@
 }
 
 .student-nav-links a.nav-logout:hover {
-    background: color-mix(in srgb, var(--color-error, #dc2626) 82%, black 18%);
+    background: var(--nav-tint);
 }
 
 .menu-btn {
@@ -146,7 +151,7 @@
         height: 100vh;
         width: 78%;
         max-width: 300px;
-        background: var(--color-header, #33422e);
+        background: var(--nav-deep);
         flex-direction: column;
         align-items: stretch;
         padding: 24px 18px;

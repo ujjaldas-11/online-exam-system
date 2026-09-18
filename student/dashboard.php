@@ -99,9 +99,9 @@ include __DIR__ . '/../components/student-navbar.php';
 <!-- Custom Modern Indigo Color Palette & Interactive Styles -->
 <style>
     :root {
-        --color-primary-indigo: #4f46e5;
-        --color-primary-indigo-hover: #4338ca;
-        --color-indigo-soft: rgba(79, 70, 229, 0.08);
+        --color-primary: #33422e;
+        --color-primary-hover: #263320;
+        --color-soft: #d8a457;
     }
 
     @keyframes pulse-ring {
@@ -127,7 +127,7 @@ include __DIR__ . '/../components/student-navbar.php';
     }
 
     .exam-card-item.is-active-exam {
-        border-top-color: var(--color-primary-indigo);
+        border-top-color: var(--color-primary);
     }
 
     .exam-card-item:hover {
@@ -144,9 +144,9 @@ include __DIR__ . '/../components/student-navbar.php';
     }
 
     .filter-tab.active {
-        background: var(--color-primary-indigo) !important;
-        color: #fff !important;
-        border-color: var(--color-primary-indigo) !important;
+        background: var(--color-primary-hover) !important;
+        color: #edb055 !important;
+        border-color: var(--color-primary) !important;
         box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
     }
 </style>
@@ -166,7 +166,7 @@ include __DIR__ . '/../components/student-navbar.php';
         <!-- Quick Stats Counter Pill -->
         <div style="display: flex; gap: 12px; background: #f8fafc; border: 1px solid var(--color-border); padding: 10px 18px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
             <div style="text-align: center; padding-right: 12px; border-right: 1px solid var(--color-border);">
-                <div style="font-size: 1.15rem; font-weight: 800; color: var(--color-primary-indigo);"><?= $active_count ?></div>
+                <div style="font-size: 1.15rem; font-weight: 800; color: var(--color-primary);"><?= $active_count ?></div>
                 <div style="font-size: 0.7rem; color: var(--color-text-secondary); text-transform: uppercase; font-weight: 700;">Active</div>
             </div>
             <div style="text-align: center; padding-right: 12px; border-right: 1px solid var(--color-border);">
@@ -194,7 +194,7 @@ include __DIR__ . '/../components/student-navbar.php';
             <!-- Instant Search Bar -->
             <div style="position: relative; min-width: 260px; flex: 1; max-width: 320px;">
                 <span class="material-symbols-outlined" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-secondary); font-size: 18px;">search</span>
-                <input type="text" id="examSearchInput" placeholder="Search exam or subject..." style="width: 100%; padding: 8px 14px 8px 40px; border: 1px solid var(--color-border); border-radius: 20px; font-size: 0.9rem; background: #fff; outline: none; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='var(--color-primary-indigo)'; this.style.boxShadow='0 0 0 3px var(--color-indigo-soft)';" onblur="this.style.borderColor='var(--color-border)'; this.style.boxShadow='none';">
+                <input type="text" id="examSearchInput" placeholder="Search exam or subject..." style="width: 100%; padding: 8px 14px 8px 40px; border: 1px solid var(--color-border); border-radius: 20px; font-size: 0.9rem; background: #fff; outline: none; transition: border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.boxShadow='0 0 0 3px var(--color-soft)';" onblur="this.style.borderColor='var(--color-border)'; this.style.boxShadow='none';">
             </div>
         </div>
     <?php endif; ?>
@@ -202,7 +202,7 @@ include __DIR__ . '/../components/student-navbar.php';
     <?php if (empty($filtered_exams)): ?>
         <!-- Polished Empty State Card -->
         <div class="card" id="empty-state" style="text-align: center; padding: 64px 24px; border: 2px dashed var(--color-border); background: #fff; border-radius: 16px; box-shadow: var(--shadow-sm);">
-            <div style="width: 68px; height: 68px; border-radius: 50%; background: var(--color-indigo-soft); color: var(--color-primary-indigo); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <div style="width: 68px; height: 68px; border-radius: 50%; background: var(--color-soft); color: var(--color-primary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
                 <span class="material-symbols-outlined" style="font-size: 34px;">event_available</span>
             </div>
             <h3 style="color: var(--color-dark); font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">No exams scheduled right now</h3>
@@ -323,7 +323,7 @@ include __DIR__ . '/../components/student-navbar.php';
                                 <span class="material-symbols-outlined icon-sm">play_circle</span> Resume Exam
                             </a>
                         <?php else: ?>
-                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 600; border-radius: 8px; background: var(--color-primary-indigo); border-color: var(--color-primary-indigo);" onmouseover="this.style.background='var(--color-primary-indigo-hover)'" onmouseout="this.style.background='var(--color-primary-indigo)'">
+                            <a href="exam.php?id=<?= $exam['id'] ?>" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 600; border-radius: 8px; background: var(--color-primary); border-color: var(--color-primary);" onmouseover="this.style.background='var(--color-primary-hover)'" onmouseout="this.style.background='var(--color-primary)'">
                                 <span class="material-symbols-outlined icon-sm">play_arrow</span> Start Exam
                             </a>
                         <?php endif; ?>
