@@ -8,31 +8,71 @@ require_once '../utils/logger.php';
 require_once '../utils/csrf.php';
 
 if (empty($_GET['exam_id'])) {
-    die("No exam selected.");
+    die('No exam selected.');
 }
 
 $exam_id = int_param($_GET['exam_id']);
 
+// Check if Admin requested to download a specific student's detailed answer sheet
+if (isset($_GET['download_student_answers']) && isset($_GET['attempt_id'])) {
+    require_once '../services/PdfService.php';
+    $dl_attempt_id = (int) $_GET['attempt_id'];
+
+    // 1. Fetch Student and Exam Meta via Attempt ID
+    // Notice: No "AND ea.student_id = ?" because Admins can view all attempts
+    $metaStmt = $pdo->prepare('
+        SELECT s.name, s.roll_number, e.title 
+        FROM exam_attempts ea
+        JOIN students s ON ea.student_id = s.id
+        JOIN exams e ON ea.exam_id = e.id
+        WHERE ea.id = ?
+    ');
+    $metaStmt->execute([$dl_attempt_id]);
+    $metaData = $metaStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($metaData) {
+        $pdfStudent = ['name' => $metaData['name'], 'roll_number' => $metaData['roll_number']];
+        $pdfExam = ['title' => $metaData['title']];
+
+        // 2. Fetch the detailed Question & Answer history
+        $qaStmt = $pdo->prepare('
+            SELECT q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
+                   sa.selected_option, sa.is_correct
+            FROM student_answers sa
+            JOIN questions q ON sa.question_id = q.id
+            WHERE sa.attempt_id = ?
+            ORDER BY sa.id ASC
+        ');
+        $qaStmt->execute([$dl_attempt_id]);
+        $qaData = $qaStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 3. Generate PDF and force download ('D')
+        PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $qaData, 'D');
+    } else {
+        die('Invalid attempt specified.');
+    }
+}
+
 try {
     // Fetch Exam Details
-    $examStmt = $pdo->prepare("
+    $examStmt = $pdo->prepare('
         SELECT e.id, e.title, e.total_marks, e.duration_minutes, e.start_time, e.status, e.results_published,
                a.name as creator_name, a.status as creator_status
         FROM exams e
         LEFT JOIN admins a ON e.created_by = a.id
         WHERE e.id = ?
-    ");
+    ');
     $examStmt->execute([$exam_id]);
     $exam = $examStmt->fetch();
 
     if (!$exam) {
-        die("Exam not found.");
+        die('Exam not found.');
     }
 
     $is_ongoing = false;
     if ($exam['status'] === 'active') {
         $startTs = !empty($exam['start_time']) ? strtotime($exam['start_time']) : time();
-        $durationSec = ((int)$exam['duration_minutes']) * 60;
+        $durationSec = ((int) $exam['duration_minutes']) * 60;
         if (time() < ($startTs + $durationSec)) {
             $is_ongoing = true;
         }
@@ -43,21 +83,21 @@ try {
         verify_csrf();
 
         if (!can_admin_manage_exam($pdo, $exam_id)) {
-            set_flash('error', "Access Denied: You can only publish or manage results for exams you have authored.");
+            set_flash('error', 'Access Denied: You can only publish or manage results for exams you have authored.');
             redirect("view-results.php?exam_id=$exam_id");
         }
 
         if (isset($_POST['publish_results'])) {
             if ($is_ongoing) {
-                set_flash('error', "Cannot publish results while the examination is still ongoing.");
+                set_flash('error', 'Cannot publish results while the examination is still ongoing.');
                 redirect("view-results.php?exam_id=$exam_id");
             }
-            $pdo->prepare("UPDATE exams SET results_published = 1 WHERE id = ?")->execute([$exam_id]);
+            $pdo->prepare('UPDATE exams SET results_published = 1 WHERE id = ?')->execute([$exam_id]);
             log_admin_action($pdo, 'publish_results', 'exam', $exam_id, "Published results for exam #$exam_id to students");
             set_flash('success', "Results for '{$exam['title']}' have been published! Students can now view their scores and answer breakdowns.");
             redirect("view-results.php?exam_id=$exam_id");
         } elseif (isset($_POST['unpublish_results'])) {
-            $pdo->prepare("UPDATE exams SET results_published = 0 WHERE id = ?")->execute([$exam_id]);
+            $pdo->prepare('UPDATE exams SET results_published = 0 WHERE id = ?')->execute([$exam_id]);
             log_admin_action($pdo, 'unpublish_results', 'exam', $exam_id, "Unpublished results for exam #$exam_id");
             set_flash('success', "Results for '{$exam['title']}' are now hidden from students.");
             redirect("view-results.php?exam_id=$exam_id");
@@ -78,7 +118,7 @@ try {
     $top_scorers = array_slice($all_results, 0, 3);
 } catch (PDOException $e) {
     log_error("Failed to fetch exam result list for exam $exam_id", $e);
-    die("Database Error.");
+    die('Database Error.');
 }
 
 $page_title = 'Results: ' . ($exam['title'] ?? 'Exam') . ' • Examify';
@@ -100,7 +140,7 @@ include __DIR__ . '/../components/header.php';
         <div>
             <h1><?= e($exam['title']) ?></h1>
             <p>
-                Total Examination Marks: <strong><?= e((string)$exam['total_marks']) ?></strong> •
+                Total Examination Marks: <strong><?= e((string) $exam['total_marks']) ?></strong> •
                 Total Submissions: <strong><?= count($all_results) ?></strong> •
                 Author: <strong><?= e($exam['creator_name'] ?? 'System') ?></strong>
                 <?php if (($exam['creator_status'] ?? '') === 'retired'): ?>
@@ -189,7 +229,7 @@ include __DIR__ . '/../components/header.php';
                         <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-dark); margin-bottom: 2px;"><?= e($student['name']) ?></h3>
                         <div style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 8px;">Roll: <?= e($student['roll_number']) ?></div>
                         <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-primary);">
-                            <?= sprintf('%.2f', (float)$student['score']) ?> <span style="font-size: 0.9rem; color: var(--color-text-secondary);">/ <?= e((string)$exam['total_marks']) ?></span>
+                            <?= sprintf('%.2f', (float) $student['score']) ?> <span style="font-size: 0.9rem; color: var(--color-text-secondary);">/ <?= e((string) $exam['total_marks']) ?></span>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -213,24 +253,25 @@ include __DIR__ . '/../components/header.php';
                             <th>Score</th>
                             <th>Percentage</th>
                             <th>Submitted At</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
                         $rank = 1;
                         foreach ($all_results as $row):
-                            $percentage = (float)$exam['total_marks'] > 0 ? round(((float)$row['score'] / (float)$exam['total_marks']) * 100) : 0;
+                            $percentage = (float) $exam['total_marks'] > 0 ? round(((float) $row['score'] / (float) $exam['total_marks']) * 100) : 0;
                             ?>
                             <tr>
                                 <td><strong>#<?= $rank++ ?></strong></td>
                                 <td>
                                     <strong><?= e($row['name']) ?></strong><br>
                                     <small style="color: var(--color-text-secondary);">
-                                        <?= e($row['roll_number']) ?> • <?= e($row['department']) ?>, Sem <?= e((string)$row['semester']) ?>
+                                        <?= e($row['roll_number']) ?> • <?= e($row['department']) ?>, Sem <?= e((string) $row['semester']) ?>
                                     </small>
                                 </td>
                                 <td>
-                                    <strong><?= sprintf('%.2f', (float)$row['score']) ?></strong> / <?= e((string)$exam['total_marks']) ?>
+                                    <strong><?= sprintf('%.2f', (float) $row['score']) ?></strong> / <?= e((string) $exam['total_marks']) ?>
                                 </td>
                                 <td>
                                     <span class="badge <?= $percentage >= 50 ? 'badge-active' : 'badge-rejected' ?>">
@@ -238,6 +279,14 @@ include __DIR__ . '/../components/header.php';
                                     </span>
                                 </td>
                                 <td><?= date('d M Y, h:i A', strtotime($row['submitted_at'])) ?></td>
+                                <td>
+                                    <a href="view-student-answers.php?attempt_id=<?= $row['attempt_id'] ?>" 
+                                    class="btn btn-secondary btn-sm" 
+                                    title="View Detailed Answer Sheet"
+                                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;">
+                                        <span class="material-symbols-outlined icon-sm">visibility</span> View Answers
+                                    </a>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
