@@ -82,57 +82,39 @@ if ($isAdminSuper) {
             </a>
 
             <div class="profile-widget">
-    <button class="profile-trigger" id="profileTrigger" aria-haspopup="true" aria-expanded="false">
-        <span class="profile-avatar">
-            <?php
-            $adminName = $_SESSION['admin_name'] ?? 'Admin';
-            $initials = strtoupper(substr($adminName, 0, 1));
-            echo htmlspecialchars($initials, ENT_QUOTES, 'UTF-8');
-            ?>
-        </span>
-        <div class="profile-text">
-            <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></span>
-            <span class="admin-role"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?></span>
-        </div>
-        <span class="material-symbols-outlined chevron-icon" aria-hidden="true">expand_more</span>
-    </button>
+                <button class="profile-trigger" id="profileTrigger" aria-haspopup="true" aria-expanded="false">
+                    <span class="profile-avatar">
+                        <?php
+                        $adminName = $_SESSION['admin_name'] ?? 'Admin';
+                        $initials = strtoupper(substr($adminName, 0, 1));
+                        echo htmlspecialchars($initials, ENT_QUOTES, 'UTF-8');
+                        ?>
+                    </span>
+                    <div class="profile-text">
+                        <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="admin-role"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?></span>
+                    </div>
+                    <span class="material-symbols-outlined chevron-icon" aria-hidden="true">expand_more</span>
+                </button>
 
-    <div class="profile-dropdown" id="profileDropdown">
-        <div class="dropdown-header">
-            <span class="profile-avatar large">
-                <?= htmlspecialchars($initials, ENT_QUOTES, 'UTF-8') ?>
-            </span>
-            <div>
-                <p class="dropdown-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></p>
-                <p class="dropdown-role"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?></p>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="dropdown-header">
+                        <span class="profile-avatar large">
+                            <?= htmlspecialchars($initials, ENT_QUOTES, 'UTF-8') ?>
+                        </span>
+                        <div>
+                            <p class="dropdown-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="dropdown-role"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?></p>
+                        </div>
+                    </div>
+                    <hr class="dropdown-divider">
+                    <a href="admin-logout.php" class="logout-btn">
+                        <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                        Logout
+                    </a>
+                </div>
             </div>
-        </div>
-        <hr class="dropdown-divider">
-        <a href="admin-logout.php" class="logout-btn">
-            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
-            Logout
-        </a>
-    </div>
-</div>
-<script>
-(function () {
-    const trigger = document.getElementById('profileTrigger');
-    const dropdown = document.getElementById('profileDropdown');
 
-    trigger.addEventListener('click', function (e) {
-        e.stopPropagation();
-        const isOpen = dropdown.classList.toggle('open');
-        trigger.setAttribute('aria-expanded', isOpen);
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
-            dropdown.classList.remove('open');
-            trigger.setAttribute('aria-expanded', 'false');
-        }
-    });
-})();
-</script>
         </div>
     </div>
 </header>
@@ -211,4 +193,25 @@ if ($isAdminSuper) {
         if (window.innerWidth > 992) closeSidebar();
     });
 })();
+
+
+(function () {
+    const trigger = document.getElementById('profileTrigger');
+    const dropdown = document.getElementById('profileDropdown');
+
+    trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = dropdown.classList.toggle('open');
+        trigger.setAttribute('aria-expanded', isOpen);
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
+            dropdown.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+    });
+})();
+
+
 </script>
