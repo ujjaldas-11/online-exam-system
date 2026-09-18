@@ -5,8 +5,7 @@ if ((!isset($pending_registration_requests_count) || !isset($pending_requests_co
     try {
         $sidebar_counts = $pdo->query("SELECT 
             (SELECT COUNT(*) FROM students WHERE status = 'pending') AS pending_students,
-            (SELECT COUNT(*) FROM profile_requests WHERE status = 'pending') AS pending_requests"
-        )->fetch(PDO::FETCH_ASSOC);
+            (SELECT COUNT(*) FROM profile_requests WHERE status = 'pending') AS pending_requests")->fetch(PDO::FETCH_ASSOC);
         if (!isset($pending_registration_requests_count)) {
             $pending_registration_requests_count = (int) ($sidebar_counts['pending_students'] ?? 0);
         }
@@ -31,16 +30,15 @@ $admin_nav = [
     'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications', 'title' => 'profile update request'],
     'registration-request.php' => ['label' => 'Registration Requests', 'icon' => 'person_add', 'title' => 'registration requests'],
     'manage-students.php' => ['label' => 'Students', 'icon' => 'group', 'title' => 'students'],
-
 ];
 
 // Map secondary/child views to parent navigation item
 $route_parents = [
-    'manage-exam.php'    => 'control-exams.php',
-    'proctor-exam.php'   => 'control-exams.php',
+    'manage-exam.php' => 'control-exams.php',
+    'proctor-exam.php' => 'control-exams.php',
     'view-questions.php' => 'manage-questions.php',
-    'edit-question.php'  => 'manage-questions.php',
-    'view-results.php'   => 'results.php',
+    'edit-question.php' => 'manage-questions.php',
+    'view-results.php' => 'results.php',
 ];
 $effective_active_page = $route_parents[$current_page] ?? $current_page;
 
@@ -83,13 +81,58 @@ if ($isAdminSuper) {
                 <?php endif; ?>
             </a>
 
-            <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2;">
-                <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></span>
-                <span style="font-size: 0.72rem; color: #e2e8f0; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
-                    <?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?>
-                </span>
+            <div class="profile-widget">
+    <button class="profile-trigger" id="profileTrigger" aria-haspopup="true" aria-expanded="false">
+        <span class="profile-avatar">
+            <?php
+            $adminName = $_SESSION['admin_name'] ?? 'Admin';
+            $initials = strtoupper(substr($adminName, 0, 1));
+            echo htmlspecialchars($initials, ENT_QUOTES, 'UTF-8');
+            ?>
+        </span>
+        <div class="profile-text">
+            <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></span>
+            <span class="admin-role"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?></span>
+        </div>
+        <span class="material-symbols-outlined chevron-icon" aria-hidden="true">expand_more</span>
+    </button>
+
+    <div class="profile-dropdown" id="profileDropdown">
+        <div class="dropdown-header">
+            <span class="profile-avatar large">
+                <?= htmlspecialchars($initials, ENT_QUOTES, 'UTF-8') ?>
+            </span>
+            <div>
+                <p class="dropdown-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></p>
+                <p class="dropdown-role"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?></p>
             </div>
-            <span class="material-symbols-outlined profile-icon" aria-hidden="true">account_circle</span>
+        </div>
+        <hr class="dropdown-divider">
+        <a href="logout.php" class="logout-btn">
+            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+            Logout
+        </a>
+    </div>
+</div>
+<script>
+(function () {
+    const trigger = document.getElementById('profileTrigger');
+    const dropdown = document.getElementById('profileDropdown');
+
+    trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = dropdown.classList.toggle('open');
+        trigger.setAttribute('aria-expanded', isOpen);
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
+            dropdown.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+    });
+})();
+</script>
         </div>
     </div>
 </header>
