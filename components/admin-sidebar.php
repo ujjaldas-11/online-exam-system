@@ -29,7 +29,6 @@ $admin_nav = [
     'results.php' => ['label' => 'Results', 'icon' => 'bar_chart', 'title' => 'results'],
     'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications', 'title' => 'profile update request'],
     'registration-request.php' => ['label' => 'Registration Requests', 'icon' => 'person_add', 'title' => 'registration requests'],
-    'manage-students.php' => ['label' => 'Students', 'icon' => 'group', 'title' => 'students'],
 ];
 
 // Map secondary/child views to parent navigation item
@@ -79,6 +78,11 @@ if ($isAdminSuper) {
                 <?php if (!empty($pending_requests_count)): ?>
                     <span class="topbar-badge"><?= (int) $pending_requests_count ?></span>
                 <?php endif; ?>
+            </a>
+
+            <a href="../docs/user/admin-doc.php"
+            class="icon-btn topbar-shortcut aria-label="help file" title="Read help file">
+                <span class="material-symbols-outlined">docs</span>
             </a>
 
             <div class="profile-widget">
@@ -142,10 +146,10 @@ if ($isAdminSuper) {
         <?php endforeach; ?>
     </nav>
 
-    <a href="admin-logout.php" class="sidebar-logout" data-tooltip="Logout">
+    <!-- <a href="admin-logout.php" class="sidebar-logout" data-tooltip="Logout">
         <span class="material-symbols-outlined">logout</span>
         <span class="link-label">Logout</span>
-    </a>
+    </a> -->
 </aside>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>

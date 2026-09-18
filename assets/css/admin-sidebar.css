@@ -470,8 +470,8 @@ body.sidebar-collapsed .main-content {
     left: calc(100% + 12px);
     top: 50%;
     transform: translateY(-50%) translateX(-8px);
-    background: #1e293b;
-    color: #f1f5f9;
+    background: var(--sidebar-bg);
+    color: #fff;
     padding: 7px 12px;
     border-radius: 6px;
     font-size: 0.82rem;
