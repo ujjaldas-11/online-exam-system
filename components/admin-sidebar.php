@@ -81,7 +81,7 @@ if ($isAdminSuper) {
             </a>
 
             <a href="../docs/user/admin-doc.php"
-            class="icon-btn topbar-shortcut aria-label="help file" title="Read help file">
+            class="icon-btn topbar-shortcut aria-label="help file" title="Read Documentation">
                 <span class="material-symbols-outlined">docs</span>
             </a>
 
