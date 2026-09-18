@@ -12,8 +12,8 @@
   --sidebar-active-bg: #475543;
   --sidebar-text: #e2e8f0;
   --sidebar-text-dim: #eef2ea;
-  --sidebar-gold: #e8ac54;
-  --sidebar-gold-hover: #edb055;
+  --sidebar-gold: #edb055;
+  --sidebar-gold-hover: #d9a451;
 
   --topbar-bg: #33422e;
   --radius: 8px;
@@ -409,19 +409,19 @@ body.sidebar-collapsed .main-content {
 /* Logout button */
 .sidebar-logout {
   margin-top: 12px;
-  background: transparent;
+  background: #dc2626;
   border: none;
   cursor: pointer;
   width: 100%;
   font: inherit;
-  color: #f87171;
+  color: #fff;
   justify-content: flex-start;
   flex-shrink: 0;
 }
 
 .sidebar-logout:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
+  background: #ef4444;
+  color: #fff;
 }
 
 /* Overlay for mobile */

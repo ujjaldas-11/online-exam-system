@@ -108,7 +108,7 @@ if ($isAdminSuper) {
             </div>
         </div>
         <hr class="dropdown-divider">
-        <a href="logout.php" class="logout-btn">
+        <a href="admin-logout.php" class="logout-btn">
             <span class="material-symbols-outlined" aria-hidden="true">logout</span>
             Logout
         </a>
