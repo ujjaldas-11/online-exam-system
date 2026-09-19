@@ -98,12 +98,12 @@ include __DIR__ . '/../components/student-navbar.php';
 
 <!-- Custom Modern Indigo Color Palette & Interactive Styles -->
 <style>
-    :root {
-        --color-primary: #33422e;
-        --color-primary-hover: #263320;
-        --color-soft: #d8a457;
-    }
-
+    /* :root {
+        --color-primary: #1b3b2b;
+        --color-primary-hover: #244f39;
+        --color-soft: #eef2ea;
+    } */
+    
     @keyframes pulse-ring {
         0% {
             transform: scale(0.95);
@@ -246,7 +246,7 @@ include __DIR__ . '/../components/student-navbar.php';
                 ?>
 
                 <!-- Individual Exam Card -->
-                <div class="card exam-card-item <?= $isActiveCard ? 'is-active-exam' : '' ?>" data-category="<?= $cardCategory ?>" data-title="<?= strtolower(e($exam['title'] . ' ' . $exam['subject_name'])) ?>" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border-radius: 14px; border-left: 1px solid var(--color-border); border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02); background: #fff; padding: 24px;">
+                <div class="card exam-card-item <?= $isActiveCard ? 'is-active-exam' : '' ?>" data-category="<?= $cardCategory ?>" data-title="<?= strtolower(e($exam['title'] . ' ' . $exam['subject_name'])) ?>" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; border-radius: 14px; border-left: 1px solid var(--color-border); border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02); background: #132a1e; padding: 24px;">
                     <div>
                         <!-- Title & Status Badge Header -->
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px;">

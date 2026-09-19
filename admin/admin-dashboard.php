@@ -97,7 +97,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="card">
         <div class="card-title">Quick Actions</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
-            <a href="manage-students.php" class="btn btn-primary" style="justify-content: flex-start; padding: 16px; gap: 12px; background: #0f766e; border-color: #0f766e;">
+            <a href="manage-students.php" class="btn btn-primary" style="justify-content: flex-start; padding: 16px; gap: 12px; background: #1b3b2b; border-color: #0f766e;">
                 <span class="material-symbols-outlined icon-xl">school</span>
                 <div style="text-align: left;">
                     <div><strong>Manage Students</strong></div>

@@ -7,15 +7,15 @@
   --sidebar-w-collapsed: 78px;
   --topbar-h: 56px;
 
-  --sidebar-bg: #33422e;
-  --sidebar-bg-hover: #394d2f;
-  --sidebar-active-bg: #475543;
+  --sidebar-bg: #1b3b2b;
+  --sidebar-bg-hover: #244f39;
+  --sidebar-active-bg: #132a1e;
   --sidebar-text: #e2e8f0;
   --sidebar-text-dim: #eef2ea;
   --sidebar-gold: #edb055;
   --sidebar-gold-hover: #d9a451;
 
-  --topbar-bg: #33422e;
+  --topbar-bg: #1b3b2b;
   --radius: 8px;
   --transition: 0.25s ease;
 }
@@ -91,7 +91,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .topbar-shortcut.active {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--sidebar-active-bg);
   color: var(--sidebar-gold);
 }
 
@@ -393,17 +393,17 @@ body.sidebar-collapsed .main-content {
 
 .sidebar-links a:hover {
   background: var(--sidebar-bg-hover);
-  color: #f1f5f9;
+  color: var(--sidebar-gold);
 }
 
 .sidebar-links a.active {
   background: var(--sidebar-active-bg);
-  color: var(--sidebar-gold);
+  color: var(--sidebar-gold-hover);
   font-weight: 600;
 }
 
 .sidebar-links a.active .material-symbols-outlined {
-  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
 }
 
 /* Logout button */

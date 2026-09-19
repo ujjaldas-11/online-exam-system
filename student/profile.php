@@ -49,35 +49,38 @@ include __DIR__ . '/../components/student-navbar.php';
     </div>
 
     <!-- Student Credentials Card -->
-    <div class="card">
-        <div class="card-title">Academic Details</div>
+    <div class="card" style="background-color: var(--color-primary);">
+        <div class="card-title" style="color: var(--color-gold);">Academic Details</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
             <div>
-                <label style="color: var(--color-text-secondary); margin-bottom: 2px;">Full Name</label>
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-dark);"><?= e($student['name']) ?></div>
+                <label style="color: var(--color-primary-soft); margin-bottom: 2px;">Full Name</label>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-gold-hover);"><?= e($student['name']) ?></div>
             </div>
             <div>
-                <label style="color: var(--color-text-secondary); margin-bottom: 2px;">Email Address</label>
-                <div style="font-size: 1.1rem; font-weight: 600;"><?= e($student['email']) ?></div>
+                <label style="color: var(--color-primary-soft); margin-bottom: 2px;">Email Address</label>
+                <div style="font-size: 1.1rem; font-weight: 600; color: var(--color-gold-hover);"><?= e($student['email']) ?></div>
             </div>
             <div>
-                <label style="color: var(--color-text-secondary); margin-bottom: 2px;">Roll Number / Student ID</label>
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-primary);"><?= e($student['roll_number']) ?></div>
+                <label style="color: var(--color-primary-soft); margin-bottom: 2px;">Roll Number / Student ID</label>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-gold-hover);"><?= e($student['roll_number']) ?></div>
             </div>
             <div>
-                <label style="color: var(--color-text-secondary); margin-bottom: 2px;">Department & Semester</label>
-                <div style="font-size: 1.1rem; font-weight: 600;"><?= e($student['department']) ?> • Semester <?= e((string)$student['semester']) ?></div>
+                <label style="color: var(--color-primary-soft); margin-bottom: 2px;">Department & Semester</label>
+                <div style="font-size: 1.1rem; font-weight: 600; color: var(--color-gold-hover);"><?= e($student['department']) ?> • Semester <?= e((string)$student['semester']) ?></div>
             </div>
         </div>
     </div>
 
     <!-- Exam History Card -->
-    <div class="card">
-        <div class="card-title">Exam History</div>
-        <?php include '../components/searchbar.php' ?>
+    <div class="card" style="background-color: var(--color-primary); color: var(--color-gold);">
+        <div class="card-title" style="color: var(--color-gold);">Exam History</div>
+
+        <div style="margin-bottom: 10px;">
+            <?php include '../components/searchbar.php' ?>
+        </div>
 
         <?php if (empty($past_results)): ?>
-            <p style="color: var(--color-text-secondary); padding: 12px 0;">You haven't completed any examinations yet.</p>
+            <p style="color: var(--color-primary-soft); padding: 12px 0;">You haven't completed any examinations yet.</p>
         <?php else: ?>
             <div class="table-wrap">
                 <table>
