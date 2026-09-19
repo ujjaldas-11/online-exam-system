@@ -106,11 +106,11 @@ include __DIR__ . '/../components/student-navbar.php';
                                 </td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                                        <a href="review-exam.php?attempt_id=<?= $result['attempt_id'] ?>" class="btn btn-outline btn-sm">
-                                            Review
-                                        </a>
                                         <a href="download-card.php?attempt_id=<?= $result['attempt_id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-                                            <span class="material-symbols-outlined icon-xs">picture_as_pdf</span> PDF
+                                            <span class="material-symbols-outlined icon-xs">picture_as_pdf</span> Score Card PDF
+                                        </a>
+                                        <a href="review-exam.php?attempt_id=<?= $result['attempt_id'] ?>" class="btn btn-primary btn-sm">
+                                            Review Exam
                                         </a>
                                     </div>
                                 </td>

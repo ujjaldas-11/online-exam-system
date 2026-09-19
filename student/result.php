@@ -9,6 +9,7 @@ require_once '../services/ExamEngine.php';
 
 $student_id = (int) $_SESSION['student_id'];
 $exam_id = int_param($_POST['exam_id'] ?? $_GET['exam_id'] ?? 0);
+$student_name = $_SESSION['name'];
 
 if ($exam_id <= 0) {
     redirect('dashboard.php');
@@ -80,70 +81,7 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/student-navbar.php';
 ?>
 
-<div class="container" style="max-width: 700px;">
-    <?php if (!$can_view_results): ?>
-        <!-- PENDING RESULTS PUBLICATION VIEW (Score confidential, review & PDF locked) -->
-        <div class="card" style="text-align: center; padding: 40px 24px;">
-            <div style="width: 64px; height: 64px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                <span class="material-symbols-outlined" style="font-size: 36px;">task_alt</span>
-            </div>
-
-            <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--color-dark); margin-bottom: 6px;">
-                Exam Submitted Successfully
-            </h1>
-            <p style="color: var(--color-text-secondary); font-size: 1rem; margin-bottom: 24px;">
-                Your responses for <strong><?= e($attempt['title']) ?></strong> have been securely recorded.
-            </p>
-
-            <!-- Confidential Status Display (Score hidden until published) -->
-            <div style="background: var(--color-primary-soft); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 24px;">
-                <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;">Assessment Outcome</div>
-                <div style="font-size: 1.65rem; font-weight: 800; color: var(--color-dark); line-height: 1.2; margin: 8px 0;">
-                    Submission Received — Results Pending
-                </div>
-                <div style="font-weight: 600; font-size: 0.95rem; color: var(--color-text-secondary);">
-                    Score evaluation and question breakdowns remain confidential until officially published by your instructor.
-                </div>
-            </div>
-
-            <!-- Admin Publish Warning Container -->
-            <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 28px; text-align: left;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-                    <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-secondary); letter-spacing: 0.5px;">Results Status</span>
-                    <?php if (!$is_exam_ended): ?>
-                        <span class="badge badge-active" style="display: inline-flex; align-items: center; gap: 4px;">
-                            <span class="material-symbols-outlined icon-xs">sensors</span> Examination Ongoing
-                        </span>
-                    <?php else: ?>
-                        <span class="badge badge-warning" style="display: inline-flex; align-items: center; gap: 4px;">
-                            <span class="material-symbols-outlined icon-xs">hourglass_top</span> Awaiting Publication
-                        </span>
-                    <?php endif; ?>
-                </div>
-
-                <p style="color: var(--color-text); font-size: 0.92rem; line-height: 1.6; margin: 0 0 10px;">
-                    <?php if (!$is_exam_ended): ?>
-                        This examination session is currently ongoing in the classroom. To maintain academic integrity, detailed answer breakdowns and downloadable scorecard PDFs remain locked until the entire examination ends and the administrator publishes the results.
-                    <?php else: ?>
-                        The examination session has concluded. Official scorecard PDFs and detailed question answer reviews are currently being finalized and will be unlocked as soon as the administrator publishes the results.
-                    <?php endif; ?>
-                </p>
-                <div style="font-size: 0.85rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-xs">info</span>
-                    Scorecard PDF download and answer key review will be available once results are published by the instructor.
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                <a href="dashboard.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px;">
-                    <span class="material-symbols-outlined icon-sm">dashboard</span> Return to Dashboard
-                </a>
-                <button type="button" class="btn btn-secondary" disabled style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; opacity: 0.6; cursor: not-allowed;" title="Scorecard PDF download is locked until admin publishes results">
-                    <span class="material-symbols-outlined icon-sm">lock</span> Download PDF (Locked)
-                </button>
-            </div>
-        </div>
-    <?php else: ?>
+< <div class="container" style="max-width: 700px;">    
         <!-- PUBLISHED RESULTS VIEW -->
         <div class="card" style="text-align: center; padding: 40px 24px;">
             <div style="margin-bottom: 12px;">
@@ -159,7 +97,7 @@ include __DIR__ . '/../components/student-navbar.php';
 
             <!-- Final Score Display -->
             <div style="background: var(--color-primary-soft); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px;">
-                <div style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;">Your Total Score</div>
+                <div style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;"><?= $student_name ?> - Your Total Score</div>
                 <div style="font-size: 3rem; font-weight: 800; color: var(--color-primary); line-height: 1.1; margin: 6px 0;">
                     <?= sprintf('%.2f', $score) ?> <span style="font-size: 1.5rem; color: var(--color-text-secondary); font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
                 </div>
@@ -168,37 +106,66 @@ include __DIR__ . '/../components/student-navbar.php';
                 </div>
             </div>
 
-            <!-- Metrics Grid -->
-            <div class="stats" style="margin-bottom: 32px;">
-                <div class="stat-card" style="background: var(--color-success-bg); border-color: #86efac;">
-                    <div class="stat-num" style="color: var(--color-success);"><?= $correct_count ?></div>
-                    <div class="stat-label" style="color: #15803d;">Correct Answers</div>
+
+            <?php if (!$can_view_results): ?>
+
+                    <!-- Confidential Status Display (Score hidden until published) -->
+                    <div style="background: var(--color-primary-soft); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 24px;">
+                        <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;">Assessment Outcome</div>
+                        <div style="font-size: 1.65rem; font-weight: 800; color: var(--color-dark); line-height: 1.2; margin: 8px 0;">
+                            Submission Received — Results Pending
+                        </div>
+                        <div style="font-weight: 600; font-size: 0.95rem; color: var(--color-text-secondary);">
+                             Your answersheet will be available for review and download once the exam ends and your instructor officially publishes the results.
+                            <br><br>
+                            <em style="color: #000; text-decoration: italic;">
+                                Note: Question breakdowns remain confidential until publication.
+                            </em>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                        <a href="dashboard.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px;">
+                            <span class="material-symbols-outlined icon-sm">dashboard</span> Return to Dashboard
+                        </a>
+                        <button type="button" class="btn btn-secondary" disabled style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; opacity: 0.6; cursor: not-allowed;" title="Scorecard PDF download is locked until admin publishes results">
+                            <span class="material-symbols-outlined icon-sm">lock</span> Download PDF (Locked)
+                        </button>
+                    </div>
+                </div>
+            <?php else: ?>
+
+                <!-- Metrics Grid -->
+                <div class="stats" style="margin-bottom: 32px;">
+                    <div class="stat-card" style="background: var(--color-success-bg); border-color: #86efac;">
+                        <div class="stat-num" style="color: var(--color-success);"><?= $correct_count ?></div>
+                        <div class="stat-label" style="color: #15803d;">Correct Answers</div>
+                    </div>
+
+                    <div class="stat-card" style="background: var(--color-error-bg); border-color: #fecaca;">
+                        <div class="stat-num" style="color: var(--color-error);"><?= $wrong_count ?></div>
+                        <div class="stat-label" style="color: #b91c1c;">Wrong Answers</div>
+                    </div>
+
+                    <div class="stat-card" style="background: var(--color-gray-100);">
+                        <div class="stat-num" style="color: var(--color-text-secondary);"><?= $skipped_count ?></div>
+                        <div class="stat-label">Skipped / Unanswered</div>
+                    </div>
                 </div>
 
-                <div class="stat-card" style="background: var(--color-error-bg); border-color: #fecaca;">
-                    <div class="stat-num" style="color: var(--color-error);"><?= $wrong_count ?></div>
-                    <div class="stat-label" style="color: #b91c1c;">Wrong Answers</div>
+                <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+                    <a href="dashboard.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined icon-sm">dashboard</span> Return to Dashboard
+                    </a>
+                    <a href="review-exam.php?attempt_id=<?= $attempt_id ?>" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined icon-sm">analytics</span> Review Answers
+                    </a>
+                    <a href="download-card.php?attempt_id=<?= $attempt_id ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined icon-sm">picture_as_pdf</span> Download Scorecard PDF
+                    </a>
                 </div>
-
-                <div class="stat-card" style="background: var(--color-gray-100);">
-                    <div class="stat-num" style="color: var(--color-text-secondary);"><?= $skipped_count ?></div>
-                    <div class="stat-label">Skipped / Unanswered</div>
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
-                <a href="dashboard.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">dashboard</span> Return to Dashboard
-                </a>
-                <a href="review-exam.php?attempt_id=<?= $attempt_id ?>" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">analytics</span> Review Answers
-                </a>
-                <a href="download-card.php?attempt_id=<?= $attempt_id ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">picture_as_pdf</span> Download Scorecard PDF
-                </a>
-            </div>
+            <?php endif; ?>
         </div>
-    <?php endif; ?>
-</div>
+    </div>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
