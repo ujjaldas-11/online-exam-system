@@ -54,668 +54,377 @@ $adminName = $_SESSION['admin_name'] ?? 'Faculty Member';
 $isSuper = is_superadmin();
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Examify — Administrator Documentation</title>
-        <!-- Self-contained typography with system fallbacks for zero-CDN offline access -->
+        <!-- Self-contained typography with zero-CDN system fallbacks -->
         <style>
             :root {
-                --ink: #14213d; 
-                --ink-soft: #3d4d63;
-                --paper: #f4f1ea;
-                --paper-panel: #ffffff;
-                --rule: #e2dcd0;
-                --rule-strong: #c3bca6;
-                --blue: #2c6e9e;
-                --blue-deep: #1f5378;
-                --gold: #b8862b;
-                --gold-deep: #8f6a1f;
-                --gray-box: #8b8878;
-                --red: #a53d28;
-                --green: #3f7a5c;
-                --shadow:
-                    0 1px 2px rgba(27, 42, 65, 0.06),
-                    0 6px 20px rgba(27, 42, 65, 0.06);
-                --radius: 3px;
+                --bg: #0b0f1a;
+                --panel: #121828;
+                --panel-soft: #0f1422;
+                --ink: #e9ecf4;
+                --ink-soft: #94a0b8;
+                --ink-faint: #5c6784;
+                --rule: #232b40;
+                --rule-strong: #34405c;
+                --blue: #4c8dfa;
+                --blue-deep: #3b76e0;
+                --blue-soft: rgba(76,141,250,.14);
+                --gold: #ffd700;
+                --red: #f0665a;
+                --green: #3ecf8e;
+                --shadow: 0 12px 35px rgba(0,0,0,.28);
+                --radius: 12px;
             }
-            * {
-                box-sizing: border-box;
+
+            [data-theme="light"] {
+                --bg: #f4f7fb;
+                --panel: #fff;
+                --panel-soft: #f8fafc;
+                --ink: #10192c;
+                --ink-soft: #4a5568;
+                --ink-faint: #8a97ad;
+                --rule: #e2e8f0;
+                --rule-strong: #cbd5e1;
+                --blue: #2563eb;
+                --blue-deep: #1d4ed8;
+                --blue-soft: rgba(37,99,235,.09);
+                --gold: #b45309;
+                --red: #dc2626;
+                --green: #16a34a;
+                --shadow: 0 12px 30px rgba(15,23,42,.08);
             }
-            html {
-                scroll-behavior: smooth;
-            }
+
+            * { box-sizing: border-box; }
+            html { scroll-behavior: smooth; scroll-padding-top: 82px; }
             body {
                 margin: 0;
-                background: var(--paper);
+                background:
+                    radial-gradient(circle at 15% 0%, var(--blue-soft), transparent 30%),
+                    var(--bg);
                 color: var(--ink);
-                font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                 font-size: 16px;
                 line-height: 1.6;
             }
-            ::selection {
-                background: var(--gold);
-                color: #fff;
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                background-image: linear-gradient(rgba(128,128,128,.025) 1px, transparent 1px),
+                                  linear-gradient(90deg, rgba(128,128,128,.025) 1px, transparent 1px);
+                background-size: 32px 32px;
+                mask-image: linear-gradient(to bottom, black, transparent 75%);
             }
+            ::selection { background: var(--blue); color: #fff; }
+            h1,h2,h3,h4 { color: var(--ink); letter-spacing: -.015em; margin: 0 0 .5em; }
+            code,pre,.mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+            code {
+                background: var(--rule); border: 1px solid var(--rule-strong);
+                border-radius: 5px; padding: 1px 6px; color: var(--ink); font-size: .88em;
+            }
+            a { color: var(--blue); text-decoration: none; }
+            a:hover { text-decoration: none; }
 
-            h1,
-            h2,
-            h3,
-            h4 {
-                font-family: "Fraunces", Georgia, Cambria, "Times New Roman", Times, serif;
-                color: var(--ink);
-                letter-spacing: -0.01em;
-                margin: 0 0 0.5em 0;
-            }
-            code,
-            pre,
-            .mono {
-                font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            }
-            a {
-                color: var(--blue-deep);
-            }
-
-            /* ===== Top bar ===== */
             .topbar {
-                position: sticky;
-                top: 0;
-                z-index: 50;
-                background: var(--ink);
-                color: #f1ede0;
-                border-bottom: 3px solid var(--gold);
+                position: sticky; top: 0; z-index: 100;
+                background: color-mix(in srgb, var(--panel) 88%, transparent);
+                border-bottom: 1px solid var(--rule);
+                backdrop-filter: blur(16px);
+            }
+            .progress-track {
+                position: absolute; left: 0; bottom: -1px; height: 3px; width: 100%;
+                background: transparent;
+            }
+            .progress-bar {
+                height: 100%; width: 0; background: linear-gradient(90deg,var(--blue),#8b5cf6,var(--green));
+                transition: width .15s ease;
             }
             .topbar-inner {
-                max-width: 1280px;
-                margin: 0 auto;
-                display: flex;
-                align-items: center;
-                gap: 20px;
-                padding: 12px 28px;
+                max-width: 1380px; margin: auto; display: flex; align-items: center;
+                gap: 14px; padding: 11px 22px;
             }
             .brand {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                font-family: "Fraunces", serif;
-                font-weight: 700;
-                font-size: 1.25rem;
-                color: #fbfaf6;
-                white-space: nowrap;
-                text-decoration: none;
+                display:flex; align-items:center; gap:10px; color:var(--ink);
+                font-weight:800; white-space:nowrap;
             }
-            .brand .dot-grid {
-                display: flex;
-                gap: 3px;
+            .brand .logo-mark {
+                width:34px; height:34px; border-radius:10px; display:flex; align-items:center;
+                justify-content:center; background:linear-gradient(135deg,var(--blue),#7c3aed);
+                box-shadow:0 7px 22px var(--blue-soft);
             }
-            .brand .dot-grid span {
-                width: 7px;
-                height: 7px;
-                border-radius: 1px;
-                display: block;
-            }
-            .brand .dot-grid span:nth-child(1) { background: var(--blue); }
-            .brand .dot-grid span:nth-child(2) { background: var(--gold); }
-            .brand .dot-grid span:nth-child(3) { background: var(--gray-box); }
-
+            .brand .logo-mark svg { width:18px; stroke:#fff; }
             .badge-doc-type {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.72rem;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-                background: rgba(184, 134, 43, 0.25);
-                color: #ffd700;
-                border: 1px solid rgba(255, 215, 0, 0.35);
-                padding: 4px 10px;
-                border-radius: 12px;
+                font-family:"IBM Plex Mono",monospace; font-size:.68rem;
+                border:1px solid var(--rule); background:var(--panel-soft); color:var(--ink-soft);
+                border-radius:999px; padding:5px 10px; white-space:nowrap;
             }
 
-            .user-chip {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.78rem;
-                color: #e2ded0;
-                background: rgba(255, 255, 255, 0.08);
-                padding: 4px 12px;
-                border-radius: 14px;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .user-chip strong {
-                color: #ffd700;
-            }
-
-            .topbar-links {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                margin-left: auto;
-            }
-            .topbar-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                padding: 6px 14px;
-                border-radius: 18px;
-                font-size: 0.84rem;
-                font-weight: 600;
-                text-decoration: none;
-                transition: background 0.2s, color 0.2s;
-            }
-            .topbar-btn-secondary {
-                background: rgba(255, 255, 255, 0.08);
-                color: #e2ded0;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-            }
-            .topbar-btn-secondary:hover {
-                background: rgba(255, 255, 255, 0.18);
-                color: #fff;
-            }
-            .topbar-btn-gold {
-                background: var(--gold);
-                color: #1b2a41;
-            }
-            .topbar-btn-gold:hover {
-                background: #cf9b3a;
-            }
-
-            .search-wrap {
-                position: relative;
-            }
+            .search-wrap { position:relative; flex:1; max-width:500px; margin-left:auto; }
             .search-wrap input {
-                background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.18);
-                color: #fbfaf6;
-                padding: 7px 12px 7px 32px;
-                border-radius: 20px;
-                font-family: "IBM Plex Sans", sans-serif;
-                font-size: 0.85rem;
-                width: 180px;
-                transition: width 0.2s, background 0.2s;
+                width:100%; background:var(--panel-soft); border:1px solid var(--rule);
+                color:var(--ink); padding:9px 76px 9px 38px; border-radius:999px;
+                font-size:.85rem; outline:none; transition:.2s;
             }
-            .search-wrap input::placeholder {
-                color: #9c9782;
+            .search-wrap input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
+            .search-wrap svg { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--ink-faint); }
+            .search-count {
+                position:absolute; right:10px; top:50%; transform:translateY(-50%);
+                color:var(--ink-faint); font:11px "IBM Plex Mono",monospace;
             }
-            .search-wrap input:focus {
-                outline: none;
-                width: 230px;
-                background: rgba(255, 255, 255, 0.14);
+            .topbar-actions {
+                display:flex; align-items:center; gap:7px; margin-left:0;
             }
-            .search-wrap svg {
-                position: absolute;
-                left: 10px;
-                top: 50%;
-                transform: translateY(-50%);
-                opacity: 0.6;
+            .topbar-actions .topbar-btn {
+                background:transparent;
+                border-color:transparent;
+                color:var(--ink-soft);
+                box-shadow:none;
             }
+            .topbar-actions .topbar-btn:hover {
+                background:var(--blue-soft);
+                border-color:transparent;
+                color:var(--blue);
+            }
+            .icon-btn,.topbar-btn {
+                min-height:38px; display:inline-flex; align-items:center; justify-content:center;
+                gap:6px; border:1px solid var(--rule); background:var(--panel-soft);
+                color:var(--ink); border-radius:9px; padding:7px 11px; cursor:pointer;
+                font-size:.8rem; font-weight:700;
+            }
+            .icon-btn:hover,.topbar-btn:hover { border-color:var(--blue); transform:translateY(-1px); }
+            .topbar-btn-primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+            .theme-toggle { width:40px; padding:0; border-radius:50%; }
+            [data-theme="dark"] .icon-sun,[data-theme="light"] .icon-moon { display:none; }
 
-            /* ===== Layout ===== */
-            .shell {
-                max-width: 1280px;
-                margin: 0 auto;
-                display: grid;
-                grid-template-columns: 270px 1fr;
-                gap: 0;
-            }
+            .shell { max-width:1380px; margin:auto; display:grid; grid-template-columns:275px minmax(0,1fr); }
             .sidebar {
-                position: sticky;
-                top: 57px;
-                align-self: start;
-                height: calc(100vh - 57px);
-                overflow-y: auto;
-                padding: 28px 16px 40px 28px;
-                border-right: 1px solid var(--rule);
-                scrollbar-width: thin;
+                position:sticky; top:61px; align-self:start; height:calc(100vh - 61px);
+                overflow-y:auto; padding:24px 15px 50px 22px; border-right:1px solid var(--rule);
             }
-            .sidebar::-webkit-scrollbar {
-                width: 6px;
+            .sidebar-head { display:flex; justify-content:space-between; align-items:center; margin:0 4px 12px; }
+            .sidebar-head span { color:var(--ink-faint); font:700 .67rem "IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:.1em; }
+            .sidebar-actions button {
+                border:0; background:transparent; color:var(--ink-soft); cursor:pointer; font-size:.7rem;
             }
-            .sidebar::-webkit-scrollbar-thumb {
-                background: var(--rule-strong);
-                border-radius: 3px;
-            }
-
-            .toc-group {
-                margin-bottom: 22px;
-            }
+            .toc-group { margin-bottom:20px; }
             .toc-role-label {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.68rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: var(--ink-soft);
-                margin: 0 0 8px 4px;
-                display: flex;
-                align-items: center;
-                gap: 6px;
+                font:700 .68rem "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase;
+                color:var(--ink-faint); margin:0 0 6px 4px;
             }
-            .toc-role-label .chip {
-                width: 8px;
-                height: 8px;
-                border-radius: 2px;
-                display: inline-block;
-            }
-            .toc-group ul {
-                list-style: none;
-                margin: 0;
-                padding: 0;
-            }
-            .toc-group > ul > li {
-                margin-bottom: 2px;
-            }
+            .toc-group ul { list-style:none; margin:0; padding:0; }
             .toc-link {
-                display: block;
-                padding: 6px 10px;
-                border-radius: var(--radius);
-                color: var(--ink-soft);
-                text-decoration: none;
-                font-size: 0.88rem;
-                border-left: 2px solid transparent;
+                display:block; padding:7px 10px; border-radius:8px; color:var(--ink-soft);
+                font-size:.84rem; border-left:2px solid transparent; transition:.18s;
             }
-            .toc-link.top {
-                font-weight: 600;
-                color: var(--ink);
-            }
-            .toc-group ul ul {
-                margin-left: 10px;
-                border-left: 1px dashed var(--rule-strong);
-            }
-            .toc-link:hover {
-                background: rgba(27, 42, 65, 0.05);
-                color: var(--ink);
-            }
+            .toc-link:hover { background:var(--panel-soft); color:var(--ink); }
             .toc-link.active {
-                background: #fff;
-                color: var(--ink);
-                border-left: 2px solid var(--gold);
-                box-shadow: var(--shadow);
-                font-weight: 600;
+                background:var(--blue-soft); color:var(--blue); border-left-color:var(--blue); font-weight:700;
             }
+            .toc-group ul ul { margin-left:10px; border-left:1px dashed var(--rule); padding-left:4px; }
 
-            main {
-                padding: 0 40px 100px 40px;
-                min-width: 0;
-            }
-
-            /* ===== Hero ===== */
+            main { padding:0 42px 110px; min-width:0; }
             .hero {
-                padding: 56px 0 40px 0;
-                border-bottom: 1px solid var(--rule);
-                display: grid;
-                grid-template-columns: 1.3fr 1fr;
-                gap: 40px;
-                align-items: center;
+                padding:54px 0 38px; border-bottom:1px solid var(--rule);
+                display:grid; grid-template-columns:1.3fr 1fr; gap:34px; align-items:center;
             }
-            .hero-eyebrow {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.75rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--gold-deep);
-                margin-bottom: 10px;
-                font-weight: 600;
+            .hero-eyebrow { font:700 .72rem "IBM Plex Mono",monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--blue); margin-bottom:9px; }
+            .hero h1 { font-size:clamp(2.2rem,4vw,3.4rem); line-height:1.05; margin-bottom:13px; }
+            .hero p.lede { color:var(--ink-soft); max-width:700px; font-size:1.03rem; }
+            .hero-stats { display:flex; flex-wrap:wrap; gap:12px; margin-top:22px; }
+            .hero-stat {
+                min-width:135px; padding:12px 14px; background:var(--panel);
+                border:1px solid var(--rule); border-radius:11px;
             }
-            .hero h1 {
-                font-size: 2.9rem;
-                font-weight: 700;
-                line-height: 1.05;
-                margin-bottom: 14px;
-            }
-            .hero p.lede {
-                font-size: 1.08rem;
-                color: var(--ink-soft);
-                max-width: 46ch;
-            }
-            .hero-stats {
-                display: flex;
-                gap: 28px;
-                margin-top: 26px;
-            }
-            .hero-stat .num {
-                font-family: "Fraunces", serif;
-                font-size: 1.7rem;
-                font-weight: 700;
-            }
-            .hero-stat .label {
-                font-size: 0.78rem;
-                color: var(--ink-soft);
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-            }
-
-            /* Admin summary panel */
+            .hero-stat .num { font-size:1.35rem; font-weight:800; }
+            .hero-stat .label { font-size:.68rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; }
             .admin-kpi-panel {
-                background: var(--paper-panel);
-                border: 1px solid var(--rule);
-                border-radius: 6px;
-                box-shadow: var(--shadow);
-                padding: 22px;
+                background:linear-gradient(145deg,var(--panel),var(--panel-soft));
+                border:1px solid var(--rule); border-radius:16px; box-shadow:var(--shadow); padding:22px;
             }
-            .admin-kpi-panel h3 {
-                font-size: 1.15rem;
-                margin: 0 0 12px 0;
-                color: var(--ink);
-            }
-            .admin-kpi-panel p {
-                margin: 0 0 14px 0;
-                font-size: 0.9rem;
-                color: var(--ink-soft);
-            }
-            .kpi-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
-            }
-            .kpi-box {
-                background: #fff;
-                border: 1px solid var(--rule);
-                border-radius: 4px;
-                padding: 10px 14px;
-            }
-            .kpi-box .val {
-                font-family: "Fraunces", serif;
-                font-size: 1.3rem;
-                font-weight: 700;
-                color: var(--gold-deep);
-            }
-            .kpi-box .title {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.7rem;
-                text-transform: uppercase;
-                color: var(--ink-soft);
-            }
+            .admin-kpi-panel h3 { margin-bottom:5px; }
+            .admin-kpi-panel p { color:var(--ink-soft); font-size:.88rem; }
+            .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+            .kpi-box { padding:14px; background:var(--panel); border:1px solid var(--rule); border-radius:10px; }
+            .kpi-box .val { font-size:1.35rem; font-weight:900; color:var(--blue); }
+            .kpi-box .title { color:var(--ink-soft); font:700 .64rem "IBM Plex Mono",monospace; text-transform:uppercase; }
 
-            /* ===== Section blocks ===== */
-            section.doc-section {
-                padding-top: 52px;
-                scroll-margin-top: 72px;
-            }
-            .section-kicker {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.75rem;
-                color: var(--ink-soft);
-                text-transform: uppercase;
-                letter-spacing: 0.1em;
-                margin-bottom: 6px;
-            }
-            section.doc-section h2 {
-                font-size: 1.9rem;
-                padding-bottom: 14px;
-                border-bottom: 2px solid var(--rule);
-                margin-bottom: 22px;
-            }
+            section.doc-section { padding-top:48px; scroll-margin-top:72px; }
+            .section-kicker { font:700 .7rem "IBM Plex Mono",monospace; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.1em; }
+            section.doc-section h2 { font-size:1.8rem; padding-bottom:12px; border-bottom:2px solid var(--rule); margin-bottom:20px; }
 
             .subsection {
-                margin: 0 0 18px 0;
-                background: var(--paper-panel);
-                border: 1px solid var(--rule);
-                border-radius: 6px;
-                box-shadow: var(--shadow);
-                overflow: hidden;
-                scroll-margin-top: 72px;
+                margin:0 0 14px; background:var(--panel); border:1px solid var(--rule);
+                border-radius:12px; box-shadow:0 7px 25px rgba(0,0,0,.08); overflow:hidden;
+                scroll-margin-top:80px; transition:border-color .2s, transform .2s, opacity .2s;
             }
-            .subsection.filtered-out {
-                display: none;
-            }
+            .subsection:hover { border-color:var(--rule-strong); }
+            .subsection.filtered-out { display:none !important; }
+            .subsection.search-hit { border-color:var(--blue); box-shadow:0 0 0 2px var(--blue-soft); }
             .subsection > summary {
-                list-style: none;
-                cursor: pointer;
-                padding: 16px 20px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                font-family: "Fraunces", serif;
-                font-weight: 600;
-                font-size: 1.08rem;
+                list-style:none; cursor:pointer; padding:15px 18px; display:flex; align-items:center;
+                justify-content:space-between; gap:12px; font-weight:700; user-select:none;
             }
-            .subsection > summary::-webkit-details-marker {
-                display: none;
+            .subsection > summary::-webkit-details-marker { display:none; }
+            .summary-main { display:flex; align-items:center; gap:9px; min-width:0; }
+            .summary-number {
+                width:28px; height:28px; border-radius:8px; display:grid; place-items:center;
+                background:var(--blue-soft); color:var(--blue); font:700 .68rem "IBM Plex Mono",monospace; flex:none;
             }
-            .subsection > summary .arrow {
-                font-family: "IBM Plex Mono", monospace;
-                color: var(--ink-soft);
-                font-size: 0.9rem;
-                transition: transform 0.2s;
-                flex-shrink: 0;
-            }
-            .subsection[open] > summary .arrow {
-                transform: rotate(90deg);
-            }
-            .subsection > summary:hover {
-                background: rgba(27, 42, 65, 0.03);
-            }
-            .subsection .body {
-                padding: 0 22px 22px 22px;
-                color: var(--ink-soft);
-            }
-            .subsection .body p {
-                margin: 0 0 12px 0;
-            }
-            .subsection .body ol,
-            .subsection .body ul {
-                padding-left: 22px;
-                margin: 0 0 14px 0;
-            }
-            .subsection .body li {
-                margin-bottom: 6px;
-            }
-            .subsection .body strong {
-                color: var(--ink);
-            }
+            .subsection > summary .arrow { color:var(--ink-soft); transition:.2s; }
+            .subsection[open] > summary .arrow { transform:rotate(90deg); color:var(--blue); }
+            .subsection > summary:hover { background:var(--panel-soft); }
+            .subsection .body { padding:0 20px 20px; color:var(--ink-soft); font-size:.95rem; }
+            .subsection .body p,.subsection .body ul,.subsection .body ol { margin-top:0; margin-bottom:12px; }
+            .subsection .body strong { color:var(--ink); }
 
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 10px 0 16px 0;
-                font-size: 0.92rem;
-            }
-            th,
-            td {
-                text-align: left;
-                padding: 9px 12px;
-                border-bottom: 1px solid var(--rule);
-            }
-            th {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.72rem;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: var(--ink-soft);
-                background: rgba(27, 42, 65, 0.03);
-            }
+            table { width:100%; border-collapse:collapse; margin:10px 0; font-size:.9rem; }
+            th,td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--rule); }
+            th { font:700 .68rem "IBM Plex Mono",monospace; text-transform:uppercase; color:var(--ink-soft); background:var(--panel-soft); }
 
-            .admonition {
-                border-left: 4px solid var(--blue);
-                background: #eef4f8;
-                padding: 12px 16px;
-                border-radius: 0 4px 4px 0;
-                margin: 14px 0;
-                font-size: 0.92rem;
-            }
-            .admonition.warning {
-                border-left-color: var(--red);
-                background: #f8ece7;
-            }
-            .admonition .adm-label {
-                font-family: "IBM Plex Mono", monospace;
-                font-weight: 700;
-                font-size: 0.72rem;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-                display: block;
-                margin-bottom: 4px;
-            }
-            .admonition.warning .adm-label { color: var(--red); }
-            .admonition:not(.warning) .adm-label { color: var(--blue-deep); }
+            .admonition { border-left:4px solid var(--blue); background:var(--blue-soft); padding:12px 14px; border-radius:0 8px 8px 0; margin:12px 0; }
+            .admonition.warning { border-left-color:var(--red); background:rgba(240,102,90,.08); }
+            .admonition .adm-label { display:block; color:var(--blue); font:700 .68rem "IBM Plex Mono",monospace; text-transform:uppercase; margin-bottom:4px; }
+            .admonition.warning .adm-label { color:var(--red); }
 
-            .code-block {
-                position: relative;
-                background: var(--ink);
-                color: #e9e5d6;
-                border-radius: 6px;
-                padding: 16px 18px;
-                font-size: 0.84rem;
-                overflow-x: auto;
-                margin: 12px 0 16px 0;
-            }
+            .code-block { position:relative; background:#090d16; border:1px solid var(--rule); border-radius:9px; padding:15px; overflow:auto; margin:10px 0; }
+            [data-theme="light"] .code-block { background:#101827; }
+            .code-block pre { color:#dbe5f5; font-size:.82rem; padding-right:70px; }
             .code-block .copy-btn {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background: rgba(255, 255, 255, 0.1);
-                color: #e9e5d6;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 4px;
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.7rem;
-                padding: 4px 8px;
-                cursor: pointer;
+                position:absolute; top:8px; right:8px; background:var(--panel); color:var(--ink);
+                border:1px solid var(--rule); border-radius:6px; padding:5px 9px; cursor:pointer; font:700 .68rem "IBM Plex Mono",monospace;
             }
-            .code-block .copy-btn:hover {
-                background: rgba(255, 255, 255, 0.2);
-            }
-            .code-block .str { color: #8fc4e0; }
-            .code-block .key { color: #e0b96a; }
+            .code-block .copy-btn:hover { border-color:var(--blue); }
 
-            .badge {
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.72rem;
-                font-weight: 600;
-                padding: 4px 9px;
-                border-radius: 12px;
-                text-transform: uppercase;
-                letter-spacing: 0.04em;
-            }
-            .badge.live { background: #e5f0ea; color: var(--green); }
-            .badge.scheduled { background: #eef1f6; color: var(--blue-deep); }
-            .badge.ended { background: #efece5; color: var(--ink-soft); }
+            .badge { font:700 .65rem "IBM Plex Mono",monospace; padding:3px 8px; border-radius:999px; text-transform:uppercase; }
+            .badge.live { background:rgba(22,163,74,.12); color:var(--green); }
+            .badge.scheduled { background:var(--blue-soft); color:var(--blue); }
+            .badge.ended { background:var(--panel-soft); color:var(--ink-soft); border:1px solid var(--rule); }
+            .role-pill { font:700 .62rem "IBM Plex Mono",monospace; text-transform:uppercase; padding:3px 7px; border-radius:8px; margin-left:5px; background:var(--blue-soft); color:var(--blue); }
 
-            .role-pill {
-                display: inline-block;
-                font-family: "IBM Plex Mono", monospace;
-                font-size: 0.68rem;
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-                padding: 2px 8px;
-                border-radius: 10px;
-                margin-left: 8px;
-                vertical-align: middle;
-                font-weight: 600;
+            .section-nav {
+                display:flex; justify-content:space-between; gap:12px; margin-top:26px; padding-top:18px;
+                border-top:1px solid var(--rule);
             }
-            .role-pill.admin {
-                background: #f4ecdc;
-                color: var(--gold-deep);
+            .section-nav button {
+                border:1px solid var(--rule); background:var(--panel); color:var(--ink);
+                padding:10px 14px; border-radius:9px; cursor:pointer; font-weight:700;
             }
+            .section-nav button:hover { border-color:var(--blue); color:var(--blue); }
 
-            footer {
-                border-top: 1px solid var(--rule);
-                padding: 28px 40px;
-                text-align: center;
-                color: var(--ink-soft);
-                font-size: 0.85rem;
+            .no-results { display:none; padding:45px; text-align:center; color:var(--ink-soft); font:700 .8rem "IBM Plex Mono",monospace; }
+            .search-highlight { background:rgba(255,215,0,.28); color:inherit; border-radius:3px; padding:0 2px; }
+            .toast {
+                position:fixed; right:22px; bottom:22px; z-index:200; max-width:330px;
+                background:var(--panel); color:var(--ink); border:1px solid var(--rule);
+                box-shadow:var(--shadow); padding:12px 15px; border-radius:10px;
+                transform:translateY(20px); opacity:0; pointer-events:none; transition:.25s;
+                font-size:.85rem;
             }
-
-            .no-results {
-                display: none;
-                padding: 40px;
-                text-align: center;
-                color: var(--ink-soft);
-                font-family: "IBM Plex Mono", monospace;
+            .toast.show { transform:translateY(0); opacity:1; }
+            .back-top {
+                position:fixed; right:22px; bottom:72px; z-index:90; width:42px; height:42px;
+                border-radius:50%; border:1px solid var(--rule); background:var(--panel);
+                color:var(--ink); cursor:pointer; opacity:0; transform:translateY(10px); pointer-events:none; transition:.2s;
+                box-shadow:var(--shadow);
             }
+            .back-top.visible { opacity:1; transform:none; pointer-events:auto; }
+            .shortcut-hint { font:10px "IBM Plex Mono",monospace; color:var(--ink-faint); margin-left:4px; }
 
-            @media (max-width: 900px) {
-                .shell { grid-template-columns: 1fr; }
-                .sidebar {
-                    position: static;
-                    height: auto;
-                    border-right: none;
-                    border-bottom: 1px solid var(--rule);
-                }
-                .hero { grid-template-columns: 1fr; }
-                main { padding: 0 18px 80px 18px; }
-                .topbar-inner { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
-                .search-wrap { order: 3; width: 100%; margin-left: 0; }
-                .search-wrap input { width: 100%; }
-                .topbar-links { width: 100%; justify-content: space-between; }
+            footer { border-top:1px solid var(--rule); padding:25px; text-align:center; color:var(--ink-faint); font-size:.8rem; }
+
+            @media (max-width:1000px) {
+                .topbar-inner { flex-wrap:wrap; }
+                .search-wrap { order:10; max-width:none; flex-basis:100%; margin:0; }
+                .shell { grid-template-columns:1fr; }
+                .sidebar { position:relative; top:auto; height:auto; max-height:330px; border-right:0; border-bottom:1px solid var(--rule); }
+                .hero { grid-template-columns:1fr; }
+                main { padding:0 20px 80px; }
             }
-
-            :focus-visible {
-                outline: 2px solid var(--gold);
-                outline-offset: 2px;
+            @media (max-width:650px) {
+                .badge-doc-type,.topbar-btn-secondary { display:none; }
+                .topbar-inner { padding:9px 12px; }
+                main { padding:0 14px 70px; }
+                .hero { padding-top:35px; }
+                .hero h1 { font-size:2.15rem; }
+                .kpi-grid { grid-template-columns:1fr; }
+                .hero-stats { display:grid; grid-template-columns:1fr 1fr; }
+                .hero-stat { min-width:0; }
+                th,td { padding:7px; }
+                .section-nav { flex-direction:column; }
             }
             @media (prefers-reduced-motion: reduce) {
-                html { scroll-behavior: auto; }
-                * { transition: none !important; }
+                *,html { scroll-behavior:auto !important; transition-duration:0.01ms !important; animation-duration:0.01ms !important; }
             }
         </style>
     </head>
     <body>
         <div class="topbar">
+            <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
             <div class="topbar-inner">
                 <a href="../../admin/admin-dashboard.php" class="brand">
-                    <span class="dot-grid"><span></span><span></span><span></span></span>
+                    <span class="logo-mark">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </span>
                     Examify Docs
                 </a>
-                <span class="badge-doc-type">Instructor & Admin Guide</span>
+                <span class="badge-doc-type">Admin Guide</span>
 
-                <div class="user-chip">
-                    <span>Authenticated:</span>
-                    <strong><?= htmlspecialchars($adminName) ?> (<?= ucfirst($adminRole) ?>)</strong>
-                </div>
-
-                <!-- <div class="search-wrap">
+                <div class="search-wrap">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="7" />
                         <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
-                    <input id="searchInput" type="text" placeholder="Search admin topics…" />
-                </div> -->
+                    <input id="searchInput" type="text" placeholder="Search workflows... (Ctrl + K)" aria-label="Search documentation" />
+                </div>
 
-
-                <div class="topbar-links">
-                    <a href="../../admin/admin-dashboard.php" class="topbar-btn topbar-btn-gold">Dashboard</a>
-                    <a href="user-doc.php" class="topbar-btn topbar-btn-secondary">User Docs</a>
-                    <a href="../../admin/admin-logout.php" class="topbar-btn topbar-btn-secondary">Logout</a>
+                <div class="topbar-actions">
+                    <button class="theme-toggle icon-btn" id="themeToggle" title="Toggle Light/Dark Mode" aria-label="Toggle theme">
+                        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    </button>
+                    <a href="../../admin/admin-dashboard.php" class="topbar-btn topbar-btn-secondary">Portal Home</a>
+                    <a href="user-doc.php" class="topbar-btn topbar-btn-primary">User Docs →</a>
                 </div>
             </div>
         </div>
 
         <div class="shell">
             <nav class="sidebar" id="sidebar">
-                <div class="toc-group">
-                    <div class="toc-role-label">
-                        <span class="chip" style="background: var(--gray-box)"></span>Overview
+                <div class="sidebar-head">
+                    <span>Documentation</span>
+                    <div class="sidebar-actions">
+                        <button type="button" id="expandNav">Expand</button>
+                        <button type="button" id="collapseNav">Collapse</button>
                     </div>
+                </div>
+                <div class="toc-group">
+                    <div class="toc-role-label">Overview</div>
                     <ul>
                         <li><a class="toc-link top" href="#sec-1">1. Institutional RBAC</a></li>
                     </ul>
                 </div>
 
                 <div class="toc-group">
-                    <div class="toc-role-label">
-                        <span class="chip" style="background: var(--gold)"></span>Instructor & Admin
-                    </div>
+                    <div class="toc-role-label">Instructor Manual</div>
                     <ul>
                         <li>
-                            <a class="toc-link top" href="#sec-3">3. Administrator Guide</a>
+                            <a class="toc-link top" href="#sec-3">3. Admin Workflows</a>
                             <ul>
-                                <li><a class="toc-link" href="#sec-3-1">3.1 Authentication & Security</a></li>
-                                <li><a class="toc-link" href="#sec-3-2">3.2 Dashboard & Analytics</a></li>
-                                <li><a class="toc-link" href="#sec-3-3">3.3 Student Management</a></li>
-                                <li><a class="toc-link" href="#sec-3-4">3.4 Bulk Student Promotion</a></li>
-                                <li><a class="toc-link" href="#sec-3-5">3.5 Curriculum Subjects</a></li>
-                                <li><a class="toc-link" href="#sec-3-6">3.6 Question Banks</a></li>
-                                <li><a class="toc-link" href="#sec-3-7">3.7 Configuring Exams</a></li>
-                                <li><a class="toc-link" href="#sec-3-8">3.8 Controlling Exams & Time</a></li>
-                                <li><a class="toc-link" href="#sec-3-9">3.9 Live Proctoring Panel</a></li>
-                                <li><a class="toc-link" href="#sec-3-10">3.10 Requests & Password Resets</a></li>
-                                <li><a class="toc-link" href="#sec-3-11">3.11 Batch CSV Enrollment</a></li>
-                                <li><a class="toc-link" href="#sec-3-12">3.12 Results & PDF Downloads</a></li>
-                                <li><a class="toc-link" href="#sec-3-13">3.13 Teacher Provisioning & Retention</a></li>
-                                <li><a class="toc-link" href="#sec-3-14">3.14 Institutional Audit Trail</a></li>
-                                <li><a class="toc-link" href="#sec-3-15">3.15 Master Setup Wizard</a></li>
+                                <li><a class="toc-link" href="#sec-3-1">3.1 Authentication</a></li>
+                                <li><a class="toc-link" href="#sec-3-2">3.2 Students</a></li>
+                                <li><a class="toc-link" href="#sec-3-3">3.3 Promotions</a></li>
+                                <li><a class="toc-link" href="#sec-3-4">3.4 Question Banks</a></li>
+                                <li><a class="toc-link" href="#sec-3-5">3.5 Exam Control</a></li>
+                                <li><a class="toc-link" href="#sec-3-6">3.6 Live Proctoring</a></li>
+                                <li><a class="toc-link" href="#sec-3-7">3.7 Results & PDFs</a></li>
+                                <li><a class="toc-link" href="#sec-3-8">3.8 Teacher Provisioning</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -728,28 +437,23 @@ $isSuper = is_superadmin();
                         <div class="hero-eyebrow">Faculty & Administration Handbook</div>
                         <h1>Control Center</h1>
                         <p class="lede">
-                            Complete administrative guide for Examify instructors and superadmins.
-                            Learn how to manage curriculum questions, launch live tests, monitor proctoring, manage student rosters, and generate official institutional records.
+                            Comprehensive manual for managing curriculum questions, live exams, anti-cheat proctoring, rosters, and secure institutional exports.
                         </p>
                         <div class="hero-stats">
                             <div class="hero-stat">
                                 <div class="num"><?= $isSuper ? 'Superadmin' : 'Teacher' ?></div>
-                                <div class="label">Your Authority</div>
+                                <div class="label">Permission Level</div>
                             </div>
                             <div class="hero-stat">
                                 <div class="num">15</div>
-                                <div class="label">Admin workflows</div>
-                            </div>
-                            <div class="hero-stat">
-                                <div class="num">100%</div>
-                                <div class="label">Retained records</div>
+                                <div class="label">Core Workflows</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="admin-kpi-panel">
-                        <h3>Campus Exam Operations</h3>
-                        <p>Real-time laboratory controls, anti-cheat surveillance, and permanent record retention.</p>
+                        <h3>Campus Exam Engine</h3>
+                        <p>Real-time laboratory controls, anti-cheat surveillance, and resilient session management.</p>
                         <div class="kpi-grid">
                             <div class="kpi-box">
                                 <div class="val">Zero</div>
@@ -757,15 +461,7 @@ $isSuper = is_superadmin();
                             </div>
                             <div class="kpi-box">
                                 <div class="val">5 Sec</div>
-                                <div class="title">Live Proctor Refresh</div>
-                            </div>
-                            <div class="kpi-box">
-                                <div class="val">Pure PHP</div>
-                                <div class="title">Native PDF Engine</div>
-                            </div>
-                            <div class="kpi-box">
-                                <div class="val">Atomic</div>
-                                <div class="title">High-Concurrency Saves</div>
+                                <div class="title">Proctor Refresh Rate</div>
                             </div>
                         </div>
                     </div>
@@ -776,48 +472,33 @@ $isSuper = is_superadmin();
                     <div class="section-kicker">Governance & Authority</div>
                     <h2>1. Institutional Role-Based Access Control</h2>
                     <details class="subsection" open>
-                        <summary>
-                            Administrative Permissions Matrix<span class="arrow">▸</span>
-                        </summary>
+                        <summary>Administrative Permissions Matrix<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>
-                                Examify provides strict Role-Based Access Control (RBAC) across two faculty tiers:
-                            </p>
                             <table>
                                 <tr>
                                     <th>Feature / Module</th>
-                                    <th>Teacher / Instructor</th>
-                                    <th>Master Superadmin</th>
+                                    <th>Teacher</th>
+                                    <th>Superadmin</th>
                                 </tr>
                                 <tr>
                                     <td>Manage Subjects & Question Banks</td>
-                                    <td>✅ Full access</td>
-                                    <td>✅ Full access</td>
+                                    <td>✅ Full</td>
+                                    <td>✅ Full</td>
                                 </tr>
                                 <tr>
-                                    <td>Create, Launch & Control Exams</td>
-                                    <td>✅ Full access</td>
-                                    <td>✅ Full access</td>
+                                    <td>Create & Control Examinations</td>
+                                    <td>✅ Full</td>
+                                    <td>✅ Full</td>
                                 </tr>
                                 <tr>
-                                    <td>Live Classroom Proctoring & Crash Unlocks</td>
-                                    <td>✅ Full access</td>
-                                    <td>✅ Full access</td>
+                                    <td>Live Proctoring & Emergency Unlocks</td>
+                                    <td>✅ Full</td>
+                                    <td>✅ Full</td>
                                 </tr>
                                 <tr>
-                                    <td>Student Management & Bulk Promotion</td>
-                                    <td>✅ Full access</td>
-                                    <td>✅ Full access</td>
-                                </tr>
-                                <tr>
-                                    <td>Provision, Retire & Reactivate Teachers</td>
+                                    <td>Provision or Retire Teachers</td>
                                     <td>❌ Restricted</td>
-                                    <td>✅ Superadmin exclusive</td>
-                                </tr>
-                                <tr>
-                                    <td>Audit Trail Inspection</td>
-                                    <td>Own activity only</td>
-                                    <td>Campus-wide faculty audit</td>
+                                    <td>✅ Exclusive</td>
                                 </tr>
                             </table>
                         </div>
@@ -827,352 +508,75 @@ $isSuper = is_superadmin();
                 <!-- SECTION 3 -->
                 <section class="doc-section" id="sec-3">
                     <div class="section-kicker">Faculty Operational Manual</div>
-                    <h2>
-                        3. Instructor and Administrator Portal Guide
-                        <span class="role-pill admin">Admin</span>
-                    </h2>
+                    <h2>3. Administrator Portal Guide <span class="role-pill">Admin</span></h2>
 
                     <details class="subsection" open id="sec-3-1">
-                        <summary>
-                            3.1 Administrator Login & Security Policies<span class="arrow">▸</span>
-                        </summary>
+                        <summary>3.1 Authentication & Singleton Sessions<span class="arrow">▸</span></summary>
                         <div class="body">
                             <ol>
-                                <li>Navigate to the administrator login page (<code>admin/admin-login.php</code>).</li>
-                                <li>Type your institutional email address.</li>
-                                <li>Type your password (use the password visibility toggle to confirm accuracy).</li>
-                                <li>Click the <strong>Login as Admin</strong> button.</li>
+                                <li>Navigate to <code>admin/admin-login.php</code>.</li>
+                                <li>Provide your credential set. Active singleton enforcement ensures active tokens invalidate older sessions on duplicate login attempts.</li>
                             </ol>
-                            <div class="admonition warning">
-                                <span class="adm-label">Singleton Administrative Session</span>
-                                If an administrator logs in from another terminal, the system terminates older sessions immediately to prevent session hijacking.
-                            </div>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-2">
-                        <summary>
-                            3.2 Admin Dashboard Overview<span class="arrow">▸</span>
-                        </summary>
+                        <summary>3.2 Student Management & Directory Actions<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>The dashboard provides immediate executive metrics:</p>
-                            <ul>
-                                <li><strong>Curriculum Subjects:</strong> Number of configured academic courses.</li>
-                                <li><strong>Configured Examinations:</strong> Total tests scheduled or drafted.</li>
-                                <li><strong>Live Examinations:</strong> Currently active computer lab exams.</li>
-                                <li><strong>Question Bank Inventory:</strong> Total multiple-choice items stored.</li>
-                                <li><strong>Enrolled Students:</strong> Active student directory count.</li>
-                                <li><strong>Completed Attempts:</strong> Total graded test submissions.</li>
-                            </ul>
-                            <p>
-                                The active sidebar tab highlights in <strong>Gold (<code>#ffd700</code>)</strong> for immediate orientation.
-                            </p>
+                            <p>Manage accounts seamlessly via filters (Department, Semester, Status). Reset credentials or suspend user access instantly.</p>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-3">
-                        <summary>
-                            <span>3.3 Student Management Panel <code style="font-size: 0.85em; opacity: 0.85;">(admin/manage-students.php)</code></span>
-                            <span class="arrow">▸</span>
-                        </summary>
+                        <summary>3.3 Bulk Student Promotion<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>
-                                Open the <strong>Students</strong> panel from the sidebar to govern the student lifecycle:
-                            </p>
-                            <h4>Directory Search & Filters</h4>
-                            <p>
-                                Filter students instantly by search text (name, email, roll number), Department (BCA, BBA), Semester (1–8), and Account Status (Active, Pending, Blocked, Rejected).
-                            </p>
-                            <h4>Enrolling a New Student</h4>
-                            <ol>
-                                <li>Click the <strong>Add Student</strong> button in the top action bar.</li>
-                                <li>Type the student full name, email, roll number, department, semester, and password.</li>
-                                <li>Click <strong>Create Student</strong>. The student is created directly with <code>active</code> status.</li>
-                            </ol>
-                            <h4>In-Place Profile Editing & Credential Resets</h4>
-                            <ul>
-                                <li>Click <strong>Edit</strong> on any row to modify student details.</li>
-                                <li>Click <strong>Reset Password</strong> to assign a temporary password on demand. Setting a new password terminates any active student session immediately.</li>
-                                <li>Click <strong>Block / Unblock</strong> to suspend or restore student examination privileges with one click.</li>
-                                <li>Click <strong>Export CSV</strong> to download the current filtered roster to spreadsheet format with formula sanitization.</li>
-                            </ul>
+                            <p>Advance cohorts by +1 semester automatically, bounded safely at Semester 8 caps.</p>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-4">
-                        <summary>
-                            3.4 Bulk Student Promotion<span class="arrow">▸</span>
-                        </summary>
+                        <summary>3.4 Question Banks & Batch CSV Import<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>
-                                Advance students to the next academic semester in batch mode without manual record edits:
-                            </p>
-                            <h4>1. Cohort-Based Bulk Promotion</h4>
-                            <ol>
-                                <li>Locate the <strong>Bulk Promote by Cohort</strong> panel.</li>
-                                <li>Select the academic <strong>Department</strong> and <strong>Current Semester</strong>.</li>
-                                <li>The target semester displays automatically (+1 semester).</li>
-                                <li>Click <strong>Promote Cohort (+1 Sem)</strong> and confirm the warning dialog.</li>
-                            </ol>
-                            <h4>2. Selection-Based Bulk Promotion</h4>
-                            <ol>
-                                <li>In the student roster table, select the checkboxes next to target students.</li>
-                                <li>A floating batch action bar appears at the bottom of your screen showing selected count.</li>
-                                <li>Click <strong>Promote Selected (+1 Sem)</strong>.</li>
-                            </ol>
-                            <div class="admonition">
-                                <span class="adm-label">Semester 8 Cap</span>
-                                The bulk promotion engine automatically caps students at Semester 8, preventing invalid semester increments beyond undergraduate curriculum limits.
+                            <p>Supports 5 item types: <code>single</code>, <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>, and <code>matching</code>.</p>
+                            <div class="code-block">
+                                <button class="copy-btn" data-copy>Copy</button>
+                                <pre style="margin:0; white-space:pre-wrap">Question Text,Unit,Option A,Option B,Option C,Option D,Correct,Type
+"What is an OS?",1,"System software","Application","Hardware","Malicious",A,single</pre>
                             </div>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-5">
-                        <summary>
-                            3.5 Managing Curriculum Subjects<span class="arrow">▸</span>
-                        </summary>
+                        <summary>3.5 Exam Control & Live Timers<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <ol>
-                                <li>Click <strong>Subjects</strong> in the navigation sidebar.</li>
-                                <li>Type the subject name (e.g., <code>Database Management Systems</code>).</li>
-                                <li>Select the department and academic semester.</li>
-                                <li>Click <strong>Create Subject</strong>.</li>
-                            </ol>
-                            <p>
-                                Click <strong>View Questions</strong> next to any subject to inspect or expand its question bank.
-                            </p>
+                            <p>Toggle exams between Scheduled, Live, and Ended states. Trigger instant emergency time extensions (+5m/+10m) on demand.</p>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-6">
-                        <summary>
-                            3.6 Managing Question Banks & Bulk CSV Upload<span class="arrow">▸</span>
-                        </summary>
+                        <summary>3.6 Live Classroom Proctoring Panel<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>Examify supports five distinct multiple-choice question archetypes:</p>
-                            <ul>
-                                <li><strong>Single Choice (<code>single</code>):</strong> Questions with one correct option (A, B, C, or D).</li>
-                                <li><strong>Multiple Choice (<code>multiple</code>):</strong> Questions with one or more correct options (for example, <code>A,C</code>).</li>
-                                <li><strong>Case Study (<code>case_study</code>):</strong> Scenario-based questions evaluating clinical or technical contexts.</li>
-                                <li><strong>Assertion & Reason (<code>assertion_reason</code>):</strong> Questions evaluating Assertion (A) and Reason (R) statements.</li>
-                                <li><strong>Matching (<code>matching</code>):</strong> Column matching relationships with paired answer codes.</li>
-                            </ul>
-                            <p>Follow these steps to upload questions in bulk:</p>
-                            <ol>
-                                <li>Click <strong>Questions</strong> in the navigation sidebar (<code>admin/manage-questions.php</code>).</li>
-                                <li>Select the destination curriculum subject from the dropdown menu.</li>
-                                <li>Choose your template download format:
-                                    <ul>
-                                        <li>Click <strong>Download CSV Template</strong> for a standard CSV template.</li>
-                                        <li>Click <strong>Download XLSX Template</strong> for a native Microsoft Excel template.</li>
-                                    </ul>
-                                </li>
-                                <li>(Optional) Click <strong>Preview Template</strong> to inspect sample questions and accepted schemas in your browser.</li>
-                                <li>Upload your <code>.csv</code> or <code>.txt</code> file, or paste CSV records directly into the text area.</li>
-                                <li>Click <strong>Upload Questions</strong> to validate and import your questions.</li>
-                            </ol>
-                            <p>The upload structure requires 8 columns: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option, Question Type</code></p>
-                            <div class="code-block">
-                                <button class="copy-btn" data-copy>Copy</button>
-                                <pre style="margin: 0; white-space: pre-wrap">Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Question Type
-"What is an operating system?",1,"System software","Application software","Hardware component","Malicious program",A,single
-"Which protocols operate at the transport layer?",2,"TCP","IP","UDP","ICMP","A,C",multiple
-"Assertion (A): Virtual memory increases address space.\nReason (R): It maps virtual to physical pages.",3,"Both A and R are true, and R is the correct explanation of A","Both A and R are true, but R is NOT the correct explanation of A","A is true, but R is false","A is false, but R is true",A,assertion_reason
-"Which scheduling algorithm is non-preemptive?",4,"FCFS","Round Robin","SRTF","Multilevel Queue",A,single</pre>
-                            </div>
-                            <h4>Exporting Question Banks</h4>
-                            <p>Open <code>admin/view-questions.php</code> to export existing questions:</p>
-                            <ul>
-                                <li>Click <strong>Export CSV</strong> to download the question bank in CSV format.</li>
-                                <li>Click <strong>Export XLSX</strong> to download the question bank in native Microsoft Excel format.</li>
-                            </ul>
+                            <p>Monitor cheating telemetry (tab switches, window blurs). Candidates triggering 3 violations are automatically disqualified by the engine.</p>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-7">
-                        <summary>
-                            3.7 Configuring an Examination<span class="arrow">▸</span>
-                        </summary>
+                        <summary>3.7 Results & PDF Downloads<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <ol>
-                                <li>Click <strong>Create Exam</strong> in the sidebar.</li>
-                                <li>Type the examination title (e.g., <code>Operating Systems Quiz 1</code>).</li>
-                                <li>Select the curriculum subject.</li>
-                                <li>Set test duration in minutes.</li>
-                                <li>Specify total examination marks and question count per student.</li>
-                                <li>(Optional) Configure <strong>Negative Marks Per Question</strong> (e.g. <code>0.25</code> or <code>0.50</code> deduction for wrong answers; score floored at 0.00).</li>
-                                <li>(Optional) Set a 4-digit <strong>Classroom PIN</strong> for surprise quizzes.</li>
-                                <li>Click <strong>Create Examination</strong>.</li>
-                            </ol>
+                            <p>Generate clean, professional institutional grade reports complete with podium ranks and signature blocks via the native PDF generator.</p>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-8">
-                        <summary>
-                            3.8 Controlling Examinations & Emergency Time Extensions<span class="arrow">▸</span>
-                        </summary>
+                        <summary>3.8 Teacher Provisioning & Record Retention<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>
-                                Navigate to <strong>Exams</strong> (<code>admin/control-exams.php</code>) to govern examination states:
-                            </p>
-                            <table>
-                                <tr><th>State</th><th>Controls</th></tr>
-                                <tr>
-                                    <td><span class="badge scheduled">Inactive</span></td>
-                                    <td><strong>Start:</strong> Publish test live · <strong>Offline Paper:</strong> Download printable PDF with answer key · <strong>Delete:</strong> Remove test</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge live">Live</span></td>
-                                    <td>
-                                        <strong>Live Proctor:</strong> Open surveillance & broadcasts · 
-                                        <strong>+5 min / +10 min:</strong> Grant emergency time · 
-                                        <strong>End Exam:</strong> Terminate test
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge ended">Ended</span></td>
-                                    <td><strong>Results:</strong> Inspect graded submissions and export PDF</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-3-9">
-                        <summary>
-                            3.9 Live Classroom Proctoring Panel & Broadcast Announcements<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <p>
-                                Open <strong>Live Proctor</strong> (<code>admin/proctor-exam.php?exam_id=...</code>) during tests.
-                                The dashboard connects to the real-time WebSocket daemon with fallback HTTP polling.
-                            </p>
-                            <h4>Real-Time Candidate Metrics</h4>
-                            <ul>
-                                <li><strong>Total Class Roster:</strong> Enrolled students eligible for this assessment.</li>
-                                <li><strong>Currently Answering:</strong> Candidates with active test attempts.</li>
-                                <li><strong>Submitted / Done:</strong> Candidates who completed the exam.</li>
-                                <li><strong>Total Cheating Flags:</strong> Fullscreen exits, tab switches, and window blur events detected.</li>
-                            </ul>
-                            <h4>Live Proctor Broadcast Announcements</h4>
-                            <p>
-                                Instructors can click <strong>Announce to Candidates</strong> to type a message. The message is pushed instantly across the real-time WebSocket channel and rendered in a prominent announcement banner on all active candidate screens.
-                            </p>
-                            <h4>Anti-Cheat Telemetry & Automated Disqualification</h4>
-                            <p>
-                                The examination engine actively monitors candidate workstations for unauthorized behaviors (exiting fullscreen, switching browser tabs, or window blur). Candidates receive warnings on their screen, and after <strong>3 violations</strong>, the server automatically marks the attempt as <code>disqualified</code>, locks further submissions, and alerts the proctoring dashboard in real time. Option letters are deterministically permuted per attempt to deter shoulder surfing.
-                            </p>
-                            <h4>Emergency Hardware Actions</h4>
-                            <ul>
-                                <li><strong>Unlock / Resume Attempt:</strong> If a student PC crashes, click Unlock to restore their test state to <code>in_progress</code> without losing saved answers.</li>
-                                <li><strong>Force Submit:</strong> If a candidate leaves the lab or is disqualified, click Force Submit to evaluate their attempt immediately.</li>
-                            </ul>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-3-10">
-                        <summary>
-                            3.10 Student Credential Requests & Offline Password Resets<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <ol>
-                                <li>Open <strong>Requests</strong> (<code>admin/manage-requests.php</code>).</li>
-                                <li>Review pending student profile change requests.</li>
-                                <li>Click <strong>Approve</strong> to apply updates, or <strong>Reject</strong> to dismiss.</li>
-                                <li>Use the <strong>Classroom Password Reset</strong> form to issue temporary passwords to students before lab quizzes.</li>
-                            </ol>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-3-11">
-                        <summary>
-                            3.11 Batch CSV Student Enrollment Tool<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <p>Enroll an entire class section in seconds via CSV import:</p>
-                            <ol>
-                                <li>Open <strong>Import</strong> (<code>admin/import-students.php</code>).</li>
-                                <li>Format your CSV with columns: <code>Name, Email, Roll Number, Department, Semester, Password</code>.</li>
-                                <li>Select the file or paste raw CSV text.</li>
-                                <li>Click <strong>Import Classroom Roster</strong>.</li>
-                            </ol>
-                            <p>The importer skips duplicate emails and roll numbers automatically.</p>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-3-12">
-                        <summary>
-                            3.12 Viewing Results & Downloading Institutional PDF Reports<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <p>Navigate to <strong>Results</strong> (<code>admin/view-results.php</code>) to evaluate performance:</p>
-                            <ul>
-                                <li><strong>Podium:</strong> Gold, silver, and bronze highlights for top 3 rank holders.</li>
-                                <li><strong>Roster Table:</strong> Student ranks, roll numbers, percentage scores, and submission timestamps.</li>
-                                <li><strong>Download Results PDF:</strong> Generates an official institutional assessment report using pure-PHP FPDF. Includes KPI boxes, candidate rankings, and symmetrical institutional signature endorsement lines.</li>
-                            </ul>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-3-13">
-                        <summary>
-                            3.13 Teacher Accounts, Provisioning & Permanent Record Retention<span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <p>
-                                Superadmins manage faculty accounts and credential lifecycles in <code>admin/manage-teachers.php</code>.
-                            </p>
-                            <h4>Teacher Provisioning</h4>
-                            <ol>
-                                <li>Click <strong>Faculty</strong> in the navigation sidebar.</li>
-                                <li>Complete the <strong>Add Teacher</strong> form with full name, college email, assigned department, and initial temporary password.</li>
-                                <li>Click <strong>Create Teacher Account</strong>.</li>
-                            </ol>
-                            <h4>Faculty Credential Resets</h4>
-                            <p>Superadmins can reset passwords for any faculty member directly from the faculty directory:</p>
-                            <ol>
-                                <li>Locate the target faculty member in the roster.</li>
-                                <li>Click <strong>Reset Password</strong>.</li>
-                                <li>Type the new temporary password into the dialog.</li>
-                                <li>Click <strong>Update Password</strong> to persist the change immediately.</li>
-                            </ol>
-                            <h4>Superadmin Self-Credential Reset</h4>
-                            <p>Superadmins can also reset their own master password directly from this panel using the <strong>Reset My Password</strong> button in their account row.</p>
-                            <div class="admonition">
-                                <span class="adm-label">Institutional Guarantee</span>
-                                When faculty leave or retire, their authored questions, exams, and student grades are <strong>100% retained</strong>. Foreign keys preserve author attribution permanently as <code>Prof. Name [Retired]</code>.
-                            </div>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-3-14">
-                        <summary>
-                            <span>3.14 Institutional Audit Trail <code style="font-size: 0.85em; opacity: 0.85;">(admin/audit-logs.php)</code></span>
-                            <span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <p>
-                                The audit trail logs every administrative operation: exam launches, duration extensions, question uploads, student enrollments, and password resets.
-                                Records include administrator ID, role, action, target entity, client IP address, and timestamp.
-                            </p>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-3-15">
-                        <summary>
-                            <span>3.15 First-Time Master Setup Wizard <code style="font-size: 0.85em; opacity: 0.85;">(admin/setup.php)</code></span>
-                            <span class="arrow">▸</span>
-                        </summary>
-                        <div class="body">
-                            <p>
-                                Fresh deployments automatically initialize the master superadmin setup wizard.
-                                Once the initial superadmin is provisioned with <code>PASSWORD_BCRYPT</code>, the wizard locks permanently against execution to prevent privilege hijacking.
-                            </p>
+                            <p>Superadmins can provision staff accounts. When staff members retire, their historic exam and question records remain safely anchored as <code>[Retired]</code>.</p>
                         </div>
                     </details>
                 </section>
 
                 <div class="no-results" id="noResults">
-                    No matching administrative topics found. Try a different search term.
+                    No matching administrative topics found. Try refining your keywords.
                 </div>
             </main>
         </div>
@@ -1182,64 +586,251 @@ $isSuper = is_superadmin();
         </footer>
 
         <script>
-            // Search filter across subsections
-            const searchInput = document.getElementById("searchInput");
-            const allSubsections = Array.from(document.querySelectorAll(".subsection"));
-            const noResults = document.getElementById("noResults");
-            if (searchInput) {
-                searchInput.addEventListener("input", () => {
-                    const q = searchInput.value.trim().toLowerCase();
-                    let visibleCount = 0;
-                    allSubsections.forEach((sec) => {
-                        const text = sec.textContent.toLowerCase();
-                        const match = q === "" || text.includes(q);
-                        sec.classList.toggle("filtered-out", !match);
-                        if (match) {
-                            visibleCount++;
-                            if (q !== "") sec.open = true;
-                        }
+            (() => {
+                "use strict";
+
+                const root = document.documentElement;
+                const themeToggle = document.getElementById("themeToggle");
+                const searchInput = document.getElementById("searchInput");
+                const progressBar = document.getElementById("progressBar");
+                const expandNav = document.getElementById("expandNav");
+                const collapseNav = document.getElementById("collapseNav");
+                const noResults = document.getElementById("noResults");
+                const subsections = [...document.querySelectorAll(".subsection")];
+                const tocLinks = [...document.querySelectorAll(".toc-link")];
+                const sections = [...document.querySelectorAll("section.doc-section")];
+
+                function showToast(message) {
+                    let toast = document.getElementById("toast");
+                    if (!toast) {
+                        toast = document.createElement("div");
+                        toast.id = "toast";
+                        toast.className = "toast";
+                        document.body.appendChild(toast);
+                    }
+                    toast.textContent = message;
+                    toast.classList.add("show");
+                    clearTimeout(window.__examifyToastTimer);
+                    window.__examifyToastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+                }
+
+                // Theme persistence
+                const savedTheme = localStorage.getItem("examify_admin_theme") || "dark";
+                root.setAttribute("data-theme", savedTheme);
+
+                themeToggle?.addEventListener("click", () => {
+                    const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                    root.setAttribute("data-theme", next);
+                    localStorage.setItem("examify_admin_theme", next);
+                    showToast(next === "dark" ? "Dark mode enabled" : "Light mode enabled");
+                });
+
+                // Search with result count, auto-open, and temporary highlighting.
+                const searchCount = document.createElement("span");
+                searchCount.className = "search-count";
+                searchCount.textContent = "0";
+                document.querySelector(".search-wrap")?.appendChild(searchCount);
+
+                function clearHighlights() {
+                    document.querySelectorAll(".search-highlight").forEach(mark => {
+                        mark.replaceWith(document.createTextNode(mark.textContent));
                     });
-                    if (noResults) {
-                        noResults.style.display = visibleCount === 0 ? "block" : "none";
+                }
+
+                function highlightText(element, query) {
+                    if (!query) return;
+                    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+                    const nodes = [];
+                    while (walker.nextNode()) {
+                        const node = walker.currentNode;
+                        if (node.parentElement?.closest(".search-highlight,button,script,style")) continue;
+                        if (node.nodeValue.toLowerCase().includes(query)) nodes.push(node);
+                    }
+                    nodes.forEach(node => {
+                        const frag = document.createDocumentFragment();
+                        const value = node.nodeValue;
+                        const lower = value.toLowerCase();
+                        let cursor = 0;
+                        let index;
+                        while ((index = lower.indexOf(query, cursor)) !== -1) {
+                            frag.appendChild(document.createTextNode(value.slice(cursor, index)));
+                            const mark = document.createElement("mark");
+                            mark.className = "search-highlight";
+                            mark.textContent = value.slice(index, index + query.length);
+                            frag.appendChild(mark);
+                            cursor = index + query.length;
+                        }
+                        frag.appendChild(document.createTextNode(value.slice(cursor)));
+                        node.replaceWith(frag);
+                    });
+                }
+
+                function runSearch() {
+                    const q = searchInput.value.trim().toLowerCase();
+                    clearHighlights();
+                    let visible = 0;
+
+                    subsections.forEach((sec) => {
+                        const match = !q || sec.textContent.toLowerCase().includes(q);
+                        sec.classList.toggle("filtered-out", !match);
+                        sec.classList.toggle("search-hit", Boolean(q && match));
+                        if (match) {
+                            visible++;
+                            if (q) sec.open = true;
+                        }
+                        if (q && match) highlightText(sec, q);
+                    });
+
+                    searchCount.textContent = q ? String(visible) : String(subsections.length);
+                    if (noResults) noResults.style.display = visible ? "none" : "block";
+
+                    if (q && visible === 1) {
+                        const target = subsections.find(s => !s.classList.contains("filtered-out"));
+                        target?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                }
+
+                searchInput?.addEventListener("input", runSearch);
+
+                // Keyboard shortcut: Ctrl/Cmd + K
+                document.addEventListener("keydown", (event) => {
+                    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+                        event.preventDefault();
+                        searchInput?.focus();
+                        searchInput?.select();
+                    }
+                    if (event.key === "Escape" && document.activeElement === searchInput) {
+                        searchInput.value = "";
+                        runSearch();
+                        searchInput.blur();
                     }
                 });
-            }
 
-            // Active TOC highlighting on scroll
-            const tocLinks = document.querySelectorAll(".toc-link");
-            const targets = Array.from(tocLinks)
-                .map((l) => document.querySelector(l.getAttribute("href")))
-                .filter(Boolean);
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        const id = "#" + entry.target.id;
-                        const link = document.querySelector('.toc-link[href="' + id + '"]');
-                        if (!link) return;
-                        if (entry.isIntersecting) {
-                            tocLinks.forEach((l) => l.classList.remove("active"));
-                            link.classList.add("active");
-                        }
-                    });
-                },
-                { rootMargin: "-20% 0px -70% 0px", threshold: 0 }
-            );
-            targets.forEach((t) => observer.observe(t));
+                expandNav?.addEventListener("click", () => document.querySelectorAll(".sidebar .toc-group ul ul").forEach(x => x.style.display = "block"));
+                collapseNav?.addEventListener("click", () => document.querySelectorAll(".sidebar .toc-group ul ul").forEach(x => x.style.display = "none"));
 
-            // Copy JSON buttons
-            document.querySelectorAll("[data-copy]").forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    const pre = btn.parentElement.querySelector("pre");
-                    const text = pre.textContent;
-                    navigator.clipboard.writeText(text).then(() => {
-                        const old = btn.textContent;
-                        btn.textContent = "Copied!";
-                        setTimeout(() => {
-                            btn.textContent = old;
-                        }, 1400);
+                // Remember which subsections are open for this page.
+                const openStateKey = "examify_admin_open_sections";
+                let savedOpen = [];
+                try { savedOpen = JSON.parse(sessionStorage.getItem(openStateKey) || "[]"); } catch (_) {}
+                subsections.forEach(sec => {
+                    if (sec.id && savedOpen.includes(sec.id)) sec.open = true;
+                    sec.addEventListener("toggle", () => {
+                        const current = subsections.filter(s => s.open && s.id).map(s => s.id);
+                        try { sessionStorage.setItem(openStateKey, JSON.stringify(current)); } catch (_) {}
                     });
                 });
-            });
+
+                // Add accessible numbering to summary rows.
+                subsections.forEach((sec, index) => {
+                    const summary = sec.querySelector("summary");
+                    if (!summary || summary.querySelector(".summary-main")) return;
+                    const arrow = summary.querySelector(".arrow");
+                    const label = document.createElement("span");
+                    label.className = "summary-main";
+                    const num = document.createElement("span");
+                    num.className = "summary-number";
+                    num.textContent = String(index + 1).padStart(2, "0");
+                    const textNodes = [...summary.childNodes].filter(n =>
+                        n.nodeType === Node.TEXT_NODE && n.textContent.trim()
+                    );
+                    textNodes.forEach(n => label.appendChild(n.cloneNode(true)));
+                    textNodes.forEach(n => n.remove());
+                    label.prepend(num);
+                    summary.insertBefore(label, arrow || null);
+                });
+
+                // Copy buttons with toast feedback.
+                document.querySelectorAll("[data-copy]").forEach(btn => {
+                    btn.addEventListener("click", async () => {
+                        const pre = btn.parentElement?.querySelector("pre");
+                        if (!pre) return;
+                        try {
+                            await navigator.clipboard.writeText(pre.textContent);
+                            btn.textContent = "Copied ✓";
+                            showToast("Code copied to clipboard");
+                            setTimeout(() => btn.textContent = "Copy", 1500);
+                        } catch (_) {
+                            btn.textContent = "Select";
+                            showToast("Clipboard access unavailable — select the code manually");
+                            setTimeout(() => btn.textContent = "Copy", 1500);
+                        }
+                    });
+                });
+
+                // Scroll progress.
+                function updateProgress() {
+                    const max = document.documentElement.scrollHeight - window.innerHeight;
+                    const percent = max > 0 ? Math.min(100, Math.max(0, window.scrollY / max * 100)) : 0;
+                    if (progressBar) progressBar.style.width = percent + "%";
+                }
+
+                // Active sidebar link based on current section.
+                function updateActiveNav() {
+                    const marker = window.scrollY + 110;
+                    let currentId = sections[0]?.id || "";
+                    sections.forEach(section => {
+                        if (section.offsetTop <= marker) currentId = section.id;
+                    });
+                    tocLinks.forEach(link => {
+                        link.classList.toggle("active", link.getAttribute("href") === "#" + currentId);
+                    });
+                }
+
+                // Back to top.
+                const backTop = document.createElement("button");
+                backTop.type = "button";
+                backTop.className = "back-top";
+                backTop.setAttribute("aria-label", "Back to top");
+                backTop.textContent = "↑";
+                document.body.appendChild(backTop);
+                backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+                function onScroll() {
+                    updateProgress();
+                    updateActiveNav();
+                    backTop.classList.toggle("visible", window.scrollY > 450);
+                }
+                window.addEventListener("scroll", onScroll, { passive: true });
+                onScroll();
+
+                // Section navigation buttons.
+                sections.forEach((section, index) => {
+                    const nav = document.createElement("div");
+                    nav.className = "section-nav";
+                    const previous = document.createElement("button");
+                    const next = document.createElement("button");
+                    previous.type = next.type = "button";
+                    previous.textContent = index === 0 ? "↑ Back to top" : "← Previous section";
+                    next.textContent = index === sections.length - 1 ? "End of guide" : "Next section →";
+                    previous.disabled = false;
+                    next.disabled = index === sections.length - 1;
+                    previous.addEventListener("click", () => {
+                        if (index === 0) window.scrollTo({ top: 0, behavior: "smooth" });
+                        else sections[index - 1].scrollIntoView({ behavior: "smooth", block: "start" });
+                    });
+                    next.addEventListener("click", () => {
+                        if (index < sections.length - 1) sections[index + 1].scrollIntoView({ behavior: "smooth", block: "start" });
+                    });
+                    nav.append(previous, next);
+                    section.appendChild(nav);
+                });
+
+                // Animated numeric KPI values.
+                document.querySelectorAll(".hero-stat .num").forEach(el => {
+                    const raw = el.textContent.trim();
+                    const match = raw.match(/^(\d+)$/);
+                    if (!match) return;
+                    const target = Number(match[1]);
+                    let value = 0;
+                    const step = Math.max(1, Math.ceil(target / 25));
+                    const timer = setInterval(() => {
+                        value = Math.min(target, value + step);
+                        el.textContent = String(value);
+                        if (value >= target) clearInterval(timer);
+                    }, 35);
+                });
+            })();
         </script>
     </body>
 </html>
