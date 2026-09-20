@@ -331,10 +331,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;">
                                         <a href="?download_offline=true&exam_id=<?= $exam['id'] ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
-                                            <span class="material-symbols-outlined icon-sm">print</span> Print Offline Paper
+                                            <span class="material-symbols-outlined icon-sm">print</span> PDF Offline Paper
                                         </a>
                                         <?php if ($display_status === 'NOT STARTED' || $display_status === 'SCHEDULED'): ?>
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Start this examination now? Students will be able to join immediately.');">
+                                            <form method="POST" style="display: inline;" 
+                                            data-confirm="Are you ready to begin the examination? Once you start, students will be able to join immediately."
+                                            data-confirm-title="Start Examaniation?"
+                                            data-confirm-btn="start"
+                                            >
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
                                                 <button type="submit" name="start_exam" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
@@ -386,7 +390,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <?php endif; ?>
 
                                         <!-- Delete Exam -->
-                                        <?php if($isAdminSuper): ?>
+                                        <!-- <?php if($isAdminSuper): ?>
                                             <form method="POST" style="display: inline;" data-confirm="Are you sure you want to permanently delete this exam and all student submissions?" data-confirm-title="Delete Examination" data-confirm-btn="Delete Exam">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
@@ -394,7 +398,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                     <span class="material-symbols-outlined icon-sm">delete</span>
                                                 </button>
                                             </form>
-                                        <?php endif; ?>
+                                        <?php endif; ?> -->
                                     </div>
                                 </td>
                             </tr>

@@ -176,7 +176,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <form method="POST" style="display: inline;">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <button type="submit" name="action" value="approve" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                                                 <span class="material-symbols-outlined icon-xs">check</span> Approve
                                             </button>
                                         </form>

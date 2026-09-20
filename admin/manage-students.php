@@ -723,18 +723,18 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             </form>
                                         <?php endif; ?>
 
-                                        <?php if ($isAdminSuper): ?>
+                                        <!-- <?php if ($isAdminSuper): ?> -->
                                             <!-- Delete Student Record (Superadmin Only) -->
-                                            <form method="POST" style="display: inline;" data-confirm="Permanently delete <?= e($st['name']) ?> (<?= e($st['roll_number']) ?>)? This will purge all their answers and scores." data-confirm-title="Delete Student Record" data-confirm-btn="Delete Permanently">
+                                            <!-- <form method="POST" style="display: inline;" data-confirm="Permanently delete <?= e($st['name']) ?> (<?= e($st['roll_number']) ?>)? This will purge all their answers and scores." data-confirm-title="Delete Student Record" data-confirm-btn="Delete Permanently">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="student_id" value="<?= (int) $st['id'] ?>">
                                                 <button type="submit" name="delete_student" class="btn btn-secondary btn-sm" style="color: #991b1b;" title="Permanently Delete">
                                                     <span class="material-symbols-outlined icon-xs">delete</span>
                                                 </button>
-                                            </form>
-                                        <?php endif; ?>
+                                            </form> -->
+                                        <!-- <?php endif; ?> -->
                                     </div>
-                                </td>
+                                </td>   
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

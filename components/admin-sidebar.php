@@ -42,6 +42,7 @@ $route_parents = [
 $effective_active_page = $route_parents[$current_page] ?? $current_page;
 
 if ($isAdminSuper) {
+    $admin_nav['manage-students.php'] = ['label' => 'Students', 'icon' => 'group', 'title' => 'Manage Students'];
     $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school', 'title' => 'teachers'];
     $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long', 'title' => 'logs'];
     $admin_nav['import-students.php'] = ['label' => 'Import', 'icon' => 'upload_file', 'title' => 'import students'];
@@ -96,7 +97,7 @@ if ($isAdminSuper) {
                     </span>
                     <div class="profile-text">
                         <span class="admin-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></span>
-                        <span class="admin-role"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="admin-role" style="color: #edb055;"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?> BIST PURULIA</span>
                     </div>
                     <span class="material-symbols-outlined chevron-icon" aria-hidden="true">expand_more</span>
                 </button>
@@ -108,7 +109,7 @@ if ($isAdminSuper) {
                         </span>
                         <div>
                             <p class="dropdown-name"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'UTF-8') ?></p>
-                            <p class="dropdown-role"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="dropdown-role"><?= htmlspecialchars($_SESSION['admin_role'] ?? 'Teacher', ENT_QUOTES, 'UTF-8') ?> BIST Purulia</p>
                         </div>
                     </div>
                     <hr class="dropdown-divider">

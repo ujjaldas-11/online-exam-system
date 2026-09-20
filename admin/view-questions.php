@@ -210,12 +210,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <a href="view-questions.php?subject_id=<?= $subject_id ?>&action=export_questions&format=xlsx" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Export questions as Excel (.xlsx)">
                     <span class="material-symbols-outlined icon-sm">table_view</span> Export XLSX
                 </a>
-                <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!" data-confirm-title="Delete All Questions" data-confirm-btn="Delete All">
+                <!-- <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete ALL questions for this subject? This action CANNOT be undone!" data-confirm-title="Delete All Questions" data-confirm-btn="Delete All">
                     <?= csrf_field() ?>
                     <button type="submit" name="delete_all" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                         <span class="material-symbols-outlined icon-sm">delete_forever</span> Delete All
                     </button>
-                </form>
+                </form> -->
             <?php endif; ?>
         </div>
     </div>
@@ -315,13 +315,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         style="display: inline-flex; align-items: center; gap: 4px;">
                                         <span class="material-symbols-outlined icon-xs">edit</span> Edit
                                     </button>
-                                    <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete this question?" data-confirm-title="Delete Question" data-confirm-btn="Delete Question">
+                                    <!-- <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete this question?" data-confirm-title="Delete Question" data-confirm-btn="Delete Question">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="question_id" value="<?= (int)$row['id'] ?>">
                                         <button type="submit" name="delete_question" class="btn btn-danger btn-sm" title="Delete Question" style="display: inline-flex; align-items: center;">
                                             <span class="material-symbols-outlined icon-xs">delete</span>
                                         </button>
-                                    </form>
+                                    </form> -->
                                 </td>
                             </tr>
                         <?php endforeach; ?>

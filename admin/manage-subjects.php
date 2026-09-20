@@ -369,13 +369,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                 style="display: inline-flex; align-items: center; gap: 4px;">
                                                 <span class="material-symbols-outlined icon-xs">edit</span> <span class="action-btn-label">Edit</span>
                                             </button>
-                                            <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete subject '<?= e($sub['name']) ?>' and all associated questions?" data-confirm-title="Delete Subject" data-confirm-btn="Delete Subject">
+                                            <!-- <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete subject '<?= e($sub['name']) ?>' and all associated questions?" data-confirm-title="Delete Subject" data-confirm-btn="Delete Subject">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="subject_id" value="<?= (int)$sub['id'] ?>">
                                                 <button type="submit" name="delete_subject" class="btn btn-danger btn-sm" title="Delete Subject" style="display: inline-flex; align-items: center;">
                                                     <span class="material-symbols-outlined icon-xs">delete</span>
                                                 </button>
-                                            </form>
+                                            </form> -->
                                         </div>
                                     </td>
                                 </tr>
