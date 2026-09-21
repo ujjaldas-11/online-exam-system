@@ -150,7 +150,7 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<style>
+<!-- <style>
 .subjects-layout-grid {
     display: grid;
     grid-template-columns: 360px 1fr;
@@ -224,7 +224,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
         max-width: calc(100% - 24px);
     }
 }
-</style>
+</style> -->
 
 <div class="container main-content">
     <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
@@ -232,9 +232,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <h1>Manage Curriculum Subjects</h1>
             <p>Add department subjects and configure question banks</p>
         </div>
-        <a href="#addSubjectCard" class="btn btn-primary btn-sm mobile-add-btn" style="display: none; align-items: center; gap: 6px;">
-            <span class="material-symbols-outlined icon-xs">add_circle</span> Add Subject
-        </a>
+        <!-- CHANGED: now a button that opens the Create Subject modal -->
+        <button type="button" id="openCreateSubjectBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-xs">add_circle</span> Create Subject
+        </button>
     </div>
 
     <!-- Curriculum Stats Overview -->
@@ -267,47 +268,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <div class="subjects-layout-grid">
-        <!-- Create Subject Form -->
-        <div class="card" id="addSubjectCard">
-            <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <span class="material-symbols-outlined icon-sm" style="color: var(--color-primary);">add_circle</span>
-                <span>Add New Subject</span>
-            </div>
-            <form method="POST">
-                <?= csrf_field() ?>
-
-                <div class="form-group">
-                    <label for="new_sub_name">Subject Name</label>
-                    <input type="text" id="new_sub_name" name="name" required placeholder="e.g. Cloud Computing" value="<?= e($_POST['name'] ?? '') ?>" class="form-control" style="width: 100%; box-sizing: border-box;">
-                </div>
-
-                <div class="form-group">
-                    <label for="new_sub_dept">Department</label>
-                    <select id="new_sub_dept" name="department" required class="form-control" style="width: 100%; box-sizing: border-box;">
-                        <option value="">Select Department</option>
-                        <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
-                            <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="new_sub_sem">Semester</label>
-                    <select id="new_sub_sem" name="semester" required class="form-control" style="width: 100%; box-sizing: border-box;">
-                        <option value="">Select Semester</option>
-                        <?php for ($i = 1; $i <= 8; $i++): ?>
-                            <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>
-                                Semester <?= $i ?>
-                            </option>
-                        <?php endfor; ?>
-                    </select>
-                </div>
-
-                <button type="submit" name="create_subject" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px;">
-                    <span class="material-symbols-outlined icon-sm">add_circle</span> Add Subject
-                </button>
-            </form>
-        </div>
+        <!-- CHANGED: the inline "Add New Subject" card was removed; the form now lives in the Create Subject modal below -->
 
         <!-- Subjects List Table -->
         <div class="card">
@@ -388,7 +349,52 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 </div>
 
-<!-- Edit Subject Modal -->
+<!-- CHANGED: Create Subject Modal (same structure/classes as the Edit Subject modal) -->
+<div id="createSubjectModal" class="admin-modal-overlay">
+    <div class="admin-modal-card">
+        <div class="admin-modal-header">
+            <h3><span class="material-symbols-outlined">add_circle</span> Add Subject</h3>
+            <button type="button" class="admin-modal-close" id="closeCreateSubModal">&times;</button>
+        </div>
+        <form method="POST">
+            <?= csrf_field() ?>
+
+            <div class="admin-modal-body">
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label for="create_sub_name" style="font-weight: 600; display: block; margin-bottom: 4px;">Subject Name</label>
+                    <input type="text" name="name" id="create_sub_name" required placeholder="e.g. Cloud Computing" value="<?= e($_POST['name'] ?? '') ?>" class="form-control" style="width: 100%;">
+                </div>
+
+                <div class="form-group">
+                    <label for="new_sub_dept">Department</label>
+                    <select id="new_sub_dept" name="department" required class="form-control" style="width: 100%; box-sizing: border-box;">
+                        <option value="">Select Department</option>
+                        <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                            <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="create_sub_sem" style="font-weight: 600; display: block; margin-bottom: 4px;">Semester</label>
+                    <select name="semester" id="create_sub_sem" required class="form-control" style="width: 100%;">
+                        <option value="">Select Semester</option>
+                        <?php for ($i = 1; $i <= 8; $i++): ?>
+                            <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>Semester <?= $i ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin-modal-footer">
+                <button type="button" id="cancelCreateSubBtn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" name="create_subject" class="btn btn-primary">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Subject Modal (unchanged) -->
 <div id="editSubjectModal" class="admin-modal-overlay">
     <div class="admin-modal-card">
         <div class="admin-modal-header">
@@ -434,6 +440,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // ---------- Edit Subject modal (unchanged) ----------
     const modal = document.getElementById('editSubjectModal');
     const closeBtn = document.getElementById('closeSubModal');
     const cancelBtn = document.getElementById('cancelSubBtn');
@@ -455,6 +462,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modal) {
         modal.onclick = (e) => { if (e.target === modal) hideModal(); };
     }
+
+    // ---------- CHANGED: Create Subject modal (same pattern as edit) ----------
+    const createModal = document.getElementById('createSubjectModal');
+    const openCreateBtn = document.getElementById('openCreateSubjectBtn');
+    const closeCreateBtn = document.getElementById('closeCreateSubModal');
+    const cancelCreateBtn = document.getElementById('cancelCreateSubBtn');
+
+    const showCreateModal = () => { if (createModal) createModal.style.display = 'flex'; };
+    const hideCreateModal = () => { if (createModal) createModal.style.display = 'none'; };
+
+    if (openCreateBtn) openCreateBtn.onclick = showCreateModal;
+    if (closeCreateBtn) closeCreateBtn.onclick = hideCreateModal;
+    if (cancelCreateBtn) cancelCreateBtn.onclick = hideCreateModal;
+    if (createModal) {
+        createModal.onclick = (e) => { if (e.target === createModal) hideCreateModal(); };
+    }
+
+    // Reopen the create modal if the server re-rendered the page after a failed create
+    <?php if (!empty($_POST['create_subject']) && (($message_type ?? '') !== 'success')): ?>
+    showCreateModal();
+    <?php endif; ?>
 });
 </script>
 
