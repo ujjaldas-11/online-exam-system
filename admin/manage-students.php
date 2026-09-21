@@ -664,7 +664,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 </td>
                                 <td style="white-space: nowrap; text-align: center;">
                                     <?php if ((int) $st['attempts_count'] > 0): ?>
-                                        <a href="results.php?search=<?= urlencode($st['roll_number']) ?>" class="badge badge-active" style="text-decoration: none;" title="View Exam Results">
+                                        <a href="results.php?search=<?= urlencode($st['roll_number']) ?>" class="badge badge-notstarted" style="text-decoration: none;" title="View Exam Results">
                                             <?= (int) $st['attempts_count'] ?> taken
                                         </a>
                                     <?php else: ?>
