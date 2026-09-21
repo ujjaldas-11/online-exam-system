@@ -17,17 +17,31 @@ class CurriculumService
      */
     public static function getDepartments(PDO $pdo): array
     {
+        $depts = self::DEFAULT_DEPARTMENTS;
+
         try {
             $stmt = $pdo->query("SELECT DISTINCT department FROM subjects WHERE department IS NOT NULL AND TRIM(department) != '' ORDER BY department ASC");
-            $depts = $stmt->fetchAll(PDO::FETCH_COLUMN);
-            if (!empty($depts)) {
-                return array_values(array_unique(array_map('trim', $depts)));
+            $dbDepts = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            if (!empty($dbDepts)) {
+                $depts = array_merge($depts, array_map('trim', $dbDepts));
             }
         } catch (PDOException) {
-            // Fallback to default configured departments
+            // On failure, still return the default departments
         }
 
-        return self::DEFAULT_DEPARTMENTS;
+        // Deduplicate (case-insensitive) and sort alphabetically
+        $seen = [];
+        $unique = [];
+        foreach ($depts as $d) {
+            $key = strtoupper($d);
+            if (!isset($seen[$key])) {
+                $seen[$key] = true;
+                $unique[] = $d;
+            }
+        }
+        sort($unique, SORT_STRING);
+
+        return $unique;
     }
 
     /**

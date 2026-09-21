@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/CurriculumService.php';
 
 // Superadmin exclusive access
 require_superadmin();
@@ -289,11 +290,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div class="form-group">
                     <label>Department</label>
                     <select name="department" required>
-                        <option value="BCA">BCA (Computer Applications)</option>
-                        <option value="BBA">BBA (Business Administration)</option>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Mathematics">Mathematics</option>
-                        <option value="General">General / Cross-Department</option>
+                        <option value="">— Select Department —</option>
+                        <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                            <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 

@@ -4,12 +4,12 @@ require_once 'admin-guard.php';
 require_once '../config/database.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/CurriculumService.php';
 
 $selected_dept = clean_input($_GET['department'] ?? 'All');
 
 try {
-    $deptStmt = $pdo->query('SELECT DISTINCT department FROM subjects ORDER BY department');
-    $departments = $deptStmt->fetchAll(PDO::FETCH_COLUMN);
+    $departments = CurriculumService::getDepartments($pdo);
 
     $params = [];
     $sql = "SELECT e.id, e.title, e.total_marks, e.results_published, s.department, s.semester,
