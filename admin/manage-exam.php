@@ -4,18 +4,14 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/CurriculumService.php';
 
 date_default_timezone_set('Asia/Kolkata');
 
 $message = '';
 $message_type = '';
 
-try {
-    $deptStmt = $pdo->query("SELECT DISTINCT department FROM subjects WHERE department IS NOT NULL ORDER BY department ASC");
-    $departments = $deptStmt->fetchAll(PDO::FETCH_COLUMN);
-} catch (PDOException $e) {
-    $departments = [];
-}
+$departments = CurriculumService::getDepartments($pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_exam'])) {
     verify_csrf();
