@@ -246,7 +246,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php endif; ?>
 
     <div class="card">
-        <div class="card-title">Question Bank (<?= count($all_questions) ?> Questions)</div>
+        <div class="card-title">Question Bank (<?= $total_questions_count ?> Questions)</div>
 
         <div style="margin-bottom: 10px;">
             <?php include '../components/searchbar.php' ?>
@@ -269,10 +269,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </thead>
                     <tbody>
                         <?php
-                        $counter_p = $this_page ?? 1;
-                        echo "counter" , $current_page;
-                        $limit_p = $per_page ?? 20;
-                        echo "limit: ",$limit_p;
                         $counter = (($this_page - 1) * $per_page) + 1;
                         $typeBadges = [
                             'single' => ['label' => 'Single Select', 'class' => 'badge-active'],
@@ -354,7 +350,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <?php
             $total_items = $total_questions_count;
-            $page = $current_page;
             include __DIR__ . '/../components/pagination.php'; ?>
         <?php endif; ?>
     </div>
