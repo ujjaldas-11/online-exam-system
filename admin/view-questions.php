@@ -141,6 +141,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
 $subject = null;
 $all_questions = [];
 
+// Setup Pagination Variables
+$this_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 20; // Set how many questions to show per page
+$total_items = 0;
+
 if ($subject_id > 0) {
     try {
         $subjectStmt = $pdo->prepare("SELECT * FROM subjects WHERE id = ?");
@@ -148,6 +153,15 @@ if ($subject_id > 0) {
         $subject = $subjectStmt->fetch();
 
         if ($subject) {
+            //Get Total Count for Pagination
+
+            $countStmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE subject_id = :subject_id ");
+            $countStmt->execute([':subject_id' => $subject_id]);
+            $total_questions_count = (int)$countStmt->fetchColumn();
+
+            // Fetch the specific page of data using LIMIT and OFFSET
+            $offset = ($this_page - 1) * $per_page;
+
             $resultsSql = "
                 SELECT q.id, q.unit_number, q.question_type, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
                        a.name as creator_name, a.status as creator_status
@@ -155,10 +169,15 @@ if ($subject_id > 0) {
                 LEFT JOIN admins a ON q.created_by = a.id
                 WHERE q.subject_id = :subject_id
                 ORDER BY q.id ASC
+                LIMIT :limit OFFSET :offset
             ";
             $resultsStmt = $pdo->prepare($resultsSql);
-            $resultsStmt->execute([':subject_id' => $subject_id]);
-            $all_questions = $resultsStmt->fetchAll();
+            $resultsStmt->bindValue(':subject_id', $subject_id, PDO::PARAM_INT);
+            $resultsStmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
+            $resultsStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $resultsStmt->execute();
+
+            $all_questions = $resultsStmt->fetchAll(PDO::FETCH_ASSOC);
         }
     } catch (PDOException $e) {
         log_error("Failed to fetch subject questions", $e);
@@ -250,7 +269,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </thead>
                     <tbody>
                         <?php
-                        $counter = 1;
+                        $counter_p = $this_page ?? 1;
+                        echo "counter" , $current_page;
+                        $limit_p = $per_page ?? 20;
+                        echo "limit: ",$limit_p;
+                        $counter = (($this_page - 1) * $per_page) + 1;
                         $typeBadges = [
                             'single' => ['label' => 'Single Select', 'class' => 'badge-active'],
                             'multiple' => ['label' => 'Multiple Answer', 'class' => 'badge-warning'],
@@ -328,6 +351,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </tbody>
                 </table>
             </div>
+
+            <?php
+            $total_items = $total_questions_count;
+            $page = $current_page;
+            include __DIR__ . '/../components/pagination.php'; ?>
         <?php endif; ?>
     </div>
 </div>
