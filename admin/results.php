@@ -1,5 +1,4 @@
 <?php
-
 require_once 'admin-guard.php';
 require_once '../config/database.php';
 require_once '../utils/sanitize.php';
@@ -8,32 +7,58 @@ require_once '../services/CurriculumService.php';
 
 $selected_dept = clean_input($_GET['department'] ?? 'All');
 
+// Setup Pagination Variables
+$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 10; // Number of exams per page
+$total_result_count = 0;
+$exams = [];
+$departments = [];
+
 try {
     $departments = CurriculumService::getDepartments($pdo);
 
-    $params = [];
-    $sql = "SELECT e.id, e.title, e.total_marks, e.results_published, s.department, s.semester,
-            a.name as creator_name, a.status as creator_status,
-            (SELECT COUNT(*) FROM exam_attempts
-            WHERE exam_id = e.id AND status = 'completed') AS total_attempts
-            FROM exams e
-            JOIN subjects s ON e.subject_id = s.id
-            LEFT JOIN admins a ON e.created_by = a.id";
-
+    // Build the dynamic WHERE clause for filters
+    $whereClause = "";
     if ($selected_dept !== 'All') {
-        $sql .= ' WHERE s.department = :dept';
-        $params[':dept'] = $selected_dept;
+        $whereClause = " WHERE s.department = :dept";
     }
 
-    $sql .= ' ORDER BY e.created_at DESC';
+    // Get Total Count for Pagination
+    $countSql = "SELECT COUNT(*) FROM exams e JOIN subjects s ON e.subject_id = s.id" . $whereClause;
+    $countStmt = $pdo->prepare($countSql);
+    if ($selected_dept !== 'All') {
+        $countStmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
+    }
+    $countStmt->execute();
+    $total_result_count = (int)$countStmt->fetchColumn();
+
+    // Fetch the specific page of data using LIMIT and OFFSET
+    $offset = ($current_page - 1) * $per_page;
+
+    $sql = "SELECT e.id, e.title, e.total_marks, e.results_published, s.department, s.semester,
+            a.name as creator_name, a.status as creator_status,
+            (SELECT COUNT(*) FROM exam_attempts WHERE exam_id = e.id AND status = 'completed') AS total_attempts
+            FROM exams e
+            JOIN subjects s ON e.subject_id = s.id
+            LEFT JOIN admins a ON e.created_by = a.id 
+            $whereClause
+            ORDER BY e.created_at DESC 
+            LIMIT :limit OFFSET :offset";
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $exams = $stmt->fetchAll();
+    
+    // Securely bind all parameters (PDO requires LIMIT/OFFSET to be strictly integers)
+    if ($selected_dept !== 'All') {
+        $stmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
+    }
+    $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    
+    $stmt->execute();
+    $exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     log_error('Failed to fetch exam results list', $e);
-    $departments = [];
-    $exams = [];
 }
 
 $page_title = 'Results Dashboard • Examify';
@@ -130,6 +155,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </tbody>
             </table>
         </div>
+        
+        <?php
+        // Include the pagination UI component
+        $total_items = $total_result_count;
+        include __DIR__ . '/../components/pagination.php';
+        ?>
     </div>
 </div>
 
