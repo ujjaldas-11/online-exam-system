@@ -117,28 +117,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     }
 }
 
+// --- Data Fetching & Filter Query ---
+$form_action = 'manage-subjects.php';
+$show_dept = true;
+$show_sem = true;
+$show_status = false;
+$show_author = true;
+$search_placeholder = "Search by subject name";
+
+$departments = CurriculumService::getDepartments($pdo);
+
+$authors_list = [];
+try {
+    // Fetch all admins to populate the Author dropdown
+    $authors_list = $pdo->query("SELECT id, name FROM admins ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    log_error("Failed to fetch authors list", $e);
+}
+
+$filterQ = clean_input($_GET['q'] ?? '');
+$filterDept = clean_input($_GET['department'] ?? '');
+$filterSem = isset($_GET['semester']) ? (int)$_GET['semester'] : 0;
+$filterAuthor = isset($_GET['author']) ? (int)$_GET['author'] : 0;
+
+$queryWhere = [];
+$queryParams = [];
+
+if ($filterQ !== '') {
+    $queryWhere[] = "(s.name LIKE ?)"; 
+    $queryParams[] = "%$filterQ%";
+}
+if ($filterDept !== '') {
+    $queryWhere[] = "s.department = ?";
+    $queryParams[] = $filterDept;
+}
+if ($filterSem > 0 && $filterSem <= 8) {
+    $queryWhere[] = "s.semester = ?";
+    $queryParams[] = $filterSem;
+}
+
+if ($filterAuthor > 0) {
+    $queryWhere[] = "s.created_by = ?";
+    $queryParams[] = $filterAuthor;
+}
+
+$whereClause = !empty($queryWhere) ? "WHERE " . implode(" AND ", $queryWhere) : "";
+
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$per_page = 10; // Number of exams per page
+$per_page = 5; // Number of exams per page
 $total_subject_count = 0;
 
-$selected_dept = clean_input($_GET['department'] ?? 'All');
-$departments = [];
 
 try {
-    $departments = CurriculumService::getDepartments($pdo);
+    // Stats
+    $totalCount = (int) $pdo->query("SELECT COUNT(*) FROM subjects")->fetchColumn();
 
-    $whereClause = "";
-    if ($selected_dept !== 'All') {
-        $whereClause = " WHERE s.department = :dept";
-    }
-
-    $countSql = "SELECT COUNT(*) FROM subjects s JOIN admins a ON s.created_by = a.id" . $whereClause;
+    // Total count for current filter
+    $countSql = "SELECT COUNT(*) FROM subjects s LEFT JOIN admins a ON s.created_by = a.id $whereClause";
     $countStmt = $pdo->prepare($countSql);
-    if ($selected_dept !== 'All') {
-        $countStmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
-    }
-    $countStmt->execute();
-    $total_subject_count = (int)$countStmt->fetchColumn();
+    $countStmt->execute($queryParams);
+    $total_subject_count = (int) $countStmt->fetchColumn();
 
     $offset = ($current_page - 1) * $per_page;
 
@@ -154,25 +192,19 @@ try {
         LEFT JOIN admins a ON s.created_by = a.id
         $whereClause
         ORDER BY s.id DESC
-        LIMIT :limit 
-        OFFSET :offset
+        LIMIT $per_page 
+        OFFSET $offset
     ";
 
     $stmt = $pdo->prepare($sql);
-
-    if ($selected_dept !== 'All') {
-        $stmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
-    }
-    $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    
-    $stmt->execute();
+    $stmt->execute($queryParams);
     $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 } catch (PDOException $e) {
     log_error("Failed to fetch subjects", $e);
     $subjects = [];
+    $totalCount = 0;
 }
 
 
@@ -215,23 +247,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <span>Curriculum Subjects (<?= $total_subject_count ?>)</span>
                 </div>
                 
-                <div style=" display: flex; justify-content: space-between; margin: 10px;">
-
-                     <div class="filters">
-                        <a href="manage-subjects.php?department=All" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
-                            All Departments
-                        </a>
-                        <?php foreach ($departments as $dept): ?>
-                            <a href="manage-subjects.php?department=<?= urlencode($dept) ?>" class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
-                                <?= e($dept) ?>
-                            </a>
-                        <?php endforeach; ?>
-                    </div>
-                    
-                    <div style="width: 40%;">
-                        <?php include '../components/searchbar.php' ?>
-                    </div>
-                </div>
+                <!-- filter section -->
+                <?php include __DIR__ . '/../components/filter-bar.php'; ?>
             </div>
 
 

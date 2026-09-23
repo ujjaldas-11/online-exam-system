@@ -399,9 +399,25 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 }
 
 // --- Data Fetching & Filter Query ---
+$form_action = 'manage-students.php';
+$show_dept = true;
+$show_sem = true;
+$show_status = true;
+$show_author = false;
+$search_placeholder = "Search by name, roll no, or email...";
+
+$status_list = [
+    'pending'   => 'Pending',
+    'active' => 'Active',
+    'rejected'    => 'Rejected',
+    'blocked'    => 'Bloked'
+];
+
+$departments = CurriculumService::getDepartments($pdo);
+
 $filterQ = clean_input($_GET['q'] ?? '');
 $filterDept = clean_input($_GET['department'] ?? '');
-$filterSem = int_param($_GET['semester'] ?? 0);
+$filterSem = isset($_GET['semester']) ? (int)$_GET['semester'] : 0;
 $filterStatus = clean_input($_GET['status'] ?? '');
 
 $queryWhere = [];
@@ -422,7 +438,8 @@ if ($filterSem > 0 && $filterSem <= 8) {
     $queryWhere[] = "s.semester = ?";
     $queryParams[] = $filterSem;
 }
-if ($filterStatus !== '' && in_array($filterStatus, ['active', 'blocked', 'pending', 'rejected'], true)) {
+
+if ($filterStatus !== '' && array_key_exists($filterStatus, $status_list)) {
     $queryWhere[] = "s.status = ?";
     $queryParams[] = $filterStatus;
 }
@@ -435,6 +452,7 @@ try {
     $activeCount = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'active'")->fetchColumn();
     $blockedCount = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'blocked'")->fetchColumn();
     $pendingCount = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'pending'")->fetchColumn();
+    $rejectedCount = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'rejected'")->fetchColumn();
 
     // Total count for current filter
     $countSql = "SELECT COUNT(*) FROM students s $whereClause";
@@ -541,7 +559,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 
     <!-- Search & Filter Card -->
-    <div class="card" style="margin-bottom: 24px;">
+    <!-- <div class="card" style="margin-bottom: 24px;">
         <form method="GET" action="manage-students.php" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
             <div class="form-group" style="margin-bottom: 0; flex: 2; min-width: 220px;">
                 <label>Search Roster</label>
@@ -589,8 +607,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </a>
             </div>
         </form>
-    </div>
-
+    </div> -->
+    <?php include __DIR__ . '/../components/filter-bar.php'; ?>
     <!-- Student Roster Table -->
     <div class="card" style="overflow: hidden; max-width: 100%;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">

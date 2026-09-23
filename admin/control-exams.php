@@ -182,29 +182,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
+// --- Data Fetching & Filter Query ---
+$form_action = 'control-exams.php';
+$show_dept = true;
+$show_sem = true;
+$show_status = true;
+$show_author = true;
+$search_placeholder = "Search by exam name";
+
+
+$departments = CurriculumService::getDepartments($pdo);
+
+$status_list = [
+    'active'   => 'Active',
+    'inactive' => 'Inactive',
+    'ended'    => 'Ended',
+    'draft'    => 'Draft'
+];
+
+try {
+    $authors_list = $pdo->query("SELECT id, name FROM admins ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $authors_list = [];
+}
+
+
+$filterQ = clean_input($_GET['q'] ?? '');
+$filterDept = clean_input($_GET['department'] ?? '');
+$filterSem = isset($_GET['semester']) ? (int)$_GET['semester'] : 0;
+$filterStatus = clean_input($_GET['status'] ?? '');
+$filterAuthor = isset($_GET['author']) ? (int)$_GET['author'] : 0;
+
+$queryWhere = [];
+$queryParams = [];
+
+if ($filterQ !== '') {
+    $queryWhere[] = "(e.title LIKE ?)"; 
+    $queryParams[] = "%$filterQ%";
+}
+if ($filterDept !== '') {
+    $queryWhere[] = "s.department = ?";
+    $queryParams[] = $filterDept;
+}
+if ($filterSem > 0 && $filterSem <= 8) {
+    $queryWhere[] = "s.semester = ?";
+    $queryParams[] = $filterSem;
+}
+
+if ($filterAuthor > 0) {
+    $queryWhere[] = "e.created_by = ?";
+    $queryParams[] = $filterAuthor;
+}
+
+
+if ($filterStatus !== '' && array_key_exists($filterStatus, $status_list)) {
+    $queryWhere[] = "e.status = ?";
+    $queryParams[] = $filterStatus;
+}
+
+$whereClause = !empty($queryWhere) ? "WHERE " . implode(" AND ", $queryWhere) : "";
+
+// pagiantion parameters
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $per_page = 10; // Number of exams per page
 $total_exam_count = 0;
 
-$selected_dept = clean_input($_GET['department'] ?? 'All');
-$departments = [];
-
 
 try {
-    $departments = CurriculumService::getDepartments($pdo);
+    $totalCount = (int) $pdo->query("SELECT COUNT(*) FROM exams")->fetchColumn();
+    $activeCount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'active'")->fetchColumn();
+    $scheduledCount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'scheduled'")->fetchColumn();
+    $inactiveCount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'inactive'")->fetchColumn();
+    $endedount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'ended'")->fetchColumn();
 
-    $whereClause = "";
-    if ($selected_dept !== 'All') {
-        $whereClause = " WHERE s.department = :dept";
-    }
-
-    $countSql = "SELECT COUNT(*) FROM exams e JOIN subjects s ON e.subject_id = s.id LEFT JOIN admins a ON e.created_by = a.id" . $whereClause;
+    // Total count for current filter
+    $countSql = "SELECT COUNT(*) FROM exams e 
+                 JOIN subjects s ON e.subject_id = s.id 
+                 LEFT JOIN admins a ON e.created_by = a.id $whereClause";
     $countStmt = $pdo->prepare($countSql);
-    if ($selected_dept !== 'All') {
-        $countStmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
-    }
-    $countStmt->execute();
-    $total_exam_count = (int)$countStmt->fetchColumn();
+    $countStmt->execute($queryParams);
+    $total_exam_count = (int) $countStmt->fetchColumn();
 
     $offset = ($current_page - 1) * $per_page;
 
@@ -217,19 +274,13 @@ try {
         LEFT JOIN admins a ON e.created_by = a.id
         $whereClause
         ORDER BY e.id DESC
-        LIMIT :limit
-        OFFSET :offset
+        LIMIT $per_page
+        OFFSET $offset
     ";
 
     $stmt = $pdo->prepare($sql);
 
-    if ($selected_dept !== 'All') {
-        $stmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
-    }
-    $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    
-    $stmt->execute();
+    $stmt->execute($queryParams);
     $exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
@@ -262,7 +313,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="card">
         <div class="card-title">All Examinations (<?= $total_exam_count ?>)</div>
 
-        <div style=" display: flex; justify-content: space-between; margin: 10px;">
+        <!-- <div style=" display: flex; justify-content: space-between; margin: 10px;">
 
                 <div class="filters">
                 <a href="control-exams.php?department=All" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
@@ -278,8 +329,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div style="width: 40%;">
                     <?php include '../components/searchbar.php' ?>
                 </div>
-        </div>
-
+        </div> -->
+                
+        <?php include __DIR__ . '/../components/filter-bar.php'; ?>
         <div class="table-wrap">
             <table>
                 <thead>

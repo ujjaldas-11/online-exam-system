@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
             $message_type = 'error';
         } else {
             $canEdit = can_admin_manage_question($pdo, $q_id);
-
+            
             if (!$canEdit) {
                 $message = "Unauthorized: You can only edit questions you authored or in subjects you created.";
                 $message_type = 'error';
