@@ -76,19 +76,21 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 
     <div class="card">
-        <div style="margin-bottom: 10px;">
-            <?php include '../components/searchbar.php' ?>
-        </div>
-        <!-- Department Filters -->
-        <div class="filters">
-            <a href="results.php?department=All" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
-                All Departments
-            </a>
-            <?php foreach ($departments as $dept): ?>
-                <a href="results.php?department=<?= urlencode($dept) ?>" class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
-                    <?= e($dept) ?>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <!-- Department Filters -->
+            <div class="filters">
+                <a href="results.php?department=All" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
+                    All Departments
                 </a>
-            <?php endforeach; ?>
+                <?php foreach ($departments as $dept): ?>
+                    <a href="results.php?department=<?= urlencode($dept) ?>" class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
+                        <?= e($dept) ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+            <div style="width: 30%;">
+                <?php include '../components/searchbar.php' ?>
+            </div>
         </div>
 
         <div class="table-wrap">

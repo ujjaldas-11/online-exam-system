@@ -103,11 +103,18 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
     <!-- Pending Registration Requests -->
     <div class="card">
-        <div class="card-title">Pending Account Approvals (<?= count($requests) ?>)</div>
+        <div style="display:flex; justify-content: space-between; margin-bottom: 10px;">
+            <div class="card-title">Pending Account Approvals (<?= count($requests) ?>)</div>
 
+            <div style="width: 40%;">
+                <?php include '../components/searchbar.php' ?>
+            </div>
+        </div>
         <?php if (empty($requests)): ?>
             <p style="color: var(--color-text-secondary); padding: 16px 0;">No pending registration requests at this time.</p>
         <?php else: ?>
+
+
             <div class="table-wrap">
                 <table>
                     <thead>

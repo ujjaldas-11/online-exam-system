@@ -134,97 +134,13 @@ try {
     $subjects = [];
 }
 
-$totalSubjects = count($subjects);
-$totalQuestionsCount = 0;
-$departmentsList = [];
-foreach ($subjects as $s) {
-    $totalQuestionsCount += (int)($s['question_count'] ?? 0);
-    if (!empty($s['department'])) {
-        $departmentsList[$s['department']] = true;
-    }
-}
-$totalDepartmentsCount = count($departmentsList);
 
 $page_title = 'Manage Subjects • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<!-- <style>
-.subjects-layout-grid {
-    display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 24px;
-    align-items: start;
-}
 
-.subjects-table {
-    width: 100%;
-    min-width: 580px;
-}
-
-.subject-actions {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    flex-wrap: nowrap;
-}
-
-.card-header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-@media (max-width: 1024px) {
-    .subjects-layout-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .mobile-add-btn {
-        display: inline-flex !important;
-    }
-}
-
-@media (max-width: 640px) {
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .page-header h1 {
-        font-size: 1.45rem;
-    }
-
-    .action-btn-label {
-        display: none;
-    }
-
-    .subject-actions .btn-sm {
-        padding: 6px 8px;
-    }
-
-    .subjects-table {
-        min-width: 480px;
-    }
-
-    .table-wrap th,
-    .table-wrap td {
-        padding: 10px 12px;
-    }
-
-    .admin-modal-card {
-        margin: 12px;
-        max-width: calc(100% - 24px);
-    }
-}
-</style> -->
 
 <div class="container main-content">
     <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
@@ -238,27 +154,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </button>
     </div>
 
-    <!-- Curriculum Stats Overview -->
-    <div class="stats">
-        <div class="stat-card">
-            <div class="stat-num"><?= $totalSubjects ?></div>
-            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">auto_stories</span> Total Subjects
-            </div>
-        </div>
-        <div class="stat-card" style="border-left: 4px solid var(--color-primary, #33422e);">
-            <div class="stat-num"><?= $totalQuestionsCount ?></div>
-            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">quiz</span> Total Questions
-            </div>
-        </div>
-        <div class="stat-card" style="border-left: 4px solid var(--color-warning, #d97706);">
-            <div class="stat-num"><?= $totalDepartmentsCount ?></div>
-            <div class="stat-label" style="display: flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">domain</span> Active Departments
-            </div>
-        </div>
-    </div>
 
     <?php if ($message): ?>
         <div class="alert alert-<?= $message_type === 'success' ? 'success' : 'error' ?>">
@@ -273,15 +168,19 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <!-- Subjects List Table -->
         <div class="card">
             <div class="card-header-bar">
-                <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
-                    <span class="material-symbols-outlined icon-sm" style="color: var(--color-primary);">menu_book</span>
-                    <span>Curriculum Subjects (<?= count($subjects) ?>)</span>
+                <div style=" display: flex; justify-content: space-between; margin-bottom: 14px;">
+
+                    <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-outlined icon-sm" style="color: var(--color-primary);">menu_book</span>
+                        <span>Curriculum Subjects (<?= count($subjects) ?>)</span>
+                    </div>
+                    
+                    <div style="width: 40%;">
+                        <?php include '../components/searchbar.php' ?>
+                    </div>
                 </div>
             </div>
 
-            <div style="margin-bottom: 14px;">
-                <?php include '../components/searchbar.php' ?>
-            </div>
 
             <div class="table-wrap">
                 <table class="subjects-table">
