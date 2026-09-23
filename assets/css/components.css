@@ -865,7 +865,7 @@ tr:hover td {
 
 .filter.active {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-gold);
 }
 
 /* --- Footer --- */

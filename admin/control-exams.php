@@ -7,6 +7,7 @@ require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 require_once '../components/status-badge.php';
+require_once '../services/CurriculumService.php';
 
 date_default_timezone_set('Asia/Kolkata');
 
@@ -180,16 +181,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+
+$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 10; // Number of exams per page
+$total_exam_count = 0;
+
+$selected_dept = clean_input($_GET['department'] ?? 'All');
+$departments = [];
+
+
 try {
-    $exams = $pdo->query("
+    $departments = CurriculumService::getDepartments($pdo);
+
+    $whereClause = "";
+    if ($selected_dept !== 'All') {
+        $whereClause = " WHERE s.department = :dept";
+    }
+
+    $countSql = "SELECT COUNT(*) FROM exams e JOIN subjects s ON e.subject_id = s.id LEFT JOIN admins a ON e.created_by = a.id" . $whereClause;
+    $countStmt = $pdo->prepare($countSql);
+    if ($selected_dept !== 'All') {
+        $countStmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
+    }
+    $countStmt->execute();
+    $total_exam_count = (int)$countStmt->fetchColumn();
+
+    $offset = ($current_page - 1) * $per_page;
+
+    $sql = "
         SELECT e.*, s.name AS subject_name, s.department, s.semester,
             a.name AS creator_name, a.role AS creator_role, a.status AS creator_status,
             (SELECT COUNT(*) FROM exam_attempts WHERE exam_id = e.id) AS total_attempts
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id
         LEFT JOIN admins a ON e.created_by = a.id
+        $whereClause
         ORDER BY e.id DESC
-    ")->fetchAll();
+        LIMIT :limit
+        OFFSET :offset
+    ";
+
+    $stmt = $pdo->prepare($sql);
+
+    if ($selected_dept !== 'All') {
+        $stmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
+    }
+    $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    
+    $stmt->execute();
+    $exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     log_error("Failed to fetch exams in control-exams", $e);
     $exams = [];
@@ -218,10 +260,24 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php endif; ?>
 
     <div class="card">
-        <div class="card-title">All Examinations (<?= count($exams) ?>)</div>
+        <div class="card-title">All Examinations (<?= $total_exam_count ?>)</div>
 
-        <div style="margin-bottom: 10px;">
-            <?php include '../components/searchbar.php' ?>
+        <div style=" display: flex; justify-content: space-between; margin: 10px;">
+
+                <div class="filters">
+                <a href="control-exams.php?department=All" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
+                    All Departments
+                </a>
+                <?php foreach ($departments as $dept): ?>
+                    <a href="control-exams.php?department=<?= urlencode($dept) ?>" class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
+                        <?= e($dept) ?>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+                    
+                <div style="width: 40%;">
+                    <?php include '../components/searchbar.php' ?>
+                </div>
         </div>
 
         <div class="table-wrap">
@@ -407,6 +463,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </table>
             </div>
         <?php endif; ?>
+        <?php
+            // Include the pagination UI component
+            $total_items = $total_exam_count;
+            include __DIR__ . '/../components/pagination.php';
+        ?>
     </div>
 </div>
 

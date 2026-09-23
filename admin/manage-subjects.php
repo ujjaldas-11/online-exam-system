@@ -117,8 +117,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     }
 }
 
+$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 10; // Number of exams per page
+$total_subject_count = 0;
+
+$selected_dept = clean_input($_GET['department'] ?? 'All');
+$departments = [];
+
 try {
-    $subjects = $pdo->query("
+    $departments = CurriculumService::getDepartments($pdo);
+
+    $whereClause = "";
+    if ($selected_dept !== 'All') {
+        $whereClause = " WHERE s.department = :dept";
+    }
+
+    $countSql = "SELECT COUNT(*) FROM subjects s JOIN admins a ON s.created_by = a.id" . $whereClause;
+    $countStmt = $pdo->prepare($countSql);
+    if ($selected_dept !== 'All') {
+        $countStmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
+    }
+    $countStmt->execute();
+    $total_subject_count = (int)$countStmt->fetchColumn();
+
+    $offset = ($current_page - 1) * $per_page;
+
+
+    $sql = "
         SELECT
             s.*,
             a.name as creator_name,
@@ -127,8 +152,24 @@ try {
             (SELECT COUNT(*) FROM questions WHERE subject_id = s.id) as question_count
         FROM subjects s
         LEFT JOIN admins a ON s.created_by = a.id
+        $whereClause
         ORDER BY s.id DESC
-    ")->fetchAll();
+        LIMIT :limit 
+        OFFSET :offset
+    ";
+
+    $stmt = $pdo->prepare($sql);
+
+    if ($selected_dept !== 'All') {
+        $stmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
+    }
+    $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    
+    $stmt->execute();
+    $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 } catch (PDOException $e) {
     log_error("Failed to fetch subjects", $e);
     $subjects = [];
@@ -168,11 +209,23 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <!-- Subjects List Table -->
         <div class="card">
             <div class="card-header-bar">
-                <div style=" display: flex; justify-content: space-between; margin-bottom: 14px;">
+                
+                <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-outlined icon-sm" style="color: var(--color-primary);">menu_book</span>
+                    <span>Curriculum Subjects (<?= $total_subject_count ?>)</span>
+                </div>
+                
+                <div style=" display: flex; justify-content: space-between; margin: 10px;">
 
-                    <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
-                        <span class="material-symbols-outlined icon-sm" style="color: var(--color-primary);">menu_book</span>
-                        <span>Curriculum Subjects (<?= count($subjects) ?>)</span>
+                     <div class="filters">
+                        <a href="manage-subjects.php?department=All" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
+                            All Departments
+                        </a>
+                        <?php foreach ($departments as $dept): ?>
+                            <a href="manage-subjects.php?department=<?= urlencode($dept) ?>" class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
+                                <?= e($dept) ?>
+                            </a>
+                        <?php endforeach; ?>
                     </div>
                     
                     <div style="width: 40%;">
@@ -244,6 +297,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </tbody>
                 </table>
             </div>
+            <?php
+            // Include the pagination UI component
+            $total_items = $total_subject_count;
+            include __DIR__ . '/../components/pagination.php';
+            ?>
         </div>
     </div>
 </div>
