@@ -11,6 +11,17 @@
  * @var string $search_placeholder (Placeholder text for the search box)
  */
 
+// --- Build a Smart Reset URL ---
+// This keeps important IDs (like subject_id=5) but clears all search filters!
+$reset_params = [];
+foreach ($_GET as $key => $val) {
+    if (is_scalar($val) && !in_array($key, ['q', 'department', 'semester', 'status', 'author', 'page'])) {
+        $reset_params[$key] = $val;
+    }
+}
+$reset_query_string = http_build_query($reset_params);
+$reset_url = $form_action . ($reset_query_string ? '?' . $reset_query_string : '');
+
 $form_action = $form_action ?? '#';
 $show_dept = $show_dept ?? false;
 $show_sem = $show_sem ?? false;
@@ -94,9 +105,17 @@ $filterAuthor = $_GET['author'] ?? '';
             </div>
         <?php endif; ?>
 
-         <!-- Search Input (Always Visible) -->
+        <?php foreach ($_GET as $key => $val): ?>
+            <?php 
+            // Only keep it if it's a simple string/number AND not one of our filter inputs
+            if (is_scalar($val) && !in_array($key, ['q', 'department', 'semester', 'status', 'author', 'page'])): 
+            ?>
+                <input type="hidden" name="<?= e($key) ?>" value="<?= e($val) ?>">
+            <?php endif; ?>
+        <?php endforeach; ?>
+        <!-- Search Input (Always Visible) -->
         <div class="form-group" style="margin-bottom: 0; flex: 2; min-width: 220px;">
-            <label>Search Roster</label>
+            <label>Search</label>
             <input type="text" name="q" value="<?= e($filterQ) ?>" placeholder="<?= e($search_placeholder) ?>" class="form-control">
         </div>
 
@@ -106,7 +125,7 @@ $filterAuthor = $_GET['author'] ?? '';
                 <span class="material-symbols-outlined icon-sm">filter_alt</span> Filter
             </button>
 
-            <a href="<?= htmlspecialchars($form_action, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-secondary" style="height: 38px; display: inline-flex; align-items: center; gap: 4px;" title="Reset filters">
+            <a href="<?= htmlspecialchars($reset_url, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-secondary" style="height: 38px; display: inline-flex; align-items: center; gap: 4px;" title="Reset filters">
                 <span class="material-symbols-outlined icon-sm">restart_alt</span>
             </a>
         </div>

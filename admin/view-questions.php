@@ -141,10 +141,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $subject_id > 0) {
 $subject = null;
 $all_questions = [];
 
-// Setup Pagination Variables
+
+// --- Component Configuration ---
+$form_action = 'view-questions.php'; // FIX: Stay on the questions page
+$show_dept = false; // FIX: Turn off (Questions belong to a subject, not a dept directly)
+$show_sem = false;  // FIX: Turn off
+$show_status = false;
+$show_author = true;
+$search_placeholder = "Search questions or options...";
+
+$authors_list = [];
+try {
+    // Fetch all admins to populate the Author dropdown
+    $authors_list = $pdo->query("SELECT id, name FROM admins ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    log_error("Failed to fetch authors list", $e);
+}
+
+// --- Catch URL Parameters ---
+$filterQ = clean_input($_GET['q'] ?? '');
+$filterAuthor = isset($_GET['author']) ? (int)$_GET['author'] : 0;
+
+// 1. CRITICAL: Anchor the WHERE clause to the current subject_id!
+$queryWhere = ["q.subject_id = ?"];
+$queryParams = [$subject_id]; // Assumes $subject_id is defined at the top of the file
+
+if ($filterQ !== '') {
+    // Search question text and options
+    $queryWhere[] = "(q.unit_number LIKE ? OR q.question_text LIKE ? OR q.option_a LIKE ? OR q.option_b LIKE ? OR q.option_c LIKE ? OR q.option_d LIKE ?)"; 
+    $queryParams[] = "%$filterQ%";
+    $queryParams[] = "%$filterQ%";
+    $queryParams[] = "%$filterQ%";
+    $queryParams[] = "%$filterQ%";
+    $queryParams[] = "%$filterQ%";
+    $queryParams[] = "%$filterQ%";
+}
+
+if ($filterAuthor > 0) {
+    $queryWhere[] = "q.created_by = ?";
+    $queryParams[] = $filterAuthor;
+}
+
+$whereClause = "WHERE " . implode(" AND ", $queryWhere);
+
+// --- Setup Pagination ---
 $this_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$per_page = 20; // Set how many questions to show per page
-$total_items = 0;
+$per_page = 20; 
+$total_questions_count = 0;
+// $all_questions = [];
 
 if ($subject_id > 0) {
     try {
@@ -153,36 +197,37 @@ if ($subject_id > 0) {
         $subject = $subjectStmt->fetch();
 
         if ($subject) {
-            //Get Total Count for Pagination
-
-            $countStmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE subject_id = :subject_id ");
-            $countStmt->execute([':subject_id' => $subject_id]);
+            
+            // 2. Count Total (With Filters Applied)
+            // FIX: Using 'questions q' and JOINing admins so 'a.name' works
+            $countSql = "SELECT COUNT(*) FROM questions q LEFT JOIN admins a ON q.created_by = a.id $whereClause";
+            $countStmt = $pdo->prepare($countSql);
+            $countStmt->execute($queryParams);
             $total_questions_count = (int)$countStmt->fetchColumn();
 
-            // Fetch the specific page of data using LIMIT and OFFSET
+            // 3. Fetch Data (With Filters Applied)
             $offset = ($this_page - 1) * $per_page;
 
+            // FIX: Replaced :limit and :offset with direct integer insertion to match ? bindings
             $resultsSql = "
                 SELECT q.id, q.unit_number, q.question_type, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
                        a.name as creator_name, a.status as creator_status
                 FROM questions q
                 LEFT JOIN admins a ON q.created_by = a.id
-                WHERE q.subject_id = :subject_id
+                $whereClause
                 ORDER BY q.id ASC
-                LIMIT :limit OFFSET :offset
+                LIMIT $per_page OFFSET $offset
             ";
+            
             $resultsStmt = $pdo->prepare($resultsSql);
-            $resultsStmt->bindValue(':subject_id', $subject_id, PDO::PARAM_INT);
-            $resultsStmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
-            $resultsStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-            $resultsStmt->execute();
-
+            $resultsStmt->execute($queryParams); // Maps directly to our ? placeholders
             $all_questions = $resultsStmt->fetchAll(PDO::FETCH_ASSOC);
         }
     } catch (PDOException $e) {
         log_error("Failed to fetch subject questions", $e);
     }
 }
+
 
 $page_title = 'Question Bank • Examify';
 include __DIR__ . '/../components/header.php';
@@ -245,11 +290,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
     <?php endif; ?>
 
+    <?php include __DIR__ . '/../components/filter-bar.php' ?>
     <div class="card">
         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
             <div class="card-title">Question Bank (<?= $total_questions_count ?> Questions)</div>
             <div style="width: 40%;">
-                <?php include '../components/searchbar.php' ?>
             </div>
         </div>
 
