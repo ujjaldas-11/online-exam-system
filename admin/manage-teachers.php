@@ -27,10 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['create_teacher'])) {
         $name = clean_input($_POST['name'] ?? '');
         $email = clean_input($_POST['email'] ?? '');
+        $role = clean_input($_POST['role'] ?? '');
         $department = clean_input($_POST['department'] ?? 'General');
         $password = $_POST['password'] ?? '';
 
-        if (empty($name) || empty($email) || empty($password)) {
+        if (empty($name) || empty($email) || empty($role) || empty($password)) {
             $message = "Please fill all required fields.";
             $message_type = 'error';
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -54,9 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $hashed = password_hash($password, PASSWORD_DEFAULT);
                     $ins = $pdo->prepare("
                         INSERT INTO admins (name, email, password, role, status, department, created_by)
-                        VALUES (?, ?, ?, 'teacher', 'active', ?, ?)
+                        VALUES (?, ?, ?, ?, 'active', ?, ?)
                     ");
-                    $ins->execute([$name, $email, $hashed, $department, $_SESSION['admin_id']]);
+                    $ins->execute([$name, $email, $hashed, $role, $department, $_SESSION['admin_id']]);
                     $newTeacherId = (int) $pdo->lastInsertId();
 
                     log_admin_action(
@@ -184,11 +185,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+
+// --- Data Fetching & Filter Query ---
+$form_action = 'manage-teachers.php';
+$show_dept = true;
+$show_sem = false;
+$show_status = true;
+$show_author = true;
+$search_placeholder = "Search by Teacher name";
+
+$departments = CurriculumService::getDepartments($pdo);
+
+$status_list = [
+    'active'   => 'Active',
+    'retired' => 'Retired',
+];
+
+$authors_list = [];
+try {
+    // Fetch all admins to populate the Author dropdown
+    $authors_list = $pdo->query("SELECT id, name FROM admins WHERE role='superadmin' ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    log_error("Failed to fetch authors list", $e);
+}
+
+$filterQ = clean_input($_GET['q'] ?? '');
+$filterDept = clean_input($_GET['department'] ?? '');
+$filterSem = isset($_GET['semester']) ? (int)$_GET['semester'] : 0;
+$filterAuthor = isset($_GET['author']) ? (int)$_GET['author'] : 0;
+$filterStatus = clean_input($_GET['status'] ?? '');
+
+$queryWhere = [];
+$queryParams = [];
+
+if ($filterQ !== '') {
+    $queryWhere[] = "(name LIKE ?)"; 
+    $queryParams[] = "%$filterQ%";
+}
+if ($filterDept !== '') {
+    $queryWhere[] = "department = ?";
+    $queryParams[] = $filterDept;
+}
+
+if ($filterAuthor > 0) {
+    $queryWhere[] = "created_by = ?";
+    $queryParams[] = $filterAuthor;
+}
+
+if ($filterStatus !== '' && array_key_exists($filterStatus, $status_list)) {
+    $queryWhere[] = "status = ?";
+    $queryParams[] = $filterStatus;
+}
+
+
+$whereClause = !empty($queryWhere) ? "WHERE " . implode(" AND ", $queryWhere) : "";
+
+$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 10; // Number of exams per page
+$total_teacher_count = 0;
+
+
+
 // Fetch Metrics & Instructors
 try {
     $totalTeachers = (int) $pdo->query("SELECT COUNT(*) FROM admins WHERE role = 'teacher'")->fetchColumn();
     $activeTeachers = (int) $pdo->query("SELECT COUNT(*) FROM admins WHERE role = 'teacher' AND status = 'active'")->fetchColumn();
     $retiredTeachers = (int) $pdo->query("SELECT COUNT(*) FROM admins WHERE role = 'teacher' AND status = 'retired'")->fetchColumn();
+
+
+    // Total count for current filter
+    $countSql = "SELECT COUNT(*) FROM admins $whereClause";
+    $countStmt = $pdo->prepare($countSql);
+    $countStmt->execute($queryParams);
+    $total_teacher_count = (int) $countStmt->fetchColumn();
+
+    $offset = ($current_page - 1) * $per_page;
 
     $query = "
         SELECT
@@ -197,13 +268,20 @@ try {
             (SELECT COUNT(*) FROM exams WHERE created_by = a.id) as exams_count,
             (SELECT COUNT(*) FROM questions WHERE created_by = a.id) as questions_count
         FROM admins a
+        $whereClause
         ORDER BY (a.role = 'superadmin') DESC, (a.status = 'active') DESC, a.id ASC
+        LIMIT $per_page
+        OFFSET $offset
     ";
-    $instructors = $pdo->query($query)->fetchAll();
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($queryParams);
+    $instructors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     log_error("Failed fetching instructors", $e);
     $instructors = [];
-    $totalTeachers = $activeTeachers = $retiredTeachers = 0;
+    $totalTeachers = 0;
+    $activeTeachers = 0;
+    $retiredTeachers = 0;
 }
 
 $page_title = 'Manage Teachers & Instructors • Examify';
@@ -217,9 +295,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <h1>Instructor &amp; Teacher Management</h1>
             <p>Provision teacher accounts, assign department roles, audit authorship, and manage retirement records</p>
         </div>
-        <a href="audit-logs.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
-            <span class="material-symbols-outlined icon-sm">history</span> View Audit Logs
-        </a>
+        <div>
+            <a href="audit-logs.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">history</span> View Audit Logs
+            </a>
+            <button type="button" id="openCreateStaffBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-xs">add_circle</span> Create Teacher
+            </button>
+        </div>
     </div>
 
     <?php if ($message): ?>
@@ -267,62 +350,76 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 
     <!-- Create Teacher Form -->
-    <div class="card">
-        <div class="card-title">Provision New Teacher Account</div>
-        <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
-            Create individual instructor credentials. Each teacher's created exams, questions, and curriculum subjects will be permanently tracked and credited to their account.
-        </p>
+    <div id="createStaffModal" class="admin-modal-overlay">
+        <div class="admin-modal-card">
 
-        <form method="POST" action="">
-            <?= csrf_field() ?>
+            <div class="admin-modal-header">
+                <h3><span class="material-symbols-outlined">add_circle</span>Provision New Teacher Accoun</h3>
+                <button type="button" class="admin-modal-close" id="closeCreateStaffModal">&times;</button>
+            </div>
 
-            <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-                <div class="form-group">
-                    <label>Teacher Full Name</label>
-                    <input type="text" name="name" required placeholder="e.g. Prof. Alan Turing" value="<?= e($_POST['name'] ?? '') ?>">
-                </div>
+            <!-- <div class="admin-modal-header">Provision New staff Account</div>
+            <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+                Create individual instructor credentials. Each staff's created exams, questions, and curriculum subjects will be permanently tracked and credited to their account.
+            </p> -->
 
-                <div class="form-group">
-                    <label>Teacher Email</label>
-                    <input type="email" name="email" required placeholder="teacher@college.edu" value="<?= e($_POST['email'] ?? '') ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Department</label>
-                    <select name="department" required>
-                        <option value="">— Select Department —</option>
-                        <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
-                            <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Initial Password</label>
-                    <div class="password-wrapper">
-                        <input type="password" name="password" required placeholder="Minimum 8 characters" minlength="8">
-                        <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
-                            <span class="material-symbols-outlined">visibility</span>
-                        </button>
+            <form method="POST" action="">
+                <?= csrf_field() ?>
+                
+                <div class="admin-modal-body" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <div class="form-group">
+                        <label>Teacher Full Name</label>
+                        <input type="text" name="name" required placeholder="e.g. Prof. Alan Turing" value="<?= e($_POST['name'] ?? '') ?>">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Teacher Email</label>
+                        <input type="email" name="email" required placeholder="teacher@college.edu" value="<?= e($_POST['email'] ?? '') ?>">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Teacher Role</label>
+                        <input type="text" name="role" required placeholder="teacher, superadmin" value="<?= e($_POST['role'] ?? '') ?>">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select name="department" required>
+                            <option value="">— Select Department —</option>
+                            <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                                <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
+                                <?php endforeach; ?>
+                            <option value="<?= e($_POST['department'] ?? '') ?>">General</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Initial Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password" required placeholder="Minimum 8 characters" minlength="8">
+                            <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div style="margin-top: 16px;">
-                <button type="submit" name="create_teacher" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">person_add</span> Create Teacher Account
-                </button>
-            </div>
-        </form>
+                
+                <div class="admin-modal-footer">
+                    <button type="button" id="cancelCreateStaffBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" name="create_teacher" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined icon-sm">person_add</span> Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
+                        
+    <!-- filter bar -->
+     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
     <!-- Instructors Directory Table -->
     <div class="card">
-        <div class="card-title">Instructors &amp; Staff Directory (<?= count($instructors) ?>)</div>
-
-        <div style="margin-bottom: 10px;">
-            <?php include '../components/searchbar.php'; ?>
-        </div>
+        <div class="card-title">Instructors &amp; Staff Directory (<?= $total_teacher_count ?>)</div>
 
         <div class="table-wrap">
             <table>
@@ -426,6 +523,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </tbody>
             </table>
         </div>
+        <?php
+            $total_items = $total_teacher_count; 
+            include __DIR__ .  '/../components/pagination.php'; ?>
     </div>
 </div>
 
@@ -449,6 +549,28 @@ function promptResetPassword(teacherId, teacherName) {
     document.getElementById('modalNewPassword').value = newPass;
     document.getElementById('resetPasswordForm').submit();
 }
+
+document.addEventListener('DOMContentLoaded',()=> {
+    const createModal = document.getElementById('createStaffModal');
+    const openCreateBtn = document.getElementById('openCreateStaffBtn');
+    const closeCreateBtn = document.getElementById('closeCreateStaffModal');
+    const cancelCreateBtn = document.getElementById('cancelCreateStaffBtn');
+
+    const showCreateModal = () => { if (createModal) createModal.style.display = 'flex'; };
+    const hideCreateModal = () => { if (createModal) createModal.style.display = 'none'; };
+
+    if (openCreateBtn) openCreateBtn.onclick = showCreateModal;
+    if (closeCreateBtn) closeCreateBtn.onclick = hideCreateModal;
+    if (cancelCreateBtn) cancelCreateBtn.onclick = hideCreateModal;
+    if (createModal) {
+        createModal.onclick = (e) => { if (e.target === createModal) hideCreateModal(); };
+    }
+
+    // Reopen the create modal if the server re-rendered the page after a failed create
+    <?php if (!empty($_POST['create_subject']) && (($message_type ?? '') !== 'success')): ?>
+    showCreateModal();
+    <?php endif; ?>
+})
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
