@@ -5,34 +5,70 @@ require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 require_once '../services/CurriculumService.php';
 
-$selected_dept = clean_input($_GET['department'] ?? 'All');
+// --- Data Fetching & Filter Query ---
+$form_action = 'results.php';
+$show_dept = true;
+$show_sem = true;
+$show_author = true;
+$search_placeholder = "Search by exam name";
+
+
+$departments = CurriculumService::getDepartments($pdo);
+
+try {
+    $authors_list = $pdo->query("SELECT id, name FROM admins ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $authors_list = [];
+}
+
+
+$filterQ = clean_input($_GET['q'] ?? '');
+$filterDept = clean_input($_GET['department'] ?? '');
+$filterSem = isset($_GET['semester']) ? (int)$_GET['semester'] : 0;
+$filterAuthor = isset($_GET['author']) ? (int)$_GET['author'] : 0;
+
+$queryWhere = ["e.status='ended'"];
+$queryParams = [];
+
+if ($filterQ !== '') {
+    $queryWhere[] = "(e.title LIKE ?)"; 
+    $queryParams[] = "%$filterQ%";
+}
+if ($filterDept !== '') {
+    $queryWhere[] = "s.department = ?";
+    $queryParams[] = $filterDept;
+}
+if ($filterSem > 0 && $filterSem <= 8) {
+    $queryWhere[] = "s.semester = ?";
+    $queryParams[] = $filterSem;
+}
+
+if ($filterAuthor > 0) {
+    $queryWhere[] = "e.created_by = ?";
+    $queryParams[] = $filterAuthor;
+}
+
+
+$whereClause = "WHERE " . implode(" AND ", $queryWhere);
 
 // Setup Pagination Variables
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $per_page = 10; // Number of exams per page
 $total_result_count = 0;
 $exams = [];
-$departments = [];
 
 try {
-    $departments = CurriculumService::getDepartments($pdo);
 
-    // Build the dynamic WHERE clause for filters
-    $whereClause = "";
-    if ($selected_dept !== 'All') {
-        $whereClause = " WHERE s.department = :dept";
-    }
+    $totalCount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status='ended'")->fetchColumn();
 
-    // Get Total Count for Pagination
-    $countSql = "SELECT COUNT(*) FROM exams e JOIN subjects s ON e.subject_id = s.id" . $whereClause;
+    // Total count for current filter
+    $countSql = "SELECT COUNT(*) FROM exams e 
+                 JOIN subjects s ON e.subject_id = s.id 
+                 LEFT JOIN admins a ON e.created_by = a.id $whereClause";
     $countStmt = $pdo->prepare($countSql);
-    if ($selected_dept !== 'All') {
-        $countStmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
-    }
-    $countStmt->execute();
-    $total_result_count = (int)$countStmt->fetchColumn();
+    $countStmt->execute($queryParams);
+    $total_result_count = (int) $countStmt->fetchColumn();
 
-    // Fetch the specific page of data using LIMIT and OFFSET
     $offset = ($current_page - 1) * $per_page;
 
     $sql = "SELECT e.id, e.title, e.total_marks, e.results_published, s.department, s.semester,
@@ -43,18 +79,11 @@ try {
             LEFT JOIN admins a ON e.created_by = a.id 
             $whereClause
             ORDER BY e.created_at DESC 
-            LIMIT :limit OFFSET :offset";
+            LIMIT $per_page
+            OFFSET $offset";
 
     $stmt = $pdo->prepare($sql);
-    
-    // Securely bind all parameters (PDO requires LIMIT/OFFSET to be strictly integers)
-    if ($selected_dept !== 'All') {
-        $stmt->bindValue(':dept', $selected_dept, PDO::PARAM_STR);
-    }
-    $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    
-    $stmt->execute();
+    $stmt->execute($queryParams);
     $exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
@@ -75,23 +104,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
     </div>
 
+    <?php include __DIR__ . '/../components/filter-bar.php' ?>
     <div class="card">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <!-- Department Filters -->
-            <div class="filters">
-                <a href="results.php?department=All" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
-                    All Departments
-                </a>
-                <?php foreach ($departments as $dept): ?>
-                    <a href="results.php?department=<?= urlencode($dept) ?>" class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
-                        <?= e($dept) ?>
-                    </a>
-                <?php endforeach; ?>
-            </div>
-            <div style="width: 30%;">
-                <?php include '../components/searchbar.php' ?>
-            </div>
-        </div>
+
+        <div class="card-title">Total Results(<?= $total_result_count ?>)</div>
 
         <div class="table-wrap">
             <table>
