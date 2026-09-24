@@ -29,7 +29,7 @@ $filterAuthor = $_GET['author'] ?? '';
 
 ?>
 
-<div class="card" style="margin-bottom: 24px;">
+<div class="card" style="margin-bottom: 10px;">
     <form method="GET" action="<?= htmlspecialchars($form_action, ENT_QUOTES, 'UTF-8') ?>" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
 
         <?php if ($show_author && !empty($authors_list)): ?>

@@ -164,7 +164,7 @@ if ($filterAuthor > 0) {
 $whereClause = !empty($queryWhere) ? "WHERE " . implode(" AND ", $queryWhere) : "";
 
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$per_page = 5; // Number of exams per page
+$per_page = 10; // Number of exams per page
 $total_subject_count = 0;
 
 
@@ -238,6 +238,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="subjects-layout-grid">
         <!-- CHANGED: the inline "Add New Subject" card was removed; the form now lives in the Create Subject modal below -->
 
+        <!-- filter section -->
+        <?php include __DIR__ . '/../components/filter-bar.php'; ?>
+
         <!-- Subjects List Table -->
         <div class="card">
             <div class="card-header-bar">
@@ -247,8 +250,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <span>Curriculum Subjects (<?= $total_subject_count ?>)</span>
                 </div>
                 
-                <!-- filter section -->
-                <?php include __DIR__ . '/../components/filter-bar.php'; ?>
             </div>
 
 

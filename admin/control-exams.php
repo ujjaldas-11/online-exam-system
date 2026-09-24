@@ -195,9 +195,9 @@ $departments = CurriculumService::getDepartments($pdo);
 
 $status_list = [
     'active'   => 'Active',
-    'inactive' => 'Inactive',
+    'inactive' => 'Not Started',
     'ended'    => 'Ended',
-    'draft'    => 'Draft'
+    // 'draft'    => 'Draft'
 ];
 
 try {
@@ -309,29 +309,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?= e($message) ?>
         </div>
     <?php endif; ?>
+    
+    <!-- filter bar -->
+    <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
     <div class="card">
         <div class="card-title">All Examinations (<?= $total_exam_count ?>)</div>
-
-        <!-- <div style=" display: flex; justify-content: space-between; margin: 10px;">
-
-                <div class="filters">
-                <a href="control-exams.php?department=All" class="filter <?= $selected_dept === 'All' ? 'active' : '' ?>">
-                    All Departments
-                </a>
-                <?php foreach ($departments as $dept): ?>
-                    <a href="control-exams.php?department=<?= urlencode($dept) ?>" class="filter <?= $selected_dept === $dept ? 'active' : '' ?>">
-                        <?= e($dept) ?>
-                    </a>
-                    <?php endforeach; ?>
-                </div>
-                    
-                <div style="width: 40%;">
-                    <?php include '../components/searchbar.php' ?>
-                </div>
-        </div> -->
                 
-        <?php include __DIR__ . '/../components/filter-bar.php'; ?>
         <div class="table-wrap">
             <table>
                 <thead>
