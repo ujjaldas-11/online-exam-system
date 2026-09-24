@@ -9,6 +9,7 @@ require_once '../services/CurriculumService.php';
 $form_action = 'results.php';
 $show_dept = true;
 $show_sem = true;
+$show_status = false;
 $show_author = true;
 $search_placeholder = "Search by exam name";
 
@@ -55,7 +56,7 @@ $whereClause = "WHERE " . implode(" AND ", $queryWhere);
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $per_page = 10; // Number of exams per page
 $total_result_count = 0;
-$exams = [];
+
 
 try {
 

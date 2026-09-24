@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/CurriculumService.php';
 
 $message = '';
 $error = '';
@@ -101,14 +102,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// --- Data Fetching & Filter Query ---
+$form_action = 'manage-requests.php';
+$show_dept = true;
+$show_sem = true;
+$show_status = false;
+$show_author = false;
+$search_placeholder = "Search by name, roll,";
+
+
+$departments = CurriculumService::getDepartments($pdo);
+
+
+$filterQ = clean_input($_GET['q'] ?? '');
+$filterDept = clean_input($_GET['department'] ?? '');
+$filterSem = isset($_GET['semester']) ? (int)$_GET['semester'] : 0;
+
+$queryWhere = [" r.status = 'pending'"];
+$queryParams = [];
+
+if ($filterQ !== '') {
+    $queryWhere[] = "(s.name LIKE ? OR s.roll_number LIKE ? OR r.new_name LIKE ?)"; 
+    $queryParams[] = "%$filterQ%";
+    $queryParams[] = "%$filterQ%";
+    $queryParams[] = "%$filterQ%";
+}
+if ($filterDept !== '') {
+    $queryWhere[] = "s.department = ?";
+    $queryParams[] = $filterDept;
+}
+if ($filterSem > 0 && $filterSem <= 8) {
+    $queryWhere[] = "s.semester = ?";
+    $queryParams[] = $filterSem;
+}
+
+
+$whereClause = "WHERE " . implode(" AND ", $queryWhere);
+
+// Setup Pagination Variables
+$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 10; // Number of exams per page
+$total_result_count = 0;
+
 try {
-    $requests = $pdo->query("
+    // Total count for current filter
+    $countSql = "SELECT COUNT(*) FROM profile_requests r JOIN students s ON r.student_id = s.id $whereClause";
+    $countStmt = $pdo->prepare($countSql);
+    $countStmt->execute($queryParams);
+    $total_request_count = (int) $countStmt->fetchColumn();
+
+    $offset = ($current_page - 1) * $per_page;
+
+    $sql ="
         SELECT r.*, s.name as old_name, s.roll_number as old_roll, s.department as old_dept, s.semester as old_sem
         FROM profile_requests r
         JOIN students s ON r.student_id = s.id
-        WHERE r.status = 'pending'
+        $whereClause
         ORDER BY r.request_date ASC
-    ")->fetchAll();
+        LIMIT $per_page
+        OFFSET $offset 
+    ";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParams);
+    $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     log_error("Failed to fetch profile requests", $e);
     $requests = [];
@@ -134,15 +192,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php if ($error): ?>
         <div class="alert alert-error"><?= e($error) ?></div>
     <?php endif; ?>
+        
+     <!-- filter bar -->
+    <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
     <!-- Pending Profile Requests -->
     <div class="card">
-        <div style="display:flex; justify-content: space-between; margin-bottom: 10px;">
-            <div class="card-title">Pending Profile Modification Requests (<?= count($requests) ?>)</div>
-            <div style="width: 40%;">
-                <?php include '../components/searchbar.php' ?>
-            </div>
-        </div>
+        <div class="card-title">Pending Profile Modification Requests (<?= count($requests) ?>)</div>
         <?php if (empty($requests)): ?>
             <p style="color: var(--color-text-secondary); padding: 16px 0;">No pending profile requests at this time.</p>
         <?php else: ?>
@@ -201,6 +257,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </tbody>
                 </table>
             </div>
+            <?php 
+                $total_items = $total_request_count;
+                include __DIR__ . '/../components/pagination.php';
+            ?>
         <?php endif; ?>
     </div>
 
