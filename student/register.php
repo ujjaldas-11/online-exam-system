@@ -180,7 +180,9 @@ include __DIR__ . '/../components/header.php';
 <?php else: ?>
 <div class="auth-card auth-card-wide">
     <div class="auth-header">
-        <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+        <a href="/examify/index.php">
+            <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+        </a>
         <div class="auth-header-text">
             <h1>Create Account</h1>
             <p class="subtitle">Request registration for classroom examinations</p>

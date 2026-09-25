@@ -148,7 +148,7 @@ $show_dept = false; // FIX: Turn off (Questions belong to a subject, not a dept 
 $show_sem = false;  // FIX: Turn off
 $show_status = false;
 $show_author = true;
-$search_placeholder = "Search questions or options...";
+$search_placeholder = "Search questions or options... and unit number (1,2,3 ..)";
 
 $authors_list = [];
 try {

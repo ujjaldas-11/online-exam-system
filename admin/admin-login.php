@@ -107,7 +107,9 @@ include __DIR__ . '/../components/header.php';
 
 <div class="auth-card">
     <div class="auth-header">
-        <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+        <a href="/examify/index.php">
+            <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+        </a>
         <div class="auth-header-text">
             <h2>Admin Login</h2>
             <p class="subtitle">Instructor & Examination Control</p>

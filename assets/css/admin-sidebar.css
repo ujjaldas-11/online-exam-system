@@ -99,8 +99,8 @@ body.sidebar-collapsed .main-content {
   position: absolute;
   top: -4px;
   right: -4px;
-  min-width: 18px;
-  height: 18px;
+  min-width: 20px;
+  height: 20px;
   padding: 0 5px;
   border-radius: 999px;
   background: #ef4444;

@@ -504,7 +504,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="page-header">
         <div>
             <h1>Student Management</h1>
-            <p>Maintain enrolled student roster, account credentials, and examination access</p>
+            <p>Maintain enrolled student roster, <br> account credentials, and examination access</p>
         </div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <?php
@@ -514,17 +514,17 @@ include __DIR__ . '/../components/admin-sidebar.php';
             ?>
 
             <?php if ($isAdminSuper): ?>
-                <a href="import-students.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <a href="import-students.php" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
                     <span class="material-symbols-outlined icon-sm">group</span>Bulk Student Insert
                 </a>
-                <button type="button" class="btn btn-primary" onclick="openBulkPromoteModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="openBulkPromoteModal()" style="display: inline-flex; align-items: center; gap: 6px;">
                     <span class="material-symbols-outlined icon-sm">upgrade</span> Bulk Semester Promote
                 </button>
-                <button type="button" class="btn btn-primary" onclick="openAddStudentModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="openAddStudentModal()" style="display: inline-flex; align-items: center; gap: 6px;">
                     <span class="material-symbols-outlined icon-sm">person_add</span> Add New Student
                 </button>
             <?php endif; ?>
-            <a href="<?= e($exportUrl) ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <a href="<?= e($exportUrl) ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">download</span> Export CSV
             </a>
         </div>
