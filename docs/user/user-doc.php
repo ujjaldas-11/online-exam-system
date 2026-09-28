@@ -300,6 +300,7 @@
             .sidebar {
                 position: sticky;
                 top: 75px;
+                align-self: start; /* Crucial for sticky grid/flex items */
                 height: calc(100vh - 75px);
                 overflow-y: auto;
                 padding: 40px 16px 40px 32px;

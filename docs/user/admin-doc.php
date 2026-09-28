@@ -54,166 +54,336 @@ $adminName = $_SESSION['admin_name'] ?? 'Faculty Member';
 $isSuper = is_superadmin();
 ?>
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Examify — Administrator Documentation</title>
-        <!-- Self-contained typography with zero-CDN system fallbacks -->
         <style>
+            /* ===== Modern CSS Variables & Theming (Examify Snapshot Theme) ===== */
             :root {
-                --bg: #0b0f1a;
-                --panel: #121828;
-                --panel-soft: #0f1422;
-                --ink: #e9ecf4;
-                --ink-soft: #94a0b8;
-                --ink-faint: #5c6784;
-                --rule: #232b40;
-                --rule-strong: #34405c;
-                --blue: #4c8dfa;
-                --blue-deep: #3b76e0;
-                --blue-soft: rgba(76,141,250,.14);
-                --gold: #ffd700;
-                --red: #f0665a;
-                --green: #3ecf8e;
-                --shadow: 0 12px 35px rgba(0,0,0,.28);
+                /* Light Mode / Base */
+                --bg-main: #f4f7fb;       /* Soft light background */
+                --bg-panel: #ffffff;      /* White panels */
+                --text-main: #131b2c;     /* Deep navy text (from screenshot) */
+                --text-muted: #4b5563;
+                
+                --primary: #1a46b9;       /* Vibrant royal blue (from screenshot button) */
+                --primary-hover: #163a99;
+                
+                --accent-green: #10b981; 
+                --accent-yellow: #f59e0b; 
+                
+                --border: #e2e8f0;
+                --border-strong: #cbd5e1;
+                
+                /* Dark Navy Topbar to match screenshot header */
+                --topbar-bg: rgba(19, 27, 44, 0.95);
+                --topbar-text: #f8fafc;
+                --topbar-border: #2c364c;
+                --topbar-input-bg: rgba(255, 255, 255, 0.08);
+
+                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
                 --radius: 12px;
+                --transition: all 0.2s ease-in-out;
             }
 
-            [data-theme="light"] {
-                --bg: #f4f7fb;
-                --panel: #fff;
-                --panel-soft: #f8fafc;
-                --ink: #10192c;
-                --ink-soft: #4a5568;
-                --ink-faint: #8a97ad;
-                --rule: #e2e8f0;
-                --rule-strong: #cbd5e1;
-                --blue: #2563eb;
-                --blue-deep: #1d4ed8;
-                --blue-soft: rgba(37,99,235,.09);
-                --gold: #b45309;
-                --red: #dc2626;
-                --green: #16a34a;
-                --shadow: 0 12px 30px rgba(15,23,42,.08);
+            /* Dark Mode Variables */
+            [data-theme="dark"] {
+                --bg-main: #0b1121;       /* Very dark navy space */
+                --bg-panel: #131b2c;      /* Navy cards */
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                
+                --primary: #3b82f6;       /* Brighter blue for dark mode visibility */
+                --primary-hover: #60a5fa;
+                
+                --border: #2a344a;
+                --border-strong: #3b4763;
+                
+                --topbar-bg: rgba(11, 17, 33, 0.95);
+                --topbar-text: #f8fafc;
+                --topbar-border: #2a344a;
+                --topbar-input-bg: rgba(255, 255, 255, 0.05);
+                
+                --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
             }
 
-            * { box-sizing: border-box; }
-            html { scroll-behavior: smooth; scroll-padding-top: 82px; }
-            body {
+            * {
+                box-sizing: border-box;
                 margin: 0;
-                background:
-                    radial-gradient(circle at 15% 0%, var(--blue-soft), transparent 30%),
-                    var(--bg);
-                color: var(--ink);
-                font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                padding: 0;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                background: var(--bg-main);
+                color: var(--text-main);
+                font-family: "Inter", system-ui, -apple-system, sans-serif;
                 font-size: 16px;
                 line-height: 1.6;
+                transition: background-color 0.3s, color 0.3s;
             }
-            body::before {
-                content: "";
-                position: fixed;
-                inset: 0;
+
+            ::selection {
+                background: var(--primary);
+                color: #fff;
+            }
+
+            h1, h2, h3, h4 {
+                color: var(--text-main);
+                font-weight: 800; /* Bolder headings to match image typography */
+                line-height: 1.2;
+                margin-bottom: 0.5em;
+            }
+
+            a {
+                color: var(--primary);
+                text-decoration: none;
+                transition: var(--transition);
+            }
+            
+            a:hover {
+                color: var(--primary-hover);
+            }
+
+            code, .mono {
+                font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+                font-size: 0.9em;
+            }
+
+            /* ===== Dark Navy Glassmorphism Topbar ===== */
+            .topbar {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                background: var(--topbar-bg);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid var(--topbar-border);
+                color: var(--topbar-text);
+            }
+
+            .topbar-inner {
+                max-width: 1300px;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                padding: 14px 32px;
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-weight: 800;
+                font-size: 1.3rem;
+                color: var(--topbar-text);
+                letter-spacing: -0.02em;
+            }
+            
+            .brand:hover {
+                color: #fff;
+            }
+
+            .brand .logo-icon {
+                width: 28px;
+                height: 28px;
+                background: linear-gradient(135deg, #1d4ed8, #60a5fa);
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+            }
+
+            .badge-doc-type {
+                font-size: 0.72rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                background: rgba(255, 255, 255, 0.15);
+                color: #fff;
+                padding: 4px 12px;
+                border-radius: 20px;
+            }
+
+            /* ===== Search Box (Adapted for dark navbar) ===== */
+            .search-wrap {
+                position: relative;
+                margin-left: auto;
+            }
+
+            .search-wrap input {
+                background: var(--topbar-input-bg);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                color: #fff;
+                padding: 10px 36px 10px 40px;
+                border-radius: 30px;
+                font-family: inherit;
+                font-size: 0.9rem;
+                width: 220px;
+                transition: var(--transition);
+            }
+
+            .search-wrap input::placeholder {
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            .search-wrap input:focus {
+                outline: none;
+                width: 280px;
+                background: rgba(255, 255, 255, 0.15);
+                border-color: #60a5fa;
+                box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+            }
+
+            .search-wrap svg {
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(255, 255, 255, 0.6);
                 pointer-events: none;
-                background-image: linear-gradient(rgba(128,128,128,.025) 1px, transparent 1px),
-                                  linear-gradient(90deg, rgba(128,128,128,.025) 1px, transparent 1px);
-                background-size: 32px 32px;
-                mask-image: linear-gradient(to bottom, black, transparent 75%);
             }
-            ::selection { background: var(--blue); color: #fff; }
-            h1,h2,h3,h4 { color: var(--ink); letter-spacing: -.015em; margin: 0 0 .5em; }
-            code,pre,.mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+            .search-clear {
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: transparent;
+                border: none;
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 1.25rem;
+                line-height: 1;
+                cursor: pointer;
+                padding: 2px 6px;
+                border-radius: 50%;
+                transition: var(--transition);
+            }
+
+            .search-clear:hover {
+                color: #fff;
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            /* ===== Buttons (Navbar variations) ===== */
+            .topbar-links {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 18px;
+                border-radius: 8px; /* Squared off a bit like the screenshot */
+                font-size: 0.9rem;
+                font-weight: 700;
+                cursor: pointer;
+                border: none;
+                transition: var(--transition);
+            }
+
+            .btn-outline {
+                background: transparent;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: #fff;
+            }
+
+            .btn-outline:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: #fff;
+            }
+
+            .btn-primary {
+                background: #1a46b9;
+                color: #ffffff !important;
+                box-shadow: 0 2px 10px rgba(26, 70, 185, 0.4);
+            }
+
+            .btn-primary:hover {
+                background: #143694;
+                transform: translateY(-1px);
+            }
+
+            .btn-icon {
+                padding: 8px;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid transparent;
+                color: #fff;
+                display: flex;
+                cursor: pointer;
+                transition: var(--transition);
+            }
+            .btn-icon:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+
+            /* ===== Admin page: legacy token aliases =====
+               Admin-specific rules below were written against an older token
+               vocabulary. These aliases resolve to the shared Examify tokens above,
+               so light/dark values always come from :root / [data-theme="dark"]. */
+            :root {
+                --bg: var(--bg-main);
+                --panel: var(--bg-panel);
+                --panel-soft: color-mix(in srgb, var(--bg-main) 55%, var(--bg-panel));
+                --ink: var(--text-main);
+                --ink-soft: var(--text-muted);
+                --ink-faint: color-mix(in srgb, var(--text-muted) 65%, var(--bg-main));
+                --rule: var(--border);
+                --rule-strong: var(--border-strong);
+                --blue: var(--primary);
+                --blue-deep: var(--primary-hover);
+                --blue-soft: color-mix(in srgb, var(--primary) 12%, transparent);
+                --gold: var(--accent-yellow);
+                --green: var(--accent-green);
+                --red: #ef4444;
+                --shadow: var(--shadow-md);
+            }
+
+            html { scroll-padding-top: 90px; }
+            pre { font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace; }
             code {
                 background: var(--rule); border: 1px solid var(--rule-strong);
                 border-radius: 5px; padding: 1px 6px; color: var(--ink); font-size: .88em;
             }
-            a { color: var(--blue); text-decoration: none; }
-            a:hover { text-decoration: none; }
+            section.doc-section h2, .hero h1 { font-weight: 800; }
 
-            .topbar {
-                position: sticky; top: 0; z-index: 100;
-                background: color-mix(in srgb, var(--panel) 88%, transparent);
-                border-bottom: 1px solid var(--rule);
-                backdrop-filter: blur(16px);
-            }
-            .progress-track {
-                position: absolute; left: 0; bottom: -1px; height: 3px; width: 100%;
-                background: transparent;
-            }
-            .progress-bar {
-                height: 100%; width: 0; background: linear-gradient(90deg,var(--blue),#8b5cf6,var(--green));
-                transition: width .15s ease;
-            }
-            .topbar-inner {
-                max-width: 1380px; margin: auto; display: flex; align-items: center;
-                gap: 14px; padding: 11px 22px;
-            }
-            .brand {
-                display:flex; align-items:center; gap:10px; color:var(--ink);
-                font-weight:800; white-space:nowrap;
-            }
-            .brand .logo-mark {
-                width:34px; height:34px; border-radius:10px; display:flex; align-items:center;
-                justify-content:center; background:linear-gradient(135deg,var(--blue),#7c3aed);
-                box-shadow:0 7px 22px var(--blue-soft);
-            }
-            .brand .logo-mark svg { width:18px; stroke:#fff; }
-            .badge-doc-type {
-                font-family:"IBM Plex Mono",monospace; font-size:.68rem;
-                border:1px solid var(--rule); background:var(--panel-soft); color:var(--ink-soft);
-                border-radius:999px; padding:5px 10px; white-space:nowrap;
-            }
-
-            .search-wrap { position:relative; flex:1; max-width:500px; margin-left:auto; }
-            .search-wrap input {
-                width:100%; background:var(--panel-soft); border:1px solid var(--rule);
-                color:var(--ink); padding:9px 76px 9px 38px; border-radius:999px;
-                font-size:.85rem; outline:none; transition:.2s;
-            }
-            .search-wrap input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
-            .search-wrap svg { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--ink-faint); }
+            /* Admin-only topbar extras, styled to sit inside the shared navy header */
+            .progress-track { position: absolute; left: 0; bottom: -1px; height: 3px; width: 100%; background: transparent; }
+            .progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, #1d4ed8, #60a5fa); transition: width .15s ease; }
             .search-count {
-                position:absolute; right:10px; top:50%; transform:translateY(-50%);
-                color:var(--ink-faint); font:11px "IBM Plex Mono",monospace;
+                position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+                color: rgba(255, 255, 255, 0.6); font: 11px "Fira Code", ui-monospace, monospace;
+                pointer-events: none; display: none;
             }
-            .topbar-actions {
-                display:flex; align-items:center; gap:7px; margin-left:0;
-            }
-            .topbar-actions .topbar-btn {
-                background:transparent;
-                border-color:transparent;
-                color:var(--ink-soft);
-                box-shadow:none;
-            }
-            .topbar-actions .topbar-btn:hover {
-                background:var(--blue-soft);
-                border-color:transparent;
-                color:var(--blue);
-            }
-            .icon-btn,.topbar-btn {
-                min-height:38px; display:inline-flex; align-items:center; justify-content:center;
-                gap:6px; border:1px solid var(--rule); background:var(--panel-soft);
-                color:var(--ink); border-radius:9px; padding:7px 11px; cursor:pointer;
-                font-size:.8rem; font-weight:700;
-            }
-            .icon-btn:hover,.topbar-btn:hover { border-color:var(--blue); transform:translateY(-1px); }
-            .topbar-btn-primary { background:var(--blue); color:#fff; border-color:var(--blue); }
-            .theme-toggle { width:40px; padding:0; border-radius:50%; }
-            [data-theme="dark"] .icon-sun,[data-theme="light"] .icon-moon { display:none; }
+            .search-wrap.has-query .search-count { display: block; }
+            .search-wrap.has-query input { padding-right: 76px; }
 
-            .shell { max-width:1380px; margin:auto; display:grid; grid-template-columns:275px minmax(0,1fr); }
+            .shell { max-width:1300px; margin:auto; display:grid; grid-template-columns:275px minmax(0,1fr); }
             .sidebar {
-                position:sticky; top:61px; align-self:start; height:calc(100vh - 61px);
+                position:sticky; top:75px; align-self:start; height:calc(100vh - 75px);
                 overflow-y:auto; padding:24px 15px 50px 22px; border-right:1px solid var(--rule);
             }
             .sidebar-head { display:flex; justify-content:space-between; align-items:center; margin:0 4px 12px; }
-            .sidebar-head span { color:var(--ink-faint); font:700 .67rem "IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:.1em; }
+            .sidebar-head span { color:var(--ink-faint); font:700 .67rem "Fira Code",ui-monospace,monospace; text-transform:uppercase; letter-spacing:.1em; }
             .sidebar-actions button {
                 border:0; background:transparent; color:var(--ink-soft); cursor:pointer; font-size:.7rem;
             }
             .toc-group { margin-bottom:20px; }
             .toc-role-label {
-                font:700 .68rem "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase;
+                font:700 .68rem "Fira Code",ui-monospace,monospace; letter-spacing:.1em; text-transform:uppercase;
                 color:var(--ink-faint); margin:0 0 6px 4px;
             }
             .toc-group ul { list-style:none; margin:0; padding:0; }
@@ -232,7 +402,7 @@ $isSuper = is_superadmin();
                 padding:54px 0 38px; border-bottom:1px solid var(--rule);
                 display:grid; grid-template-columns:1.3fr 1fr; gap:34px; align-items:center;
             }
-            .hero-eyebrow { font:700 .72rem "IBM Plex Mono",monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--blue); margin-bottom:9px; }
+            .hero-eyebrow { font:700 .72rem "Fira Code",ui-monospace,monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--blue); margin-bottom:9px; }
             .hero h1 { font-size:clamp(2.2rem,4vw,3.4rem); line-height:1.05; margin-bottom:13px; }
             .hero p.lede { color:var(--ink-soft); max-width:700px; font-size:1.03rem; }
             .hero-stats { display:flex; flex-wrap:wrap; gap:12px; margin-top:22px; }
@@ -251,10 +421,10 @@ $isSuper = is_superadmin();
             .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
             .kpi-box { padding:14px; background:var(--panel); border:1px solid var(--rule); border-radius:10px; }
             .kpi-box .val { font-size:1.35rem; font-weight:900; color:var(--blue); }
-            .kpi-box .title { color:var(--ink-soft); font:700 .64rem "IBM Plex Mono",monospace; text-transform:uppercase; }
+            .kpi-box .title { color:var(--ink-soft); font:700 .64rem "Fira Code",ui-monospace,monospace; text-transform:uppercase; }
 
-            section.doc-section { padding-top:48px; scroll-margin-top:72px; }
-            .section-kicker { font:700 .7rem "IBM Plex Mono",monospace; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.1em; }
+            section.doc-section { padding-top:48px; scroll-margin-top:84px; }
+            .section-kicker { font:700 .7rem "Fira Code",ui-monospace,monospace; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.1em; }
             section.doc-section h2 { font-size:1.8rem; padding-bottom:12px; border-bottom:2px solid var(--rule); margin-bottom:20px; }
 
             .subsection {
@@ -273,7 +443,7 @@ $isSuper = is_superadmin();
             .summary-main { display:flex; align-items:center; gap:9px; min-width:0; }
             .summary-number {
                 width:28px; height:28px; border-radius:8px; display:grid; place-items:center;
-                background:var(--blue-soft); color:var(--blue); font:700 .68rem "IBM Plex Mono",monospace; flex:none;
+                background:var(--blue-soft); color:var(--blue); font:700 .68rem "Fira Code",ui-monospace,monospace; flex:none;
             }
             .subsection > summary .arrow { color:var(--ink-soft); transition:.2s; }
             .subsection[open] > summary .arrow { transform:rotate(90deg); color:var(--blue); }
@@ -284,27 +454,28 @@ $isSuper = is_superadmin();
 
             table { width:100%; border-collapse:collapse; margin:10px 0; font-size:.9rem; }
             th,td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--rule); }
-            th { font:700 .68rem "IBM Plex Mono",monospace; text-transform:uppercase; color:var(--ink-soft); background:var(--panel-soft); }
+            th { font:700 .68rem "Fira Code",ui-monospace,monospace; text-transform:uppercase; color:var(--ink-soft); background:var(--panel-soft); }
 
             .admonition { border-left:4px solid var(--blue); background:var(--blue-soft); padding:12px 14px; border-radius:0 8px 8px 0; margin:12px 0; }
-            .admonition.warning { border-left-color:var(--red); background:rgba(240,102,90,.08); }
-            .admonition .adm-label { display:block; color:var(--blue); font:700 .68rem "IBM Plex Mono",monospace; text-transform:uppercase; margin-bottom:4px; }
+            .admonition.warning { border-left-color:var(--red); background:rgba(239,68,68,.08); }
+            .admonition .adm-label { display:block; color:var(--blue); font:700 .68rem "Fira Code",ui-monospace,monospace; text-transform:uppercase; margin-bottom:4px; }
             .admonition.warning .adm-label { color:var(--red); }
 
-            .code-block { position:relative; background:#090d16; border:1px solid var(--rule); border-radius:9px; padding:15px; overflow:auto; margin:10px 0; }
-            [data-theme="light"] .code-block { background:#101827; }
+            .code-block { position:relative; border:1px solid var(--rule); border-radius:9px; padding:15px; overflow:auto; margin:10px 0; }
+            .code-block { background:#101827; }
+            [data-theme="dark"] .code-block { background:#090d16; }
             .code-block pre { color:#dbe5f5; font-size:.82rem; padding-right:70px; }
             .code-block .copy-btn {
                 position:absolute; top:8px; right:8px; background:var(--panel); color:var(--ink);
-                border:1px solid var(--rule); border-radius:6px; padding:5px 9px; cursor:pointer; font:700 .68rem "IBM Plex Mono",monospace;
+                border:1px solid var(--rule); border-radius:6px; padding:5px 9px; cursor:pointer; font:700 .68rem "Fira Code",ui-monospace,monospace;
             }
             .code-block .copy-btn:hover { border-color:var(--blue); }
 
-            .badge { font:700 .65rem "IBM Plex Mono",monospace; padding:3px 8px; border-radius:999px; text-transform:uppercase; }
+            .badge { font:700 .65rem "Fira Code",ui-monospace,monospace; padding:3px 8px; border-radius:999px; text-transform:uppercase; }
             .badge.live { background:rgba(22,163,74,.12); color:var(--green); }
             .badge.scheduled { background:var(--blue-soft); color:var(--blue); }
             .badge.ended { background:var(--panel-soft); color:var(--ink-soft); border:1px solid var(--rule); }
-            .role-pill { font:700 .62rem "IBM Plex Mono",monospace; text-transform:uppercase; padding:3px 7px; border-radius:8px; margin-left:5px; background:var(--blue-soft); color:var(--blue); }
+            .role-pill { font:700 .62rem "Fira Code",ui-monospace,monospace; text-transform:uppercase; padding:3px 7px; border-radius:8px; margin-left:5px; background:var(--blue-soft); color:var(--blue); }
 
             .section-nav {
                 display:flex; justify-content:space-between; gap:12px; margin-top:26px; padding-top:18px;
@@ -316,7 +487,7 @@ $isSuper = is_superadmin();
             }
             .section-nav button:hover { border-color:var(--blue); color:var(--blue); }
 
-            .no-results { display:none; padding:45px; text-align:center; color:var(--ink-soft); font:700 .8rem "IBM Plex Mono",monospace; }
+            .no-results { display:none; padding:45px; text-align:center; color:var(--ink-soft); font:700 .8rem "Fira Code",ui-monospace,monospace; }
             .search-highlight { background:rgba(255,215,0,.28); color:inherit; border-radius:3px; padding:0 2px; }
             .toast {
                 position:fixed; right:22px; bottom:22px; z-index:200; max-width:330px;
@@ -333,21 +504,20 @@ $isSuper = is_superadmin();
                 box-shadow:var(--shadow);
             }
             .back-top.visible { opacity:1; transform:none; pointer-events:auto; }
-            .shortcut-hint { font:10px "IBM Plex Mono",monospace; color:var(--ink-faint); margin-left:4px; }
+            .shortcut-hint { font:10px "Fira Code",ui-monospace,monospace; color:var(--ink-faint); margin-left:4px; }
 
             footer { border-top:1px solid var(--rule); padding:25px; text-align:center; color:var(--ink-faint); font-size:.8rem; }
 
             @media (max-width:1000px) {
-                .topbar-inner { flex-wrap:wrap; }
-                .search-wrap { order:10; max-width:none; flex-basis:100%; margin:0; }
+                .topbar-inner { flex-wrap: wrap; padding: 14px 20px; }
+                .search-wrap { order: 3; width: 100%; margin-top: 12px; }
+                .search-wrap input { width: 100%; }
                 .shell { grid-template-columns:1fr; }
                 .sidebar { position:relative; top:auto; height:auto; max-height:330px; border-right:0; border-bottom:1px solid var(--rule); }
                 .hero { grid-template-columns:1fr; }
                 main { padding:0 20px 80px; }
             }
             @media (max-width:650px) {
-                .badge-doc-type,.topbar-btn-secondary { display:none; }
-                .topbar-inner { padding:9px 12px; }
                 main { padding:0 14px 70px; }
                 .hero { padding-top:35px; }
                 .hero h1 { font-size:2.15rem; }
@@ -360,37 +530,37 @@ $isSuper = is_superadmin();
             @media (prefers-reduced-motion: reduce) {
                 *,html { scroll-behavior:auto !important; transition-duration:0.01ms !important; animation-duration:0.01ms !important; }
             }
-        </style>
+                </style>
     </head>
     <body>
         <div class="topbar">
             <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
             <div class="topbar-inner">
                 <a href="../../admin/admin-dashboard.php" class="brand">
-                    <span class="logo-mark">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </span>
+                    <div class="logo-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
                     Examify Docs
                 </a>
                 <span class="badge-doc-type">Admin Guide</span>
 
                 <div class="search-wrap">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="7" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
                         <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
-                    <input id="searchInput" type="text" placeholder="Search workflows... (Ctrl + K)" aria-label="Search documentation" />
+                    <input id="searchInput" type="text" placeholder="Search topics, keywords... (Ctrl + K)" aria-label="Search documentation" autocomplete="off" />
+                    <button type="button" id="searchClear" class="search-clear" title="Clear search" aria-label="Clear search" style="display: none;">&times;</button>
                 </div>
 
-                <div class="topbar-actions">
-                    <button class="theme-toggle icon-btn" id="themeToggle" title="Toggle Light/Dark Mode" aria-label="Toggle theme">
-                        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <div class="topbar-links">
+                    <!-- Dark Mode Toggle -->
+                    <button class="btn-icon" id="themeToggle" title="Toggle Theme" aria-label="Toggle theme">
+                        <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <svg id="sunIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
                     </button>
-                    <a href="../../admin/admin-dashboard.php" class="topbar-btn topbar-btn-secondary">Portal Home</a>
-                    <a href="user-doc.php" class="topbar-btn topbar-btn-primary">User Docs →</a>
+                    <a href="../../admin/admin-dashboard.php" class="btn btn-outline">Portal Home</a>
+                    <a href="user-doc.php" class="btn btn-primary" title="Student &amp; user documentation">User Docs &rarr;</a>
                 </div>
             </div>
         </div>
@@ -590,8 +760,9 @@ $isSuper = is_superadmin();
                 "use strict";
 
                 const root = document.documentElement;
-                const themeToggle = document.getElementById("themeToggle");
                 const searchInput = document.getElementById("searchInput");
+                const searchClear = document.getElementById("searchClear");
+                const searchWrap = document.querySelector(".search-wrap");
                 const progressBar = document.getElementById("progressBar");
                 const expandNav = document.getElementById("expandNav");
                 const collapseNav = document.getElementById("collapseNav");
@@ -614,16 +785,51 @@ $isSuper = is_superadmin();
                     window.__examifyToastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
                 }
 
-                // Theme persistence
-                const savedTheme = localStorage.getItem("examify_admin_theme") || "dark";
-                root.setAttribute("data-theme", savedTheme);
+    // ===== Theme Toggler =====
+                const themeToggle = document.getElementById('themeToggle');
+                const moonIcon = document.getElementById('moonIcon');
+                const sunIcon = document.getElementById('sunIcon');
 
-                themeToggle?.addEventListener("click", () => {
-                    const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-                    root.setAttribute("data-theme", next);
-                    localStorage.setItem("examify_admin_theme", next);
-                    showToast(next === "dark" ? "Dark mode enabled" : "Light mode enabled");
-                });
+                function getSavedTheme() {
+                    try {
+                        return localStorage.getItem('theme');
+                    } catch (e) {
+                        return null;
+                    }
+                }
+
+                function setSavedTheme(theme) {
+                    try {
+                        localStorage.setItem('theme', theme);
+                    } catch (e) {}
+                }
+
+                function updateThemeUI(theme) {
+                    if (theme === 'dark') {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        if (moonIcon) moonIcon.style.display = 'none';
+                        if (sunIcon) sunIcon.style.display = 'block';
+                    } else {
+                        document.documentElement.removeAttribute('data-theme');
+                        if (moonIcon) moonIcon.style.display = 'block';
+                        if (sunIcon) sunIcon.style.display = 'none';
+                    }
+                }
+
+                // Check saved theme or system preference
+                const savedTheme = getSavedTheme();
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+                updateThemeUI(initialTheme);
+
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', () => {
+                        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                        const newTheme = isDark ? 'light' : 'dark';
+                        updateThemeUI(newTheme);
+                        setSavedTheme(newTheme);
+                    });
+                }
 
                 // Search with result count, auto-open, and temporary highlighting.
                 const searchCount = document.createElement("span");
@@ -682,6 +888,8 @@ $isSuper = is_superadmin();
                     });
 
                     searchCount.textContent = q ? String(visible) : String(subsections.length);
+                    searchWrap?.classList.toggle("has-query", Boolean(q));
+                    if (searchClear) searchClear.style.display = q ? "block" : "none";
                     if (noResults) noResults.style.display = visible ? "none" : "block";
 
                     if (q && visible === 1) {
@@ -691,6 +899,11 @@ $isSuper = is_superadmin();
                 }
 
                 searchInput?.addEventListener("input", runSearch);
+                searchClear?.addEventListener("click", () => {
+                    searchInput.value = "";
+                    runSearch();
+                    searchInput.focus();
+                });
 
                 // Keyboard shortcut: Ctrl/Cmd + K
                 document.addEventListener("keydown", (event) => {
