@@ -7,15 +7,15 @@
   --sidebar-w-collapsed: 78px;
   --topbar-h: 56px;
 
-  --sidebar-bg: #1b3b2b;
-  --sidebar-bg-hover: #244f39;
-  --sidebar-active-bg: #132a1e;
+  --sidebar-bg: #0f172a;
+  --sidebar-bg-hover: #1e293b;
+  --sidebar-active-bg: #1e3a8a;
   --sidebar-text: #e2e8f0;
-  --sidebar-text-dim: #eef2ea;
+  --sidebar-text-dim: #e2e8f0;
   --sidebar-gold: #edb055;
   --sidebar-gold-hover: #d9a451;
 
-  --topbar-bg: #1b3b2b;
+  --topbar-bg: #0f172a;
   --radius: 8px;
   --transition: 0.25s ease;
 }

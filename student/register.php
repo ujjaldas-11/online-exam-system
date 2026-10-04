@@ -137,7 +137,7 @@ include __DIR__ . '/../components/header.php';
 
             <!-- Animated Timeout Bar -->
             <div style="background: #e2e8f0; border-radius: 9999px; height: 8px; overflow: hidden; width: 100%;">
-                <div id="timeout-bar" style="background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 100%; border-radius: 9999px; transition: width 1s linear, background-color 0.5s ease;"></div>
+                <div id="timeout-bar" style="background: #1d4ed8; height: 100%; width: 100%; border-radius: 9999px; transition: width 1s linear, background-color 0.5s ease;"></div>
             </div>
         </div>
 

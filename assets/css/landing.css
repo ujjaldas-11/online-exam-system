@@ -1,7 +1,7 @@
 /*LANDING PAGE*/
 
 :root {
-    --landing-bg:radial-gradient(circle at top left, #EFF6FF 0%, #F8FAFC 100%);
+    --landing-bg: #f8fafc;
     --landing-nav-bg: #0F172A; 
     --landing-footer-bg: rgba(18, 18, 18, 0.9);
 
@@ -13,14 +13,14 @@
     --landing-border-soft: rgba(255, 255, 255, 0.05);
     --landing-border-strong: rgba(255, 255, 255, 0.2);
 
-    --landing-accent: var(--cobtn-admin, #302e42);
-    --landing-accent-hover: var(--cobtn-admin-hover, #263320);
-    --landing-accent-text: #040900;
-    --landing-accent-dots: rgba(159, 189, 138, 0.35);
-    --landing-accent-soft: rgba(51, 66, 46, 0.14);
-    --landing-accent-soft-border: rgba(51, 66, 46, 0.28);
-    --landing-accent-shadow: rgba(106, 151, 171, 0.55);
-    --landing-accent-shadow-soft: rgba(51, 66, 46, 0.32);
+    --landing-accent: #0f172a;
+    --landing-accent-hover: #1e3a8a;
+    --landing-accent-text: #1e3a8a;
+    --landing-accent-dots: rgba(15, 23, 42, 0.08);
+    --landing-accent-soft: rgba(30, 58, 138, 0.08);
+    --landing-accent-soft-border: rgba(30, 58, 138, 0.2);
+    --landing-accent-shadow: rgba(15, 23, 42, 0.16);
+    --landing-accent-shadow-soft: rgba(15, 23, 42, 0.1);
 
     
     --landing-card-bg-hover: rgba(46, 101, 188, 0.9);
@@ -116,11 +116,7 @@
 .hero-bg {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(var(--landing-accent-dots) 1.5px, transparent 1.5px);
-    background-size: 30px 30px;
-    opacity: 0.4;
-    -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
-    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+    background: transparent;
     z-index: 0;
 }
 
@@ -149,12 +145,7 @@
     line-height: 1.18; 
     letter-spacing: -0.04em;
     
-    background: linear-gradient(135deg, #0F172A 40%, #1E4ED8 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    
-    color: #0F172A; 
+    color: #0F172A;
     padding-left: 2.9rem;
     padding-bottom: 0.18em;
 }
@@ -204,13 +195,13 @@
 
 .btn-admin {
     color: #fff;
-    background: linear-gradient(135deg, #0F172A 20%, #1E4ED8 100%);
+    background: #0F172A;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
 }
 
 .btn-admin:hover {
-    background: linear-gradient(135deg, #16213a 20%, #285bdc 100%);
-    box-shadow: 0 7px 18px rgba(30, 78, 216, 0.25);
+    background: #1E3A8A;
+    box-shadow: 0 7px 18px rgba(15, 23, 42, 0.2);
 }
 
 
@@ -223,9 +214,9 @@
 
 .btn-student:hover {
     color: #fff;
-    background: #433a85;
-    border-color: #433a85;
-    box-shadow: 0 7px 18px rgba(67, 58, 133, 0.22);
+    background: #1E3A8A;
+    border-color: #1E3A8A;
+    box-shadow: 0 7px 18px rgba(15, 23, 42, 0.18);
 }
 
 
@@ -237,8 +228,8 @@
 }
 
 .btn-text-documentation:hover {
-    color: #433a85;
-    background: rgba(67, 58, 133, 0.06);
+    color: #1E3A8A;
+    background: rgba(30, 58, 138, 0.06);
     text-shadow: none;
 }
 
@@ -272,7 +263,7 @@
 .feature-icon {
     font-size: 1.8rem;
     line-height: 1;
-    background:var(--landing-bg);
+    background:#eff6ff;
     width: max-content;
     padding: 10px;
     border-radius: 12px;

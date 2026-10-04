@@ -145,7 +145,7 @@
             .brand .logo-icon {
                 width: 28px;
                 height: 28px;
-                background: linear-gradient(135deg, #1d4ed8, #60a5fa);
+                background: #1d4ed8;
                 border-radius: 6px;
                 display: flex;
                 align-items: center;

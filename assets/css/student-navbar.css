@@ -1,10 +1,10 @@
 :root {
     --nav-h: 54px;
-    --nav-deep: #1b3b2b;
-    --nav-tint: #132a1e;
-    --nav-hover: #244f39;
-    --nav-text: #ede9d9;
-    --nav-active-text: rgb(212, 232, 197);
+    --nav-deep: #0f172a;
+    --nav-tint: #1e293b;
+    --nav-hover: #1e3a8a;
+    --nav-text: #f8fafc;
+    --nav-active-text: #bfdbfe;
     --color-gold: #d8a457;
     --color-gold-hover: #edb055;
 }
@@ -82,7 +82,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #ede9d9;
+    color: var(--nav-text);
     text-decoration: none;
     padding: 8px 12px;
     border-radius: var(--radius-sm, 6px);

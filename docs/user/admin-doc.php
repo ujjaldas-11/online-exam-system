@@ -194,7 +194,7 @@ $isSuper = is_superadmin();
             .brand .logo-icon {
                 width: 28px;
                 height: 28px;
-                background: linear-gradient(135deg, #1d4ed8, #60a5fa);
+                background: #1d4ed8;
                 border-radius: 6px;
                 display: flex;
                 align-items: center;
@@ -362,7 +362,7 @@ $isSuper = is_superadmin();
 
             /* Admin-only topbar extras, styled to sit inside the shared navy header */
             .progress-track { position: absolute; left: 0; bottom: -1px; height: 3px; width: 100%; background: transparent; }
-            .progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, #1d4ed8, #60a5fa); transition: width .15s ease; }
+            .progress-bar { height: 100%; width: 0; background: #1d4ed8; transition: width .15s ease; }
             .search-count {
                 position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
                 color: rgba(255, 255, 255, 0.6); font: 11px "Fira Code", ui-monospace, monospace;
@@ -413,7 +413,7 @@ $isSuper = is_superadmin();
             .hero-stat .num { font-size:1.35rem; font-weight:800; }
             .hero-stat .label { font-size:.68rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; }
             .admin-kpi-panel {
-                background:linear-gradient(145deg,var(--panel),var(--panel-soft));
+                background:var(--panel);
                 border:1px solid var(--rule); border-radius:16px; box-shadow:var(--shadow); padding:22px;
             }
             .admin-kpi-panel h3 { margin-bottom:5px; }

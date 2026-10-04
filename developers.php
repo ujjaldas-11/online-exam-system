@@ -94,7 +94,7 @@ $testedBy = [
 
     <style>
         :root {
-            --bg: radial-gradient(circle at top left, #EFF6FF 0%, #F8FAFC 100%);
+            --bg: #F8FAFC;
             --nav: #0F172A;
             --text: #0F172A;
             --muted: #334155;
@@ -184,10 +184,6 @@ $testedBy = [
             font-size: clamp(1.9rem, 4.5vw, 2.6rem);
             font-weight: 800;
             letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #0F172A 40%, #1E4ED8 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
             color: #0F172A;
             margin-bottom: 8px;
         }
@@ -240,7 +236,7 @@ $testedBy = [
 
         .dev-card.is-important {
             border-color: rgba(30, 78, 216, 0.35);
-            background: linear-gradient(180deg, #F8FAFF 0%, #FFFFFF 100%);
+            background: #F8FAFF;
         }
 
         .dev-card-top {

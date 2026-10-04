@@ -96,14 +96,8 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/student-navbar.php';
 ?>
 
-<!-- Custom Modern Indigo Color Palette & Interactive Styles -->
+<!-- Custom Navy/Blue Interactive Styles -->
 <style>
-    /* :root {
-        --color-primary: #1b3b2b;
-        --color-primary-hover: #244f39;
-        --color-soft: #eef2ea;
-    } */
-    
     @keyframes pulse-ring {
         0% {
             transform: scale(0.95);
@@ -132,7 +126,7 @@ include __DIR__ . '/../components/student-navbar.php';
 
     .exam-card-item:hover {
         transform: translateY(-3px);
-        box-shadow: 0 12px 28px -6px rgba(79, 70, 229, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
     }
 
     .filter-tab {
@@ -147,14 +141,80 @@ include __DIR__ . '/../components/student-navbar.php';
         background: var(--color-primary-hover) !important;
         color: #edb055 !important;
         border-color: var(--color-primary) !important;
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+    }
+
+    .quote-callout {
+        position: relative;
+        overflow: hidden;
+        background: #eff6ff;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        border-radius: 18px;
+        padding: 28px 24px 22px;
+        max-width: 620px;
+        margin: 0 auto;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+    }
+
+    .quote-callout::before {
+        content: "“";
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        font-size: 5rem;
+        line-height: 1;
+        color: rgba(15, 23, 42, 0.12);
+        font-family: Georgia, serif;
+    }
+
+    .quote-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.06);
+        color: var(--color-primary);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .quote-text {
+        position: relative;
+        z-index: 1;
+        font-size: clamp(1.1rem, 1.8vw, 1.45rem);
+        line-height: 1.7;
+        font-weight: 500;
+        font-style: italic;
+        color: var(--color-dark);
+        margin: 0;
+    }
+
+    .quote-author {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(148, 163, 184, 0.45);
+        color: var(--color-text-secondary);
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+
+    .quote-author strong {
+        color: var(--color-primary);
     }
 </style>
 
 <div class="container" style="padding-top: 32px; padding-bottom: 56px;">
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
-    <!-- Header Section with Indigo Accent Gradient Glow -->
+    <!-- Dashboard heading and exam summary -->
     <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; border-bottom: 1px solid var(--color-border); padding-bottom: 20px; flex-wrap: wrap; gap: 16px;">
         <div>
             <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--color-dark); margin: 0 0 6px 0;">Available Examinations</h1>
@@ -207,10 +267,18 @@ include __DIR__ . '/../components/student-navbar.php';
             </div>
             <h3 style="color: var(--color-dark); font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">No exams scheduled right now</h3>
             <p style="color: var(--color-text-secondary); font-size: 0.95rem; margin-bottom: 24px;">Check back later or stay prepared for upcoming assessments[cite: 2].</p>
-            <div style="background: #f8fafc; border: 1px solid var(--color-border); border-radius: 10px; padding: 16px 24px; max-width: 540px; margin: 0 auto;">
-                <p id="funny-quote" style="font-size: 1.05rem; font-style: italic; font-weight: 500; color: var(--color-dark); margin: 0;">
+            <div class="quote-callout" aria-live="polite">
+                <div class="quote-label">
+                    <span class="material-symbols-outlined icon-sm">format_quote</span>
+                    Daily Motivation
+                </div>
+                <p id="funny-quote" class="quote-text">
                     "Stay ready for surprise tests!"
                 </p>
+                <div class="quote-author">
+                    <span>Keep going, learner</span>
+                    <strong>Examify</strong>
+                </div>
             </div>
         </div>
     <?php else: ?>
