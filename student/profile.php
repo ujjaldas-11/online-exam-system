@@ -106,73 +106,6 @@ include __DIR__ . '/../components/student-navbar.php';
         </div>
     </div>
 
-    <div class="profile-layout">
-        <div class="card profile-card profile-card--details">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <span class="material-symbols-outlined">person</span>
-                    Academic Details
-                </h2>
-            </div>
-            <div class="card-body">
-                <div class="profile-grid">
-                    <div class="profile-item">
-                        <span class="profile-label">Full Name</span>
-                        <span class="profile-value"><?= e($student['name']) ?></span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label">Email Address</span>
-                        <span class="profile-value"><?= e($student['email']) ?></span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label">Roll Number / Student ID</span>
-                        <span class="profile-value"><?= e($student['roll_number']) ?></span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label">Department & Semester</span>
-                        <span class="profile-value">
-                            <?= e($student['department']) ?> • Semester <?= e((string)$student['semester']) ?>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card profile-card profile-card--summary">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <span class="material-symbols-outlined">insights</span>
-                    Performance Snapshot
-                </h2>
-            </div>
-            <div class="card-body">
-                <div class="summary-list">
-                    <div class="summary-item">
-                        <span class="summary-icon material-symbols-outlined">task_alt</span>
-                        <div>
-                            <strong><?= e((string) $completed_exams) ?></strong>
-                            <small>Exams submitted</small>
-                        </div>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-icon material-symbols-outlined">trending_up</span>
-                        <div>
-                            <strong><?= sprintf('%.1f', $average_score) ?></strong>
-                            <small>Average marks</small>
-                        </div>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-icon material-symbols-outlined">emoji_events</span>
-                        <div>
-                            <strong><?= sprintf('%.1f', $best_score) ?></strong>
-                            <small>Top performance</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="card profile-history">
         <div class="card-header">
             <h2 class="card-title">
@@ -205,9 +138,7 @@ include __DIR__ . '/../components/student-navbar.php';
                         <tbody>
                             <?php foreach ($past_results as $result): ?>
                                 <tr>
-                                    <td>
-                                        <strong><?= e($result['title']) ?></strong>
-                                    </td>
+                                    <td><strong><?= e($result['title']) ?></strong></td>
                                     <td>
                                         <span class="badge badge-success">
                                             <?= sprintf('%.2f', (float)$result['score']) ?>
@@ -242,22 +173,46 @@ include __DIR__ . '/../components/student-navbar.php';
             <?php endif; ?>
         </div>
     </div>
+
 </div>
 
 <style>
     .profile-page {
-        padding-top: 18px;
+        height: calc(100vh - var(--nav-h, 54px));
+        height: calc(100dvh - var(--nav-h, 54px));
+        min-height: 0;
+        padding: 16px 20px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow: hidden;
     }
 
     .profile-header {
-        margin-bottom: 20px;
+        flex-shrink: 0;
+        margin-bottom: 0;
+        gap: 12px;
+    }
+
+    .profile-header .page-title {
+        font-size: 1.55rem;
+        line-height: 1.2;
+    }
+
+    .profile-header .page-subtitle {
+        margin-top: 4px;
+        font-size: 0.88rem;
+    }
+
+    .profile-page > .card {
+        margin: 0;
     }
 
     .eyebrow {
         display: inline-block;
-        margin-bottom: 8px;
-        font-size: 0.72rem;
-        letter-spacing: 0.14em;
+        margin-bottom: 4px;
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
         font-weight: 700;
         color: var(--color-primary);
@@ -267,8 +222,9 @@ include __DIR__ . '/../components/student-navbar.php';
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 20px;
-        padding: 28px 30px;
+        gap: 16px;
+        flex-shrink: 0;
+        padding: 14px 18px;
         background: #eff6ff;
         border: 1px solid rgba(15, 23, 42, 0.12);
     }
@@ -276,28 +232,28 @@ include __DIR__ . '/../components/student-navbar.php';
     .profile-hero__main {
         display: flex;
         align-items: center;
-        gap: 18px;
+        gap: 14px;
         min-width: 0;
     }
 
     .profile-avatar {
-        width: 76px;
-        height: 76px;
-        border-radius: 22px;
+        width: 58px;
+        height: 58px;
+        flex-shrink: 0;
+        border-radius: 17px;
         background: var(--color-primary);
         color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 800;
-        font-size: 1.9rem;
-        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+        font-size: 1.55rem;
     }
 
     .profile-role {
         display: inline-block;
-        margin-bottom: 6px;
-        font-size: 0.72rem;
+        margin-bottom: 2px;
+        font-size: 0.66rem;
         font-weight: 700;
         letter-spacing: 0.12em;
         text-transform: uppercase;
@@ -306,162 +262,141 @@ include __DIR__ . '/../components/student-navbar.php';
 
     .profile-identity h2 {
         margin: 0;
-        font-size: clamp(1.5rem, 2vw, 2rem);
+        font-size: 1.45rem;
         color: var(--color-dark);
         line-height: 1.2;
+        overflow-wrap: anywhere;
     }
 
     .profile-identity p {
-        margin-top: 4px;
+        margin-top: 3px;
         color: var(--color-text-secondary);
-        font-size: 0.95rem;
+        font-size: 0.85rem;
     }
 
     .profile-hero__meta {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
         justify-content: flex-end;
     }
 
     .meta-chip {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 10px 14px;
+        gap: 7px;
+        padding: 8px 12px;
         background: rgba(255, 255, 255, 0.7);
         border: 1px solid rgba(148, 163, 184, 0.35);
         border-radius: 999px;
         color: var(--color-text);
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 600;
+        overflow-wrap: anywhere;
     }
 
     .meta-chip .material-symbols-outlined {
+        flex-shrink: 0;
         color: var(--color-primary);
         font-size: 18px;
     }
 
     .profile-stats {
-        margin-top: 22px;
-        margin-bottom: 24px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        flex-shrink: 0;
+        margin: 0;
     }
 
-    .profile-layout {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
-        gap: 24px;
-        margin-bottom: 24px;
+    .profile-stats .stat-card {
+        min-width: 0;
+        padding: 8px 12px;
     }
 
-    .profile-card {
-        height: 100%;
+    .profile-stats .stat-num {
+        font-size: 1.45rem;
+        line-height: 1.15;
     }
 
-    .profile-card--details .card-header,
-    .profile-card--summary .card-header,
-    .profile-history .card-header {
-        padding-bottom: 14px;
-        border-bottom: 1px solid var(--color-border);
-        margin-bottom: 18px;
-    }
-
-    .profile-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 18px;
-    }
-
-    .profile-item {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 18px 16px;
-        background: #ffffff;
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
-    }
-
-    .profile-label {
-        font-size: 0.75rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--color-text-secondary);
-        font-weight: 700;
-    }
-
-    .profile-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--color-dark);
-        line-height: 1.5;
-    }
-
-    .summary-list {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-    }
-
-    .summary-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 16px;
-        border-radius: var(--radius-lg);
-        background: #f8fafc;
-        border: 1px solid var(--color-border);
-    }
-
-    .summary-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background: rgba(15, 23, 42, 0.07);
-        color: var(--color-primary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-    }
-
-    .summary-item strong {
-        display: block;
-        font-size: 1.5rem;
-        color: var(--color-dark);
-        line-height: 1.1;
-    }
-
-    .summary-item small {
-        color: var(--color-text-secondary);
-        font-size: 0.8rem;
+    .profile-stats .stat-label {
+        margin-top: 3px;
+        font-size: 0.68rem;
+        line-height: 1.25;
     }
 
     .profile-history {
-        margin-bottom: 0;
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+        margin: 0;
+        padding: 16px 20px;
+    }
+
+    .profile-history .card-header {
+        flex-shrink: 0;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--color-border);
+        margin-bottom: 10px;
+    }
+
+    .profile-history .card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .profile-history .card-body {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
     }
 
     .table-toolbar {
-        margin-bottom: 16px;
+        flex-shrink: 0;
+        margin-bottom: 10px;
     }
 
-    .empty-state {
+    .profile-history .search-wrapper {
+        margin: 0;
+    }
+
+    .profile-history .search-input {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .profile-history .table-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .profile-history .empty-state {
         display: flex;
+        flex: 1 1 auto;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 10px;
-        text-align: center;
-        min-height: 200px;
+        gap: 8px;
+        min-height: 125px;
         border: 1px dashed rgba(148, 163, 184, 0.9);
         border-radius: var(--radius-lg);
         background: #f8fafc;
         color: var(--color-text-secondary);
-        padding: 28px;
+        text-align: center;
+        padding: 16px;
+    }
+
+    .empty-state p {
+        margin: 0;
     }
 
     .empty-icon {
-        font-size: 38px;
+        font-size: 32px;
         color: var(--color-primary-light);
     }
 
@@ -478,35 +413,54 @@ include __DIR__ . '/../components/student-navbar.php';
         margin: 0 4px;
     }
 
-    @media (max-width: 900px) {
-        .profile-hero,
-        .profile-layout {
-            grid-template-columns: 1fr;
-            display: grid;
+    @media (max-width: 900px), (max-height: 700px) {
+        .profile-page {
+            height: auto;
+            min-height: 0;
+            overflow: visible;
+        }
+
+        .profile-history {
+            flex: 0 0 auto;
+        }
+
+        .profile-history .table-wrap {
+            max-height: 55vh;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .profile-page {
+            padding: 14px 16px 24px;
+            gap: 12px;
+        }
+
+        .profile-header {
+            align-items: flex-start;
+        }
+
+        .profile-header .btn {
+            flex-shrink: 0;
+            padding: 8px 10px;
+            font-size: 0.82rem;
+        }
+
+        .profile-hero {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 14px;
         }
 
         .profile-hero__meta {
             justify-content: flex-start;
         }
-    }
 
-    @media (max-width: 640px) {
-        .profile-grid {
-            grid-template-columns: 1fr;
+        .profile-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .profile-hero {
-            padding: 22px 18px;
-        }
-
-        .profile-hero__main {
-            align-items: flex-start;
-        }
-
-        .profile-avatar {
-            width: 60px;
-            height: 60px;
-            font-size: 1.5rem;
+        .profile-history {
+            padding: 14px;
         }
 
         .action-buttons {
