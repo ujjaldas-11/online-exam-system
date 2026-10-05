@@ -23,8 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_update']) && 
     $roll_number = strtoupper(clean_input($_POST['roll_number'] ?? ''));
     $department = clean_input($_POST['department'] ?? '');
     $semester = int_param($_POST['semester'] ?? 0);
+    $gender = strtolower(clean_input($_POST['gender'] ?? ''));
 
-    if (empty($name) || empty($roll_number) || empty($department) || $semester < 1 || $semester > 8) {
+    if (empty($name) || empty($roll_number) || empty($department) || empty($gender) || $semester < 1 || $semester > 8) {
         $error = "All fields are required and must be valid.";
     } elseif (strlen($name) > 100) {
         $error = "Name cannot exceed 100 characters.";
@@ -32,6 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_update']) && 
         $error = "Roll number cannot exceed 50 characters.";
     } elseif (!CurriculumService::isValidDepartment($pdo, $department)) {
         $error = "Invalid department selected.";
+    } elseif (!in_array($gender, ['male', 'female', 'other'])) {
+        $error = "Invalid gender selected.";
     } else {
         try {
             // Check if roll number is already used by another student
@@ -41,11 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_update']) && 
             if ($checkStmt->rowCount() > 0) {
                 $error = "This Roll Number is already registered to another student.";
             } else {
+                // Included new_gender in the insert statement
                 $insertStmt = $pdo->prepare("
-                    INSERT INTO profile_requests (student_id, new_name, new_roll_no, new_department, new_semester)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO profile_requests (student_id, new_name, new_roll_no, new_department, new_semester, new_gender)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 ");
-                $insertStmt->execute([$student_id, $name, $roll_number, $department, $semester]);
+                $insertStmt->execute([$student_id, $name, $roll_number, $department, $semester, $gender]);
 
                 $has_pending_request = true;
                 $message = "Update request sent to instructor/admin for approval!";
@@ -56,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_update']) && 
     }
 }
 
-// Fetch current details
-$stmt = $pdo->prepare("SELECT name, email, roll_number, department, semester FROM students WHERE id = ?");
+// Fetch current details (Added gender to SELECT)
+$stmt = $pdo->prepare("SELECT name, email, roll_number, department, semester, gender FROM students WHERE id = ?");
 $stmt->execute([$student_id]);
 $student = $stmt->fetch();
 
@@ -120,6 +124,16 @@ include __DIR__ . '/../components/student-navbar.php';
                     required
                     value="<?= e($student['roll_number']) ?>"
                     <?= $has_pending_request ? 'disabled' : '' ?>>
+            </div>
+
+            <div class="form-group">
+                <label>Gender</label>
+                <select name="gender" required <?= $has_pending_request ? 'disabled' : '' ?>>
+                    <option value="">— Select Gender —</option>
+                    <option value="male" <?= strtolower($student['gender'] ?? '') === 'male' ? 'selected' : '' ?>>Male</option>
+                    <option value="female" <?= strtolower($student['gender'] ?? '') === 'female' ? 'selected' : '' ?>>Female</option>
+                    <option value="other" <?= strtolower($student['gender'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
+                </select>
             </div>
 
             <div class="form-grid">

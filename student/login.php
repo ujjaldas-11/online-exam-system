@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter both email and password.";
     } else {
         try {
-            $stmt = $pdo->prepare("SELECT id, name, email, password, roll_number, department, semester, status FROM students WHERE email = ? LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, name, email, password, roll_number, department, semester, gender, status FROM students WHERE email = ? LIMIT 1");
             $stmt->execute([$email]);
             $student = $stmt->fetch();
 
@@ -67,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['roll_number'] = $student['roll_number'];
                     $_SESSION['semester'] = (int) $student['semester'];
                     $_SESSION['department'] = $student['department'];
+                    $_SESSION['gender'] = $student['gender'];
 
                     // Enforce singleton active session
                     bind_active_session($pdo, 'student', (int) $student['id']);

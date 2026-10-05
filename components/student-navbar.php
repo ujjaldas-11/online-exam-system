@@ -9,7 +9,7 @@ $student_nav = [
 
 // --- AVATAR LOGIC ---
 $student_name   = $_SESSION['student_name'] ?? 'Student';
-$student_gender = strtolower($_SESSION['gender'] ?? 'male');
+$student_gender = strtolower(trim($_SESSION['gender'] ?? 'female'));
 
 $nav_avatar_url = ($student_gender === 'female')
     ? '../assets/avatars/female.jpg'
@@ -69,7 +69,6 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
                 <span class="student-greeting">Hi, <?= $esc($student_name) ?></span>
 
             </div>
-            <p><?= htmlspecialchars($student_gender)?></p>
 
             <?php foreach ($student_nav as $page => $meta): ?>
                 <a href="<?= $esc($page) ?>"
