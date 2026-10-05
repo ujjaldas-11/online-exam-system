@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `admins` (
   `role` enum('superadmin','teacher') NOT NULL DEFAULT 'teacher',
   `status` enum('active','retired') NOT NULL DEFAULT 'active',
   `department` varchar(50) DEFAULT NULL,
-  `gender` enum('male', 'female', 'others') NOT NULL DEFAULT 'male' 
+  `gender` enum('male', 'female', 'others') NOT NULL DEFAULT 'male',
   `active_session_id` varchar(128) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
@@ -192,6 +192,7 @@ CREATE TABLE IF NOT EXISTS `profile_requests` (
   `new_roll_no` varchar(50) NOT NULL,
   `new_department` varchar(50) NOT NULL,
   `new_semester` tinyint(3) unsigned NOT NULL,
+  `new_gender` enum('male', 'female', 'others') NOT NULL DEFAULT 'male',
   `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `reviewed_by` int(11) DEFAULT NULL,
   `request_date` timestamp NULL DEFAULT current_timestamp(),
