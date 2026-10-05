@@ -181,6 +181,7 @@ include __DIR__ . '/../components/student-navbar.php';
         </section>
 
     </div>
+
 </div>
 
 <style>

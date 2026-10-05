@@ -147,155 +147,124 @@ body.sidebar-collapsed .main-content {
 }
 
 
-/* <style> */
-.profile-widget {
-    position: relative;
-    display: inline-block;
-    font-family: inherit;
+/* =====================================================================
+   admin-navbar.css
+   Modern, minimal CSS for Profile Widget, Dropdown & Modal
+   ===================================================================== */
+
+/* ---------- 1. Profile Avatar & Trigger ---------- */
+.nav-profile-pic {
+    width: 36px; height: 36px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.15); background: #fff;
 }
+.nav-profile-pic.lg { width: 56px; height: 56px; }
+
+.profile-widget { position: relative; display: flex; align-items: center; }
 
 .profile-trigger {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 999px;
-    padding: 0.35rem 0.8rem 0.35rem 0.35rem;
-    cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 12px 4px 4px; border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff; cursor: pointer; transition: 0.2s ease;
 }
-
-.profile-trigger:hover {
-    background: var(--sidebar-bg);
-    border-color: var(--sidebar-active-bg);
+.profile-trigger:hover, .profile-trigger[aria-expanded="true"] {
+    background: rgba(255, 255, 255, 0.12);
 }
+.profile-trigger:focus-visible { outline: 2px solid #edb055; outline-offset: 2px; }
 
-.profile-avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--sidebar-gold);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-}
+.profile-text { display: flex; flex-direction: column; text-align: left; line-height: 1.2; }
+.admin-name { font-size: 0.85rem; font-weight: 600; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-role { font-size: 0.68rem; font-weight: 600; color: #edb055; text-transform: uppercase; letter-spacing: 0.5px; }
 
-.profile-avatar.large {
-    width: 44px;
-    height: 44px;
-    font-size: 1.1rem;
-}
+.chevron-icon { font-size: 20px; transition: transform 0.2s ease; }
+.profile-trigger[aria-expanded="true"] .chevron-icon { transform: rotate(180deg); }
 
-.profile-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-    text-align: left;
-}
-
-.admin-name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #fff;
-}
-
-.admin-role {
-    font-size: 0.68rem;
-    color: var(--sidebar-gold-hover);
-    opacity: 0.85;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-}
-
-.chevron-icon {
-    font-size: 20px;
-    color: #e2e8f0;
-    transition: transform 0.2s ease;
-}
-
-.profile-trigger[aria-expanded="true"] .chevron-icon {
-    transform: rotate(180deg);
-}
-
+/* ---------- 2. Dropdown Menu (Dark Theme) ---------- */
 .profile-dropdown {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    width: 240px;
-    background: var(--sidebar-bg);
-    border-radius: 14px;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
-    padding: 1rem;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
-    z-index: 1000;
+    position: absolute; top: calc(100% + 10px); right: 0; z-index: 1000;
+    width: 280px; max-width: calc(100vw - 24px);
+    background: var(--sidebar-bg); 
+    color: var(--sidebar-text);
+    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+    opacity: 0; visibility: hidden; transform: translateY(-10px); transition: 0.2s ease;
 }
+.profile-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
 
-.profile-dropdown.open {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+.dropdown-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 16px; }
+.dropdown-name { margin: 0 0 4px; font-weight: 700; font-size: 0.95rem; }
+.dropdown-role { margin: 0; font-size: 0.75rem; color: #edb055; }
+
+.dropdown-admin-details {
+    padding: 12px 16px; 
+    background: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.85rem; color: #e2e8f0; line-height: 1.5;
 }
+.dropdown-admin-details p { margin: 4px 0; overflow-wrap: anywhere; font-weight: bolder; }
+.dropdown-admin-details strong { color: #fff; font-weight: 600; }
 
-.dropdown-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.dropdown-name {
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--sidebar-gold);
-    margin: 0;
-}
-
-.dropdown-role {
-    font-size: 0.75rem;
-    color: #fff;
-    margin: 2px 0 0;
-}
-
-.dropdown-divider {
+.dropdown-reset-btn-item, .logout-btn {
+    display: flex; 
+    align-items: center; 
+    gap: 12px; width: 100%;
+    padding: 12px 16px; 
+    background: transparent; 
     border: none;
-    border-top: 1px solid #e2e8f0;
-    margin: 0.85rem 0;
+    color: var(--sidebar-text);
+    font-size: 0.9rem; 
+    cursor: pointer;
+    transition: 0.2s ease; text-decoration: none; box-sizing: border-box;
 }
+.dropdown-reset-btn-item:hover { background: var(--sidebar-bg-hover); color: #fff; }
 
-.logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.55rem 0.7rem;
-    border-radius: 8px;
-    background: #dc2626;
-    color: #fef2f2;
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-decoration: none;
-    transition: background 0.15s ease;
+.logout-btn { color: #fca5a5; }
+.logout-btn:hover { background: rgba(220, 38, 38, 0.15); color: #f87171; }
+.logout-btn .material-symbols-outlined { font-size: 20px; }
+
+.dropdown-divider { margin: 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+
+/* ---------- 3. Reset Password Modal (Light Theme) ---------- */
+.modal-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    display: grid; place-items: center; padding: 16px; box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(3px);
+    opacity: 0; visibility: hidden; transition: 0.25s ease;
 }
+.modal-overlay.show { opacity: 1; visibility: visible; }
 
-.logout-btn:hover {
-    background: #ef4444;
-    color: #fff;
+.modal-box {
+    width: 100%; max-width: 400px; background: #fff; color: #111;
+    padding: 24px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    transform: scale(0.95); transition: 0.25s ease;
 }
+.modal-overlay.show .modal-box { transform: scale(1); }
 
-.logout-btn .material-symbols-outlined {
-    font-size: 20px;
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h3 { margin: 0; font-size: 1.25rem; }
+.close-modal-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; transition: 0.2s; }
+.close-modal-btn:hover { color: #111; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-size: 0.9rem; font-weight: 500; color: #333; }
+.form-group input {
+    width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+    font: inherit; font-size: 0.95rem; box-sizing: border-box; transition: 0.2s ease;
 }
-/* </style> */
+.form-group input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 
-
+/* ---------- 4. Responsive Rules ---------- */
+@media (max-width: 576px) {
+    .profile-text, .chevron-icon { display: none; }
+    .profile-trigger { padding: 2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .chevron-icon, .modal-overlay, .modal-box, .profile-dropdown { transition: none; }
+}
 /* ---------- Sidebar ---------- */
 .admin-sidebar {
   position: fixed;
