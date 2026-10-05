@@ -133,9 +133,13 @@ include __DIR__ . '/../components/header.php';
         </button>
     </form>
 
-    <p class="footer">
+    <h3 class="footer">
         Don't have an account? <a href="register.php">Register here</a>
-    </p>
+        <br>
+        <p>
+            © 2026 Examify. All rights reserved. 
+        </p>
+    </h3>
+
 </div>
 
-<?php include __DIR__ . '/../components/footer.php'; ?>

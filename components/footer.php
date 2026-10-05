@@ -13,6 +13,53 @@ if (file_exists('assets/css/app.css')) {
 
 $assetVersion = asset_version();
 ?>
+    
+    <!-- ===================== VISUAL FOOTER ===================== -->
+    <style>
+        .app-footer {
+            margin-top: auto; /* Helps push footer to the bottom of the page */
+            padding: 24px 20px;
+            text-align: center;
+            border-top: 1px solid var(--color-border, #e2e8f0);
+            color: var(--color-text-secondary, #64748b);
+            font-size: 0.85rem;
+            background: transparent;
+        }
+        .app-footer-text {
+            margin: 0 0 6px 0;
+            font-weight: 500;
+        }
+        .app-footer-links {
+            margin: 0;
+        }
+        .app-footer-links a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .app-footer-links a:hover {
+            color: var(--color-primary, #0d6efd);
+        }
+        .app-footer .divider {
+            margin: 0 8px;
+            opacity: 0.5;
+        }
+    </style>
+
+    <footer class="app-footer">
+        <p class="app-footer-text">
+            &copy; <?= date('Y') ?> Examify. All rights reserved.
+        </p>
+        <p class="app-footer-links">
+            Bengal Institute of Science & Technology (BIST)
+            <span class="divider">&bull;</span>
+            <a href="#">Privacy Policy</a>
+            <span class="divider">&bull;</span>
+            <a href="#">Support</a>
+        </p>
+    </footer>
+    <!-- ========================================================= -->
+
     <?php if (!empty($extra_js)): ?>
         <?php foreach ((array) $extra_js as $jsFile): ?>
             <?php

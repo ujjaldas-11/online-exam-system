@@ -7,6 +7,8 @@ require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/logger.php';
 require_once __DIR__ . '/../utils/sanitize.php';
 
+require_once __DIR__ . '/../utils/rate-limiter.php';
+
 init_secure_session();
 
 if (!is_system_initialized($pdo)) {
@@ -39,8 +41,6 @@ if (has_flash('success')) {
     $success = get_flash('success');
 }
 
-require_once __DIR__ . '/../utils/rate-limiter.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
@@ -57,7 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter both email and password.";
     } else {
         try {
-            $stmt = $pdo->prepare("SELECT id, name, password, role, status, department FROM admins WHERE email = :email LIMIT 1");
+            // Added 'email' and 'gender' to the SELECT query!
+            $stmt = $pdo->prepare("SELECT id, name, email, password, role, status, department, gender FROM admins WHERE email = :email LIMIT 1");
             $stmt->execute([':email' => $email]);
             $admin = $stmt->fetch();
 
@@ -71,11 +72,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Prevent session fixation
                     session_regenerate_id(true);
 
+                    //  Correctly map all the session variables the Navbar needs
                     $_SESSION['admin_id'] = (int) $admin['id'];
                     $_SESSION['admin_name'] = $admin['name'];
                     $_SESSION['admin_role'] = $admin['role'] ?? 'teacher';
                     $_SESSION['role'] = $admin['role'] ?? 'teacher';
-                    $_SESSION['admin_dept'] = $admin['department'] ?? '';
+                    $_SESSION['admin_dept'] = $admin['department'] ?? 'General';
+                    
+                    // Assign these specifically for the Admin Navbar widget
+                    $_SESSION['admin_email'] = $admin['email'];
+                    $_SESSION['admin_gender'] = $admin['gender'] ?? 'male'; // Save for navbar avatar
+                    $_SESSION['gender'] = $admin['gender'] ?? 'male';       // Safe fallback duplicate
 
                     // Enforce singleton active session
                     bind_active_session($pdo, 'admin', (int) $admin['id']);
@@ -149,7 +156,8 @@ include __DIR__ . '/../components/header.php';
 
     <p class="footer">
         Authorized college staff only
+        <br>
+         © 2026 Examify. All rights reserved. 
     </p>
 </div>
 
-<?php include __DIR__ . '/../components/footer.php'; ?>

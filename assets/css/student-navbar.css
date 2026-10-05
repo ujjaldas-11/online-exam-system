@@ -99,15 +99,6 @@
     color: var(--color-gold);
 }
 
-.student-nav-links a.nav-logout {
-    background: var(--color-error, #dc2626);
-    color: white;
-}
-
-.student-nav-links a.nav-logout:hover {
-    background: var(--nav-tint);
-}
-
 .menu-btn {
     display: none;
     background: none;

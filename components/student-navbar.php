@@ -3,8 +3,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 $student_nav = [
     'dashboard.php'    => ['label' => 'Dashboard',    'icon' => 'space_dashboard'],
-    'profile.php'      => ['label' => 'My Profile',   'icon' => 'person'],
     'exam-history.php' => ['label' => 'Exam History', 'icon' => 'history_edu'],
+    'profile.php'      => ['label' => 'My Profile',   'icon' => 'person'],
 ];
 
 // --- AVATAR LOGIC ---
@@ -78,11 +78,6 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
                     <span><?= $esc($meta['label']) ?></span>
                 </a>
             <?php endforeach; ?>
-
-            <a href="logout.php" class="nav-logout">
-                <span class="material-symbols-outlined">logout</span>
-                <span>Logout</span>
-            </a>
         </div>
     </div>
 

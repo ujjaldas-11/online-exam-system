@@ -297,10 +297,14 @@ include __DIR__ . '/../components/header.php';
         </button>
     </form>
 
-    <p class="footer">
+    <h3 class="footer">
         Already have an account? <a href="login.php">Login here</a>
-    </p>
+        <br>
+        <p>
+            © 2026 Examify. All rights reserved. 
+        </p>
+    </h3>
+
 </div>
 <?php endif; ?>
 
-<?php include __DIR__ . '/../components/footer.php'; ?>

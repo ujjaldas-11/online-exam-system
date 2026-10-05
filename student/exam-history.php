@@ -1,5 +1,4 @@
 <?php
-
 require_once 'student-guard.php';
 require_once '../config/database.php';
 require_once '../utils/sanitize.php';
@@ -7,22 +6,52 @@ require_once '../utils/logger.php';
 
 $student_id = (int) $_SESSION['student_id'];
 
+// ---  Filter & Pagination Setup ---
+$form_action = 'exam-history.php';
+$search_placeholder = 'Search by exam title...';
+$show_status = false;
+$show_dept = false;
+$show_sem = false;
+$show_author = false;
+
+$filterQ = trim(clean_input($_GET['q'] ?? ''));
+$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 10;
+
+$queryWhere = ["ea.student_id = ?", "ea.status = 'completed'"];
+$queryParams = [$student_id];
+
+if ($filterQ !== '') {
+    $queryWhere[] = "e.title LIKE ?";
+    $queryParams[] = "%$filterQ%";
+}
+
+$whereClause = "WHERE " . implode(" AND ", $queryWhere);
+
 try {
+    // Get total count for pagination
+    $countSql = "SELECT COUNT(*) FROM exam_attempts ea JOIN exams e ON ea.exam_id = e.id $whereClause";
+    $countStmt = $pdo->prepare($countSql);
+    $countStmt->execute($queryParams);
+    $total_items = (int) $countStmt->fetchColumn();
+
+    $offset = ($current_page - 1) * $per_page;
+
+    // Fetch paginated results
     $resultStmt = $pdo->prepare("
         SELECT e.title, e.total_marks, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at
         FROM exam_attempts ea
         JOIN exams e ON ea.exam_id = e.id
-        WHERE ea.student_id = ? AND ea.status = 'completed'
+        $whereClause
         ORDER BY ea.submitted_at DESC
+        LIMIT $per_page OFFSET $offset
     ");
-    $resultStmt->execute([$student_id]);
+    $resultStmt->execute($queryParams);
     $past_results = $resultStmt->fetchAll();
 } catch (PDOException $e) {
     log_error("Failed to load exam history for student $student_id", $e);
     die('Database Error. Please try again later.');
 }
-
-$total_attempts = count($past_results);
 
 $page_title = 'Exam History • Examify';
 include __DIR__ . '/../components/header.php';
@@ -36,8 +65,8 @@ include __DIR__ . '/../components/student-navbar.php';
         <div>
             <h1 class="page-title">Exam History</h1>
             <p class="page-subtitle">
-                <?= e((string) $total_attempts) ?> completed
-                <?= $total_attempts === 1 ? 'exam' : 'exams' ?>
+                <?= e((string) $total_items) ?> completed
+                <?= $total_items === 1 ? 'exam' : 'exams' ?> found
             </p>
         </div>
         <a href="profile.php" class="btn btn-secondary">
@@ -46,22 +75,19 @@ include __DIR__ . '/../components/student-navbar.php';
         </a>
     </div>
 
-    <div class="card">
-        <div class="card-body">
+    <!-- Global Filter Bar -->
+    <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
+    <div class="card">
+        <div class="card-body" style="padding: 0;">
             <?php if (empty($past_results)): ?>
                 <div class="empty-state">
                     <span class="material-symbols-outlined empty-icon">assignment</span>
-                    <p>You haven't completed any examinations yet.</p>
+                    <p>No examinations found matching your criteria.</p>
                 </div>
             <?php else: ?>
-
-                <div class="table-toolbar">
-                    <?php include '../components/searchbar.php'; ?>
-                </div>
-
                 <div class="table-wrap">
-                    <table class="table">
+                    <table class="table" style="margin: 0;">
                         <thead>
                             <tr>
                                 <th>Exam Title</th>
@@ -105,10 +131,13 @@ include __DIR__ . '/../components/student-navbar.php';
                         </tbody>
                     </table>
                 </div>
-
             <?php endif; ?>
-
         </div>
+        
+        <!-- Global Pagination -->
+        <?php if (!empty($past_results)): ?>
+            <?php include __DIR__ . '/../components/pagination.php'; ?>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -126,10 +155,6 @@ include __DIR__ . '/../components/student-navbar.php';
         margin-bottom: 24px;
     }
 
-    .table-toolbar {
-        margin-bottom: 16px;
-    }
-
     .empty-state {
         display: flex;
         flex-direction: column;
@@ -143,6 +168,7 @@ include __DIR__ . '/../components/student-navbar.php';
 
     .empty-icon {
         font-size: 38px;
+        color: var(--color-text-secondary);
     }
 
     .action-buttons {
@@ -162,11 +188,9 @@ include __DIR__ . '/../components/student-navbar.php';
         .history-page {
             padding: 18px;
         }
-
         .history-header {
             flex-direction: column;
         }
-
         .action-buttons {
             justify-content: flex-start;
         }

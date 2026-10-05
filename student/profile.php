@@ -64,10 +64,16 @@ include __DIR__ . '/../components/student-navbar.php';
             <h1 class="page-title">My Profile</h1>
             <p class="page-subtitle">Your academic details and examination progress</p>
         </div>
-        <a href="edit-profile.php" class="btn btn-primary">
-            <span class="material-symbols-outlined icon-sm">edit</span>
-            Edit Profile
-        </a>
+        <div style="display:flex; justify-content: center; align-items: center; gap: 10px;">
+            <a href="edit-profile.php" class="btn btn-primary">
+                <span class="material-symbols-outlined icon-sm">edit</span>
+                Edit Profile
+            </a>
+            <a href="logout.php" class="nav-logout btn btn-danger">
+                <span class="material-symbols-outlined">logout</span>
+                <span>Logout</span>
+            </a>
+        </div>
     </div>
 
     <div class="profile-layout">
@@ -189,7 +195,7 @@ include __DIR__ . '/../components/student-navbar.php';
     :root { --profile-nav-h: 72px; } /* adjust to your navbar height */
 
     @media (min-width: 901px) and (min-height: 600px) {
-        html, body:has(.profile-page) { overflow: hidden; }
+        html, body:has(.profile-page)
         .profile-page { height: calc(100vh - var(--profile-nav-h)); height: calc(100dvh - var(--profile-nav-h)); }
     }
 
