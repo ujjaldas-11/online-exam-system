@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS `admins` (
   `role` enum('superadmin','teacher') NOT NULL DEFAULT 'teacher',
   `status` enum('active','retired') NOT NULL DEFAULT 'active',
   `department` varchar(50) DEFAULT NULL,
+  `gender` enum('male', 'female', 'others') NOT NULL DEFAULT 'male' 
   `active_session_id` varchar(128) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
