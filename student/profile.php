@@ -1,5 +1,4 @@
 <?php
-
 require_once 'student-guard.php';
 require_once '../config/database.php';
 require_once '../utils/sanitize.php';
@@ -7,8 +6,9 @@ require_once '../utils/logger.php';
 
 $student_id = (int) $_SESSION['student_id'];
 
+// --- DATA FETCHING (GET) ---
 try {
-    $stmt = $pdo->prepare('SELECT name, email, roll_number, department, semester FROM students WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT name, email, roll_number, department, semester, gender FROM students WHERE id = ?');
     $stmt->execute([$student_id]);
     $student = $stmt->fetch();
 
@@ -17,9 +17,8 @@ try {
     }
 
     $resultStmt = $pdo->prepare("
-        SELECT e.title, e.total_marks, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at
+        SELECT ea.score, ea.submitted_at
         FROM exam_attempts ea
-        JOIN exams e ON ea.exam_id = e.id
         WHERE ea.student_id = ? AND ea.status = 'completed'
         ORDER BY ea.submitted_at DESC
     ");
@@ -27,35 +26,43 @@ try {
     $past_results = $resultStmt->fetchAll();
 
     $completed_exams = count($past_results);
-    $average_score = 0.0;
-    $best_score = 0.0;
+    $average_score   = 0.0;
+    $best_score      = 0.0;
     $last_submission = null;
+    $recent_scores   = [];
 
     if ($completed_exams > 0) {
-        $scores = array_map(static fn($result) => (float) $result['score'], $past_results);
-        $average_score = count($scores) > 0 ? array_sum($scores) / count($scores) : 0.0;
-        $best_score = max($scores);
+        $scores          = array_map(static fn($r) => (float) $r['score'], $past_results);
+        $average_score   = array_sum($scores) / count($scores);
+        $best_score      = max($scores);
         $last_submission = $past_results[0]['submitted_at'] ?? null;
-    }
 
+        // Last 6 attempts, oldest -> newest (for the trend bars)
+        $recent_scores = array_reverse(array_slice($past_results, 0, 6));
+    }
 } catch (PDOException $e) {
     log_error("Failed to load profile for student $student_id", $e);
     die('Database Error. Please try again later.');
 }
+
+// --- AUTOMATED AVATAR LOGIC ---
+$student_gender = strtolower($student['gender'] ?? 'male');
+$current_avatar_url = ($student_gender === 'female')
+    ? '../assets/avatars/female.jpg'
+    : '../assets/avatars/male.jpg';
 
 $page_title = 'My Profile • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/student-navbar.php';
 ?>
 
-<div class="container profile-page">
+<div class="profile-page">
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
-    <div class="page-header profile-header">
+    <div class="profile-header">
         <div>
-            <span class="eyebrow">Student Portfolio</span>
             <h1 class="page-title">My Profile</h1>
-            <p class="page-subtitle">Track your academic profile and examination progress</p>
+            <p class="page-subtitle">Your academic details and examination progress</p>
         </div>
         <a href="edit-profile.php" class="btn btn-primary">
             <span class="material-symbols-outlined icon-sm">edit</span>
@@ -63,455 +70,237 @@ include __DIR__ . '/../components/student-navbar.php';
         </a>
     </div>
 
-    <div class="card profile-hero">
-        <div class="profile-hero__main">
-            <div class="profile-avatar" aria-label="Student profile avatar">
-                <?= e(strtoupper(substr($student['name'], 0, 1))) ?>
-            </div>
-            <div class="profile-identity">
-                <span class="profile-role">Student</span>
-                <h2><?= e($student['name']) ?></h2>
-                <p><?= e($student['department']) ?> • Semester <?= e((string)$student['semester']) ?></p>
-            </div>
-        </div>
-
-        <div class="profile-hero__meta">
-            <div class="meta-chip">
-                <span class="material-symbols-outlined icon-sm">badge</span>
-                <?= e($student['roll_number']) ?>
-            </div>
-            <div class="meta-chip">
-                <span class="material-symbols-outlined icon-sm">mail</span>
-                <?= e($student['email']) ?>
-            </div>
-        </div>
-    </div>
-
-    <div class="stats profile-stats">
-        <div class="stat-card">
-            <div class="stat-num"><?= e((string) $completed_exams) ?></div>
-            <div class="stat-label">Completed Exams</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-num"><?= sprintf('%.1f', $average_score) ?></div>
-            <div class="stat-label">Average Score</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-num"><?= sprintf('%.1f', $best_score) ?></div>
-            <div class="stat-label">Best Score</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-num"><?= $last_submission ? date('d M', strtotime($last_submission)) : '—' ?></div>
-            <div class="stat-label">Last Submission</div>
-        </div>
-    </div>
-
     <div class="profile-layout">
-        <div class="card profile-card profile-card--details">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <span class="material-symbols-outlined">person</span>
-                    Academic Details
-                </h2>
-            </div>
-            <div class="card-body">
-                <div class="profile-grid">
-                    <div class="profile-item">
-                        <span class="profile-label">Full Name</span>
-                        <span class="profile-value"><?= e($student['name']) ?></span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label">Email Address</span>
-                        <span class="profile-value"><?= e($student['email']) ?></span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label">Roll Number / Student ID</span>
-                        <span class="profile-value"><?= e($student['roll_number']) ?></span>
-                    </div>
-                    <div class="profile-item">
-                        <span class="profile-label">Department & Semester</span>
-                        <span class="profile-value">
-                            <?= e($student['department']) ?> • Semester <?= e((string)$student['semester']) ?>
-                        </span>
-                    </div>
+
+        <!-- LEFT: student details -->
+        <section class="card profile-card">
+            <div class="profile-identity">
+                <img src="<?= e($current_avatar_url) ?>" alt="Profile avatar" class="profile-avatar-img">
+                <div class="profile-identity-text">
+                    <h2 class="profile-name"><?= e($student['name']) ?></h2>
+                    <p class="profile-sub"><?= e($student['department']) ?> &middot; Semester <?= e((string) $student['semester']) ?></p>
                 </div>
             </div>
-        </div>
 
-        <div class="card profile-card profile-card--summary">
-            <div class="card-header">
+            <div class="card-header profile-section-head">
+                <h2 class="card-title">
+                    <span class="material-symbols-outlined">person</span>
+                    Student Details
+                </h2>
+            </div>
+            <div class="card-body profile-details-body">
+                <dl class="detail-list">
+                    <div class="detail-row">
+                        <dt><span class="material-symbols-outlined">badge</span>Full Name</dt>
+                        <dd><?= e($student['name']) ?></dd>
+                    </div>
+                    <div class="detail-row">
+                        <dt><span class="material-symbols-outlined">mail</span>Email</dt>
+                        <dd><?= e($student['email']) ?></dd>
+                    </div>
+                    <div class="detail-row">
+                        <dt><span class="material-symbols-outlined">tag</span>Roll Number</dt>
+                        <dd><?= e($student['roll_number']) ?></dd>
+                    </div>
+                    <div class="detail-row">
+                        <dt><span class="material-symbols-outlined">school</span>Department</dt>
+                        <dd><?= e($student['department']) ?></dd>
+                    </div>
+                    <div class="detail-row">
+                        <dt><span class="material-symbols-outlined">calendar_month</span>Semester</dt>
+                        <dd><?= e((string) $student['semester']) ?></dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <!-- RIGHT: performance snapshot -->
+        <section class="card profile-card">
+            <div class="card-header profile-section-head">
                 <h2 class="card-title">
                     <span class="material-symbols-outlined">insights</span>
                     Performance Snapshot
                 </h2>
+                <a href="exam-history.php" class="btn btn-secondary btn-sm">
+                    <span class="material-symbols-outlined icon-sm">history_edu</span>
+                    View History
+                </a>
             </div>
-            <div class="card-body">
-                <div class="summary-list">
-                    <div class="summary-item">
-                        <span class="summary-icon material-symbols-outlined">task_alt</span>
-                        <div>
-                            <strong><?= e((string) $completed_exams) ?></strong>
-                            <small>Exams submitted</small>
-                        </div>
+
+            <div class="card-body profile-perf-body">
+                <div class="stats profile-stats">
+                    <div class="stat-card">
+                        <div class="stat-num"><?= e((string) $completed_exams) ?></div>
+                        <div class="stat-label">Completed Exams</div>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-icon material-symbols-outlined">trending_up</span>
-                        <div>
-                            <strong><?= sprintf('%.1f', $average_score) ?></strong>
-                            <small>Average marks</small>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-num"><?= sprintf('%.1f', $average_score) ?></div>
+                        <div class="stat-label">Average Score</div>
                     </div>
-                    <div class="summary-item">
-                        <span class="summary-icon material-symbols-outlined">emoji_events</span>
-                        <div>
-                            <strong><?= sprintf('%.1f', $best_score) ?></strong>
-                            <small>Top performance</small>
+                    <div class="stat-card">
+                        <div class="stat-num"><?= sprintf('%.1f', $best_score) ?></div>
+                        <div class="stat-label">Best Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num">
+                            <?= $last_submission ? date('d M', strtotime($last_submission)) : '—' ?>
                         </div>
+                        <div class="stat-label">Last Submission</div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="card profile-history">
-        <div class="card-header">
-            <h2 class="card-title">
-                <span class="material-symbols-outlined">history_edu</span>
-                Exam History
-            </h2>
-        </div>
+                <div class="trend">
+                    <div class="trend-head">
+                        <h3 class="trend-title">Recent attempts</h3>
+                        <span class="profile-sub">Last <?= count($recent_scores) ?: 0 ?> scores</span>
+                    </div>
 
-        <div class="card-body">
-            <div class="table-toolbar">
-                <?php include '../components/searchbar.php'; ?>
-            </div>
-
-            <?php if (empty($past_results)): ?>
-                <div class="empty-state">
-                    <span class="material-symbols-outlined empty-icon">assignment</span>
-                    <p>You haven't completed any examinations yet.</p>
-                </div>
-            <?php else: ?>
-                <div class="table-wrap">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Exam Title</th>
-                                <th>Score</th>
-                                <th>Submitted On</th>
-                                <th class="text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($past_results as $result): ?>
-                                <tr>
-                                    <td>
-                                        <strong><?= e($result['title']) ?></strong>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-success">
-                                            <?= sprintf('%.2f', (float)$result['score']) ?>
-                                            <span class="score-divider">/</span>
-                                            <?= e((string)$result['total_marks']) ?>
-                                        </span>
-                                    </td>
-                                    <td class="text-muted">
-                                        <?= $result['submitted_at']
-                                            ? date('d M Y, h:i A', strtotime($result['submitted_at']))
-                                            : '—' ?>
-                                    </td>
-                                    <td class="text-right">
-                                        <div class="action-buttons">
-                                            <a href="download-card.php?attempt_id=<?= $result['attempt_id'] ?>"
-                                               class="btn btn-secondary btn-sm"
-                                               title="Download Score Card">
-                                                <span class="material-symbols-outlined icon-xs">picture_as_pdf</span>
-                                                Score Card
-                                            </a>
-                                            <a href="review-exam.php?attempt_id=<?= $result['attempt_id'] ?>"
-                                               class="btn btn-primary btn-sm">
-                                                Review Exam
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
+                    <?php if ($recent_scores): ?>
+                        <div class="trend-bars" role="img" aria-label="Bar chart of your most recent exam scores">
+                            <?php foreach ($recent_scores as $r):
+                                $score = (float) $r['score'];
+                                $pct   = $best_score > 0 ? max(6, round(($score / $best_score) * 100)) : 6;
+                            ?>
+                                <div class="trend-col">
+                                    <span class="trend-value"><?= sprintf('%.1f', $score) ?></span>
+                                    <div class="trend-track">
+                                        <div class="trend-fill" style="height: <?= (int) $pct ?>%"></div>
+                                    </div>
+                                    <span class="trend-date"><?= e(date('d M', strtotime($r['submitted_at']))) ?></span>
+                                </div>
                             <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                        </div>
+                    <?php else: ?>
+                        <div class="trend-empty">
+                            <span class="material-symbols-outlined">quiz</span>
+                            <p class="profile-sub">No completed exams yet. Your scores will appear here after your first attempt.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
-            <?php endif; ?>
-        </div>
+            </div>
+        </section>
+
     </div>
 </div>
 
 <style>
+    /* ---- One-screen layout (desktop): page fills viewport below navbar, no scroll ---- */
+    :root { --profile-nav-h: 72px; } /* adjust to your navbar height */
+
+    @media (min-width: 901px) and (min-height: 600px) {
+        html, body:has(.profile-page) { overflow: hidden; }
+        .profile-page { height: calc(100vh - var(--profile-nav-h)); height: calc(100dvh - var(--profile-nav-h)); }
+    }
+
     .profile-page {
-        padding-top: 18px;
+        padding: 24px 30px;
+        display: flex; flex-direction: column; gap: 20px;
+        box-sizing: border-box; min-height: 0;
     }
-
     .profile-header {
-        margin-bottom: 20px;
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        flex-shrink: 0;
     }
-
-    .eyebrow {
-        display: inline-block;
-        margin-bottom: 8px;
-        font-size: 0.72rem;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        font-weight: 700;
-        color: var(--color-primary);
-    }
-
-    .profile-hero {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 28px 30px;
-        background: #eff6ff;
-        border: 1px solid rgba(15, 23, 42, 0.12);
-    }
-
-    .profile-hero__main {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        min-width: 0;
-    }
-
-    .profile-avatar {
-        width: 76px;
-        height: 76px;
-        border-radius: 22px;
-        background: var(--color-primary);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 1.9rem;
-        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
-    }
-
-    .profile-role {
-        display: inline-block;
-        margin-bottom: 6px;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--color-primary-light);
-    }
-
-    .profile-identity h2 {
-        margin: 0;
-        font-size: clamp(1.5rem, 2vw, 2rem);
-        color: var(--color-dark);
-        line-height: 1.2;
-    }
-
-    .profile-identity p {
-        margin-top: 4px;
-        color: var(--color-text-secondary);
-        font-size: 0.95rem;
-    }
-
-    .profile-hero__meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: flex-end;
-    }
-
-    .meta-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 14px;
-        background: rgba(255, 255, 255, 0.7);
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        border-radius: 999px;
-        color: var(--color-text);
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-
-    .meta-chip .material-symbols-outlined {
-        color: var(--color-primary);
-        font-size: 18px;
-    }
-
-    .profile-stats {
-        margin-top: 22px;
-        margin-bottom: 24px;
-    }
+    .profile-header .page-title { margin: 0; }
+    .profile-header .page-subtitle { margin: 4px 0 0; }
 
     .profile-layout {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
+        flex: 1; min-height: 0;
+        display: grid; grid-template-columns: minmax(300px, 5fr) minmax(0, 7fr);
         gap: 24px;
-        margin-bottom: 24px;
     }
-
     .profile-card {
-        height: 100%;
+        display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+    }
+    .profile-section-head {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        flex-shrink: 0;
     }
 
-    .profile-card--details .card-header,
-    .profile-card--summary .card-header,
-    .profile-history .card-header {
-        padding-bottom: 14px;
-        border-bottom: 1px solid var(--color-border);
-        margin-bottom: 18px;
+    /* ---- Left: identity + details ---- */
+    .profile-identity {
+        display: flex; align-items: center; gap: 16px;
+        padding: 24px; border-bottom: 1px solid var(--color-border);
+        flex-shrink: 0;
+    }
+    .profile-avatar-img {
+        width: 120px; height: 120px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+        border: 3px solid var(--color-border);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .profile-identity-text { min-width: 0; }
+    .profile-name { margin: 0 0 4px; font-size: 1.25rem; line-height: 1.2; overflow-wrap: anywhere; }
+    .profile-sub { margin: 0; font-size: 0.9rem; }
+
+    .profile-details-body { flex: 1; min-height: 0; display: flex; }
+    .detail-list { margin: 0; flex: 1; display: flex; flex-direction: column; }
+    .detail-row {
+        flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        border-bottom: 1px solid var(--color-border); min-height: 0;
+    }
+    .detail-row:last-child { border-bottom: 0; }
+    .detail-row dt {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 0.85rem; flex-shrink: 0;
+    }
+    .detail-row dt .material-symbols-outlined { font-size: 18px; opacity: 0.7; }
+    .detail-row dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+
+    /* ---- Right: performance ---- */
+    .profile-perf-body {
+        flex: 1; min-height: 0;
+        display: flex; flex-direction: column; gap: 20px;
+    }
+    .profile-stats {
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px; margin: 0; flex-shrink: 0;
     }
 
-    .profile-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 18px;
+    .trend {
+        flex: 1; min-height: 0;
+        display: flex; flex-direction: column; gap: 12px;
+        border-top: 1px solid var(--color-border); padding-top: 16px;
     }
+    .trend-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .trend-title { margin: 0; font-size: 1rem; }
 
-    .profile-item {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 18px 16px;
-        background: #ffffff;
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
+    .trend-bars {
+        flex: 1; min-height: 0;
+        display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 16px;
+        align-items: stretch;
     }
-
-    .profile-label {
-        font-size: 0.75rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--color-text-secondary);
-        font-weight: 700;
+    .trend-col {
+        display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 0;
     }
-
-    .profile-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--color-dark);
-        line-height: 1.5;
+    .trend-value { font-size: 0.85rem; font-weight: 600; }
+    .trend-date  { font-size: 0.75rem; opacity: 0.7; }
+    .trend-track {
+        flex: 1; width: 100%; max-width: 56px; min-height: 0;
+        display: flex; align-items: flex-end;
+        background: var(--color-border); border-radius: 8px; overflow: hidden;
+        opacity: 1;
     }
-
-    .summary-list {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
+    .trend-fill {
+        width: 100%; border-radius: 8px;
+        background: var(--color-primary, currentColor);
     }
-
-    .summary-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 16px;
-        border-radius: var(--radius-lg);
-        background: #f8fafc;
-        border: 1px solid var(--color-border);
+    .trend-empty {
+        flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 8px; text-align: center; padding: 16px;
     }
+    .trend-empty .material-symbols-outlined { font-size: 40px; opacity: 0.5; }
 
-    .summary-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background: rgba(15, 23, 42, 0.07);
-        color: var(--color-primary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
+    /* ---- Tablet / mobile: single column, natural scrolling ---- */
+    @media (max-width: 900px), (max-height: 599px) {
+        .profile-page { height: auto; }
+        .profile-layout { grid-template-columns: 1fr; }
+        .trend-bars { min-height: 200px; }
+        .detail-row { padding: 12px 0; }
     }
-
-    .summary-item strong {
-        display: block;
-        font-size: 1.5rem;
-        color: var(--color-dark);
-        line-height: 1.1;
-    }
-
-    .summary-item small {
-        color: var(--color-text-secondary);
-        font-size: 0.8rem;
-    }
-
-    .profile-history {
-        margin-bottom: 0;
-    }
-
-    .table-toolbar {
-        margin-bottom: 16px;
-    }
-
-    .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        text-align: center;
-        min-height: 200px;
-        border: 1px dashed rgba(148, 163, 184, 0.9);
-        border-radius: var(--radius-lg);
-        background: #f8fafc;
-        color: var(--color-text-secondary);
-        padding: 28px;
-    }
-
-    .empty-icon {
-        font-size: 38px;
-        color: var(--color-primary-light);
-    }
-
-    .action-buttons {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .score-divider {
-        opacity: 0.7;
-        margin: 0 4px;
-    }
-
-    @media (max-width: 900px) {
-        .profile-hero,
-        .profile-layout {
-            grid-template-columns: 1fr;
-            display: grid;
-        }
-
-        .profile-hero__meta {
-            justify-content: flex-start;
-        }
-    }
-
-    @media (max-width: 640px) {
-        .profile-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .profile-hero {
-            padding: 22px 18px;
-        }
-
-        .profile-hero__main {
-            align-items: flex-start;
-        }
-
-        .profile-avatar {
-            width: 60px;
-            height: 60px;
-            font-size: 1.5rem;
-        }
-
-        .action-buttons {
-            justify-content: flex-start;
-        }
+    @media (max-width: 560px) {
+        .profile-page { padding: 18px; }
+        .profile-header { flex-direction: column; align-items: flex-start; }
+        .profile-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 </style>
 

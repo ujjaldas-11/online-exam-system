@@ -47,6 +47,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <div class="alert alert-error"><?= e(get_flash('error')) ?></div>
     <?php endif; ?>
 
+
     <!-- Header -->
     <div class="page-header">
         <div>
