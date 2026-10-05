@@ -496,18 +496,21 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
+                    <?php endif; ?>
                 </table>
             </div>
-        <?php endif; ?>
-        <?php
-            // Include the pagination UI component
-            $total_items = $total_exam_count;
-            include __DIR__ . '/../components/pagination.php';
-        ?>
+                <?php
+                    // Include the pagination UI component
+                    $total_items = $total_exam_count;
+                    include __DIR__ . '/../components/pagination.php';
+                ?>
+        
     </div>
 </div>
 
 <?php
 include __DIR__ . '/../components/confirm-modal.php';
+?>
+<?php
 include __DIR__ . '/../components/footer.php';
 ?>
