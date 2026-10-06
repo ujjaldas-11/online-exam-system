@@ -91,7 +91,7 @@ $status_list = [
 $filterQ      = strtolower(trim(clean_input($_GET['q'] ?? '')));
 $filterStatus = clean_input($_GET['status'] ?? '');
 $current_page = max(1, (int)($_GET['page'] ?? 1));
-$per_page     = 5; 
+$per_page     = 10; 
 
 // Apply Filters
 $filtered_exams = [];
@@ -149,7 +149,7 @@ include __DIR__ . '/../components/student-navbar.php';
         display: flex; background: #fff; border: 1px solid var(--color-border);
         border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden;
     }
-    .stats-segment { padding: 12px 20px; text-align: center; border-right: 1px solid var(--color-border); }
+    .stats-segment { padding: 6px 14px; text-align: center; border-right: 1px solid var(--color-border); }
     .stats-segment:last-child { border-right: none; }
     .stats-val { font-size: 1.2rem; font-weight: 800; line-height: 1; margin-bottom: 4px; }
     .stats-lbl { font-size: 0.7rem; color: var(--color-text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
@@ -238,9 +238,9 @@ include __DIR__ . '/../components/student-navbar.php';
     <!--  Header & Stats -->
     <div class="dash-header-row">
         <div>
-            <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--color-dark); margin: 0;">Available Examinations</h1>
+            <h1 style="font-size: 1.25rem; font-weight: 600; color: var(--color-dark); margin: 0;">Welcome back, <strong><?= e($student_name) ?></h1>
             <p class="student-meta">
-                Welcome back, <strong><?= e($student_name) ?></strong> &bull; <?= e($department) ?>, Sem <?= e((string) $semester) ?>
+                <?= e($department) ?> </strong> &bull; Sem <?= e((string) $semester) ?>
             </p>
         </div>
         <div class="stats-pill">

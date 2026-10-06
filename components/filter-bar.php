@@ -45,7 +45,7 @@ $filterAuthor = $_GET['author'] ?? '';
 
         <?php if ($show_author && !empty($authors_list)): ?>
             <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
-                <label>Author</label>
+                <!-- <label>Author</label> -->
                 <select name="author" class="form-control">
                     <option value="">All Authors</option>
                     <?php foreach ($authors_list as $auth): ?>
@@ -60,7 +60,7 @@ $filterAuthor = $_GET['author'] ?? '';
         <!-- Optional Department Filter -->
         <?php if ($show_dept && !empty($departments)): ?>
             <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
-                <label>Department</label>
+                <!-- <label>Department</label> -->
                 <select name="department" class="form-control">
                     <option value="">All Departments</option>
                     <?php foreach ($departments as $d): ?>
@@ -73,7 +73,7 @@ $filterAuthor = $_GET['author'] ?? '';
         <!-- Optional Semester Filter -->
         <?php if ($show_sem): ?>
             <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
-                <label>Semester</label>
+                <!-- <label>Semester</label> -->
                 <select name="semester" class="form-control">
                     <option value="">All Semesters</option>
                     <?php for ($i = 1; $i <= 8; $i++): ?>
@@ -86,7 +86,7 @@ $filterAuthor = $_GET['author'] ?? '';
         <!-- Optional Status Filter -->
         <?php if ($show_status && !empty($status_list)): ?>
             <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
-                <label>Status</label>
+                <!-- <label>Status</label> -->
                 <select name="status" class="form-control">
                     <option value="">All Statuses</option>
                     <?php foreach ($status_list as $value => $label): ?>
@@ -115,7 +115,7 @@ $filterAuthor = $_GET['author'] ?? '';
         <?php endforeach; ?>
         <!-- Search Input (Always Visible) -->
         <div class="form-group" style="margin-bottom: 0; flex: 2; min-width: 220px;">
-            <label>Search</label>
+            <!-- <label>Search</label> -->
             <input type="text" name="q" value="<?= e($filterQ) ?>" placeholder="<?= e($search_placeholder) ?>" class="form-control">
         </div>
 

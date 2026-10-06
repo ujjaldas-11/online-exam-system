@@ -53,9 +53,9 @@ $assetVersion = asset_version();
         <p class="app-footer-links">
             Bengal Institute of Science & Technology (BIST)
             <span class="divider">&bull;</span>
-            <a href="#">Privacy Policy</a>
+            <a href="#">TATA ROAD, PURULIA</a>
             <span class="divider">&bull;</span>
-            <a href="#">Support</a>
+            <a href="#">P.O -Dulmi-Nadiha</a>
         </p>
     </footer>
     <!-- ========================================================= -->
