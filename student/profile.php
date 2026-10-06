@@ -85,6 +85,7 @@ include __DIR__ . '/../components/student-navbar.php';
                 <div class="profile-identity-text">
                     <h2 class="profile-name"><?= e($student['name']) ?></h2>
                     <p class="profile-sub"><?= e($student['department']) ?> &middot; Semester <?= e((string) $student['semester']) ?></p>
+                    <p class="profile-sub" style="font-weight: bold;">Bengal Institute of Science & Technology</p>
                 </div>
             </div>
 
