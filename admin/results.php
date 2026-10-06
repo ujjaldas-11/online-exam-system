@@ -127,7 +127,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <?php if (empty($exams)): ?>
                         <tr>
                             <td colspan="7" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">
-                                No exams found for <strong><?= e($selected_dept) ?></strong>.
+                                No exams found matching the current filter.
                             </td>
                         </tr>
                     <?php else: ?>

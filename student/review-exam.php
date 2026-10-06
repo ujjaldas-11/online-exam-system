@@ -16,10 +16,17 @@ if (empty($_GET['attempt_id'])) {
     die('Invalid request. No exam attempt specified.');
 }
 $attempt_id = int_param($_GET['attempt_id']);
+ 
+// --- Pagination Setup ---
+$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 10; 
 
-
+// FIX 1: Safely build the base URL so pagination doesn't lose the attempt_id!
+// If your pagination.php uses $form_action, this ensures it works flawlessly.
+$form_action = 'review-exam.php?attempt_id=' . $attempt_id;
 
 try {
+    // Note: e.status is aliased so it doesn't overwrite ea.status in the fetch array
     $examStmt = $pdo->prepare("
         SELECT e.title, e.total_marks, e.status AS exam_status, e.results_published,
                e.duration_minutes, e.start_time,
@@ -35,6 +42,9 @@ try {
     if (!$examOverview) {
         die('Exam not found or you do not have permission to view this.');
     }
+
+    // FIX 2: Map the aliased status back so the ExamEngine can read it correctly!
+    $examOverview['status'] = $examOverview['exam_status'];
 
     $is_ended = ExamEngine::isExamEnded($examOverview);
     $is_published = !empty($examOverview['results_published']);
@@ -65,9 +75,17 @@ try {
         exit;
     }
 
-    $questions = ExamEngine::getAttemptReviewQuestions($pdo, $attempt_id);
+    // Fetch ALL questions via the Engine to ensure correct ordering/formatting
+    $allQuestions = ExamEngine::getAttemptReviewQuestions($pdo, $attempt_id);
+    
+    // Set total items for the pagination.php component
+    $total_items = count($allQuestions);
+    
+    // Slice the array to only show the 10 questions for the current page
+    $offset = ($current_page - 1) * $per_page;
+    $questions = array_slice($allQuestions, $offset, $per_page);
 
-    // Secure PDF Answer Sheet Generation (Only accessible after exam has ended & results are published)
+    // Secure PDF Answer Sheet Generation
     if (isset($_GET['download_answers'])) {
         require_once __DIR__ . '/../services/PdfService.php';
         $pdfStudent = [
@@ -79,7 +97,8 @@ try {
             'title' => $examOverview['title']
         ];
         
-        PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $questions, 'D');
+        // Ensure the PDF gets the FULL array, not just page 1
+        PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $allQuestions, 'D');
         exit;
     }
 } catch (PDOException $e) {
@@ -93,13 +112,12 @@ include __DIR__ . '/../components/student-navbar.php';
 
 $total_qs = (int) ($examOverview['total_questions'] ?? 0);
 $total_marks = (float) ($examOverview['total_marks'] ?? 0);
-$marks_each = ($total_qs > 0) ? round($total_marks / $total_qs, 2) : 0;
 ?>
 
 <div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
     <div style="margin-bottom: 16px;">
-        <a href="dashboard.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
-            <span class="material-symbols-outlined icon-xs">arrow_back</span> Back to Dashboard
+        <a href="exam-history.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-xs">arrow_back</span> Back to History
         </a>
     </div>
     <!-- Exam Summary Header -->
@@ -125,7 +143,9 @@ $marks_each = ($total_qs > 0) ? round($total_marks / $total_qs, 2) : 0;
 
     <!-- Questions Loop -->
     <?php
-    $qNumber = 1;
+    // Calculate accurate starting question number based on the current page
+    $qNumber = $offset + 1;
+    
     foreach ($questions as $q):
         ?>
         <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px;">
@@ -216,9 +236,9 @@ $marks_each = ($total_qs > 0) ? round($total_marks / $total_qs, 2) : 0;
         </div>
     <?php endforeach; ?>
 
-    <div style="text-align: center; margin-top: 30px;">
-        <a href="dashboard.php" class="btn btn-primary" style="padding: 12px 24px;">Back to Dashboard</a>
-    </div>
+    <!-- Global Pagination -->
+    <?php include __DIR__ . '/../components/pagination.php'; ?>
+
 </div>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
