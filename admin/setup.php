@@ -77,64 +77,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'First-Time Setup • Examify';
-$body_class = 'auth-body';
+$body_class = 'auth-body auth-page-wrapper';
 include __DIR__ . '/../components/header.php';
 ?>
 
-<div class="auth-card">
-    <div class="auth-header">
-        <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
-        <div class="auth-header-text">
-            <h1>First-Time Setup</h1>
-            <p class="subtitle">Create Root Superadmin Account</p>
-        </div>
-    </div>
-
-    <div class="alert alert-warning" style="margin-bottom: 20px; font-size: 0.85rem;">
-        <strong>Initial System Provisioning:</strong> No administrator account was detected in the database. Please configure your master administrative credentials below.
-    </div>
-
-    <?php if ($error): ?>
-        <div class="alert alert-error"><?= e($error) ?></div>
-    <?php endif; ?>
-
-    <form method="POST" action="">
-        <?= csrf_field() ?>
-
-        <div class="form-group">
-            <label>Superadmin Full Name</label>
-            <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Dr. Administrator">
-        </div>
-
-        <div class="form-group">
-            <label>Master Email Address</label>
-            <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="admin@college.edu">
-        </div>
-
-        <div class="form-group">
-            <label>Password (Min 8 characters)</label>
-            <div class="password-wrapper">
-                <input type="password" name="password" required minlength="8" placeholder="••••••••••••">
-                <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
-                    <span class="material-symbols-outlined">visibility</span>
-                </button>
+<main class="auth-main-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+            <div class="auth-header-text">
+                <h1>First-Time Setup</h1>
+                <p class="subtitle">Create Root Superadmin Account</p>
             </div>
         </div>
 
-        <div class="form-group">
-            <label>Confirm Password</label>
-            <div class="password-wrapper">
-                <input type="password" name="confirm_password" required minlength="8" placeholder="••••••••••••">
-                <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
-                    <span class="material-symbols-outlined">visibility</span>
-                </button>
-            </div>
+        <div class="alert alert-warning" style="margin-bottom: 20px; font-size: 0.85rem;">
+            <strong>Initial System Provisioning:</strong> No administrator account was detected in the database. Please configure your master administrative credentials below.
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-            <span class="material-symbols-outlined icon-sm">admin_panel_settings</span> Initialize System
-        </button>
-    </form>
-</div>
+        <?php if ($error): ?>
+            <div class="alert alert-error"><?= e($error) ?></div>
+        <?php endif; ?>
+
+        <form method="POST" action="">
+            <?= csrf_field() ?>
+
+            <div class="form-group">
+                <label>Superadmin Full Name</label>
+                <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Dr. Administrator">
+            </div>
+
+            <div class="form-group">
+                <label>Master Email Address</label>
+                <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="admin@college.edu">
+            </div>
+
+            <div class="form-group">
+                <label>Password (Min 8 characters)</label>
+                <div class="password-wrapper">
+                    <input type="password" name="password" required minlength="8" placeholder="••••••••••••">
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <div class="password-wrapper">
+                    <input type="password" name="confirm_password" required minlength="8" placeholder="••••••••••••">
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">admin_panel_settings</span> Initialize System
+            </button>
+        </form>
+    </div>
+</main>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

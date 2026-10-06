@@ -91,55 +91,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Student Login • Examify';
-$body_class = 'auth-body';
+$body_class = 'auth-body auth-page-wrapper';
 include __DIR__ . '/../components/header.php';
 ?>
 
-<div class="auth-card">
-    <div class="auth-header">
-        <a href="/examify/index.php">
-            <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
-        </a>
-        <div class="auth-header-text">
-            <h1>Student Login</h1>
-            <p class="subtitle">Sign in to start your examination</p>
-        </div>
-    </div>
-
-    <?php if ($error): ?>
-        <div class="alert alert-error"><?= e($error) ?></div>
-    <?php endif; ?>
-
-    <form method="POST">
-        <?= csrf_field() ?>
-
-        <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
-        </div>
-
-        <div class="form-group">
-            <label>Password</label>
-            <div class="password-wrapper">
-                <input type="password" name="password" required placeholder="••••••••">
-                <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
-                    <span class="material-symbols-outlined">visibility</span>
-                </button>
+<main class="auth-main-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="/examify/index.php">
+                <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+            </a>
+            <div class="auth-header-text">
+                <h2>Student Login</h2>
+                <p class="subtitle">Sign in to start your examination</p>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-            <span class="material-symbols-outlined icon-sm">login</span> Login
-        </button>
-    </form>
+        <?php if ($error): ?>
+            <div class="alert alert-error"><?= e($error) ?></div>
+        <?php endif; ?>
 
-    <h3 class="footer">
-        Don't have an account? <a href="register.php">Register here</a>
-        <br>
-        <p>
-            © 2026 Examify. All rights reserved. 
+        <form method="POST">
+            <?= csrf_field() ?>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="password-wrapper">
+                    <input type="password" name="password" required placeholder="••••••••">
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">login</span> Login
+            </button>
+        </form>
+
+        <p class="footer">
+            Don't have an account? <a href="register.php">Register here</a>
         </p>
-    </h3>
+    </div>
+</main>
 
-</div>
+<?php include __DIR__ . '/../components/footer.php'; ?>
 
