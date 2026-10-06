@@ -110,10 +110,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Student Registration • Examify';
-$body_class = 'auth-body';
+$body_class = 'auth-body auth-page-wrapper';
 include __DIR__ . '/../components/header.php';
 ?>
 
+<main class="auth-main-container">
 <?php if ($success): ?>
     <div class="auth-card" style="max-width: 520px; text-align: center; padding: 40px 28px;">
         <div style="display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; margin-bottom: 20px;">
@@ -150,161 +151,162 @@ include __DIR__ . '/../components/header.php';
             </a>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            let secondsLeft = 30;
-            const totalSeconds = 30;
-            const barEl = document.getElementById('timeout-bar');
-
-            const timer = setInterval(() => {
-                secondsLeft--;
-
-                if (barEl) {
-                    const percent = Math.max(0, (secondsLeft / totalSeconds) * 100);
-                    barEl.style.width = percent + '%';
-                    if (percent <= 20) {
-                        barEl.style.background = '#ef4444'; // Red near end
-                    } else if (percent <= 50) {
-                        barEl.style.background = '#f59e0b'; // Amber midway
-                    }
-                }
-
-                if (secondsLeft <= 0) {
-                    clearInterval(timer);
-                    window.location.href = '../index.php';
-                }
-            }, 1000);
-        });
-    </script>
 <?php else: ?>
-<div class="auth-card auth-card-wide">
-    <div class="auth-header">
-        <a href="/examify/index.php">
-            <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
-        </a>
-        <div class="auth-header-text">
-            <h1>Create Account</h1>
-            <p class="subtitle">Request registration for classroom examinations</p>
-        </div>
-    </div>
-
-    <?php if ($error): ?>
-        <div class="alert alert-error"><?= e($error) ?></div>
-    <?php endif; ?>
-
-    <form method="POST">
-        <?= csrf_field() ?>
-
-        <div class="auth-row-2">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Tulasi Benjamin Khan">
-            </div>
-
-            <div class="form-group">
-                <label>Student Email</label>
-                <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
+    <div class="auth-card auth-card-wide">
+        <div class="auth-header">
+            <a href="/examify/index.php">
+                <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+            </a>
+            <div class="auth-header-text">
+                <h2>Create Account</h2>
+                <p class="subtitle">Request registration for classroom examinations</p>
             </div>
         </div>
 
-        <div class="auth-row-2">
-            <div class="form-group">
-                <label>Roll Number / Student ID</label>
-                <input type="text"
-                    name="roll_number"
-                    id="roll_number"
-                    required
-                    style="text-transform: uppercase;"
-                    oninput="this.value = this.value.toUpperCase()"
-                    value="<?= e($_POST['roll_number'] ?? '') ?>"
-                    placeholder="e.g. B26BCA01">
-            </div>
+        <?php if ($error): ?>
+            <div class="alert alert-error"><?= e($error) ?></div>
+        <?php endif; ?>
 
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input type="text"
-                    name="phone_number"
-                    inputmode="numeric"
-                    pattern="[0-9]{10}"
-                    maxlength="10"
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
-                    value="<?= e($_POST['phone_number'] ?? '') ?>"
-                    placeholder="10 digit number"
-                    required
-                >
-            </div>
-        </div>
+        <form method="POST">
+            <?= csrf_field() ?>
 
-        <div class="auth-row-3">
-            <div class="form-group">
-                <label>Department</label>
-                <select name="department" required>
-                    <option value="">Select Department</option>
-                    <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
-                        <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+            <div class="auth-row-2">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Tulasi Benjamin Khan">
+                </div>
 
-            <div class="form-group">
-                <label>Semester</label>
-                <select name="semester" required>
-                    <option value="">Select Semester</option>
-                    <?php for ($i = 1; $i <= 8; $i++): ?>
-                        <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>
-                            Semester <?= $i ?>
-                        </option>
-                    <?php endfor; ?>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Gender</label>
-                <select name="gender" required>
-                    <option value="">Select Gender</option>
-                    <option value="male" <?= (($_POST['gender'] ?? '') === 'male') ? 'selected' : '' ?>>Male</option>
-                    <option value="female" <?= (($_POST['gender'] ?? '') === 'female') ? 'selected' : '' ?>>Female</option>
-                    <option value="others" <?= (($_POST['gender'] ?? '') === 'others') ? 'selected' : '' ?>>Others</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="auth-row-2">
-            <div class="form-group">
-                <label>Password</label>
-                <div class="password-wrapper">
-                    <input type="password" name="password" required placeholder="Min 6 characters">
-                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
-                        <span class="material-symbols-outlined">visibility</span>
-                    </button>
+                <div class="form-group">
+                    <label>Student Email</label>
+                    <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Confirm Password</label>
-                <div class="password-wrapper">
-                    <input type="password" name="confirm_password" required placeholder="Re-enter password">
-                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
-                        <span class="material-symbols-outlined">visibility</span>
-                    </button>
+            <div class="auth-row-2">
+                <div class="form-group">
+                    <label>Roll Number / Student ID</label>
+                    <input type="text"
+                        name="roll_number"
+                        id="roll_number"
+                        required
+                        style="text-transform: uppercase;"
+                        oninput="this.value = this.value.toUpperCase()"
+                        value="<?= e($_POST['roll_number'] ?? '') ?>"
+                        placeholder="e.g. B26BCA01">
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text"
+                        name="phone_number"
+                        inputmode="numeric"
+                        pattern="[0-9]{10}"
+                        maxlength="10"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                        value="<?= e($_POST['phone_number'] ?? '') ?>"
+                        placeholder="10 digit number"
+                        required
+                    >
                 </div>
             </div>
-        </div>
 
-        <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-            <span class="material-symbols-outlined icon-sm">person_add</span> Request Registration
-        </button>
-    </form>
+            <div class="auth-row-3">
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="department" required>
+                        <option value="">Select Department</option>
+                        <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
+                            <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-    <h3 class="footer">
-        Already have an account? <a href="login.php">Login here</a>
-        <br>
-        <p>
-            © 2026 Examify. All rights reserved. 
+                <div class="form-group">
+                    <label>Semester</label>
+                    <select name="semester" required>
+                        <option value="">Select Semester</option>
+                        <?php for ($i = 1; $i <= 8; $i++): ?>
+                            <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>
+                                Semester <?= $i ?>
+                            </option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select name="gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="male" <?= (($_POST['gender'] ?? '') === 'male') ? 'selected' : '' ?>>Male</option>
+                        <option value="female" <?= (($_POST['gender'] ?? '') === 'female') ? 'selected' : '' ?>>Female</option>
+                        <option value="others" <?= (($_POST['gender'] ?? '') === 'others') ? 'selected' : '' ?>>Others</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="auth-row-2">
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" required placeholder="Min 6 characters">
+                        <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="confirm_password" required placeholder="Re-enter password">
+                        <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <span class="material-symbols-outlined icon-sm">person_add</span> Request Registration
+            </button>
+        </form>
+
+        <p class="footer">
+            Already have an account? <a href="login.php">Login here</a>
         </p>
-    </h3>
-
-</div>
+    </div>
 <?php endif; ?>
+</main>
+
+<?php if ($success): ?>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let secondsLeft = 30;
+        const totalSeconds = 30;
+        const barEl = document.getElementById('timeout-bar');
+
+        const timer = setInterval(() => {
+            secondsLeft--;
+
+            if (barEl) {
+                const percent = Math.max(0, (secondsLeft / totalSeconds) * 100);
+                barEl.style.width = percent + '%';
+                if (percent <= 20) {
+                    barEl.style.background = '#ef4444'; // Red near end
+                } else if (percent <= 50) {
+                    barEl.style.background = '#f59e0b'; // Amber midway
+                }
+            }
+
+            if (secondsLeft <= 0) {
+                clearInterval(timer);
+                window.location.href = '../index.php';
+            }
+        }, 1000);
+    });
+</script>
+<?php endif; ?>
+
+<?php include __DIR__ . '/../components/footer.php'; ?>
+
 
