@@ -554,6 +554,10 @@ $isSuper = is_superadmin();
                 </div>
 
                 <div class="topbar-links">
+                    <div class="user-chip" style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-muted); margin-right: 8px;">
+                        <span>Authenticated:</span>
+                        <strong><?= htmlspecialchars($adminName) ?> (<?= htmlspecialchars(ucfirst($adminRole)) ?>)</strong>
+                    </div>
                     <!-- Dark Mode Toggle -->
                     <button class="btn-icon" id="themeToggle" title="Toggle Theme" aria-label="Toggle theme">
                         <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -691,27 +695,27 @@ $isSuper = is_superadmin();
                     </details>
 
                     <details class="subsection" id="sec-3-2">
-                        <summary>3.2 Student Management & Directory Actions<span class="arrow">▸</span></summary>
+                        <summary>3.2 Student Management Panel & Directory Actions (<code>admin/manage-students.php</code>)<span class="arrow">▸</span></summary>
                         <div class="body">
                             <p>Manage accounts seamlessly via filters (Department, Semester, Status). Reset credentials or suspend user access instantly.</p>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-3">
-                        <summary>3.3 Bulk Student Promotion<span class="arrow">▸</span></summary>
+                        <summary>3.3 Bulk Student Promotion across Semesters<span class="arrow">▸</span></summary>
                         <div class="body">
                             <p>Advance cohorts by +1 semester automatically, bounded safely at Semester 8 caps.</p>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-4">
-                        <summary>3.4 Question Banks & Batch CSV Import<span class="arrow">▸</span></summary>
+                        <summary>3.4 Question Banks & Bulk CSV Upload<span class="arrow">▸</span></summary>
                         <div class="body">
                             <p>Supports 5 item types: <code>single</code>, <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>, and <code>matching</code>.</p>
                             <div class="code-block">
                                 <button class="copy-btn" data-copy>Copy</button>
-                                <pre style="margin:0; white-space:pre-wrap">Question Text,Unit,Option A,Option B,Option C,Option D,Correct,Type
-"What is an OS?",1,"System software","Application","Hardware","Malicious",A,single</pre>
+                                <pre style="margin:0; white-space:pre-wrap">Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Question Type
+"What is an operating system?",1,"System software","Application software","Hardware component","Malicious program",A,single</pre>
                             </div>
                         </div>
                     </details>
@@ -738,9 +742,16 @@ $isSuper = is_superadmin();
                     </details>
 
                     <details class="subsection" id="sec-3-8">
-                        <summary>3.8 Teacher Provisioning & Record Retention<span class="arrow">▸</span></summary>
+                        <summary>3.8 Teacher Accounts, Provisioning & Permanent Record Retention<span class="arrow">▸</span></summary>
                         <div class="body">
                             <p>Superadmins can provision staff accounts. When staff members retire, their historic exam and question records remain safely anchored as <code>[Retired]</code>.</p>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-3-9">
+                        <summary>3.9 Institutional Audit Trail (<code>admin/audit-logs.php</code>)<span class="arrow">▸</span></summary>
+                        <div class="body">
+                            <p>The institutional audit trail logs administrative events including exam launches, student enrollments, question updates, and security events with full timestamps and actor attribution.</p>
                         </div>
                     </details>
                 </section>
