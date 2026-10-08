@@ -25,16 +25,11 @@ if (empty($baseUrl)) {
     if ($code8080 === '200' || $code8080 === '301' || $code8080 === '302') {
         $baseUrl = 'http://127.0.0.1:8080';
     } else {
-        $codeExamify = trim((string)@shell_exec('curl -s -o /dev/null -w "%{http_code}" --connect-timeout 1 http://127.0.0.1/examify/index.php'));
-        if ($codeExamify === '200' || $codeExamify === '301' || $codeExamify === '302') {
-            $baseUrl = 'http://127.0.0.1/examify';
+        $codeHttps = trim((string)@shell_exec('curl -k -s -o /dev/null -w "%{http_code}" --connect-timeout 1 https://127.0.0.1'));
+        if ($codeHttps === '200' || $codeHttps === '301' || $codeHttps === '302') {
+            $baseUrl = 'https://127.0.0.1';
         } else {
-            $codeHttps = trim((string)@shell_exec('curl -k -s -o /dev/null -w "%{http_code}" --connect-timeout 1 https://127.0.0.1'));
-            if ($codeHttps === '200' || $codeHttps === '301' || $codeHttps === '302') {
-                $baseUrl = 'https://127.0.0.1';
-            } else {
-                $baseUrl = 'http://127.0.0.1:8080';
-            }
+            $baseUrl = 'http://127.0.0.1:8080';
         }
     }
 }

@@ -119,7 +119,7 @@ include __DIR__ . '/../components/student-navbar.php';
                              Your answersheet will be available for review and download once the exam ends and your instructor officially publishes the results.
                             <br><br>
                             <em style="color: #000; text-decoration: italic;">
-                                Note: Scores and question breakdowns remain confidential until officially published.
+                                Note: Question breakdowns remain confidential until publication.
                             </em>
                         </div>
                     </div>

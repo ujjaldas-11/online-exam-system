@@ -427,12 +427,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     
                     <div class="form-group">
                         <label>Initial Password</label>
-                        <div class="password-wrapper">
-                            <input type="password" name="password" required placeholder="Min 8 characters" minlength="8" style="width: 100%;">
-                            <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
-                                <span class="material-symbols-outlined">visibility</span>
-                            </button>
-                        </div>
+                        <input type="password" name="password" required placeholder="Min 8 characters" minlength="8" style="width: 100%;">
                     </div>
                 </div>
                 

@@ -303,18 +303,7 @@ try {
         CURLOPT_TIMEOUT => 1,
     ]);
     if (curl_exec($chTest) === false) {
-        $chExamify = curl_init('http://127.0.0.1/examify/index.php');
-        curl_setopt_array($chExamify, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_NOBODY => true,
-            CURLOPT_TIMEOUT => 1,
-        ]);
-        if (curl_exec($chExamify) !== false) {
-            $httpBase = 'http://127.0.0.1/examify';
-        } else {
-            $httpBase = 'http://127.0.0.1';
-        }
-        curl_close($chExamify);
+        $httpBase = 'http://127.0.0.1';
     }
     curl_close($chTest);
 
