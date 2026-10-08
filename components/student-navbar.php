@@ -4,7 +4,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $student_nav = [
     'dashboard.php'    => ['label' => 'Dashboard',    'icon' => 'space_dashboard'],
     'exam-history.php' => ['label' => 'Exam History', 'icon' => 'history_edu'],
-    'profile.php'      => ['label' => 'My Profile',   'icon' => 'person'],
 ];
 
 // --- AVATAR LOGIC ---
@@ -51,11 +50,10 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
 
 <nav class="student-navbar" aria-label="Main navigation">
     <div class="student-nav-inner">
+
         <a href="dashboard.php" class="student-brand">
-            <div class="student-greeting-mobile-hidden">
-                <img src="<?= $esc($nav_avatar_url) ?>" alt="Profile" class="nav-profile-pic">
-                <span class="student-greeting">Hi, <?= $esc($student_name) ?></span>
-            </div>
+                <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+                <span>Examify</span>
         </a>
 
         <button class="menu-btn" id="menuBtn" type="button"
@@ -64,11 +62,10 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
         </button>
 
         <div class="student-nav-links" id="navLinks">
-            <div class="drawer-profile">
+            <a href="profile.php" class="drawer-profile">
                 <img src="<?= $esc($nav_avatar_url) ?>" alt="Profile" class="nav-profile-pic lg">
                 <span class="student-greeting">Hi, <?= $esc($student_name) ?></span>
-
-            </div>
+            </a>
 
             <?php foreach ($student_nav as $page => $meta): ?>
                 <a href="<?= $esc($page) ?>"
@@ -78,6 +75,13 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
                     <span><?= $esc($meta['label']) ?></span>
                 </a>
             <?php endforeach; ?>
+
+            <a href="profile.php" class="student-brand" title="profile">
+                <div class="student-greeting-mobile-hidden">
+                    <span class="student-greeting">Hi, <?= $esc($student_name) ?></span>
+                    <img src="<?= $esc($nav_avatar_url) ?>" alt="Profile" class="nav-profile-pic">
+                </div>
+            </a>
         </div>
     </div>
 

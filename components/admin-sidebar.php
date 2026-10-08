@@ -128,6 +128,11 @@ if ($isAdminSuper) {
                     </div>
                     
                     <hr class="dropdown-divider" style="margin: 0;">
+                    <a href="admin-reset-password.php" class="dropdown-reset-btn-item">
+                        <span class="material-symbols-outlined" aria-hidden="true">lock_reset</span>
+                        Reset Password
+                    </a>
+                    <hr class="dropdown-divider" style="margin: 0;">
                     <a href="admin-logout.php" class="logout-btn">
                         <span class="material-symbols-outlined" aria-hidden="true">logout</span>
                         Logout

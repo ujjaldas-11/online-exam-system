@@ -221,7 +221,7 @@ body.sidebar-collapsed .main-content {
 }
 .dropdown-reset-btn-item:hover { background: var(--sidebar-bg-hover); color: #fff; }
 
-.logout-btn { color: #fca5a5; }
+.logout-btn { color: #fca5a5;}
 .logout-btn:hover { background: rgba(220, 38, 38, 0.15); color: #f87171; }
 .logout-btn .material-symbols-outlined { font-size: 20px; }
 
