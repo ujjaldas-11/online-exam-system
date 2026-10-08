@@ -316,3 +316,6 @@ const AntiCheat = (function() {
         }
     };
 })();
+Commits on Oct 7, 2026
+
+    feat: implement anti-cheat module and countdown timer for exams
