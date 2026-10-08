@@ -9,8 +9,7 @@ require_once '../services/ExamEngine.php';
 
 $student_id = (int) $_SESSION['student_id'];
 $exam_id = int_param($_POST['exam_id'] ?? $_GET['exam_id'] ?? 0);
-$student_name = $_SESSION['name'];
-
+$student_name = $_SESSION['name'] ?? 'Student';
 if ($exam_id <= 0) {
     redirect('dashboard.php');
 }
@@ -81,7 +80,7 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/student-navbar.php';
 ?>
 
-< <div class="container" style="max-width: 700px;">    
+<div class="container" style="max-width: 700px;">    
         <!-- PUBLISHED RESULTS VIEW -->
         <div class="card" style="text-align: center; padding: 40px 24px;">
             <div style="margin-bottom: 12px;">
