@@ -113,29 +113,31 @@ try {
 
     if ($pinRequired && !$isUnlocked) {
         $page_title = 'Enter Exam PIN • Examify';
-        $body_class = 'auth-body';
+        $body_class = 'auth-body auth-page-wrapper';
         include __DIR__ . '/../components/header.php';
         ?>
-        <div class="auth-card">
-            <h1>Classroom Access PIN</h1>
-            <p class="subtitle">Enter the PIN provided by your instructor to unlock <strong><?= e($exam['title']) ?></strong></p>
+        <main class="auth-main-container">
+            <div class="auth-card">
+                <h1>Classroom Access PIN</h1>
+                <p class="subtitle">Enter the PIN provided by your instructor to unlock <strong><?= e($exam['title']) ?></strong></p>
 
-            <?php if ($pinError): ?>
-                <div class="alert alert-error"><?= e($pinError) ?></div>
-            <?php endif; ?>
+                <?php if ($pinError): ?>
+                    <div class="alert alert-error"><?= e($pinError) ?></div>
+                <?php endif; ?>
 
-            <form method="POST">
-                <?= csrf_field() ?>
-                <div class="form-group">
-                    <label>Exam PIN / Passcode</label>
-                    <input type="text" name="exam_pin" required autofocus placeholder="e.g. 1234" style="text-align: center; font-size: 1.5rem; letter-spacing: 4px;">
-                </div>
-                <button type="submit" name="verify_pin" class="btn btn-primary btn-block">Unlock Exam</button>
-                <div style="text-align: center; margin-top: 16px;">
-                    <a href="dashboard.php" class="btn btn-secondary btn-sm">Return to Dashboard</a>
-                </div>
-            </form>
-        </div>
+                <form method="POST">
+                    <?= csrf_field() ?>
+                    <div class="form-group">
+                        <label>Exam PIN / Passcode</label>
+                        <input type="text" name="exam_pin" required autofocus placeholder="e.g. 1234" style="text-align: center; font-size: 1.5rem; letter-spacing: 4px;">
+                    </div>
+                    <button type="submit" name="verify_pin" class="btn btn-primary btn-block">Unlock Exam</button>
+                    <div style="text-align: center; margin-top: 16px;">
+                        <a href="dashboard.php" class="btn btn-secondary btn-sm">Return to Dashboard</a>
+                    </div>
+                </form>
+            </div>
+        </main>
         <?php
         include __DIR__ . '/../components/footer.php';
         exit;
@@ -439,58 +441,59 @@ include __DIR__ . '/../components/header.php';
         }
     }
 
-    function renderQuestion(q, selected, marked) {
-        const container = document.getElementById('question-container');
-        if (!container) return;
+   function renderQuestion(q, selected, marked) {
+    const container = document.getElementById('question-container');
+    if (!container) return;
 
-        const safeQuestionText = escapeHtml(q.question_text);
-        const qType = q.question_type || 'single';
-        const isMulti = (qType === 'multiple');
+    const safeQuestionText = escapeHtml(q.question_text);
+    const qType = q.question_type || 'single';
+    const isMulti = (qType === 'multiple');
 
-        let typeBadge = '';
-        if (isMulti) {
-            typeBadge = `<span class="badge badge-warning" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;"><span class="material-symbols-outlined" style="font-size: 13px; vertical-align: -2px;">check_box</span> Select all that apply</span>`;
-        } else if (qType === 'case_study') {
-            typeBadge = `<span class="badge badge-info" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;">Case Study</span>`;
-        } else if (qType === 'assertion_reason') {
-            typeBadge = `<span class="badge badge-secondary" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;">Assertion-Reason</span>`;
-        } else if (qType === 'matching') {
-            typeBadge = `<span class="badge badge-outline" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;">Matching</span>`;
-        }
-
-        let html = `
-            <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''} ${typeBadge}</div>
-            <div class="question-text">${safeQuestionText}</div>
-            <div class="options-list">
-        `;
-
-        const order = (q.options_order && Array.isArray(q.options_order)) ? q.options_order : ['A', 'B', 'C', 'D'];
-        const displayLetters = ['A', 'B', 'C', 'D'];
-        const selectedTokens = selected ? String(selected).split(',').map(s => s.trim().toUpperCase()) : [];
-        let renderedCount = 0;
-        const inputType = isMulti ? 'checkbox' : 'radio';
-
-        order.forEach((opt) => {
-            const text = q['option_' + opt.toLowerCase()];
-            if (text !== null && text !== undefined && String(text).trim() !== '') {
-                const isSelected = selectedTokens.includes(opt);
-                const safeText = escapeHtml(text);
-                const displayLetter = displayLetters[renderedCount] || opt;
-                renderedCount++;
-                html += `
-                    <label class="option-item ${isSelected ? 'selected' : ''}">
-                        <input type="${inputType}" name="answer" value="${opt}" ${isSelected ? 'checked' : ''}>
-                        <span><strong>${displayLetter}.</strong> ${safeText}</span>
-                    </label>
-                `;
-            }
-        });
-
-        html += `</div>`;
-        container.innerHTML = html;
-
-        setReviewButtonState(!!marked);
+    let typeBadge = '';
+    if (isMulti) {
+        typeBadge = `<span class="badge badge-warning"><span class="material-symbols-outlined">check_box</span> Select all that apply</span>`;
+    } else if (qType === 'case_study') {
+        typeBadge = `<span class="badge badge-info">Case Study</span>`;
+    } else if (qType === 'assertion_reason') {
+        typeBadge = `<span class="badge badge-secondary">Assertion-Reason</span>`;
+    } else if (qType === 'matching') {
+        typeBadge = `<span class="badge badge-outline">Matching</span>`;
     }
+
+    let html = `
+        <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''}</div>
+        ${typeBadge ? `<div class="question-type-row">${typeBadge}</div>` : ''}
+        <div class="question-text">${safeQuestionText}</div>
+        <div class="options-list ${isMulti ? 'options-multi' : ''}">
+    `;
+
+    const order = (q.options_order && Array.isArray(q.options_order)) ? q.options_order : ['A', 'B', 'C', 'D'];
+    const displayLetters = ['A', 'B', 'C', 'D'];
+    const selectedTokens = selected ? String(selected).split(',').map(s => s.trim().toUpperCase()) : [];
+    let renderedCount = 0;
+    const inputType = isMulti ? 'checkbox' : 'radio';
+
+    order.forEach((opt) => {
+        const text = q['option_' + opt.toLowerCase()];
+        if (text !== null && text !== undefined && String(text).trim() !== '') {
+            const isSelected = selectedTokens.includes(opt);
+            const safeText = escapeHtml(text);
+            const displayLetter = displayLetters[renderedCount] || opt;
+            renderedCount++;
+            html += `
+                <label class="option-item ${isSelected ? 'selected' : ''}">
+                    <input type="${inputType}" name="answer" value="${opt}" ${isSelected ? 'checked' : ''}>
+                    <span class="option-label"><strong>${displayLetter}.</strong> ${safeText}</span>
+                </label>
+            `;
+        }
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+    setReviewButtonState(!!marked);
+  }
 
     let currentPaletteFilter = 'all';
 
