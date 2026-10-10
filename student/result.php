@@ -32,12 +32,21 @@ try {
         die("Error: No examination attempt found for this exam.");
     }
 
+    if ($attempt['status'] === 'disqualified') {
+        set_flash('error', "You have been disqualified from this examination due to integrity violations.");
+        redirect('dashboard.php');
+    }
+
     $attempt_id = (int) $attempt['id'];
     $total_marks = (float) $attempt['total_marks'];
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         verify_csrf();
         $res = ExamEngine::submitExam($pdo, $student_id, $exam_id);
+        if (!empty($res['disqualified'])) {
+            set_flash('error', $res['error'] ?? "You have been disqualified from this examination due to integrity violations.");
+            redirect('dashboard.php');
+        }
         if (!empty($res['error'])) {
             die("Error grading examination: " . e($res['error']));
         }
@@ -50,6 +59,10 @@ try {
             'score' => $score,
         ]);
     } else {
+        if ($attempt['status'] === 'disqualified') {
+            set_flash('error', "You have been disqualified from this examination due to integrity violations.");
+            redirect('dashboard.php');
+        }
         if ($attempt['status'] !== 'completed') {
             redirect("exam.php?id=$exam_id");
         }

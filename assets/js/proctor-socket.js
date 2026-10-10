@@ -217,6 +217,8 @@
                 this.updateStudentStarted(data.student_id, data.attempt_id);
             } else if (event === 'exam_submitted') {
                 this.updateStudentSubmitted(data.student_id, data.score);
+            } else if (event === 'student_disqualified') {
+                this.updateStudentDisqualified(data.student_id);
             } else if (event === 'time_extended') {
                 this.handleTimeExtended(data.extra_minutes);
             } else if (event === 'exam_ended') {
@@ -300,6 +302,22 @@
             this.recalculateSummary();
         },
 
+        updateStudentDisqualified: function (studentId) {
+            const row = document.getElementById('student-row-' + studentId);
+            if (!row) return;
+
+            const statusCell = row.querySelector('.col-status');
+            if (statusCell) {
+                statusCell.innerHTML = '<span class="badge badge-rejected"><span class="material-symbols-outlined icon-xs" aria-hidden="true">block</span> Disqualified</span>';
+            }
+
+            row.classList.remove('row-pulse-danger');
+            void row.offsetWidth;
+            row.classList.add('row-pulse-danger');
+
+            this.recalculateSummary();
+        },
+
         handleTimeExtended: function (extraMinutes) {
             const banner = document.createElement('div');
             banner.className = 'alert alert-success';
@@ -364,6 +382,8 @@
                 if (statusCell) {
                     if (st.attempt_status === 'completed') {
                         statusCell.innerHTML = '<span class="badge badge-active">Submitted</span>';
+                    } else if (st.attempt_status === 'disqualified') {
+                        statusCell.innerHTML = '<span class="badge badge-rejected"><span class="material-symbols-outlined icon-xs" aria-hidden="true">block</span> Disqualified</span>';
                     } else if (st.attempt_status === 'in_progress') {
                         statusCell.innerHTML = '<span class="badge badge-running">In Progress</span>';
                     } else {
