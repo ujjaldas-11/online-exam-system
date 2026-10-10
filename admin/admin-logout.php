@@ -12,4 +12,4 @@ if (isset($pdo) && !empty($_SESSION['admin_id'])) {
     } catch (Throwable) {}
 }
 
-destroy_user_session('admin-login.php');
+destroy_user_session('../index.php');

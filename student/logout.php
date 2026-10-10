@@ -12,4 +12,4 @@ if (isset($pdo) && !empty($_SESSION['student_id'])) {
     } catch (Throwable) {}
 }
 
-destroy_user_session('login.php');
+destroy_user_session('../index.php');

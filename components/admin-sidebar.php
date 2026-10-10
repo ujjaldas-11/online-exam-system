@@ -116,7 +116,7 @@ if ($isAdminSuper) {
                         <img src="<?= htmlspecialchars($nav_avatar_url, ENT_QUOTES, 'UTF-8') ?>" alt="Admin Profile" class="nav-profile-pic lg" style="width: 90px; height: 90px;">
                         <div>
                             <p class="dropdown-name"><?= htmlspecialchars($adminName, ENT_QUOTES, 'UTF-8') ?></p>
-                            <p class="dropdown-role" style="color: #edb055;"><?= htmlspecialchars($adminRole, ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="badge badge-active" style="background-color: #2c3343;"><?= htmlspecialchars($adminRole, ENT_QUOTES, 'UTF-8') ?></p>
                             <p style="color: var(--color-gold); text-align: center;"> <?= $collegeName ?></p>
                         </div>
                     </div>
