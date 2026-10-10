@@ -45,7 +45,6 @@ jobs:
           extensions: pdo, pdo_mysql, mbstring, gd, curl, json
           ini-values: |
             date.timezone=Asia/Kolkata
-            session.use_cookies=0
             display_errors=On
             error_reporting=E_ALL
           coverage: none
