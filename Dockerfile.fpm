@@ -45,12 +45,13 @@ FROM php:8.2-fpm-bookworm
 LABEL maintainer="Bibekananda Mudi" \
       description="Examify Online Examination System - PHP-FPM Production Runtime"
 
-# Install production PHP extensions: pdo, pdo_mysql, mbstring, gd, opcache
+# Install production PHP extensions and utilities: pdo, pdo_mysql, mbstring, gd, opcache, mariadb-client
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
     libonig-dev \
+    mariadb-client \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo_mysql mbstring gd opcache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*

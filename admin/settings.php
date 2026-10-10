@@ -5,6 +5,7 @@ require_once '../config/database.php';
 require_once '../utils/csrf.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
+require_once '../services/BackupService.php';
 
 // Superadmin Only Access
 if (!is_superadmin()) {
@@ -17,85 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['download_backup'])) {
     verify_csrf();
 
     try {
-        $tables = [];
-        $stmt = $pdo->query("SHOW TABLES");
-        while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
-            $tables[] = $row[0];
-        }
-
-        $filename = 'examify_backup_' . date('Y-m-d_His') . '.sql';
-
-        header('Content-Type: application/sql; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-
-        $out = fopen('php://output', 'w');
-        fwrite($out, "-- ========================================================\n");
-        fwrite($out, "-- Examify Database Backup\n");
-        fwrite($out, "-- Generated at: " . date('Y-m-d H:i:s') . "\n");
-        fwrite($out, "-- Database: examify\n");
-        fwrite($out, "-- ========================================================\n\n");
-        fwrite($out, "SET FOREIGN_KEY_CHECKS=0;\n");
-        fwrite($out, "SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';\n");
-        fwrite($out, "SET time_zone = '+00:00';\n\n");
-
-        foreach ($tables as $table) {
-            fwrite($out, "-- --------------------------------------------------------\n");
-            fwrite($out, "-- Structure for table `{$table}`\n");
-            fwrite($out, "-- --------------------------------------------------------\n");
-            fwrite($out, "DROP TABLE IF EXISTS `{$table}`;\n");
-
-            $createStmt = $pdo->query("SHOW CREATE TABLE `{$table}`")->fetch(PDO::FETCH_NUM);
-            fwrite($out, $createStmt[1] . ";\n\n");
-
-            // Dump Data
-            $rowsStmt = $pdo->query("SELECT * FROM `{$table}`");
-            $rows = $rowsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-            if (!empty($rows)) {
-                fwrite($out, "-- Dumping data for table `{$table}`\n");
-                $columns = array_keys($rows[0]);
-                $colNames = implode('`, `', $columns);
-
-                $batch = [];
-                foreach ($rows as $r) {
-                    $vals = [];
-                    foreach ($r as $val) {
-                        if ($val === null) {
-                            $vals[] = 'NULL';
-                        } else {
-                            $vals[] = $pdo->quote((string)$val);
-                        }
-                    }
-                    $batch[] = "(" . implode(', ', $vals) . ")";
-
-                    if (count($batch) >= 100) {
-                        fwrite($out, "INSERT INTO `{$table}` (`{$colNames}`) VALUES\n" . implode(",\n", $batch) . ";\n");
-                        $batch = [];
-                    }
-                }
-
-                if (!empty($batch)) {
-                    fwrite($out, "INSERT INTO `{$table}` (`{$colNames}`) VALUES\n" . implode(",\n", $batch) . ";\n");
-                }
-                fwrite($out, "\n");
-            }
-        }
-
-        fwrite($out, "SET FOREIGN_KEY_CHECKS=1;\n");
-        fwrite($out, "-- Backup completed.\n");
-        fclose($out);
-
-        log_admin_action($pdo, 'database_backup', 'system', 0, "Exported complete database backup: $filename");
+        BackupService::streamBackup($pdo);
         exit;
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         log_error("Failed generating database backup", $e);
         die("Error generating database backup: " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
     }
 }
 
 // Fetch System Diagnostics
+$dumpEngineInfo = BackupService::getDumpBinaryInfo();
 $serverInfo = [
     'php_version' => PHP_VERSION,
     'db_version' => $pdo->getAttribute(PDO::ATTR_SERVER_VERSION),
@@ -211,6 +143,28 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <tr>
                             <td style="font-weight: 600;">Memory Limit</td>
                             <td><?= e($serverInfo['memory_limit']) ?></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Backup Dump Engine</td>
+                            <td>
+                                <?php if ($dumpEngineInfo['available']): ?>
+                                    <span class="badge badge-active" style="display: inline-flex; align-items: center; gap: 4px;">
+                                        <span class="material-symbols-outlined icon-xs">terminal</span>
+                                        <?= e($dumpEngineInfo['name']) ?>
+                                    </span>
+                                    <small style="color: var(--color-text-secondary); display: block; margin-top: 3px; font-family: var(--font-mono); font-size: 0.75rem;">
+                                        <?= e($dumpEngineInfo['version'] ?? $dumpEngineInfo['path']) ?>
+                                    </small>
+                                <?php else: ?>
+                                    <span class="badge badge-warning" style="display: inline-flex; align-items: center; gap: 4px;">
+                                        <span class="material-symbols-outlined icon-xs">code</span>
+                                        PHP Stream Fallback
+                                    </span>
+                                    <small style="color: var(--color-text-secondary); display: block; margin-top: 3px; font-size: 0.75rem;">
+                                        CLI mariadb-dump / mysqldump not found
+                                    </small>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
