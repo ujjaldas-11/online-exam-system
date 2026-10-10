@@ -791,7 +791,6 @@ $isSuper = is_superadmin();
                 <a href="#">P.O -Dulmi-Nadiha</a>
             </p>
         </footer>
-        <!-- <?include __DIR__ . '../../components/footer.php' -->
 
         <script>
             (() => {
