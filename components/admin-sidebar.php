@@ -42,8 +42,7 @@ $admin_nav = [
     'manage-questions.php' => ['label' => 'Questions', 'icon' => 'quiz', 'title' => 'questions'],
     'control-exams.php' => ['label' => 'Exams', 'icon' => 'fact_check', 'title' => 'exams'],
     'results.php' => ['label' => 'Results', 'icon' => 'bar_chart', 'title' => 'results'],
-    'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications', 'title' => 'profile update request'],
-    'registration-request.php' => ['label' => 'Registration Requests', 'icon' => 'person_add', 'title' => 'registration requests'],
+    'manage-students.php' => ['label' => 'Students', 'icon' => 'group', 'title' => 'Manage Students']
 ];
 
 // Map secondary/child views to parent navigation item
@@ -57,7 +56,8 @@ $route_parents = [
 $effective_active_page = $route_parents[$current_page] ?? $current_page;
 
 if ($isAdminSuper) {
-    $admin_nav['manage-students.php'] = ['label' => 'Students', 'icon' => 'group', 'title' => 'Manage Students'];
+    $admin_nav['registration-request.php'] = ['label' => 'Registration Requests', 'icon' => 'person_add', 'title' => 'registration requests'];
+    $admin_nav['manage-requests.php'] = ['label' => 'update Requests', 'icon' => 'notifications', 'title' => 'profile update request'];
     $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school', 'title' => 'teachers'];
     $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long', 'title' => 'logs'];
     $admin_nav['settings.php'] = ['label' => 'Settings & Backup', 'icon' => 'settings', 'title' => 'system settings and backup'];
@@ -80,19 +80,21 @@ if ($isAdminSuper) {
         </div>
 
         <div class="topbar-right">
-            <a href="registration-request.php" class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Notifications" title="registration requests">
-                <span class="material-symbols-outlined">person_add</span>
-                <?php if (!empty($pending_registration_requests_count)): ?>
-                    <span class="topbar-badge"><?= (int) $pending_registration_requests_count ?></span>
-                <?php endif; ?>
-            </a>
+            <?php if($isAdminSuper): ?>
+                <a href="registration-request.php" class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Notifications" title="registration requests">
+                    <span class="material-symbols-outlined">person_add</span>
+                    <?php if (!empty($pending_registration_requests_count)): ?>
+                        <span class="topbar-badge"><?= (int) $pending_registration_requests_count ?></span>
+                    <?php endif; ?>
+                </a>
 
-            <a href="manage-requests.php" class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="profile update requests">
-                <span class="material-symbols-outlined">notifications</span>
-                <?php if (!empty($pending_requests_count)): ?>
-                    <span class="topbar-badge"><?= (int) $pending_requests_count ?></span>
-                <?php endif; ?>
-            </a>
+                <a href="manage-requests.php" class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="profile update requests">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <?php if (!empty($pending_requests_count)): ?>
+                        <span class="topbar-badge"><?= (int) $pending_requests_count ?></span>
+                    <?php endif; ?>
+                </a>
+            <?php endif; ?>
 
             <a href="../docs/user/admin-doc.php" class="icon-btn topbar-shortcut" aria-label="help file" title="Read Documentation">
                 <span class="material-symbols-outlined">docs</span>

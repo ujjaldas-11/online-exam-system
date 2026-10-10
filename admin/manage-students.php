@@ -615,10 +615,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <div class="card-title" style="margin-bottom: 0;">
                 Enrolled Students (<?= count($students) ?> <?= count($students) === 1 ? 'record' : 'records' ?>)
             </div>
-            <?php if ($pendingCount > 0): ?>
-                <a href="registration-request.php" class="badge badge-warning" style="text-decoration: none; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
-                    <span class="material-symbols-outlined icon-xs">notifications_active</span> <?= $pendingCount ?> pending approval
-                </a>
+            <?php if($isAdminSuper): ?>
+                <?php if ($pendingCount > 0): ?>
+                    <a href="registration-request.php" class="badge badge-warning" style="text-decoration: none; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-xs">notifications_active</span> <?= $pendingCount ?> pending approval
+                    </a>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
 
@@ -711,9 +713,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td style="text-align: right; white-space: nowrap;">
                                     <div style="display: inline-flex; gap: 4px; align-items: center; justify-content: flex-end;">
                                         <!-- Edit Modal Trigger -->
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick='openEditStudentModal(<?= json_encode($st, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)' title="Edit Details">
-                                            <span class="material-symbols-outlined icon-xs">edit</span>
-                                        </button>
+                                         <?php if($isAdminSuper): ?>
+                                            <button type="button" class="btn btn-secondary btn-sm" onclick='openEditStudentModal(<?= json_encode($st, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)' title="Edit Details">
+                                                <span class="material-symbols-outlined icon-xs">edit</span>
+                                            </button>
+                                        <?php endif; ?>
 
                                         <!-- Reset Password Trigger -->
                                         <button type="button" class="btn btn-secondary btn-sm" onclick="openResetPasswordModal(<?= (int)$st['id'] ?>, '<?= e(addslashes($st['name'])) ?>', '<?= e(addslashes($st['roll_number'])) ?>')" title="Reset Password">

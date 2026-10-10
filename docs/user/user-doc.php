@@ -1144,8 +1144,17 @@
 
         <button id="scrollTopBtn" title="Go to top">↑</button>
 
-        <footer>
-            &copy; <?php echo date("Y"); ?> Examify Educational Systems. All rights reserved.
+        <footer class="app-footer">
+            <p class="app-footer-text">
+                &copy; <?= date('Y') ?> Examify. All rights reserved.
+            </p>
+            <p class="app-footer-links">
+                Bengal Institute of Science & Technology (BIST)
+                <span class="divider">&bull;</span>
+                <a href="#">TATA ROAD, PURULIA</a>
+                <span class="divider">&bull;</span>
+                <a href="#">P.O -Dulmi-Nadiha</a>
+            </p>
         </footer>
 
         <script>

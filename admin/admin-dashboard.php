@@ -138,6 +138,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
             </a>
 
+            
             <a href="manage-requests.php" class="btn btn-secondary" style="justify-content: flex-start; padding: 16px; gap: 12px;">
                 <span class="material-symbols-outlined icon-xl">manage_accounts</span>
                 <div style="text-align: left;">
@@ -145,7 +146,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <small style="color: var(--color-text-secondary); font-weight: normal;">Profile edits & password resets</small>
                 </div>
             </a>
-
             <?php if ($isAdminSuper): ?>
                 <a href="manage-teachers.php" class="btn btn-primary" style="justify-content: flex-start; padding: 16px; gap: 12px; background: #1e3a8a; border-color: #1e3a8a;">
                     <span class="material-symbols-outlined icon-xl">school</span>

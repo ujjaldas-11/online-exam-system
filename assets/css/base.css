@@ -45,7 +45,7 @@ img {
 }
 
 .auth-body {
-  background: rgb(171, 171, 177);
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
