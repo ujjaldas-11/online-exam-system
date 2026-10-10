@@ -80,7 +80,11 @@ assert_test("admin/manage-questions.php enforces allowed option letters A-D", st
 // --------------------------------------------------------------------------
 echo "\n--- 2. Testing Anti-Cheat Violation Threshold Harmonization to 3  ---\n";
 
-$antiCheatJs = (string)file_get_contents(__DIR__ . '/../utils/anti-cheat.js');
+$antiCheatPath = __DIR__ . '/../utils/anti-cheat.js';
+$antiCheatJs = (string)file_get_contents($antiCheatPath);
+if (str_starts_with(trim($antiCheatJs), '../') && file_exists(dirname($antiCheatPath) . '/' . trim($antiCheatJs))) {
+    $antiCheatJs = (string)file_get_contents(dirname($antiCheatPath) . '/' . trim($antiCheatJs));
+}
 assert_test("utils/anti-cheat.js sets MAX_VIOLATIONS = 3", str_contains($antiCheatJs, 'MAX_VIOLATIONS = 3;'));
 
 $logViolationPhp = (string)file_get_contents(__DIR__ . '/../student/log-violation.php');

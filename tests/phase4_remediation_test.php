@@ -172,10 +172,11 @@ echo "\n--- 4. Testing Database Backup & Settings (Task 4.4) ---\n";
 assert_test("admin/settings.php exists", file_exists(__DIR__ . '/../admin/settings.php'));
 $settingsCode = file_get_contents(__DIR__ . '/../admin/settings.php');
 assert_test("admin/settings.php restricts access to superadmins", str_contains($settingsCode, 'is_superadmin()'));
+$backupCode = $settingsCode . (file_exists(__DIR__ . '/../services/BackupService.php') ? file_get_contents(__DIR__ . '/../services/BackupService.php') : '');
 assert_test("admin/settings.php contains SQL database dump generator", 
     str_contains($settingsCode, 'download_backup') &&
-    str_contains($settingsCode, 'SHOW CREATE TABLE') &&
-    str_contains($settingsCode, 'SET FOREIGN_KEY_CHECKS=0'));
+    str_contains($backupCode, 'SHOW CREATE TABLE') &&
+    str_contains($backupCode, 'SET FOREIGN_KEY_CHECKS=0'));
 
 $sidebarCode = file_get_contents(__DIR__ . '/../components/admin-sidebar.php');
 assert_test("admin-sidebar.php links to settings.php for superadmins", str_contains($sidebarCode, "'settings.php'"));
@@ -185,7 +186,11 @@ assert_test("admin-sidebar.php links to settings.php for superadmins", str_conta
 // --------------------------------------------------------------------------
 echo "\n--- 5. Testing Student Timer Synchronization (Task 4.5) ---\n";
 
-$timerJs = file_get_contents(__DIR__ . '/../utils/timer.js');
+$timerPath = __DIR__ . '/../utils/timer.js';
+$timerJs = (string)file_get_contents($timerPath);
+if (str_starts_with(trim($timerJs), '../') && file_exists(dirname($timerPath) . '/' . trim($timerJs))) {
+    $timerJs = (string)file_get_contents(dirname($timerPath) . '/' . trim($timerJs));
+}
 assert_test("utils/timer.js exposes window.Timer object", str_contains($timerJs, 'window.Timer'));
 assert_test("utils/timer.js supports syncTimeLeft method", str_contains($timerJs, 'syncTimeLeft'));
 assert_test("utils/timer.js supports addMinutes method", str_contains($timerJs, 'addMinutes'));

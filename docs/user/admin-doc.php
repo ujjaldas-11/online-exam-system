@@ -213,6 +213,22 @@ $isSuper = is_superadmin();
                 border-radius: 20px;
             }
 
+            .user-chip {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                font-size: 0.78rem;
+                color: #e2ded0;
+                background: rgba(255, 255, 255, 0.08);
+                padding: 4px 12px;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .user-chip strong {
+                color: #ffd700;
+            }
+
             /* ===== Search Box (Adapted for dark navbar) ===== */
             .search-wrap {
                 position: relative;
@@ -544,6 +560,11 @@ $isSuper = is_superadmin();
                 </a>
                 <span class="badge-doc-type">Admin Guide</span>
 
+                <div class="user-chip">
+                    <span>Authenticated:</span>
+                    <strong><?= htmlspecialchars($adminName) ?> (<?= ucfirst($adminRole) ?>)</strong>
+                </div>
+
                 <div class="search-wrap">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8" />
@@ -595,6 +616,7 @@ $isSuper = is_superadmin();
                                 <li><a class="toc-link" href="#sec-3-6">3.6 Live Proctoring</a></li>
                                 <li><a class="toc-link" href="#sec-3-7">3.7 Results & PDFs</a></li>
                                 <li><a class="toc-link" href="#sec-3-8">3.8 Teacher Provisioning</a></li>
+                                <li><a class="toc-link" href="#sec-3-9">3.9 Audit Trail</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -691,7 +713,7 @@ $isSuper = is_superadmin();
                     </details>
 
                     <details class="subsection" id="sec-3-2">
-                        <summary>3.2 Student Management & Directory Actions<span class="arrow">▸</span></summary>
+                        <summary>3.2 Student Management Panel & Directory Actions<span class="arrow">▸</span></summary>
                         <div class="body">
                             <p>Manage accounts seamlessly via filters (Department, Semester, Status). Reset credentials or suspend user access instantly.</p>
                         </div>
@@ -705,12 +727,12 @@ $isSuper = is_superadmin();
                     </details>
 
                     <details class="subsection" id="sec-3-4">
-                        <summary>3.4 Question Banks & Batch CSV Import<span class="arrow">▸</span></summary>
+                        <summary>3.4 Question Banks & Bulk CSV Upload<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>Supports 5 item types: <code>single</code>, <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>, and <code>matching</code>.</p>
+                            <p>Bulk CSV Upload allows batch question import across 5 item types: <code>single</code>, <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>, and <code>matching</code>.</p>
                             <div class="code-block">
                                 <button class="copy-btn" data-copy>Copy</button>
-                                <pre style="margin:0; white-space:pre-wrap">Question Text,Unit,Option A,Option B,Option C,Option D,Correct,Type
+                                <pre style="margin:0; white-space:pre-wrap">Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Type
 "What is an OS?",1,"System software","Application","Hardware","Malicious",A,single</pre>
                             </div>
                         </div>
@@ -738,9 +760,16 @@ $isSuper = is_superadmin();
                     </details>
 
                     <details class="subsection" id="sec-3-8">
-                        <summary>3.8 Teacher Provisioning & Record Retention<span class="arrow">▸</span></summary>
+                        <summary>3.8 Teacher Accounts, Provisioning & Permanent Record Retention<span class="arrow">▸</span></summary>
                         <div class="body">
                             <p>Superadmins can provision staff accounts. When staff members retire, their historic exam and question records remain safely anchored as <code>[Retired]</code>.</p>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-3-9">
+                        <summary>3.9 Institutional Audit Trail<span class="arrow">▸</span></summary>
+                        <div class="body">
+                            <p>Superadmins can inspect immutable security audit logs tracking administrative actions, configuration changes, and system events.</p>
                         </div>
                     </details>
                 </section>
