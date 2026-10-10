@@ -81,6 +81,15 @@ class ExamEngine
         $attempt = $attemptStmt->fetch();
 
         if ($attempt) {
+            if ($attempt['status'] === 'disqualified') {
+                return [
+                    'error' => 'You have been disqualified from this examination due to integrity violations.',
+                    'disqualified' => true,
+                    'attempt' => $attempt,
+                    'code' => 403
+                ];
+            }
+
             $optionsOrder = !empty($attempt['options_order']) ? json_decode((string)$attempt['options_order'], true) : null;
             if (empty($optionsOrder)) {
                 $qStmt = $pdo->prepare("SELECT question_id FROM student_answers WHERE attempt_id = ? ORDER BY id ASC");
@@ -229,7 +238,7 @@ class ExamEngine
             }
 
             if ($attempt['status'] === 'disqualified') {
-                return ['error' => 'Attempt has been disqualified due to exam integrity violations', 'code' => 403];
+                return ['error' => 'Attempt has been disqualified due to exam integrity violations', 'disqualified' => true, 'code' => 403];
             }
 
             if ($attempt['status'] === 'completed') {
@@ -311,7 +320,7 @@ class ExamEngine
                         return ['error' => 'Exam already submitted', 'code' => 400];
                     }
                     if ($currentStatus === 'disqualified') {
-                        return ['error' => 'Attempt has been disqualified due to exam integrity violations', 'code' => 403];
+                        return ['error' => 'Attempt has been disqualified due to exam integrity violations', 'disqualified' => true, 'code' => 403];
                     }
                     if ($currentStatus !== 'in_progress') {
                         return ['error' => 'Exam is not in progress', 'code' => 400];

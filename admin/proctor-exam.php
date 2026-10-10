@@ -106,6 +106,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = safe_db_error($e, "Failed to submit attempt.");
             $message_type = 'error';
         }
+    } elseif (isset($_POST['disqualify_student_attempt'])) {
+        $attempt_id = int_param($_POST['attempt_id'] ?? 0);
+        try {
+            $attStmt = $pdo->prepare("SELECT student_id, exam_id FROM exam_attempts WHERE id = ?");
+            $attStmt->execute([$attempt_id]);
+            $attRow = $attStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$attRow) {
+                throw new Exception("Exam attempt #$attempt_id not found.");
+            }
+
+            $targetStudentId = (int) $attRow['student_id'];
+            $targetExamId = (int) $attRow['exam_id'];
+
+            $stmt = $pdo->prepare("UPDATE exam_attempts SET status = 'disqualified' WHERE id = ? AND status = 'in_progress'");
+            $stmt->execute([$attempt_id]);
+
+            require_once __DIR__ . '/../utils/websocket-pusher.php';
+            WebSocketPusher::emit("exam:{$exam_id}", "student_disqualified", [
+                'student_id' => $targetStudentId,
+                'attempt_id' => $attempt_id,
+                'reason' => 'Disqualified by invigilator'
+            ]);
+
+            if (function_exists('log_admin_action')) {
+                log_admin_action(
+                    $pdo,
+                    'disqualify_student_attempt',
+                    'exam_attempts',
+                    $attempt_id,
+                    "Invigilator disqualified attempt #$attempt_id for student #$targetStudentId."
+                );
+            }
+
+            $message = "Student attempt #$attempt_id has been disqualified.";
+            $message_type = 'warning';
+        } catch (PDOException $e) {
+            $message = safe_db_error($e, "Failed to disqualify attempt.");
+            $message_type = 'error';
+        }
     }
 }
 
@@ -285,7 +325,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td class="col-actions" style="text-align: right;">
                                     <?php if (!empty($st['attempt_id'])): ?>
                                         <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                                            <?php if ($st['attempt_status'] === 'completed'): ?>
+                                            <?php if ($st['attempt_status'] === 'completed' || $st['attempt_status'] === 'disqualified'): ?>
                                                 <form method="POST" style="display: inline;" data-confirm="Allow student <?= e($st['name']) ?> to resume and continue their attempt?" data-confirm-title="Unlock / Resume Attempt" data-confirm-btn="Unlock Student" data-confirm-danger="false">
                                                     <?= csrf_field() ?>
                                                     <input type="hidden" name="student_id" value="<?= (int) $st['student_id'] ?>">
@@ -296,6 +336,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                     <?= csrf_field() ?>
                                                     <input type="hidden" name="attempt_id" value="<?= (int) $st['attempt_id'] ?>">
                                                     <button type="submit" name="force_submit_attempt" class="btn btn-warning btn-sm">Force Submit</button>
+                                                </form>
+                                                <form method="POST" style="display: inline;" data-confirm="Disqualify student <?= e($st['name']) ?> from this examination?" data-confirm-title="Disqualify Student" data-confirm-btn="Disqualify" data-confirm-danger="true">
+                                                    <?= csrf_field() ?>
+                                                    <input type="hidden" name="attempt_id" value="<?= (int) $st['attempt_id'] ?>">
+                                                    <button type="submit" name="disqualify_student_attempt" class="btn btn-danger btn-sm">Disqualify</button>
                                                 </form>
                                             <?php endif; ?>
                                         </div>

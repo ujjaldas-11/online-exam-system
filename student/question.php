@@ -64,7 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $res = ExamEngine::saveAnswer($pdo, $student_id, $exam_id, $question_id, $selectedOption, $markedForReview);
 
     if (!empty($res['error'])) {
-        json_response(['error' => $res['error']], $res['code'] ?? 400);
+        $extra = [];
+        if (!empty($res['disqualified'])) {
+            $extra['disqualified'] = true;
+        }
+        json_response(array_merge(['error' => $res['error']], $extra), $res['code'] ?? 400);
     }
 
     if (isset($res['answered_count'])) {
@@ -109,6 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         if (!$attempt) {
             json_response(['error' => 'Exam attempt not initialized'], 404);
+        }
+
+        if ($attempt['status'] === 'disqualified') {
+            json_response(['error' => 'You have been disqualified from this examination due to integrity violations.', 'disqualified' => true], 403);
         }
 
         if ($attempt['status'] === 'completed') {

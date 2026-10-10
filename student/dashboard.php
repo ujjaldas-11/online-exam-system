@@ -53,10 +53,13 @@ foreach ($available_exams as $exam) {
 
     $attempt_status = $exam['attempt_status'] ?? '';
     $is_completed   = ($attempt_status === 'completed');
+    $is_disqualified = ($attempt_status === 'disqualified');
 
     if ($is_completed) {
         $completed_count++;
         $exam['category'] = 'completed';
+    } elseif ($is_disqualified) {
+        $exam['category'] = 'disqualified';
     } elseif ($exam['status'] === 'scheduled') {
         $scheduled_count++;
         $exam['category'] = 'scheduled';
@@ -276,6 +279,7 @@ include __DIR__ . '/../components/student-navbar.php';
             <?php foreach ($paginated_exams as $exam): ?>
                 <?php
                 $is_completed = ($exam['category'] === 'completed');
+                $is_disqualified = ($exam['category'] === 'disqualified' || ($exam['attempt_status'] ?? '') === 'disqualified');
                 $is_active    = ($exam['category'] === 'active');
                 $is_ongoing   = (($exam['attempt_status'] ?? '') === 'in_progress');
                 $is_published = !empty($exam['results_published']);
@@ -283,7 +287,7 @@ include __DIR__ . '/../components/student-navbar.php';
                 $can_view_results = $is_ended && $is_published;
                 
                 // Determine if this is a live/active exam that should span the full row
-                $is_live_featured = ($is_active && !$is_completed);
+                $is_live_featured = ($is_active && !$is_completed && !$is_disqualified);
                 $card_classes = 'exam-card';
                 if ($is_live_featured) {
                     $card_classes .= ' live-exam-featured';
@@ -294,7 +298,7 @@ include __DIR__ . '/../components/student-navbar.php';
                         <div class="exam-title-row">
                             <h3 class="exam-title"><?= e($exam['title']) ?></h3>
                             <div style="<?= $is_live_featured ? 'border-radius: 50px; animation: live-pulse 2s infinite;' : '' ?>">
-                                <?= render_status_badge($exam['status'], 'student') ?>
+                                <?= render_status_badge($is_disqualified ? 'disqualified' : $exam['status'], 'student') ?>
                             </div>
                         </div>
                         <?php if (!empty($exam['description'])): ?>
@@ -321,7 +325,14 @@ include __DIR__ . '/../components/student-navbar.php';
                     </div>
                     
                     <div class="exam-card-footer">
-                        <?php if ($is_completed): ?>
+                        <?php if ($is_disqualified): ?>
+                            <div class="action-alert" style="color: var(--color-danger, #b91c1c); background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-md); padding: 10px 14px; text-align: center;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;">
+                                    <span class="material-symbols-outlined icon-sm" style="color: var(--color-danger, #b91c1c);">block</span>
+                                    Disqualified (Integrity Violation)
+                                </span>
+                            </div>
+                        <?php elseif ($is_completed): ?>
                             <?php if ($can_view_results): ?>
                                 <div class="action-alert" style="color: #0f5132;">
                                     <span>Score: <strong><?= sprintf('%.2f', (float)$exam['score']) ?> / <?= e((string) $exam['total_marks']) ?></strong></span>

@@ -70,6 +70,11 @@ if (!function_exists('render_status_badge')) {
                     $icon = 'warning';
                     $label = $customLabel ?? 'Violation';
                     break;
+                case 'disqualified':
+                    $badgeClass = 'badge-rejected';
+                    $icon = 'block';
+                    $label = $customLabel ?? 'Disqualified';
+                    break;
             }
         } elseif ($context === 'student') {
             switch ($normalized) {
@@ -93,6 +98,11 @@ if (!function_exists('render_status_badge')) {
                     $badgeClass = 'badge-pending';
                     $icon = 'hourglass_top';
                     $label = $customLabel ?? 'Pending';
+                    break;
+                case 'disqualified':
+                    $badgeClass = 'badge-rejected';
+                    $icon = 'block';
+                    $label = $customLabel ?? 'Disqualified';
                     break;
                 default:
                     $badgeClass = 'badge-inactive';
