@@ -33,7 +33,7 @@ try {
                ea.score, ea.total_questions, ea.submitted_at
         FROM exam_attempts ea
         JOIN exams e ON ea.exam_id = e.id
-        WHERE ea.id = ? AND ea.student_id = ? AND ea.status = 'completed'
+        WHERE ea.id = ? AND ea.student_id = ? AND ea.status IN ('completed', 'disqualified')
     ");
 
     $examStmt->execute([$attempt_id, $student_id]);

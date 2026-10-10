@@ -197,7 +197,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php if ($message): ?>
         <div class="alert alert-<?= $message_type === 'success' ? 'success' : 'error' ?>">
             <?= e($message) ?>
-        </div>
+        </div>2 
     <?php endif; ?>
 
     <!-- Real-time Stats Grid -->

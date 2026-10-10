@@ -18,7 +18,7 @@ $filterQ = trim(clean_input($_GET['q'] ?? ''));
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $per_page = 10;
 
-$queryWhere = ["ea.student_id = ?", "ea.status = 'completed'"];
+$queryWhere = ["ea.student_id = ?", "ea.status IN ('completed', 'disqualified')"];
 $queryParams = [$student_id];
 
 if ($filterQ !== '') {

@@ -16,53 +16,80 @@ class ExamifyPdf extends FPDF
     public string $examTitle = '';
     public string $metaInfo = '';
     public string $footerSubtext = 'Official Academic Assessment Record';
+    public bool $hideHeader = false;
 
     public function Header(): void
     {
-        // Dark slate header background band
-        $this->SetFillColor(30, 41, 59);
-        $this->Rect(0, 0, $this->GetPageWidth(), 24, 'F');
-
-        $this->SetY(4);
-        $this->SetFont('Helvetica', 'B', 14);
-        $this->SetTextColor(255, 255, 255);
-        $this->Cell(0, 7, 'BENGAL INSTITUE OF SCIENCE & TECHNOLOGY', 0, 1, 'C');
-        $this->Cell(0, 6, 'EXAMIFY - COLLEGE EXAMINATION PORTAL', 0, 1, 'C');
-
-        $this->SetFont('Helvetica', '', 9);
-        $this->SetTextColor(203, 213, 225);
-        $this->Cell(0, 5, 'Official Academic Assessment Record', 0, 1, 'C');
-
-        $this->SetTextColor(30, 41, 59);
-        $this->SetY(30);
-
-        if ($this->examTitle) {
-            $titleStr = strtoupper($this->examTitle);
-            $fontSize = 13;
-            $this->SetFont('Helvetica', 'B', $fontSize);
-            while ($this->GetStringWidth($titleStr) > 185 && $fontSize > 9) {
-                $fontSize -= 0.5;
-                $this->SetFont('Helvetica', 'B', $fontSize);
-            }
-            while ($this->GetStringWidth($titleStr) > 185 && mb_strlen($titleStr) > 10) {
-                $titleStr = mb_substr($titleStr, 0, -1);
-            }
-            $this->Cell(0, 7, $titleStr, 0, 1, 'L');
+        // Skip header generation if the flag is set (e.g. for offline question paper)
+        if ($this->hideHeader) {
+            return;
         }
 
-        if ($this->metaInfo) {
+        // ---------------------------------------------------------
+        // ONLY print the full detailed header on PAGE 1
+        // ---------------------------------------------------------
+        if ($this->PageNo() === 1) {
+            // Dark slate header background band
+            $this->SetFillColor(30, 41, 59);
+            $this->Rect(0, 0, $this->GetPageWidth(), 24, 'F');
+
+            $this->SetY(4);
+            $this->SetFont('Helvetica', 'B', 14);
+            $this->SetTextColor(255, 255, 255);
+            $this->Cell(0, 7, 'BENGAL INSTITUTE OF SCIENCE & TECHNOLOGY', 0, 1, 'C');
+            $this->Cell(0, 6, 'EXAMIFY - COLLEGE EXAMINATION PORTAL', 0, 1, 'C');
+
             $this->SetFont('Helvetica', '', 9);
-            $this->SetTextColor(100, 116, 139);
-            $this->Cell(0, 5, $this->metaInfo, 0, 1, 'L');
+            $this->SetTextColor(203, 213, 225);
+            $this->Cell(0, 5, 'Official Academic Assessment Record', 0, 1, 'C');
+
             $this->SetTextColor(30, 41, 59);
+            $this->SetY(30);
+
+            if ($this->examTitle) {
+                $titleStr = strtoupper($this->examTitle);
+                $fontSize = 13;
+                $this->SetFont('Helvetica', 'B', $fontSize);
+                while ($this->GetStringWidth($titleStr) > 185 && $fontSize > 9) {
+                    $fontSize -= 0.5;
+                    $this->SetFont('Helvetica', 'B', $fontSize);
+                }
+                while ($this->GetStringWidth($titleStr) > 185 && mb_strlen($titleStr) > 10) {
+                    $titleStr = mb_substr($titleStr, 0, -1);
+                }
+                $this->Cell(0, 7, $titleStr, 0, 1, 'L');
+            }
+
+            if ($this->metaInfo) {
+                $this->SetFont('Helvetica', '', 9);
+                $this->SetTextColor(100, 116, 139);
+                $this->Cell(0, 5, $this->metaInfo, 0, 1, 'L');
+                $this->SetTextColor(30, 41, 59);
+            }
+
+            $this->Ln(2);
+
+            // Header bottom separator line
+            $this->SetDrawColor(226, 232, 240);
+            $this->Line(10, $this->GetY(), $this->GetPageWidth() - 10, $this->GetY());
+            $this->Ln(4);
+            
+        } else {
+            // ---------------------------------------------------------
+            // COMPACT HEADER for Page 2 and beyond
+            // ---------------------------------------------------------
+            $this->SetFillColor(30, 41, 59);
+            $this->Rect(0, 0, $this->GetPageWidth(), 14, 'F'); // Shorter background band
+
+            $this->SetY(4);
+            $this->SetFont('Helvetica', 'B', 11);
+            $this->SetTextColor(255, 255, 255);
+            $this->Cell(0, 6, 'BENGAL INSTITUTE OF SCIENCE & TECHNOLOGY', 0, 1, 'C');
+
+            // Reset text color to dark and move Y down so content starts cleanly below
+            $this->SetTextColor(30, 41, 59);
+            $this->SetY(20); 
         }
-
-        $this->Ln(2);
-
-        // Header bottom separator line
-        $this->SetDrawColor(226, 232, 240);
-        $this->Line(10, $this->GetY(), $this->GetPageWidth() - 10, $this->GetY());
-        $this->Ln(4);
     }
 
     public function Footer(): void
@@ -272,12 +299,13 @@ class PdfService
         exit;
     }
 
-    /**
-     * 2. Generate Printable Offline Exam Paper (Admin: Print questions without answers)
+/**
+     * 2. Generate Printable Offline Exam Paper (With Answer Key at the end)
      */
     public static function generateOfflineExamPaperPdf(array $exam, array $questions, string $mode = 'I'): string
     {
         $pdf = new ExamifyPdf('P', 'mm', 'A4');
+        $pdf->hideHeader = true; // Disable header specifically for the offline paper
         $pdf->examTitle = (string) ($exam['title'] ?? 'Examination Paper');
         $pdf->footerSubtext = 'Official Offline Question Paper';
         $pdf->AliasNbPages();
@@ -322,6 +350,9 @@ class PdfService
         $pdf->Ln(4);
 
         $qNum = 1;
+        // ---------------------------------------------------------
+        // PART 1: Print the Student Question Paper
+        // ---------------------------------------------------------
         foreach ($questions as $q) {
             if ($pdf->GetY() > 250) {
                 $pdf->AddPage();
@@ -342,6 +373,48 @@ class PdfService
                 }
             }
             $pdf->Ln(6);
+            $qNum++;
+        }
+
+        // ---------------------------------------------------------
+        // PART 2: Print the Answer Key on a NEW Page
+        // ---------------------------------------------------------
+        $pdf->AddPage(); // Force a new page
+        $pdf->SetFont('Helvetica', 'B', 14);
+        $pdf->SetTextColor(15, 23, 42);
+        $pdf->Cell(0, 10, 'MASTER ANSWER KEY', 0, 1, 'C');
+        
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->SetTextColor(100, 116, 139);
+        $pdf->Cell(0, 5, 'Instructor Reference Only - Do Not Distribute', 0, 1, 'C');
+        $pdf->Ln(8);
+
+        $qNum = 1;
+        foreach ($questions as $q) {
+            if ($pdf->GetY() > 260) {
+                $pdf->AddPage();
+            }
+
+            $pdf->SetFont('Helvetica', 'B', 10);
+            $pdf->SetTextColor(30, 41, 59);
+            $pdf->Cell(15, 7, 'Q' . $qNum . '.', 0, 0, 'L');
+
+            // Format the correct option in Green
+            $pdf->SetTextColor(22, 163, 74); 
+            $correct = $q['correct_option'] ?? '';
+            $corrTokens = array_filter(array_map('trim', explode(',', (string) $correct)));
+            $corrParts = [];
+            foreach ($corrTokens as $tok) {
+                $txt = $q['option_' . strtolower($tok)] ?? '';
+                $corrParts[] = "[$tok] " . str_replace("\r", '', (string) $txt);
+            }
+
+            $pdf->MultiCell(0, 7, implode('  |  ', $corrParts), 0, 'L');
+            
+            // Add a light separator line between answers
+            $pdf->SetDrawColor(241, 245, 249);
+            $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
+            
             $qNum++;
         }
 
@@ -418,7 +491,7 @@ class PdfService
                 $pdf->Cell(6, 6, $symbol, 0, 0, 'L');
 
                 // Then switch back to your normal font for the option text
-                $pdf->SetFont('Arial', '', 10);  // adjust size/family to match your existing font
+                $pdf->SetFont('Arial', '', 10); 
                 $pdf->MultiCell(152, 6, implode('  |  ', $selParts), 0, 'L');
             }
 
@@ -463,10 +536,13 @@ class PdfService
         $pdf->SetFillColor(30, 41, 59);
         $pdf->Rect(0, 0, 210, 28, 'F');
 
-        $pdf->SetY(6);
-        $pdf->SetFont('Helvetica', 'B', 15);
+        $pdf->SetY(4);
+        $pdf->SetFont('Helvetica', 'B', 13);
         $pdf->SetTextColor(255, 255, 255);
-        $pdf->Cell(0, 7, 'EXAMIFY - EXAMINATION SCORECARD', 0, 1, 'C');
+        $pdf->Cell(0, 7, 'BENGAL INSTITUTE OF SCIENCE & TECHNOLOGY', 0, 1, 'C');
+
+        $pdf->SetFont('Helvetica', 'B', 11);
+        $pdf->Cell(0, 6, 'EXAMIFY - EXAMINATION SCORECARD', 0, 1, 'C');
 
         $pdf->SetFont('Helvetica', '', 9);
         $pdf->SetTextColor(203, 213, 225);

@@ -40,7 +40,7 @@ try {
                s.name, s.roll_number, s.email, s.department, s.semester
         FROM exam_attempts ea
         JOIN students s ON ea.student_id = s.id
-        WHERE ea.exam_id = ? AND ea.status = 'completed'
+        WHERE ea.exam_id = ? AND ea.status IN ('completed', 'disqualified')
         ORDER BY ea.score DESC, ea.submitted_at ASC
     ");
     $attemptsStmt->execute([$exam_id]);
@@ -53,3 +53,4 @@ try {
     log_error("Failed to generate PDF for exam $exam_id", $e);
     die("Database Error generating PDF report.");
 }
+
