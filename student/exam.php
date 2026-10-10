@@ -65,6 +65,16 @@ try {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Time is up! This examination has already concluded.</h2>");
     }
 
+    // Check if student already has a disqualified attempt for this exam
+    $checkAttemptStmt = $pdo->prepare("SELECT id, status FROM exam_attempts WHERE student_id = ? AND exam_id = ? LIMIT 1");
+    $checkAttemptStmt->execute([$student_id, $exam_id]);
+    $existingAttempt = $checkAttemptStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($existingAttempt && $existingAttempt['status'] === 'disqualified') {
+        set_flash('error', "You have been disqualified from this examination due to integrity violations.");
+        redirect('dashboard.php');
+    }
+
     // 2. Classroom PIN Check with Rate Limiting
     $pinRequired = !empty($exam['access_pin']);
     $isUnlocked = isset($_SESSION['unlocked_exams'][$exam_id]);
@@ -133,11 +143,19 @@ try {
 
     // 3. Initialize or fetch Attempt via ExamEngine
     $res = ExamEngine::getOrStartAttempt($pdo, $student_id, $exam_id, $student_semester, $student_department);
+    if (!empty($res['disqualified'])) {
+        set_flash('error', $res['error'] ?? "You have been disqualified from this examination due to integrity violations.");
+        redirect('dashboard.php');
+    }
     if (!empty($res['error'])) {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>" . e($res['error']) . "</h2>");
     }
 
     $attempt = $res['attempt'];
+    if (($attempt['status'] ?? '') === 'disqualified') {
+        set_flash('error', "You have been disqualified from this examination due to integrity violations.");
+        redirect('dashboard.php');
+    }
     if (($attempt['status'] ?? '') === 'completed') {
         redirect("result.php?exam_id=$exam_id");
     }
@@ -367,13 +385,19 @@ include __DIR__ . '/../components/header.php';
                     window.location.href = 'login.php?error=concurrent_session';
                     return null;
                 }
-                return res.json();
+                return res.json().then(data => ({ status: res.status, data }));
             })
-            .then(data => {
-                if (!data) return;
+            .then(result => {
+                if (!result) return;
+                const { status, data } = result;
                 if (data.concurrent_session) {
                     alert(data.error || "Your account was logged into from another device.");
                     window.location.href = 'login.php?error=concurrent_session';
+                    return;
+                }
+                if (data.disqualified || status === 403) {
+                    alert(data.error || "You have been disqualified from this examination.");
+                    window.location.href = 'dashboard.php';
                     return;
                 }
                 if (data.error) return alert(data.error);
@@ -579,6 +603,12 @@ include __DIR__ . '/../components/header.php';
             if (data.concurrent_session) {
                 alert(data.error || "Your account was logged into from another device.");
                 window.location.href = 'login.php?error=concurrent_session';
+                return;
+            }
+            if (data.disqualified || res.status === 403) {
+                alert(data.error || "You have been disqualified from this examination.");
+                window.location.href = 'dashboard.php';
+                return;
             }
             if (typeof data.seconds_left === 'number' && window.Timer) {
                 window.Timer.syncTimeLeft(data.seconds_left);
@@ -725,6 +755,11 @@ include __DIR__ . '/../components/header.php';
             socket.onmessage = function (e) {
                 try {
                     const data = JSON.parse(e.data);
+                    if ((data.action === 'student_disqualified' || data.event === 'student_disqualified') && parseInt(data.student_id, 10) === <?= (int)$student_id ?>) {
+                        alert("You have been disqualified from this examination due to integrity violations.");
+                        window.location.href = 'dashboard.php';
+                        return;
+                    }
                     if (data.action === 'announcement' && (!data.exam_id || data.exam_id == examId)) {
                         const banner = document.getElementById('examAnnouncementBanner');
                         const msgEl = document.getElementById('announcementBannerMessage');
