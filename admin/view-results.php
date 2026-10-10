@@ -108,7 +108,7 @@ try {
     $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at
         FROM exam_attempts ea
         JOIN students s ON ea.student_id = s.id
-        WHERE ea.exam_id = :exam_id AND ea.status = 'completed'
+        WHERE ea.exam_id = :exam_id AND ea.status IN ('completed', 'disqualified')
         ORDER BY ea.score DESC, ea.submitted_at ASC";
     $resultsStmt = $pdo->prepare($resultsSql);
     $resultsStmt->execute([':exam_id' => $exam_id]);
@@ -238,10 +238,11 @@ include __DIR__ . '/../components/header.php';
 
         <!-- All Submissions -->
         <div class="card">
-            <div class="card-title">All Student Submissions (<?= count($all_results) ?>)</div>
-
-            <div style="margin-bottom: 10px;">
-                <?php include '../components/searchbar.php' ?>
+            <div style="display: flex; flex-direction: row; justify-content: space-between; padding: 10px;">
+                <div class="card-title">All Student Submissions (<?= count($all_results) ?>)</div>
+                <div style="width: 50%;">
+                    <?php include '../components/searchbar.php' ?>
+                </div>
             </div>
 
             <div class="table-wrap">

@@ -368,7 +368,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             $is_ongoing = ($display_status === 'RUNNING');
                             ?>
                             <tr>
-                                <td>#<?= e((string)$exam['id']) ?></td>
+                                <td>E<?= e((string)$exam['id']) ?></td>
                                 <td>
                                     <strong><?= e($exam['title']) ?></strong><br>
                                     <small style="color: var(--color-text-secondary);">
