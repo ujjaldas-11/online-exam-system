@@ -345,13 +345,13 @@ include __DIR__ . '/../components/student-navbar.php';
                                 <div class="action-alert" style="color: #055160;">
                                     <span><strong>Submission Received</strong></span>
                                     <div class="action-row">
-                                        <span class="badge badge-pending">Pending</span>
+                                        <span class="badge badge-pending">Results Pending</span>
                                     </div>
                                 </div>
                             <?php else: ?>
                                 <div class="action-alert" style="color: #664d03;">
                                     <span><strong>Submitted</strong></span>
-                                    <span class="badge badge-warning">Awaiting Results</span>
+                                    <span class="badge badge-warning">Results Pending</span>
                                 </div>
                             <?php endif; ?>
                         <?php elseif ($exam['category'] === 'scheduled'): ?>

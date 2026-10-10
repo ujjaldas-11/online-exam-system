@@ -1,0 +1,127 @@
+name: CI - Automated Test Suite
+
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+      - 'fix/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test Suite (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.2', '8.3']
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: examify
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: pdo, pdo_mysql, mbstring, gd, curl, json
+          ini-values: |
+            date.timezone=Asia/Kolkata
+            display_errors=On
+            error_reporting=E_ALL
+          coverage: none
+
+      - name: Run PHP Syntax Checks
+        run: |
+          echo "Verifying PHP syntax across all project files..."
+          find . -type f -name "*.php" ! -path "./.git/*" -print0 | xargs -0 -n1 -P4 php -l
+
+      - name: Configure Test Environment
+        run: |
+          cat << 'EOF' > .env
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=examify
+          DB_USERNAME=root
+          DB_PASSWORD=root
+          APP_ENV=development
+          BASE_URL=http://127.0.0.1:8080
+          EOF
+
+      - name: Initialize Database Schema & Baseline Seeds
+        run: |
+          php init-db.php --fresh
+
+      - name: Start Background Web Server
+        run: |
+          php -S 127.0.0.1:8080 -t . > /tmp/php-server.log 2>&1 &
+          sleep 2
+          curl -s -I http://127.0.0.1:8080 || { echo "Web server failed to start"; cat /tmp/php-server.log; exit 1; }
+
+      - name: Run Automated Test Suites
+        run: |
+          TEST_SUITES=(
+            "tests/offline_zero_cdn_test.php"
+            "tests/doc_access_test.php"
+            "tests/password_visibility_test.php"
+            "tests/device_gating_test.php"
+            "tests/mcq_types_test.php"
+            "tests/rate_limiter_test.php"
+            "tests/scheduled_exam_test.php"
+            "tests/bulk_promote_test.php"
+            "tests/concurrency_test.php"
+            "tests/singleton_login_test.php"
+            "tests/disqualified_student_test.php"
+            "tests/security_and_unit_tests.php"
+            "tests/websocket_test.php"
+            "tests/websocket_e2e_test.php"
+            "tests/phase4_remediation_test.php"
+            "tests/remediation_test.php"
+            "tests/e2e_automation.php"
+          )
+
+          FAILED=0
+          for t in "${TEST_SUITES[@]}"; do
+            echo "=================================================="
+            echo "▶ Running: $t"
+            echo "=================================================="
+            if ! php "$t"; then
+              echo "❌ TEST FAILED: $t"
+              FAILED=1
+              break
+            fi
+            echo "✔ PASSED: $t"
+            echo ""
+          done
+
+          if [ $FAILED -ne 0 ]; then
+            echo "❌ Test suite execution failed!"
+            exit 1
+          fi
+          echo "🎉 ALL 17 TEST SUITES PASSED SUCCESSFULLY!"
+
+      - name: Upload Test Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots-php-${{ matrix.php-version }}
+          path: tests/screenshots/*.png
+          if-no-files-found: ignore
