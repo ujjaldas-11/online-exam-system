@@ -77,6 +77,11 @@ if ($isAdminSuper) {
             <button class="icon-btn mobile-menu-btn" id="sidebarToggle" aria-label="Open navigation" title="menu bar">
                 <span class="material-symbols-outlined">menu</span>
             </button>
+            <a href="admin-dashboard.php" class="student-brand" style="margin-left: -0.7rem;">
+                <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+                <span class="nav-logo" style="margin-left: -20px; font-size: 1.6rem;">xamify</span>
+            </a>
+
         </div>
 
         <div class="topbar-right">
@@ -165,7 +170,12 @@ if ($isAdminSuper) {
                 </span>
                 <span class="link-label"><?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?></span>
             </a>
-        <?php endforeach; ?>
+
+            <?php endforeach; ?>
+            <a href="admin-logout.php" class="logout-btn" style="margin-top: auto; background-color: red;"  data-tooltip="logout">
+                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                <!-- Logout -->
+            </a>
     </nav>
 </aside>
 

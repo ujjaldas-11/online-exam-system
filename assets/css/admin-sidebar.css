@@ -268,7 +268,7 @@ body.sidebar-collapsed .main-content {
 /* ---------- Sidebar ---------- */
 .admin-sidebar {
   position: fixed;
-  top: 35px;
+  top: 25px;
   left: 0;
   bottom: 0;
   width: var(--sidebar-w);

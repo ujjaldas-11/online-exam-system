@@ -53,7 +53,7 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
 
         <a href="dashboard.php" class="student-brand">
                 <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
-                <span>Examify</span>
+                <span class="nav-logo" style="margin-left: -20px; font-size: 1.6rem;">xamify</span>
         </a>
 
         <button class="menu-btn" id="menuBtn" type="button"
