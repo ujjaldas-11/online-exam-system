@@ -56,9 +56,9 @@ $route_parents = [
 $effective_active_page = $route_parents[$current_page] ?? $current_page;
 
 if ($isAdminSuper) {
+    $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school', 'title' => 'teachers'];
     $admin_nav['registration-request.php'] = ['label' => 'Registration Requests', 'icon' => 'person_add', 'title' => 'registration requests'];
     $admin_nav['manage-requests.php'] = ['label' => 'update Requests', 'icon' => 'notifications', 'title' => 'profile update request'];
-    $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school', 'title' => 'teachers'];
     $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long', 'title' => 'logs'];
     $admin_nav['settings.php'] = ['label' => 'Settings & Backup', 'icon' => 'settings', 'title' => 'system settings and backup'];
 } else {
@@ -122,7 +122,7 @@ if ($isAdminSuper) {
                             <p style="color: var(--color-gold); text-align: center;"> <?= $collegeName ?></p>
                         </div>
                     </div>
-                    
+
                     <!-- Extended Admin Details -->
                     <div class="dropdown-admin-details">
                         <p><span class="material-symbols-outlined">email</span> <?= htmlspecialchars($adminEmail, ENT_QUOTES, 'UTF-8') ?></p>
