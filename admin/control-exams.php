@@ -179,6 +179,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = 'error';
         }
     }
+
+    // Restart exam 
+    elseif (isset($_POST['reopen_exam'])) {
+        verify_csrf();
+        $exam_to_reopen = (int) $_POST['exam_id'];
+        
+        // Change status back to inactive, and clear the scheduled end_time
+        try {
+            $stmt = $pdo->prepare("UPDATE exams SET status = 'inactive', end_time = NULL WHERE id = ?");
+            $stmt->execute([$exam_to_reopen]);
+            
+            if (function_exists('log_admin_action')) {
+                log_admin_action($pdo, 'reopen_exam', 'exam', $exam_to_reopen, "Reopened exam for next batch.");
+            }
+            
+            set_flash('success', "Exam reopened for the next batch! Please Edit the exam to generate a NEW Access PIN before starting it.");
+            redirect('control-exams.php');
+        } catch (PDOException $e) {
+            set_flash('error', "Database error while reopening exam.");
+            redirect('control-exams.php');
+        }
+    }
 }
 
 
@@ -422,9 +444,28 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 </td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;">
-                                        <a href="?download_offline=true&exam_id=<?= $exam['id'] ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
-                                            <span class="material-symbols-outlined icon-sm">print</span> PDF Offline Paper
+                                        
+                                        <!-- Print Paper -->
+                                        <a href="?download_offline=true&exam_id=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                                            <span class="material-symbols-outlined icon-sm">print</span> Print Paper
                                         </a>
+
+                                        <!-- EDIT / LOCKED BUTTON LOGIC -->
+                                        <?php 
+                                            $is_locked = ($display_status === 'RUNNING' || $display_status === 'ENDED' || $exam['status'] === 'retired');
+                                        ?>
+                                        <?php if (!$is_locked): ?>
+                                            <a href="manage-exam.php?edit=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                <span class="material-symbols-outlined icon-sm">edit</span> Edit
+                                            </a>
+                                        <?php else: ?>
+                                            <button class="btn btn-secondary btn-sm" disabled title="Locked: Exam has already started" style="opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 4px;">
+                                                <span class="material-symbols-outlined icon-sm">lock</span> Locked
+                                            </button>
+                                        <?php endif; ?>
+                                        <!-- END EDIT BUTTON -->
+
+
                                         <?php if ($display_status === 'NOT STARTED' || $display_status === 'SCHEDULED'): ?>
                                             <form method="POST" style="display: inline;" 
                                             data-confirm="Are you ready to begin the examination? Once you start, students will be able to join immediately."
@@ -437,6 +478,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                     <span class="material-symbols-outlined icon-xs">play_arrow</span> Start Now
                                                 </button>
                                             </form>
+
                                         <?php elseif ($display_status === 'RUNNING'): ?>
                                             <a href="proctor-exam.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                                                 <span class="material-symbols-outlined icon-xs">visibility</span> Live Proctor
@@ -449,7 +491,17 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                 <input type="hidden" name="extra_minutes" value="5">
                                                 <button type="submit" name="add_time" class="btn btn-secondary btn-sm" title="Add +5 minutes for all students">+5m</button>
                                             </form>
-                                        <?php endif; ?>
+
+                                        <?php elseif ($display_status === 'ENDED'): ?>
+                                                <!-- REOPEN BUTTON (FIXED $exam['id']) -->
+                                                <form method="POST" style="display:inline;" onsubmit="return confirm('Reopen this exam for the next batch? Previous submissions will be saved safely. Remember to change the PIN!');">
+                                                    <?= csrf_field() ?>
+                                                    <input type="hidden" name="exam_id" value="<?= (int)$exam['id'] ?>">
+                                                    <button type="submit" name="reopen_exam" class="btn btn-warning btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                        <span class="material-symbols-outlined icon-sm">refresh</span> Reopen
+                                                    </button>
+                                                </form>
+                                        <?php endif; ?> 
 
                                         <?php if ($display_status === 'ENDED' || (int)$exam['total_attempts'] > 0): ?>
                                             <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
@@ -480,17 +532,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                 </form>
                                             <?php endif; ?>
                                         <?php endif; ?>
-
-                                        <!-- Delete Exam -->
-                                        <!-- <?php if($isAdminSuper): ?>
-                                            <form method="POST" style="display: inline;" data-confirm="Are you sure you want to permanently delete this exam and all student submissions?" data-confirm-title="Delete Examination" data-confirm-btn="Delete Exam">
-                                                <?= csrf_field() ?>
-                                                <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
-                                                <button type="submit" name="delete_exam" class="btn btn-danger btn-sm" title="Delete Exam" style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 8px;">
-                                                    <span class="material-symbols-outlined icon-sm">delete</span>
-                                                </button>
-                                            </form>
-                                        <?php endif; ?> -->
                                     </div>
                                 </td>
                             </tr>

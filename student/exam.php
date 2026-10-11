@@ -75,6 +75,17 @@ try {
         redirect('dashboard.php');
     }
 
+    // ADD THIS strictly before allowing the student to start the exam
+    $checkAttemptStmt = $pdo->prepare("SELECT id FROM exam_attempts WHERE exam_id = ? AND student_id = ?");
+    $checkAttemptStmt->execute([$exam_id, $student_id]);
+
+    if ($checkAttemptStmt->fetch()) {
+        // If a record exists, they already took it with Batch 1! Block them.
+        set_flash('error', 'Access Denied: You have already completed this examination.');
+        redirect('dashboard.php'); // Or whatever your student homepage is named
+        exit;
+    }
+
     // 2. Classroom PIN Check with Rate Limiting
     $pinRequired = !empty($exam['access_pin']);
     $isUnlocked = isset($_SESSION['unlocked_exams'][$exam_id]);
