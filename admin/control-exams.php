@@ -219,6 +219,7 @@ $status_list = [
     'active'   => 'Active',
     'inactive' => 'Not Started',
     'ended'    => 'Ended',
+    'scheduled' => 'Scheduled',
     // 'draft'    => 'Draft'
 ];
 
