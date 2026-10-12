@@ -14,14 +14,11 @@ $admin_id = (int) ($_SESSION['admin_id'] ?? 0);
 try {
     //  High-Level KPIs
     $total_students = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'active'")->fetchColumn();
+    $total_teachers = (int) $pdo->query("SELECT COUNT(*) FROM admins WHERE role = 'teacher' AND status = 'active'")->fetchColumn();
     $total_exams = (int) $pdo->query("SELECT COUNT(*) FROM exams")->fetchColumn();
     $active_exams_count = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'active'")->fetchColumn();
-    $total_submissions = (int) $pdo->query("SELECT COUNT(*) FROM exam_attempts WHERE status IN ('completed', 'disqualified')")->fetchColumn();
-    
-    // Pending Tasks (Profile requests + Pending student accounts)
-    $pending_profiles = (int) $pdo->query("SELECT COUNT(*) FROM profile_requests WHERE status = 'pending'")->fetchColumn();
-    $pending_students = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'pending'")->fetchColumn();
-    $total_pending_tasks = $pending_profiles + $pending_students;
+    $total_subjects = (int) $pdo->query("SELECT COUNT(*) FROM subjects")->fetchColumn();
+    $total_questions = (int) $pdo->query("SELECT COUNT(*) FROM questions")->fetchColumn();
 
     //  Live / Ongoing Exams
     // Exams that are active and currently within their time window
@@ -62,7 +59,14 @@ try {
         FROM exam_attempts ea
         JOIN students st ON ea.student_id = st.id
         JOIN exams e ON ea.exam_id = e.id
-        WHERE ea.status IN ('completed', 'disqualified')
+        WHERE ea.exam_id = (
+            SELECT exam_id 
+            FROM exam_attempts 
+            WHERE status = 'completed'
+            ORDER BY submitted_at DESC 
+            LIMIT 1
+        )
+        AND ea.status = 'completed'
         AND e.total_marks > 0
         ORDER BY percentage DESC, ea.submitted_at ASC
         LIMIT 5
@@ -137,20 +141,25 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
         <div class="compact-kpi">
             <div class="num"><?= $total_students ?></div>
-            <div class="label"><span class="material-symbols-outlined icon-sm">school</span> Active Students</div>
+            <div class="label"><span class="material-symbols-outlined icon-sm">group</span> Active Students</div>
+        </div>
+        <div class="compact-kpi">
+            <div class="num"><?= $total_teachers ?></div>
+            <div class="label"><span class="material-symbols-outlined icon-sm">school</span> Active Teachers</div>
         </div>
         <div class="compact-kpi">
             <div class="num"><?= $total_exams ?> <span style="font-size: 0.9rem; font-weight: 500; color: var(--color-text-secondary);">/ <?= $active_exams_count ?> Live</span></div>
             <div class="label"><span class="material-symbols-outlined icon-sm">assignment</span> Exams</div>
         </div>
         <div class="compact-kpi">
-            <div class="num"><?= $total_submissions ?></div>
-            <div class="label"><span class="material-symbols-outlined icon-sm">task_alt</span> Submissions</div>
+            <div class="num"><?= $total_subjects ?></div>
+            <div class="label"><span class="material-symbols-outlined icon-sm">menu_book</span> Subjects</div>
         </div>
-        <a href="manage-requests.php" class="compact-kpi" style="text-decoration: none; cursor: pointer; border-color: <?= $total_pending_tasks > 0 ? '#fca5a5' : 'var(--color-border)' ?>; background: <?= $total_pending_tasks > 0 ? '#fef2f2' : 'var(--color-bg)' ?>;">
-            <div class="num" style="color: <?= $total_pending_tasks > 0 ? '#dc2626' : 'var(--color-dark)' ?>;"><?= $total_pending_tasks ?></div>
-            <div class="label" style="color: <?= $total_pending_tasks > 0 ? '#dc2626' : 'var(--color-text-secondary)' ?>;"><span class="material-symbols-outlined icon-sm">notifications_active</span> Pending Notifications</div>
-        </a>
+        <div class="compact-kpi">
+            <div class="num"><?= $total_questions ?></div>
+            <div class="label"><span class="material-symbols-outlined icon-sm">quiz</span>
+            Questions</div>
+        </div>
     </div>
 
     <!-- Middle Row: Operational Action Queue -->
