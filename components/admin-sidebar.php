@@ -79,7 +79,7 @@ if ($isAdminSuper) {
             </button>
             <a href="admin-dashboard.php" class="student-brand" style="margin-left: -0.7rem;">
                 <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
-                <span class="nav-logo" style="margin-left: -20px; font-size: 1.6rem;">xamify</span>
+                <span class="nav-logo" style="margin-left: -20px; font-size: 1.4rem; margin-top: 7.5px;">xamify</span>
             </a>
 
         </div>
