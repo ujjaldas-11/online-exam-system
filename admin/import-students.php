@@ -32,133 +32,186 @@ $errors = [];
 $message = '';
 
 // =========================================================================
-// CSV PROCESSING LOGIC
+// CSV PROCESSING LOGIC (OPTIMIZED FOR 100+ RECORDS)
 // =========================================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_csv'])) {
     verify_csrf();
 
-    $csv_content = '';
-    $maxFileSize = 5 * 1024 * 1024; // 5MB limit
+    //  Prevent timeout on large batches
+    set_time_limit(300); // 5 minutes max execution time
+    ini_set('memory_limit', '256M');
 
-    // Handle File Upload
+    $maxFileSize = 5 * 1024 * 1024; // 5MB
+    $handle = null;
+
+    // Handle File Upload vs Raw Text Stream
     if (!empty($_FILES['csv_file']['name']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK) {
         if ($_FILES['csv_file']['size'] > $maxFileSize) {
             $errors[] = "File is too large. Maximum 5MB allowed.";
         } else {
-            $csv_content = (string) file_get_contents($_FILES['csv_file']['tmp_name']);
+            $handle = fopen($_FILES['csv_file']['tmp_name'], 'r');
         }
-    } 
-    // Handle Raw Paste
-    elseif (!empty($_POST['csv_raw'])) {
+    } elseif (!empty($_POST['csv_raw'])) {
         if (strlen($_POST['csv_raw']) > $maxFileSize) {
             $errors[] = "CSV text payload too large. Maximum 5MB allowed.";
         } else {
-            $csv_content = trim($_POST['csv_raw']);
+            $handle = fopen('php://memory', 'r+');
+            fwrite($handle, trim($_POST['csv_raw']));
+            rewind($handle);
         }
+    } else {
+        $errors[] = "Please upload a valid CSV file or paste CSV text.";
     }
 
-    if (empty($csv_content) && empty($errors)) {
-        $errors[] = "Please upload a valid CSV file or paste CSV text.";
-    } elseif (!empty($csv_content)) {
-        $lines = explode("\n", str_replace("\r", "", $csv_content));
-        
-        if (count($lines) > 5005) { // 5000 + headers
-            $errors[] = "Too many rows. Maximum 5,000 students per import to ensure stability.";
-        } else {
-            $header_skipped = false;
-            $adminId = $_SESSION['admin_id'] ?? null;
+    if ($handle && empty($errors)) {
+        $adminId = $_SESSION['admin_id'] ?? null;
+        $lineIndex = 0;
+        $headerSkipped = false;
 
-            try {
-                // Prepared statements outside the loop for maximum performance
-                $checkStmt = $pdo->prepare("SELECT id FROM students WHERE email = ? OR roll_number = ?");
-                
-                // FIXED SQL: 9 variables match 9 placeholders perfectly
-                $insertStmt = $pdo->prepare("
-                    INSERT INTO students 
-                    (name, email, password, roll_number, department, semester, phone_number, gender, status, reviewed_by, reviewed_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, NOW())
-                ");
+        try {
+            // Pre-fetch existing emails and roll numbers into lookup sets (O(1) checks)
+            $existingEmails = [];
+            $existingRolls  = [];
 
-                $pdo->beginTransaction();
-
-                foreach ($lines as $lineIndex => $line) {
-                    $line = trim($line);
-                    if (empty($line)) continue;
-
-                    $row = str_getcsv($line);
-                    
-                    // Must have at least 7 columns (Password is the 8th and is optional)
-                    if (count($row) < 7) continue;
-
-                    // Skip header row dynamically
-                    if (!$header_skipped && (stripos($row[0], 'name') !== false || stripos($row[1], 'email') !== false)) {
-                        $header_skipped = true;
-                        continue;
-                    }
-
-                    // Map and clean row data based on the 8 expected columns
-                    $name   = clean_input($row[0] ?? '');
-                    $email  = clean_input($row[1] ?? '');
-                    $roll   = strtoupper(clean_input($row[2] ?? ''));
-                    $dept   = clean_input($row[3] ?? '');
-                    $sem    = (int)($row[4] ?? 0);
-                    $phone  = clean_input($row[5] ?? '');
-                    $gender = clean_input($row[6] ?? '');
-                    
-                    // If password is provided, use it. Otherwise, default to their Roll Number.
-                    $raw_pass = !empty(trim($row[7] ?? '')) ? trim($row[7]) : $roll; 
-
-                    // Strict Validation
-                    if (!$name || !$email || !$roll || !$dept || $sem < 1 || $sem > 8 || !$phone || !$gender) {
-                        $errors[] = "Row " . ($lineIndex + 1) . ": Missing required fields for $name ($roll).";
-                        $skip_count++;
-                        continue;
-                    }
-
-                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        $errors[] = "Row " . ($lineIndex + 1) . ": Invalid email format ($email).";
-                        $skip_count++;
-                        continue;
-                    }
-
-                    // Duplicate Check
-                    $checkStmt->execute([$email, $roll]);
-                    if ($checkStmt->rowCount() > 0) {
-                        $skip_count++; // Silently skip duplicates to prevent crashing the batch
-                        continue;
-                    }
-
-                    // Execution
-                    try {
-                        $hashed = password_hash($raw_pass, PASSWORD_DEFAULT);
-                        // FIXED: Pass all 9 variables perfectly aligned with the INSERT statement
-                        $insertStmt->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone, $gender, $adminId]);
-                        $success_count++;
-                    } catch (PDOException $e) {
-                        $skip_count++;
-                        log_error("Failed to import student $name", $e);
-                    }
-                }
-
-                $pdo->commit();
-                
-                if (function_exists('log_admin_action')) {
-                    log_admin_action($pdo, 'import_students', 'student', null, "Batch imported $success_count students ($skip_count skipped)");
-                }
-                
-                if ($success_count > 0) {
-                    $message = "Import complete! Successfully added $success_count new students. ($skip_count duplicates or invalid rows skipped).";
-                } elseif ($skip_count > 0 && empty($errors)) {
-                    $errors[] = "No new students were imported. All $skip_count rows were either duplicates or invalid.";
-                }
-
-            } catch (Exception $e) {
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
-                }
-                log_error("Failed during CSV batch transaction", $e);
-                $errors[] = "Database error occurred during import. Operation aborted safely.";
+            $existingStmt = $pdo->query("SELECT email, roll_number FROM students");
+            while ($r = $existingStmt->fetch(PDO::FETCH_ASSOC)) {
+                $existingEmails[strtolower($r['email'])] = true;
+                $existingRolls[strtoupper($r['roll_number'])] = true;
             }
+
+            //  Prepare single INSERT statement
+            $insertStmt = $pdo->prepare("
+                INSERT INTO students 
+                (name, email, password, roll_number, department, semester, phone_number, gender, status, reviewed_by, reviewed_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, NOW())
+            ");
+
+            // Process in transaction chunks of 100 rows to keep lock times low
+            $batchSize = 100;
+            $rowsInCurrentBatch = 0;
+            $pdo->beginTransaction();
+
+            // Stream line by line using fgetcsv
+            while (($row = fgetcsv($handle)) !== false) {
+                $lineIndex++;
+
+                // Enforce maximum row threshold
+                if ($lineIndex > 5005) {
+                    $errors[] = "Reached limit of 5,000 records. Remaining rows ignored.";
+                    break;
+                }
+
+                // Skip empty lines
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                // Minimum required columns
+                if (count($row) < 7) {
+                    $errors[] = "Row $lineIndex: Expected at least 7 columns.";
+                    $skip_count++;
+                    continue;
+                }
+
+                // Dynamic header check
+                if (!$headerSkipped && (stripos($row[0], 'name') !== false || stripos($row[1], 'email') !== false)) {
+                    $headerSkipped = true;
+                    continue;
+                }
+
+                // Map and clean input
+                $name   = clean_input($row[0] ?? '');
+                $email  = clean_input($row[1] ?? '');
+                $roll   = strtoupper(clean_input($row[2] ?? ''));
+                $dept   = clean_input($row[3] ?? '');
+                $sem    = (int)($row[4] ?? 0);
+                $phone  = clean_input($row[5] ?? '');
+                $gender = clean_input($row[6] ?? '');
+                $raw_pass = !empty(trim($row[7] ?? '')) ? trim($row[7]) : $roll;
+
+                // Validation
+                if (!$name || !$email || !$roll || !$dept || $sem < 1 || $sem > 8 || !$phone || !$gender) {
+                    $errors[] = "Row $lineIndex: Missing required fields for $name ($roll).";
+                    $skip_count++;
+                    continue;
+                }
+
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $errors[] = "Row $lineIndex: Invalid email format ($email).";
+                    $skip_count++;
+                    continue;
+                }
+
+                $emailLower = strtolower($email);
+
+                // In-memory duplicate check (against DB and earlier CSV rows)
+                if (isset($existingEmails[$emailLower]) || isset($existingRolls[$roll])) {
+                    $skip_count++;
+                    continue;
+                }
+
+                // Hash password and insert
+                try {
+                    // Cost parameter (e.g. 10) ensures consistent speed and memory bounds
+                    $hashed = password_hash($raw_pass, PASSWORD_BCRYPT, ['cost' => 10]);
+                    
+                    $insertStmt->execute([
+                        $name,
+                        $email,
+                        $hashed,
+                        $roll,
+                        $dept,
+                        $sem,
+                        $phone,
+                        $gender,
+                        $adminId
+                    ]);
+
+                    // Register in lookup maps to catch duplicates within the same CSV
+                    $existingEmails[$emailLower] = true;
+                    $existingRolls[$roll] = true;
+
+                    $success_count++;
+                    $rowsInCurrentBatch++;
+
+                    // Commit in batches
+                    if ($rowsInCurrentBatch >= $batchSize) {
+                        $pdo->commit();
+                        $pdo->beginTransaction();
+                        $rowsInCurrentBatch = 0;
+                    }
+                } catch (PDOException $e) {
+                    $skip_count++;
+                    log_error("Failed to insert student row $lineIndex ($name)", $e);
+                }
+            }
+
+            // Commit remaining records
+            if ($pdo->inTransaction()) {
+                $pdo->commit();
+            }
+
+            fclose($handle);
+
+            if (function_exists('log_admin_action')) {
+                log_admin_action($pdo, 'import_students', 'student', null, "Batch imported $success_count students ($skip_count skipped)");
+            }
+
+            if ($success_count > 0) {
+                $message = "Import complete! Successfully added $success_count new students. ($skip_count duplicates or invalid rows skipped).";
+            } elseif ($skip_count > 0 && empty($errors)) {
+                $errors[] = "No new students were imported. All $skip_count rows were either duplicates or invalid.";
+            }
+
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+            log_error("Failed during CSV batch processing", $e);
+            $errors[] = "Database error occurred during import: " . $e->getMessage();
         }
     }
 }
