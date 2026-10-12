@@ -557,57 +557,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
         </div>
     </div>
-
-    <!-- Search & Filter Card -->
-    <!-- <div class="card" style="margin-bottom: 24px;">
-        <form method="GET" action="manage-students.php" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
-            <div class="form-group" style="margin-bottom: 0; flex: 2; min-width: 220px;">
-                <label>Search Roster</label>
-                <input type="text" name="q" value="<?= e($filterQ) ?>" placeholder="Search by name, roll no, email, or phone...">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
-                <label>Department</label>
-                <select name="department">
-                    <option value="">All Departments</option>
-                    <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
-                        <option value="<?= e($d) ?>" <?= $filterDept === $d ? 'selected' : '' ?>><?= e($d) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
-                <label>Semester</label>
-                <select name="semester">
-                    <option value="">All Semesters</option>
-                    <?php for ($i = 1; $i <= 8; $i++): ?>
-                        <option value="<?= $i ?>" <?= $filterSem === $i ? 'selected' : '' ?>>Semester <?= $i ?></option>
-                    <?php endfor; ?>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
-                <label>Status</label>
-                <select name="status">
-                    <option value="">All Statuses</option>
-                    <option value="active" <?= $filterStatus === 'active' ? 'selected' : '' ?>>Active</option>
-                    <option value="blocked" <?= $filterStatus === 'blocked' ? 'selected' : '' ?>>Blocked</option>
-                    <option value="pending" <?= $filterStatus === 'pending' ? 'selected' : '' ?>>Pending</option>
-                    <option value="rejected" <?= $filterStatus === 'rejected' ? 'selected' : '' ?>>Rejected</option>
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <button type="submit" class="btn btn-primary" style="height: 38px; display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">filter_alt</span> Filter
-                </button>
-
-                <a href="manage-students.php" class="btn btn-secondary" style="height: 38px; display: inline-flex; align-items: center; gap: 4px;" title="Reset filters">
-                    <span class="material-symbols-outlined icon-sm">restart_alt</span>
-                </a>
-            </div>
-        </form>
-    </div> -->
+    
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
     <!-- Student Roster Table -->
     <div class="card" style="overflow: hidden; max-width: 100%;">
