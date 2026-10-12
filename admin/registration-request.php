@@ -109,7 +109,7 @@ $whereClause = "WHERE " . implode(" AND ", $queryWhere);
 
 // Setup Pagination Variables
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$per_page = 10; // Number of exams per page
+$per_page = 20; // Number of exams per page
 $total_result_count = 0;
 
 try {

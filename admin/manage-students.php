@@ -462,7 +462,7 @@ try {
 
     // Pagination parameters
     $page = max(1, (int)($_GET['page'] ?? 1));
-    $per_page = 50;
+    $per_page = 20;
     $offset = ($page - 1) * $per_page;
 
     // Roster query
@@ -557,13 +557,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
         </div>
     </div>
-    
+
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
     <!-- Student Roster Table -->
     <div class="card" style="overflow: hidden; max-width: 100%;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
             <div class="card-title" style="margin-bottom: 0;">
-                Enrolled Students (<?= count($students) ?> <?= count($students) === 1 ? 'record' : 'records' ?>)
+                Enrolled Students (<?= $total_students_count ?>)
             </div>
             <?php if($isAdminSuper): ?>
                 <?php if ($pendingCount > 0): ?>
