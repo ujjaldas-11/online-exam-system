@@ -43,7 +43,7 @@ try {
     ");
     $scheduled_exams = $scheduledExamsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch Top All-Time Submissions by percentage
+    // Fetch Top recent exam Submissions by percentage
     $topSubmissionsStmt = $pdo->query("
         SELECT 
             ea.id AS attempt_id,
@@ -263,7 +263,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <!-- Recent Submissions -->
         <div class="card">
             <div class="card-title" style="padding: 12px 16px; font-size: 0.95rem; border-bottom: 1px solid var(--color-border);">
-                <span class="material-symbols-outlined icon-sm">trophy</span> Top 5 Submissions (All Time)
+                <span class="material-symbols-outlined icon-sm">trophy</span> Top 5 Submissions of recent exam
             </div>
             <?php if (empty($top_submissions)): ?>
                 <p style="padding: 16px; font-size: 0.85rem; color: var(--color-text-secondary); margin: 0; text-align: center;">No completed exam submissions found.</p>

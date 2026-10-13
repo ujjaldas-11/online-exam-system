@@ -249,7 +249,9 @@ input[type="password"]::-ms-clear,
   justify-content: center;
   line-height: 1;
   border-radius: var(--radius-sm, 4px);
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
   -webkit-user-select: none;
   user-select: none;
   z-index: 2;
@@ -289,7 +291,9 @@ input[type="password"]::-ms-clear,
   border-radius: var(--radius-lg, 12px);
   width: 100%;
   max-width: 540px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.2),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--color-border, #e2e8f0);
   overflow: hidden;
   animation: modalFadeIn 0.2s ease-out;
@@ -300,8 +304,14 @@ input[type="password"]::-ms-clear,
 }
 
 @keyframes modalFadeIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .admin-modal-header {
@@ -365,7 +375,9 @@ input[type="password"]::-ms-clear,
   color: #f8fafc;
   padding: 10px 20px;
   border-radius: 9999px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.4),
+    0 8px 10px -6px rgba(0, 0, 0, 0.2);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -375,8 +387,14 @@ input[type="password"]::-ms-clear,
 }
 
 @keyframes batchSlideUp {
-  from { opacity: 0; transform: translate(-50%, 15px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, 15px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .batch-bar-count {
@@ -536,6 +554,129 @@ input[type="password"]::-ms-clear,
   color: var(--color-text, #0f172a);
 }
 
+/* Dropdown Container */
+.action-menu-content {
+  display: none;
+  position: fixed;
+  z-index: 99999; 
+  min-width: 180px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.15),
+    0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 4px 0;
+  flex-direction: column;
+}
+
+.action-menu-content.show {
+  display: flex;
+}
+.action-menu-content.dropup {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
+  box-shadow:
+    0 -10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 -4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Individual Action Items */
+.action-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+/* Default Hover State */
+.action-menu-item:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+/* Separator Line */
+.action-menu-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 4px 0;
+}
+
+/* Theme-Aware Color Helpers */
+.action-menu-item.text-primary {
+  color: var(--color-primary-light);
+}
+
+.action-menu-item.text-success {
+  color: var(--color-success);
+}
+.action-menu-item.text-success:hover:not(:disabled) {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.action-menu-item.text-warning {
+  color: var(--color-warning);
+}
+.action-menu-item.text-warning:hover:not(:disabled) {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.action-menu-item.text-danger {
+  color: var(--color-error);
+}
+.action-menu-item.text-danger:hover:not(:disabled) {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+/* Make the parent element relative so the tooltip positions correctly */
+[data-tooltip] {
+    position: relative;
+    cursor: help; /* Optional: changes cursor to a question mark on hover */
+}
+
+/* The actual tooltip box */
+[global-data-tooltip]::after {
+    content: attr(global-data-tooltip); /* Grabs the text from the HTML attribute */
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: var(--color-primary);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 99999;
+    pointer-events: none;/* Prevents the tooltip from blocking clicks   */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Show the tooltip on hover */
+[global-data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-8px); /* Slides up slightly */
+}
+
 /* --- Form Elements --- */
 .form-group {
   margin-bottom: 16px;
@@ -575,7 +716,6 @@ textarea:focus {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
 }
-
 
 /* --- Create Exam Page --- */
 .exam-form-page {
@@ -690,7 +830,6 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 }
-
 
 /* --- Alerts --- */
 .alert {
@@ -1000,7 +1139,9 @@ tr:hover td {
   font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .pagination-btn:hover:not(.disabled):not(.active) {

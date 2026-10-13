@@ -71,9 +71,6 @@ if ($isAdminSuper) {
 <header class="admin-topbar">
     <div class="topbar-inner">
         <div class="topbar-left">
-            <button class="icon-btn desktop-collapse-btn" id="desktopCollapseBtn" aria-label="Collapse sidebar">
-                <span class="material-symbols-outlined">dock_to_right</span>
-            </button>
             <button class="icon-btn mobile-menu-btn" id="sidebarToggle" aria-label="Open navigation" title="menu bar">
                 <span class="material-symbols-outlined">menu</span>
             </button>
@@ -135,14 +132,20 @@ if ($isAdminSuper) {
                     </div>
                     
                     <hr class="dropdown-divider" style="margin: 0;">
-                    <a href="admin-reset-password.php" class="dropdown-reset-btn-item">
-                        <span class="material-symbols-outlined" aria-hidden="true">lock_reset</span>
-                        Reset Password
+                    <a href="admin-reset-password.php" class="dropdown-reset-btn-item"  style="display: flex; justify-content: space-between;">
+                        <div>
+                            <span class="material-symbols-outlined" aria-hidden="true">lock_reset</span>
+                            Reset Password
+                        </div>
+                        <span class="material-symbols-outlined">Chevron_Right</span>
                     </a>
                     <hr class="dropdown-divider" style="margin: 0;">
-                    <a href="admin-logout.php" class="logout-btn">
-                        <span class="material-symbols-outlined" aria-hidden="true">logout</span>
-                        Logout
+                    <a href="admin-logout.php" class="logout-btn" style="display: flex; justify-content: space-between;">
+                        <div>
+                            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                            Logout
+                        </div>
+                        <span class="material-symbols-outlined">Chevron_Right</span>
                     </a>
                 </div>
             </div>
@@ -172,9 +175,13 @@ if ($isAdminSuper) {
             </a>
 
             <?php endforeach; ?>
-            <a href="admin-logout.php" class="logout-btn" style="margin-top: auto; background-color: red;"  data-tooltip="logout">
-                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
-                <!-- Logout -->
+
+            <a class="desktop-collapse-btn" id="desktopCollapseBtn" aria-label="Collapse sidebar" style="margin-top: auto;" data-tooltip="Close Sidebar">
+                <span class="material-symbols-outlined">dock_to_right</span>
+                <div class="link-label">
+                    <span>Collapse</span>
+                    <span class="material-symbols-outlined" style="margin-left: 4rem;">Chevron_Right</span>
+                </div>
             </a>
     </nav>
 </aside>

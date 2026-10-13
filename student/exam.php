@@ -65,27 +65,32 @@ try {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Time is up! This examination has already concluded.</h2>");
     }
 
-    // Check if student already has a disqualified attempt for this exam
+    // 1. Check if student already has an attempt for this exam
     $checkAttemptStmt = $pdo->prepare("SELECT id, status FROM exam_attempts WHERE student_id = ? AND exam_id = ? LIMIT 1");
     $checkAttemptStmt->execute([$student_id, $exam_id]);
     $existingAttempt = $checkAttemptStmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($existingAttempt && $existingAttempt['status'] === 'disqualified') {
-        set_flash('error', "You have been disqualified from this examination due to integrity violations.");
-        redirect('dashboard.php');
+    if ($existingAttempt) {
+        $attempt_status = $existingAttempt['status'];
+
+        if ($attempt_status === 'completed') {
+            // RULE 1: Block Batch 1 students (or anyone who finished and submitted)
+            set_flash('error', 'Access Denied: You have already completed this examination in a previous batch.');
+            redirect('dashboard.php');
+            exit;
+        }
+        elseif ($attempt_status === 'disqualified') {
+            // RULE 2: Block cheaters. (If a teacher wants to forgive them, they must 
+            // manually change their status back to 'in_progress' from the Admin Proctor Panel)
+            set_flash('error', 'Access Denied: Your exam was terminated due to rule violations.');
+            redirect('dashboard.php');
+            exit;
+        }
+        elseif ($attempt_status === 'in_progress') {
+            // RULE 3: Allow Auto-Resume! If their PC crashed, do NOT block them. 
+            // Let the script bypass this block so they resume exactly where they left off.
+        }
     }
-
-    // ADD THIS strictly before allowing the student to start the exam
-    $checkAttemptStmt = $pdo->prepare("SELECT id FROM exam_attempts WHERE exam_id = ? AND student_id = ?");
-    $checkAttemptStmt->execute([$exam_id, $student_id]);
-
-    if ($checkAttemptStmt->fetch()) {
-        // If a record exists, they already took it with Batch 1! Block them.
-        set_flash('error', 'Access Denied: You have already completed this examination.');
-        redirect('dashboard.php'); // Or whatever your student homepage is named
-        exit;
-    }
-
     // 2. Classroom PIN Check with Rate Limiting
     $pinRequired = !empty($exam['access_pin']);
     $isUnlocked = isset($_SESSION['unlocked_exams'][$exam_id]);

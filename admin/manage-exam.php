@@ -221,7 +221,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php endif; ?>
 
     <div class="card exam-card">
-        <!-- 🚨 CRITICAL FIX: The form action MUST include the ?edit= ID if in edit mode! 🚨 -->
+        <!-- The form action MUST include the ?edit= ID if in edit mode!  -->
         <form method="POST" class="exam-form" action="<?= $is_edit ? 'manage-exam.php?edit='.$edit_id : 'manage-exam.php' ?>">
             <?= csrf_field() ?>
 
@@ -328,7 +328,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <div class="exam-form__actions" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <?php if ($is_edit): ?>
-                    <!-- 🚨 CRITICAL FIX: The button must have name="update_exam" 🚨 -->
+                    <!-- The button must have name="update_exam"  -->
                     <button type="submit" name="update_exam" class="btn btn-primary">
                         <span class="material-symbols-outlined icon-sm">save</span> Update Configuration
                     </button>

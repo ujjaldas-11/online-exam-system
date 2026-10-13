@@ -149,7 +149,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Setup Pagination & Search Variables
+
+$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$per_page = 20; // Number of students per page
+$search_q = isset($_GET['q']) ? trim($_GET['q']) : '';
+$offset = ($current_page - 1) * $per_page;
+
 try {
+    // 1. Fetch Exam Details
     $examStmt = $pdo->prepare("
         SELECT e.*, s.name AS subject_name, s.department, s.semester,
             TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE)) AS seconds_left
@@ -164,7 +172,54 @@ try {
         die("Examination not found.");
     }
 
-    // Fetch all students belonging to the target department & semester
+    // 2. Fetch OVERALL Summary Stats (Independent of search/pagination)
+    // We use a single efficient query to count everyone instead of fetching 1000 rows
+    $statsStmt = $pdo->prepare("
+        SELECT 
+            COUNT(st.id) AS total_enrolled,
+            SUM(CASE WHEN ea.id IS NULL THEN 1 ELSE 0 END) AS not_started_count,
+            SUM(CASE WHEN ea.status = 'completed' THEN 1 ELSE 0 END) AS completed_count,
+            SUM(CASE WHEN ea.id IS NOT NULL AND ea.status != 'completed' THEN 1 ELSE 0 END) AS in_progress_count,
+            COALESCE(SUM((SELECT COUNT(*) FROM exam_violations WHERE attempt_id = ea.id)), 0) AS total_violations
+        FROM students st
+        LEFT JOIN exam_attempts ea ON st.id = ea.student_id AND ea.exam_id = ?
+        WHERE st.department = ? AND st.semester = ? AND st.status = 'active'
+    ");
+    $statsStmt->execute([$exam_id, $exam['department'], $exam['semester']]);
+    $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
+
+    $total_enrolled = (int)$stats['total_enrolled'];
+    $not_started_count = (int)$stats['not_started_count'];
+    $completed_count = (int)$stats['completed_count'];
+    $in_progress_count = (int)$stats['in_progress_count'];
+    $total_violations = (int)$stats['total_violations'];
+
+
+    // 3. Build the Search Query
+    $whereClause = "st.department = ? AND st.semester = ? AND st.status = 'active'";
+    $params = [$exam_id, $exam['department'], $exam['semester']];
+
+    if (!empty($search_q)) {
+        $whereClause .= " AND (st.name LIKE ? OR st.roll_number LIKE ? OR st.email LIKE ?)";
+        $wildcard = "%" . $search_q . "%";
+        $params[] = $wildcard;
+        $params[] = $wildcard;
+        $params[] = $wildcard;
+    }
+
+    // 4. Fetch Total Count for Pagination (Filtered by Search)
+    $countStmt = $pdo->prepare("
+        SELECT COUNT(st.id) 
+        FROM students st
+        WHERE $whereClause
+    ");
+    // Remove $exam_id from params just for the count query
+    $countParams = array_slice($params, 1); 
+    $countStmt->execute($countParams);
+    $total_filtered_students = (int)$countStmt->fetchColumn();
+
+
+    // 5. Fetch Paginated & Searched Roster
     $rosterStmt = $pdo->prepare("
         SELECT st.id AS student_id, st.name, st.roll_number, st.email,
             ea.id AS attempt_id, ea.status AS attempt_status, ea.score, ea.started_at, ea.submitted_at,
@@ -172,56 +227,45 @@ try {
             (SELECT COUNT(*) FROM exam_violations WHERE attempt_id = ea.id) AS violation_count
         FROM students st
         LEFT JOIN exam_attempts ea ON st.id = ea.student_id AND ea.exam_id = ?
-        WHERE st.department = ? AND st.semester = ? AND st.status = 'active'
+        WHERE $whereClause
         ORDER BY st.roll_number ASC
+        LIMIT $per_page OFFSET $offset
     ");
-
-    $rosterStmt->execute([$exam_id, $exam['department'], $exam['semester']]);
+    
+    $rosterStmt->execute($params);
     $students = $rosterStmt->fetchAll();
 
-    // Summary counts
-    $total_enrolled = count($students);
-    $in_progress_count = 0;
-    $completed_count = 0;
-    $not_started_count = 0;
-    $total_violations = 0;
 
-    foreach ($students as $st) {
-        if (empty($st['attempt_id'])) {
-            $not_started_count++;
-        } elseif ($st['attempt_status'] === 'completed') {
-            $completed_count++;
-        } else {
-            $in_progress_count++;
-        }
-        $total_violations += (int) $st['violation_count'];
-    }
 
 } catch (PDOException $e) {
     log_error("Proctor panel error for exam $exam_id", $e);
     die("Database Error loading proctor panel.");
 }
 
+// 6. Config for the Global Filter Bar (include this right above your HTML table)
+$form_action = 'proctor-exam.php'; // Or whatever this file is named
+$search_placeholder = "Search by Name, Roll No, or Email...";
+$show_dept = false; // Department is fixed to the exam
+$show_sem = false;  // Semester is fixed to the exam
 $page_title = 'Live Proctor: ' . ($exam['title'] ?? 'Exam') . ' • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
+
 ?>
 
 <div class="container main-content">
-    <div style="margin-bottom: 16px;">
-        <a href="control-exams.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-            <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to Exam Controls
-        </a>
-    </div>
-
-    <div class="page-header">
+ 
+<div class="page-header">
         <div>
             <h1 style="display: flex; align-items: center; gap: 8px;">
                 <span class="material-symbols-outlined icon-lg">visibility</span> Live Classroom Proctoring Panel
             </h1>
             <p>Monitoring: <strong><?= e($exam['title']) ?></strong> (<?= e($exam['subject_name']) ?> • <?= e($exam['department']) ?>, Sem <?= e((string)$exam['semester']) ?>)</p>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <a href="control-exams.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to Exam Controls
+        </a>
+        <!-- <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <button type="button" class="btn btn-primary btn-sm" id="openAnnouncementModalBtn" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-xs">campaign</span> Broadcast Announcement
             </button>
@@ -231,7 +275,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <span class="material-symbols-outlined icon-sm">key</span> Classroom PIN: <strong><?= e($exam['access_pin']) ?></strong>
                 </div>
             <?php endif; ?>
-        </div>
+        </div> -->
     </div>
 
     <?php if ($message): ?>
@@ -267,8 +311,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <!-- Live Student Roster Table -->
     <div class="card">
         <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Classroom Live Status Roster</span>
-            <small style="color: var(--color-text-secondary); font-weight: normal;">Live Real-Time Sync</small>
+            <span>Classroom Live Status Roster </span>
+            <?php include __DIR__ . '/../components/filter-bar.php'?>
         </div>
 
         <div class="table-wrap">
@@ -331,7 +375,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                     <input type="hidden" name="student_id" value="<?= (int) $st['student_id'] ?>">
                                                     <button type="submit" name="reset_student_attempt" class="btn btn-secondary btn-sm">Unlock / Resume</button>
                                                 </form>
-                                            <?php else: ?>
+                                            <?php elseif ($st['attempt_status'] === 'in_progress'):?>
                                                 <form method="POST" style="display: inline;" data-confirm="Force submit examination for <?= e($st['name']) ?>?" data-confirm-title="Force Submit Examination" data-confirm-btn="Force Submit">
                                                     <?= csrf_field() ?>
                                                     <input type="hidden" name="attempt_id" value="<?= (int) $st['attempt_id'] ?>">
@@ -350,7 +394,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-            <?php endif; ?>
+                <?php endif; ?>
+            <?php 
+                $total_items = $total_filtered_students;
+                include __DIR__ . '/../components/pagination.php';
+            ?>
         </div>
     </div>
 </div>
@@ -364,7 +412,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 </script>
 
 <!-- Broadcast Announcement Modal -->
-<div id="announcementModal" class="admin-modal-overlay" style="display: none;">
+<!-- <div id="announcementModal" class="admin-modal-overlay" style="display: none;">
     <div class="admin-modal-card">
         <div class="admin-modal-header">
             <h3 style="display: flex; align-items: center; gap: 8px;">
@@ -390,7 +438,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </button>
         </div>
     </div>
-</div>
+</div> -->
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
