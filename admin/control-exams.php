@@ -296,7 +296,13 @@ try {
         JOIN subjects s ON e.subject_id = s.id
         LEFT JOIN admins a ON e.created_by = a.id
         $whereClause
-        ORDER BY e.id DESC
+        ORDER BY 
+            CASE e.status 
+                WHEN 'active' THEN 1 
+                WHEN 'inactive' THEN 2 
+                ELSE 3 
+            END ASC,
+            e.id DESC
         LIMIT $per_page
         OFFSET $offset
     ";
