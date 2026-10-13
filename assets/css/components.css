@@ -595,7 +595,7 @@ input[type="password"]::-ms-clear,
   text-align: left;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   cursor: pointer;
   text-decoration: none;
   font-family: inherit;
@@ -604,7 +604,7 @@ input[type="password"]::-ms-clear,
 /* Default Hover State */
 .action-menu-item:hover:not(:disabled) {
   background: var(--color-primary-soft);
-  color: var(--color-primary);
+  color: var(--color-primary-hover);
 }
 /* Separator Line */
 .action-menu-divider {
@@ -643,9 +643,9 @@ input[type="password"]::-ms-clear,
 }
 
 /* Make the parent element relative so the tooltip positions correctly */
-[data-tooltip] {
+[global-data-tooltip] {
     position: relative;
-    cursor: help; /* Optional: changes cursor to a question mark on hover */
+    cursor: pointer; /* Optional: changes cursor to a question mark on hover */
 }
 
 /* The actual tooltip box */

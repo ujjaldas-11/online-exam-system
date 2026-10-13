@@ -15,7 +15,7 @@ $attemptDataStmt = $pdo->prepare("
     SELECT 
         s.name, s.roll_number, s.department, s.semester, 
         e.id AS exam_id, e.title, e.total_marks,
-        ea.score, ea.total_questions, ea.submitted_at
+        ea.score, ea.total_questions, ea.submitted_at, ea.status
     FROM exam_attempts ea
     JOIN students s ON ea.student_id = s.id
     JOIN exams e ON ea.exam_id = e.id
@@ -83,7 +83,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <strong>Exam:</strong> <?= e($attemptData['title'] ?? 'Unknown Exam') ?> <br>
                     <strong>Roll No:</strong> <?= e($attemptData['roll_number'] ?? 'N/A') ?> 
                     (<?= e($attemptData['department'] ?? 'General') ?>, Sem <?= e((string)($attemptData['semester'] ?? '')) ?>) <br>
-                    <strong>Score:</strong> <?= sprintf('%.2f', (float)($attemptData['score'] ?? 0)) ?> / <?= e((string)($attemptData['total_marks'] ?? '0')) ?>
+                    <strong>Score:</strong> <?= sprintf('%.2f', (float)($attemptData['score'] ?? 0)) ?> / <?= e((string)($attemptData['total_marks'] ?? '0')) ?> <br>
+                    <?php if($attemptData['status'] === 'disqualified'): ?>
+                        <strong class="badge badge-danger"><?= $attemptData['status'] ?></strong>
+                    <?php else: ?>
+                        <strong class="badge badge-success"><?= $attemptData['status'] ?></strong>
+                    <?php endif ?>
                 </p>
             </div>
         <div>

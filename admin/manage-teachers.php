@@ -517,12 +517,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td style="text-align: right;">
                                     <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
                                         <!-- View Activity -->
-                                        <a href="audit-logs.php?admin_id=<?= $row['id'] ?>" class="btn btn-secondary btn-sm" title="View Audit Trail" style="display: inline-flex; align-items: center; gap: 2px;">
-                                            <span class="material-symbols-outlined icon-xs">history</span> Activity
+                                        <a href="audit-logs.php?admin_id=<?= $row['id'] ?>" class="btn btn-secondary btn-sm" title="View Audit Trail" style="display: inline-flex; align-items: center; gap: 2px;" global-data-tooltip="Activity">
+                                            <span class="material-symbols-outlined icon-xs">history</span>
                                         </a>
 
                                         <!-- Reset Password Button / Trigger -->
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="promptResetPassword(<?= $row['id'] ?>, '<?= e(addslashes($row['name'])) ?>')" title="Reset Password">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="promptResetPassword(<?= $row['id'] ?>, '<?= e(addslashes($row['name'])) ?>')" global-data-tooltip="Reset Password">
                                             <span class="material-symbols-outlined icon-xs">key</span>
                                         </button>
 
