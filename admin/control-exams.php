@@ -450,7 +450,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td>
                                     <strong><?= e((string)$exam['total_attempts']) ?></strong>
                                 </td>
-                                <td style="dispaly:flex; flex-direction: row; text-align: right;">
+                                <td style="text-align: right;">
                                      <!-- Start Exam -->
                                     <?php if ($display_status === 'NOT STARTED' || $display_status === 'SCHEDULED'): ?>
                                         <form method="POST" style="margin: 0;" data-confirm="Are you ready to begin the examination? Once you start, students will be able to join immediately." data-confirm-title="Start Examination?" data-confirm-btn="start">
@@ -463,6 +463,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
                                     <!-- Running Exam Controls -->
                                     <?php elseif ($display_status === 'RUNNING'): ?>
+                                    <div style="display: flex; gap: 10px;">
                                         <a href="proctor-exam.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm">
                                             <span class="material-symbols-outlined icon-sm">visibility</span> Live Proctor
                                         </a>
@@ -474,6 +475,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                 <span class="material-symbols-outlined icon-sm"> add</span> 5
                                             </button>
                                         </form>
+                                    </div>                                        
                                     <?php endif;?>
 
                                 </td>
