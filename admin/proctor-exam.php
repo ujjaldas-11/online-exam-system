@@ -221,7 +221,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </h1>
             <p>Monitoring: <strong><?= e($exam['title']) ?></strong> (<?= e($exam['subject_name']) ?> • <?= e($exam['department']) ?>, Sem <?= e((string)$exam['semester']) ?>)</p>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <!-- <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <button type="button" class="btn btn-primary btn-sm" id="openAnnouncementModalBtn" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-xs">campaign</span> Broadcast Announcement
             </button>
@@ -231,7 +231,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <span class="material-symbols-outlined icon-sm">key</span> Classroom PIN: <strong><?= e($exam['access_pin']) ?></strong>
                 </div>
             <?php endif; ?>
-        </div>
+        </div> -->
     </div>
 
     <?php if ($message): ?>
