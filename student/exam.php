@@ -13,7 +13,7 @@ require_once '../utils/rate-limiter.php';
 require_desktop_for_exam();
 
 if (empty($_GET['id'])) {
-    die("Error: No exam selected.");
+    die('Error: No exam selected.');
 }
 
 $exam_id = int_param($_GET['id']);
@@ -25,7 +25,7 @@ $student_department = (string) $_SESSION['department'];
 try {
     ExamEngine::syncExamStatuses($pdo);
 
-    $examMetaStmt = $pdo->prepare("
+    $examMetaStmt = $pdo->prepare('
         SELECT e.id, e.title, e.duration_minutes, e.total_questions_to_ask, e.total_marks,
                e.access_pin, e.target_units, e.status, e.start_time, e.end_time,
                s.department, s.semester, s.name AS subject_name,
@@ -34,7 +34,7 @@ try {
         JOIN subjects s ON e.subject_id = s.id
         WHERE e.id = ?
         LIMIT 1
-    ");
+    ');
     $examMetaStmt->execute([$exam_id]);
     $exam = $examMetaStmt->fetch();
 
@@ -57,16 +57,16 @@ try {
     }
 
     // Authorization: Department and semester match
-    if ($exam['department'] !== $student_department || (int)$exam['semester'] !== $student_semester) {
+    if ($exam['department'] !== $student_department || (int) $exam['semester'] !== $student_semester) {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>You are not authorized to access this exam.</h2>");
     }
 
-    if ((int)$exam['seconds_left'] <= 0) {
+    if ((int) $exam['seconds_left'] <= 0) {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Time is up! This examination has already concluded.</h2>");
     }
 
     // 1. Check if student already has an attempt for this exam
-    $checkAttemptStmt = $pdo->prepare("SELECT id, status FROM exam_attempts WHERE student_id = ? AND exam_id = ? LIMIT 1");
+    $checkAttemptStmt = $pdo->prepare('SELECT id, status FROM exam_attempts WHERE student_id = ? AND exam_id = ? LIMIT 1');
     $checkAttemptStmt->execute([$student_id, $exam_id]);
     $existingAttempt = $checkAttemptStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -78,16 +78,14 @@ try {
             set_flash('error', 'Access Denied: You have already completed this examination in a previous batch.');
             redirect('dashboard.php');
             exit;
-        }
-        elseif ($attempt_status === 'disqualified') {
-            // RULE 2: Block cheaters. (If a teacher wants to forgive them, they must 
+        } elseif ($attempt_status === 'disqualified') {
+            // RULE 2: Block cheaters. (If a teacher wants to forgive them, they must
             // manually change their status back to 'in_progress' from the Admin Proctor Panel)
             set_flash('error', 'Access Denied: Your exam was terminated due to rule violations.');
             redirect('dashboard.php');
             exit;
-        }
-        elseif ($attempt_status === 'in_progress') {
-            // RULE 3: Allow Auto-Resume! If their PC crashed, do NOT block them. 
+        } elseif ($attempt_status === 'in_progress') {
+            // RULE 3: Allow Auto-Resume! If their PC crashed, do NOT block them.
             // Let the script bypass this block so they resume exactly where they left off.
         }
     }
@@ -115,9 +113,9 @@ try {
                     $hit = RateLimiter::hit($pdo, $pinKey, 600, 5);
                     $rem = max(0, 5 - $hit['hits']);
                     if ($rem > 0) {
-                        $pinError = "Incorrect Classroom Exam PIN. {$rem} attempt" . ($rem === 1 ? '' : 's') . " remaining before a 10-minute lockout.";
+                        $pinError = "Incorrect Classroom Exam PIN. {$rem} attempt" . ($rem === 1 ? '' : 's') . ' remaining before a 10-minute lockout.';
                     } else {
-                        $pinError = "Incorrect Classroom Exam PIN. Maximum attempts exceeded. Locked out for 10 minutes.";
+                        $pinError = 'Incorrect Classroom Exam PIN. Maximum attempts exceeded. Locked out for 10 minutes.';
                     }
                 }
             }
@@ -162,16 +160,16 @@ try {
     // 3. Initialize or fetch Attempt via ExamEngine
     $res = ExamEngine::getOrStartAttempt($pdo, $student_id, $exam_id, $student_semester, $student_department);
     if (!empty($res['disqualified'])) {
-        set_flash('error', $res['error'] ?? "You have been disqualified from this examination due to integrity violations.");
+        set_flash('error', $res['error'] ?? 'You have been disqualified from this examination due to integrity violations.');
         redirect('dashboard.php');
     }
     if (!empty($res['error'])) {
-        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>" . e($res['error']) . "</h2>");
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>" . e($res['error']) . '</h2>');
     }
 
     $attempt = $res['attempt'];
     if (($attempt['status'] ?? '') === 'disqualified') {
-        set_flash('error', "You have been disqualified from this examination due to integrity violations.");
+        set_flash('error', 'You have been disqualified from this examination due to integrity violations.');
         redirect('dashboard.php');
     }
     if (($attempt['status'] ?? '') === 'completed') {
@@ -180,19 +178,18 @@ try {
 
     $attempt_id = (int) $attempt['id'];
     $total_questions = (int) $attempt['total_questions'];
-    $points_per_question = ($total_questions > 0) ? round((float)$exam['total_marks'] / $total_questions, 2) : 0;
+    $points_per_question = ($total_questions > 0) ? round((float) $exam['total_marks'] / $total_questions, 2) : 0;
 
     if (!empty($res['is_new'])) {
         require_once __DIR__ . '/../utils/websocket-pusher.php';
-        WebSocketPusher::emit("exam:{$exam_id}", "student_started", [
+        WebSocketPusher::emit("exam:{$exam_id}", 'student_started', [
             'student_id' => $student_id,
             'attempt_id' => $attempt_id,
         ]);
     }
-
 } catch (PDOException $e) {
-    log_error("Exam loading error", $e);
-    die("Database Error. Please contact your instructor.");
+    log_error('Exam loading error', $e);
+    die('Database Error. Please contact your instructor.');
 }
 
 $page_title = ($exam['title'] ?? 'Exam') . ' • Examify';
@@ -207,7 +204,7 @@ include __DIR__ . '/../components/header.php';
             <span class="material-symbols-outlined icon-xs">grid_view</span> Palette
         </button>
         <div class="timer-box">
-            <div class="timer" id="timerDisplay" data-time-left="<?= max(0, (int)$exam['seconds_left']) ?>" style="display: inline-flex; align-items: center; gap: 6px;">
+            <div class="timer" id="timerDisplay" data-time-left="<?= max(0, (int) $exam['seconds_left']) ?>" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">timer</span> <span id="timerText">--:--</span>
             </div>
         </div>
@@ -637,10 +634,15 @@ include __DIR__ . '/../components/header.php';
         }
     }
 
-    // Auto-save when option is selected or deselected
+    // Add this variable at the top of your script with the others
+    let autoSaveTimeout = null;
+
+    // Optimized Auto-save with 500ms Debounce
     document.getElementById('question-container').addEventListener('change', e => {
         if (e.target.name === 'answer') {
             const isCheckbox = e.target.type === 'checkbox';
+            
+            // 1. Update UI Instantly (No delay for the student)
             if (isCheckbox) {
                 if (e.target.checked) {
                     e.target.closest('.option-item')?.classList.add('selected');
@@ -652,17 +654,21 @@ include __DIR__ . '/../components/header.php';
                 e.target.closest('.option-item')?.classList.add('selected');
             }
 
-            saveCurrentAnswer().then(() => {
-                const hasAnyChecked = document.querySelectorAll('input[name="answer"]:checked').length > 0;
-                const gridBtn = document.getElementById(`grid-btn-${currentIndex}`);
-                if (gridBtn) {
-                    if (hasAnyChecked) {
-                        gridBtn.classList.add('answered');
-                    } else {
-                        gridBtn.classList.remove('answered');
+            // 2. Debounce the Server Request
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                saveCurrentAnswer().then(() => {
+                    const hasAnyChecked = document.querySelectorAll('input[name="answer"]:checked').length > 0;
+                    const gridBtn = document.getElementById(`grid-btn-${currentIndex}`);
+                    if (gridBtn) {
+                        if (hasAnyChecked) {
+                            gridBtn.classList.add('answered');
+                        } else {
+                            gridBtn.classList.remove('answered');
+                        }
                     }
-                }
-            });
+                });
+            }, 500); // Waits half a second after their last click before hitting the DB
         }
     });
 
@@ -721,13 +727,26 @@ include __DIR__ . '/../components/header.php';
         };
     }
 
+    // Warn student if they accidentally try to close the tab or hit the back button
+    let isSubmitting = false;
+
+    window.addEventListener('beforeunload', function (e) {
+        if (!isSubmitting) {
+            // Standard message required by modern browsers to trigger the warning dialog
+            e.preventDefault(); 
+            e.returnValue = 'Are you sure you want to leave? Your exam is still in progress.';
+        }
+    });
+
+    // When they actually click the final submit button, bypass the warning
     if (confirmSubmitBtn) {
         confirmSubmitBtn.onclick = async () => {
+            isSubmitting = true; // Bypass the warning above
+            
             confirmSubmitBtn.disabled = true;
             confirmSubmitBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">sync</span> Submitting...';
             if (cancelSubmitBtn) cancelSubmitBtn.disabled = true;
-
-            // Stop AntiCheat monitoring to prevent false violations during form submission & page transition
+    
             if (window.AntiCheat && typeof window.AntiCheat.stop === 'function') {
                 window.AntiCheat.stop();
             }
@@ -768,13 +787,13 @@ include __DIR__ . '/../components/header.php';
                 socket.send(JSON.stringify({
                     action: 'candidate_join',
                     exam_id: examId,
-                    student_id: <?= (int)($_SESSION['student_id'] ?? 0) ?>
+                    student_id: <?= (int) ($_SESSION['student_id'] ?? 0) ?>
                 }));
             };
             socket.onmessage = function (e) {
                 try {
                     const data = JSON.parse(e.data);
-                    if ((data.action === 'student_disqualified' || data.event === 'student_disqualified') && parseInt(data.student_id, 10) === <?= (int)$student_id ?>) {
+                    if ((data.action === 'student_disqualified' || data.event === 'student_disqualified') && parseInt(data.student_id, 10) === <?= (int) $student_id ?>) {
                         alert("You have been disqualified from this examination due to integrity violations.");
                         window.location.href = 'dashboard.php';
                         return;
@@ -798,6 +817,9 @@ include __DIR__ . '/../components/header.php';
             // Silently ignore if offline socket server is unreachable
         }
     })();
+
+
+
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
