@@ -533,7 +533,7 @@ class PdfService
         $pdf = new ExamifyPdf('P', 'mm', 'A4');
         $pdf->examTitle = (string) ($exam['title'] ?? 'Detailed Answer Sheet');
         $pdf->footerSubtext = 'Student Review & Feedback Report';
-        $pdf->metaInfo = 'Candidate: ' . ($student['name'] ?? 'Unknown') . '  |  Roll Number: ' . ($student['roll_number'] ?? '-');
+        $pdf->metaInfo = 'Candidate: ' . ($student['name'] ?? 'Unknown') . '  |  Roll Number: ' . ($student['roll_number'] ?? '-') . '| Department: ' . ($exam['department'] ?? '-'). '| Sem: ' . ($exam['semester']) . '|Subject: ' . $exam['subject'];
         $pdf->AliasNbPages();
         $pdf->AddPage();
         $pdf->SetAutoPageBreak(true, 15);
@@ -659,7 +659,7 @@ class PdfService
         $pdf->SetTextColor(100, 116, 139);
         $pdf->Cell(28, 6, 'EXAMINATION:', 0, 0, 'L');
 
-        $examTitle = (string) ($exam['title'] ?? 'Examination');
+        $examTitle = (string) ($exam['title'] ?? 'Examination') . '| Subject: ' . ($exam['subject']);
         $pdf->SetFont('Helvetica', 'B', 10);
         $pdf->SetTextColor(15, 23, 42);
         $titleDisplay = $examTitle;
