@@ -18,7 +18,7 @@ try {
     // 1. Fetch Attempt & Exam
     $stmt = $pdo->prepare("
         SELECT ea.id, ea.score, ea.total_questions, ea.submitted_at, ea.status,
-               e.title, e.total_marks, e.duration_minutes, e.status AS exam_status, e.results_published, e.start_time,
+               e.title, e.total_marks, e.duration_minutes, e.status AS exam_status, e.results_published, e.start_time, ea.status AS attempt_status,
                s.name, s.email, s.roll_number, s.department, s.semester
         FROM exam_attempts ea
         JOIN exams e ON ea.exam_id = e.id
@@ -60,6 +60,7 @@ try {
     $attempt = [
         'score' => $data['score'],
         'total_questions' => $data['total_questions'],
+        'attempt_status' => $data['attempt_status'],
         'submitted_at' => $data['submitted_at']
     ];
 

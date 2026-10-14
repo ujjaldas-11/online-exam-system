@@ -30,7 +30,7 @@ try {
     $examStmt = $pdo->prepare("
         SELECT e.title, e.total_marks, e.status AS exam_status, e.results_published,
                e.duration_minutes, e.start_time,
-               ea.score, ea.total_questions, ea.submitted_at
+               ea.score, ea.total_questions, ea.submitted_at, ea.status AS attempt_status
         FROM exam_attempts ea
         JOIN exams e ON ea.exam_id = e.id
         WHERE ea.id = ? AND ea.student_id = ? AND ea.status IN ('completed', 'disqualified')
@@ -127,6 +127,11 @@ $total_marks = (float) ($examOverview['total_marks'] ?? 0);
             <p style="margin: 0; color: #64748b;">Submitted on: <?= date('d M Y, h:i A', strtotime($examOverview['submitted_at'])) ?></p>
             <p style="margin: 4px 0;">Name: <strong><?= e($student_name) ?></strong> (Roll: <?= e($roll) ?>)</p>
             <p style="margin: 4px 0;">Department: <strong><?= e($dept) ?></strong></p>
+            <?php if(e($examOverview['attempt_status']) === 'disqualified'): ?>
+                <p class="badge badge-danger"><?= e($examOverview['attempt_status']) ?></p>
+            <?php else: ?>
+                <p class="badge badge-success"><?= e($examOverview['attempt_status']) ?></p>
+            <?php endif; ?>
         </div>
         <div style="text-align: right;">
             <div style="display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 110px; height: 110px; border: 3px solid #6366f1; border-radius: 50%; background: #eef2ff;">

@@ -105,7 +105,7 @@ try {
     }
 
     // Fetch All Completed Attempts (Ordered by Score)
-    $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at
+    $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at, ea.status AS attempt_status
         FROM exam_attempts ea
         JOIN students s ON ea.student_id = s.id
         WHERE ea.exam_id = :exam_id AND ea.status IN ('completed', 'disqualified')
@@ -254,6 +254,7 @@ include __DIR__ . '/../components/header.php';
                             <th>Score</th>
                             <th>Percentage</th>
                             <th>Submitted At</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -280,6 +281,13 @@ include __DIR__ . '/../components/header.php';
                                     </span>
                                 </td>
                                 <td><?= date('d M Y, h:i A', strtotime($row['submitted_at'])) ?></td>
+                                <td>
+                                    <?php if($row['attempt_status'] === 'disqualified'): ?>
+                                        <p class="badge badge-danger"><?= $row['attempt_status'] ?></p>
+                                    <?php else: ?>
+                                        <p class="badge badge-success"><?= $row['attempt_status'] ?></p>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <a href="view-student-answers.php?attempt_id=<?= $row['attempt_id'] ?>" 
                                     class="btn btn-secondary btn-sm" 
