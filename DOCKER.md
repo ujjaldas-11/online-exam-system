@@ -49,19 +49,25 @@ cd online-exam-system
 # 2. Review and adjust environment variables if needed
 cp .env.example .env
 
+# IMPORTANT: .env.example defaults to DB_USERNAME=root for local non-containerized environments.
+# The official MySQL Docker image rejects 'root' in MYSQL_USER. In .env, ensure:
+#   DB_USERNAME=examify_prod
+#   DB_PASSWORD=your_secure_password
+#   DB_ROOT_PASSWORD=your_secure_root_password
+
 # 3. Build and launch the complete stack in detached mode
 docker compose up -d --build
 ```
 
 The stack automatically launches:
-- **`examify_web`**: Apache web server on `http://localhost:8080`.
+- **`examify_web`**: Apache web server on `http://localhost:8080` and `https://localhost:8443`.
 - **`examify_websocket`**: WebSocket daemon on port `8085`.
 - **`examify_db`**: MySQL 8.0 server with automated health checks.
 
 The entrypoint automatically waits for the database to become healthy and runs schema initialization (`php init-db.php --schema-only`).
 
 To complete the initial system setup, open:
-`http://localhost:8080/admin/setup.php`
+`https://localhost:8443/admin/setup.php` (or `http://localhost:8080/admin/setup.php`)
 
 ---
 
@@ -191,3 +197,62 @@ docker compose exec db mysqldump -u examify_prod -p examify > backup.sql
 ```bash
 docker compose exec -T db mysql -u examify_prod -p examify < backup.sql
 ```
+
+---
+
+## 9. Troubleshooting & Setup Caveats
+
+### A. MySQL Container Crash Loop: `MYSQL_USER="root"` Error
+- **Symptom**: The `examify_db` container fails to start, repeatedly restarting with:
+  ```text
+  [ERROR] [Entrypoint]: MYSQL_USER="root", MYSQL_USER and MYSQL_PASSWORD are for configuring a regular user and cannot be used for the root user
+  ```
+- **Cause**: Docker Compose automatically loads the `.env` file in the project root. If `.env` was copied directly from `.env.example` without modification, it contains `DB_USERNAME=root`. Docker Compose injects this into the MySQL container as `MYSQL_USER=root`, which the official MySQL 8.0 entrypoint strictly rejects.
+- **Solution**: Update `.env` to specify a non-root user and credentials:
+  ```env
+  DB_USERNAME=examify_prod
+  DB_PASSWORD=your_secure_password
+  DB_ROOT_PASSWORD=your_secure_root_password
+  ```
+  Then recreate the stack:
+  ```bash
+  docker compose down -v
+  docker compose up -d --build
+  ```
+
+### B. Docker Buildx Cloud Concurrency Limit (`concurrent build limit reached`)
+- **Symptom**: The build aborts immediately during multi-stage image generation with:
+  ```text
+  target websocket: failed to solve: build cannot proceed concurrent build limit of 0 reached
+  ```
+- **Cause**: The active Docker Buildx context is pointing to an external Docker Build Cloud endpoint (e.g. `cloud-*-tests*`) rather than the local Docker daemon, and has exceeded concurrency quotas.
+- **Solution**: List available builders and switch to the local engine:
+  ```bash
+  # Check active builder (marked with an asterisk *)
+  docker buildx ls
+
+  # Switch to the local Docker engine
+  docker buildx use desktop-linux
+  # Or use default:
+  docker buildx use default
+  ```
+  Then rerun `docker compose up -d --build`.
+
+### C. Running Host Test Suites against Dockerized MySQL
+- **Symptom**: Running PHP test suites directly from the host machine (`php tests/...`) fails with:
+  ```text
+  Database connection failed: SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrinfo for db failed
+  ```
+- **Cause**: By default, `docker-compose.yml` does not bind port `3306` to the host network to maintain network isolation and prevent port conflicts with local MySQL/MariaDB instances.
+- **Solution**:
+  1. **Option 1 (Recommended)**: Run the automated tests inside the running web container where network services are directly resolvable:
+     ```bash
+     docker compose exec web php tests/phase4_remediation_test.php
+     ```
+  2. **Option 2 (Host Testing)**: If you need to run tests directly from your host, expose port `3306` in `docker-compose.yml` under `services.db.ports`:
+     ```yaml
+     ports:
+       - "3306:3306"
+     ```
+     And set `DB_HOST=127.0.0.1` in your host `.env`.
+
