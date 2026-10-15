@@ -237,13 +237,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <div class="exam-form__section-label">Scheduling & Auto-Activation <span class="exam-form__unit">optional</span></div>
             <div class="exam-form__row exam-form__row--2">
                 <div class="exam-form__field">
-                    <label>Scheduled Start Time</label>
-                    <input type="datetime-local" name="start_time" value="<?= e($_POST['start_time'] ?? '') ?>" class="form-control">
+                    <label for="start_time">Scheduled Start Time</label>
+                    <input type="datetime-local" id="start_time" name="start_time" min="<?= date('Y-m-d\TH:i') ?>" value="<?= e($_POST['start_time'] ?? '') ?>" class="form-control">
                     <small style="color: var(--color-text-secondary); font-size: 0.78rem; margin-top: 4px; display: block;">Leave blank to activate manually from the Control Center</small>
                 </div>
                 <div class="exam-form__field">
-                    <label>Scheduled End Time</label>
-                    <input type="datetime-local" name="end_time" value="<?= e($_POST['end_time'] ?? '') ?>" class="form-control">
+                    <label for="end_time">Scheduled End Time</label>
+                    <input type="datetime-local" id="end_time" name="end_time" min="<?= date('Y-m-d\TH:i') ?>" value="<?= e($_POST['end_time'] ?? '') ?>" class="form-control">
                     <small style="color: var(--color-text-secondary); font-size: 0.78rem; margin-top: 4px; display: block;">Auto-closes exam access when this time arrives</small>
                 </div>
             </div>
@@ -351,6 +351,38 @@ document.addEventListener("DOMContentLoaded", function() {
                 unitDropdown.innerHTML = html;
             });
     });
+
+    // 4. Date Picker Restrictions: Disable past dates in UI
+    const startTimeInput = document.getElementById('start_time');
+    const endTimeInput = document.getElementById('end_time');
+
+    function getNowDatetimeLocal() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    if (startTimeInput && endTimeInput) {
+        function updateDateConstraints() {
+            const currentNow = getNowDatetimeLocal();
+            startTimeInput.min = currentNow;
+
+            const minEnd = (startTimeInput.value && startTimeInput.value > currentNow)
+                ? startTimeInput.value
+                : currentNow;
+            endTimeInput.min = minEnd;
+        }
+
+        updateDateConstraints();
+        startTimeInput.addEventListener('input', updateDateConstraints);
+        startTimeInput.addEventListener('change', updateDateConstraints);
+        startTimeInput.addEventListener('focus', updateDateConstraints);
+        endTimeInput.addEventListener('focus', updateDateConstraints);
+    }
 });
 </script>
 
