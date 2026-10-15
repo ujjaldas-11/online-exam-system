@@ -9,7 +9,7 @@ require_once __DIR__ . '/../services/ExamEngine.php';
 
 $student_id = (int) $_SESSION['student_id'];
 $student_name = $_SESSION['student_name'] ?? 'Student';
-$dept = $_SESSION['department'] ?? '';
+// $dept = $_SESSION['department'] ?? '';
 $roll = $_SESSION['roll_number'] ?? '';
 
 if (empty($_GET['attempt_id'])) {
@@ -30,9 +30,13 @@ try {
     $examStmt = $pdo->prepare("
         SELECT e.title, e.total_marks, e.status AS exam_status, e.results_published,
                e.duration_minutes, e.start_time,
-               ea.score, ea.total_questions, ea.submitted_at, ea.status AS attempt_status
+               ea.score, ea.total_questions, ea.submitted_at, ea.status AS attempt_status,
+               s.name AS subject_name,
+               s.department AS exam_department,
+               s.semester AS exam_semester
         FROM exam_attempts ea
         JOIN exams e ON ea.exam_id = e.id
+        JOIN subjects s ON e.subject_id = s.id
         WHERE ea.id = ? AND ea.student_id = ? AND ea.status IN ('completed', 'disqualified')
     ");
 
@@ -91,10 +95,12 @@ try {
         $pdfStudent = [
             'name' => $student_name,
             'roll_number' => $roll,
-            'department' => $dept
-        ];
-        $pdfExam = [
-            'title' => $examOverview['title']
+            ];
+            $pdfExam = [
+                'title' => $examOverview['title'],
+                'subject' => $examOverview['subject_name'],
+                'department' => $examOverview['exam_department'],
+                'semester' => $examOverview['exam_semester']
         ];
         
         // Ensure the PDF gets the FULL array, not just page 1
@@ -125,8 +131,9 @@ $total_marks = (float) ($examOverview['total_marks'] ?? 0);
         <div>
             <h1 style="margin: 0 0 8px 0; color: #1e293b; font-size: 24px;"><?= e($examOverview['title']) ?></h1>
             <p style="margin: 0; color: #64748b;">Submitted on: <?= date('d M Y, h:i A', strtotime($examOverview['submitted_at'])) ?></p>
+            <strong>Subject: <?= e($examOverview['subject_name']) ?></strong>
             <p style="margin: 4px 0;">Name: <strong><?= e($student_name) ?></strong> (Roll: <?= e($roll) ?>)</p>
-            <p style="margin: 4px 0;">Department: <strong><?= e($dept) ?></strong></p>
+            <p style="margin: 4px 0;">Department: <strong><?= e($examOverview['exam_department']) ?> </strong>, <strong>Sem <?=  e($examOverview['exam_semester']) ?></strong></p>
             <?php if(e($examOverview['attempt_status']) === 'disqualified'): ?>
                 <p class="badge badge-danger"><?= e($examOverview['attempt_status']) ?></p>
             <?php else: ?>

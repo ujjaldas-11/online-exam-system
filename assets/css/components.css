@@ -280,7 +280,7 @@ body.auth-page-wrapper .app-footer {
 }
 
 .password-wrapper input {
-  padding-right: 40px !important;
+  padding-right: 38px !important;
   width: 100%;
 }
 
@@ -1339,4 +1339,169 @@ tr:hover td {
   opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+
+/* =========================================
+   1. GOAT — LEGENDARY
+   Black + Royal Gold
+========================================= */
+
+.badge-goat {
+    color: #FFE8A3;
+
+    background: linear-gradient(
+        135deg,
+        #171717 0%,
+        #49340D 48%,
+        #171717 100%
+    );
+
+    border: 1px solid #E8BD58;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 231, 163, 0.16),
+        0 2px 8px rgba(194, 145, 35, 0.18);
+}
+
+.badge-goat .badge-icon {
+    color: #FFD66B;
+}
+
+.badge-goat:hover {
+    box-shadow:
+        0 0 12px rgba(255, 197, 66, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+
+/* =========================================
+   2. SIGMA — EPIC
+   Royal Purple + Violet
+========================================= */
+
+.badge-sigma {
+    color: #F3E8FF;
+
+    background: linear-gradient(
+        135deg,
+        #6D28D9 0%,
+        #7C3AED 50%,
+        #4F46E5 100%
+    );
+
+    border: 1px solid #A78BFA;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 2px 8px rgba(124, 58, 237, 0.18);
+}
+
+.badge-sigma .badge-icon {
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.badge-sigma:hover {
+    box-shadow:
+        0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+
+/* =========================================
+   3. KING — ROYAL
+   Burgundy + Champagne Gold
+========================================= */
+
+.badge-king {
+    color: #FFE9B0;
+
+    background: linear-gradient(
+        135deg,
+        #581C35 0%,
+        #8B2948 50%,
+        #4A1530 100%
+    );
+
+    border: 1px solid #D9AD62;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 232, 176, 0.16),
+        0 2px 8px rgba(136, 36, 69, 0.2);
+}
+
+.badge-king .badge-icon {
+    color: #F7D58A;
+    font-size: 16px;
+}
+
+.badge-king:hover {
+    box-shadow:
+        0 0 12px rgba(217, 173, 98, 0.35);
+}
+
+
+/* =========================================
+   4. KNIGHT — RARE
+   Silver + Ice Blue
+========================================= */
+
+.badge-knight {
+    color: #E5F3FF;
+
+    background: linear-gradient(
+        135deg,
+        #334155 0%,
+        #475569 45%,
+        #1E3A5F 100%
+    );
+
+    border: 1px solid #94C5E8;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 2px 8px rgba(71, 85, 105, 0.18);
+}
+
+.badge-knight .badge-icon {
+    color: #BFE6FF;
+    font-size: 16px;
+}
+
+.badge-knight:hover {
+    box-shadow:
+        0 0 12px rgba(125, 211, 252, 0.35);
+}
+
+
+/* =========================================
+   ACCESSIBILITY
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .examify-badge {
+        transition: none;
+    }
+
+    .examify-badge:hover {
+        transform: none;
+    }
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+    .examify-badge {
+        padding: 4px 8px;
+        gap: 4px;
+        font-size: 9px;
+        border-radius: 6px;
+    }
+
+    .examify-badge .badge-icon {
+        font-size: 13px;
+    }
 }

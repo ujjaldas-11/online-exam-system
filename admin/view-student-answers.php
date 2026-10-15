@@ -13,12 +13,16 @@ if ($attempt_id <= 0) {
 // 1. Fetch Attempt, Student, and Exam attemptData
 $attemptDataStmt = $pdo->prepare("
     SELECT 
-        s.name, s.roll_number, s.department, s.semester, 
+        s.name, s.roll_number, 
+        s.department AS student_current_dept, s.semester AS student_current_sem, 
         e.id AS exam_id, e.title, e.total_marks,
-        ea.score, ea.total_questions, ea.submitted_at, ea.status
+        ea.score, ea.total_questions, ea.submitted_at, ea.status,
+        sub.name AS subject_name,
+        sub.department AS exam_department, sub.semester AS exam_semester
     FROM exam_attempts ea
     JOIN students s ON ea.student_id = s.id
     JOIN exams e ON ea.exam_id = e.id
+    JOIN subjects sub ON e.subject_id = sub.id
     WHERE ea.id = ?
 ");
 $attemptDataStmt->execute([$attempt_id]);
@@ -47,7 +51,7 @@ $qaData = $qaStmt->fetchAll(PDO::FETCH_ASSOC);
 // 3. Handle PDF Download Request
 if (isset($_GET['download']) && $_GET['download'] === 'pdf') {
     $pdfStudent = ['name' => $attemptData['name'], 'roll_number' => $attemptData['roll_number']];
-    $pdfExam = ['title' => $attemptData['title']];
+    $pdfExam = ['title' => $attemptData['title'],'subject' => $attemptData['subject_name'], 'department' => $attemptData['exam_department'] , 'semester' => $attemptData['exam_semester']];
     PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $qaData, 'D');
 }
 
@@ -82,7 +86,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <p>
                     <strong>Exam:</strong> <?= e($attemptData['title'] ?? 'Unknown Exam') ?> <br>
                     <strong>Roll No:</strong> <?= e($attemptData['roll_number'] ?? 'N/A') ?> 
-                    (<?= e($attemptData['department'] ?? 'General') ?>, Sem <?= e((string)($attemptData['semester'] ?? '')) ?>) <br>
+                    (<?= e($attemptData['exam_department'] ?? 'General') ?>, Sem <?= e((string)($attemptData['exam_semester'] ?? '')) ?>) <br>
                     <strong>Score:</strong> <?= sprintf('%.2f', (float)($attemptData['score'] ?? 0)) ?> / <?= e((string)($attemptData['total_marks'] ?? '0')) ?> <br>
                     <?php if($attemptData['status'] === 'disqualified'): ?>
                         <strong class="badge badge-danger"><?= $attemptData['status'] ?></strong>

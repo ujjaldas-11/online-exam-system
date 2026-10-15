@@ -19,10 +19,14 @@ try {
     $stmt = $pdo->prepare("
         SELECT ea.id, ea.score, ea.total_questions, ea.submitted_at, ea.status,
                e.title, e.total_marks, e.duration_minutes, e.status AS exam_status, e.results_published, e.start_time, ea.status AS attempt_status,
-               s.name, s.email, s.roll_number, s.department, s.semester
+               s.name, s.email, s.roll_number, 
+               s.department AS student_current_dept, s.semester AS student_current_sem,
+               sub.name AS subject_name, 
+               sub.department AS exam_department, sub.semester AS exam_semester
         FROM exam_attempts ea
         JOIN exams e ON ea.exam_id = e.id
         JOIN students s ON ea.student_id = s.id
+        JOIN subjects sub ON e.subject_id = sub.id
         WHERE ea.id = ? AND ea.student_id = ? AND ea.status IN ('completed', 'disqualified')
     ");
     $stmt->execute([$attempt_id, $student_id]);
@@ -47,12 +51,13 @@ try {
         'name' => $data['name'],
         'email' => $data['email'],
         'roll_number' => $data['roll_number'],
-        'department' => $data['department'],
-        'semester' => $data['semester']
+        'department' => $data['exam_department'],
+        'semester' => $data['exam_semester']
     ];
 
     $exam = [
         'title' => $data['title'],
+        'subject' => $data['subject_name'],
         'total_marks' => $data['total_marks'],
         'duration_minutes' => $data['duration_minutes']
     ];

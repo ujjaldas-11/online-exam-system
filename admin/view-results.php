@@ -21,10 +21,15 @@ if (isset($_GET['download_student_answers']) && isset($_GET['attempt_id'])) {
     // 1. Fetch Student and Exam Meta via Attempt ID
     // Notice: No "AND ea.student_id = ?" because Admins can view all attempts
     $metaStmt = $pdo->prepare('
-        SELECT s.name, s.roll_number, e.title 
+        SELECT 
+            s.name, s.roll_number, e.title, 
+            sub.name AS subject_name, 
+            sub.department AS exam_department, 
+            sub.semester AS exam_semester
         FROM exam_attempts ea
         JOIN students s ON ea.student_id = s.id
         JOIN exams e ON ea.exam_id = e.id
+        JOIN subjects sub ON e.subject_id = sub.id
         WHERE ea.id = ?
     ');
     $metaStmt->execute([$dl_attempt_id]);
@@ -32,7 +37,7 @@ if (isset($_GET['download_student_answers']) && isset($_GET['attempt_id'])) {
 
     if ($metaData) {
         $pdfStudent = ['name' => $metaData['name'], 'roll_number' => $metaData['roll_number']];
-        $pdfExam = ['title' => $metaData['title']];
+        $pdfExam = ['title' => $metaData['title'], 'subject' => $metaData['subject_name'], 'department' => $metaData['exam_department'] , 'semester' => $metaData['exam_semester']];
 
         // 2. Fetch the detailed Question & Answer history
         $qaStmt = $pdo->prepare('
@@ -57,9 +62,11 @@ try {
     // Fetch Exam Details
     $examStmt = $pdo->prepare('
         SELECT e.id, e.title, e.total_marks, e.duration_minutes, e.start_time, e.status, e.results_published,
-               a.name as creator_name, a.status as creator_status
+               a.name AS creator_name, a.status AS creator_status,
+               s.name AS subject_name, s.department, s.semester
         FROM exams e
         LEFT JOIN admins a ON e.created_by = a.id
+        JOIN subjects s ON e.subject_id = s.id
         WHERE e.id = ?
     ');
     $examStmt->execute([$exam_id]);
@@ -269,7 +276,7 @@ include __DIR__ . '/../components/header.php';
                                 <td>
                                     <strong><?= e($row['name']) ?></strong><br>
                                     <small style="color: var(--color-text-secondary);">
-                                        <?= e($row['roll_number']) ?> • <?= e($row['department']) ?>, Sem <?= e((string) $row['semester']) ?>
+                                        <?= e($row['roll_number']) ?> • <?= e($row['department']) ?>, Sem <?= e((string) $exam['semester']) ?>
                                     </small>
                                 </td>
                                 <td>

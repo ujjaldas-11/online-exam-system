@@ -2,12 +2,13 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 
 $student_nav = [
-    'dashboard.php'    => ['label' => 'Dashboard',    'icon' => 'space_dashboard'],
-    'exam-history.php' => ['label' => 'Exam History', 'icon' => 'history_edu'],
+    'dashboard.php' => ['label' => 'Home', 'icon' => 'space_dashboard'],
+    // 'exam-history.php' => ['label' => 'Exam History', 'icon' => 'history_edu'],
+    '../docs/user/user-doc.php' => ['label' => 'docs', 'icon' => 'docs']
 ];
 
 // --- AVATAR LOGIC ---
-$student_name   = $_SESSION['student_name'] ?? 'Student';
+$student_name = $_SESSION['student_name'] ?? 'Student';
 $student_gender = strtolower(trim($_SESSION['gender'] ?? 'female'));
 
 $nav_avatar_url = ($student_gender === 'female')
@@ -16,8 +17,8 @@ $nav_avatar_url = ($student_gender === 'female')
 
 $student_child_routes = [
     'edit-profile.php' => 'profile.php',
-    'result.php'       => 'dashboard.php',
-    'review-exam.php'  => 'dashboard.php',
+    'result.php' => 'dashboard.php',
+    'review-exam.php' => 'dashboard.php',
 ];
 $effective_student_page = $student_child_routes[$current_page] ?? $current_page;
 
@@ -76,12 +77,49 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
                 </a>
             <?php endforeach; ?>
 
-            <a href="profile.php" class="student-brand" title="profile">
-                <div class="student-greeting-mobile-hidden">
-                    <span class="student-greeting">Hi, <?= $esc($student_name) ?></span>
-                    <img src="<?= $esc($nav_avatar_url) ?>" alt="Profile" class="nav-profile-pic">
+            <div class="profile-widget">
+                <button class="profile-trigger" id="profileTrigger" aria-haspopup="true" aria-expanded="false">
+                    <!-- Dynamic Topbar Avatar -->
+                    <img src="<?= htmlspecialchars($esc($nav_avatar_url), ENT_QUOTES, 'UTF-8') ?>" alt="Admin Profile" class="nav-profile-pic">
+                    
+                    <div class="profile-text">
+                        <span class="admin-name"><?= htmlspecialchars($esc($student_name), ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="admin-role" style="color: #edb055;">Student</span>
+                    </div>
+                    <span class="material-symbols-outlined chevron-icon" aria-hidden="true">expand_more</span>
+                </button>
+
+                <!-- Profile dropdown -->
+
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="dropdown-header">
+                        <!-- Dynamic Dropdown Avatar -->
+                        <img src="<?= htmlspecialchars($nav_avatar_url, ENT_QUOTES, 'UTF-8') ?>" alt="Admin Profile" class="nav-profile-pic lg" style="width: 90px; height: 90px;">
+                        <div>
+                            <p class="dropdown-name"><?= htmlspecialchars($student_name, ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="badge badge-active" style="background-color: #2c3343;">Student</p>
+                            <p style="color: var(--color-gold); text-align: center;"> Bengal Institue of Science & Technology
+                        </div>
+                    </div>
+                    
+                    <hr class="dropdown-divider" style="margin: 0;">
+                    <a href="profile.php" class="dropdown-reset-btn-item"  style="display: flex; justify-content: space-between;">
+                        <div>
+                            <span class="material-symbols-outlined" aria-hidden="true">person</span>
+                            Profile
+                        </div>
+                        <span class="material-symbols-outlined">Chevron_Right</span>
+                    </a>
+                    <hr class="dropdown-divider" style="margin: 0;">
+                    <a href="logout.php" class="logout-btn" style="display: flex; justify-content: space-between;">
+                        <div>
+                            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                            Logout
+                        </div>
+                        <span class="material-symbols-outlined">Chevron_Right</span>
+                    </a>
                 </div>
-            </a>
+            </div>
         </div>
     </div>
 
@@ -112,4 +150,25 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
         if (window.innerWidth > 768 && navLinks.classList.contains('show')) setOpen(false);
     });
 })();
+
+
+(function () {
+    const trigger = document.getElementById('profileTrigger');
+    const dropdown = document.getElementById('profileDropdown');
+
+    trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = dropdown.classList.toggle('open');
+        trigger.setAttribute('aria-expanded', isOpen);
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
+            dropdown.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+    });
+})();
+
+
 </script>
