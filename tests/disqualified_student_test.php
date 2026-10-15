@@ -38,7 +38,8 @@ echo "\n=== ISSUE #32: DISQUALIFIED STUDENT ACCESS & SUBMISSION TEST SUITE ===\n
 echo "--- 1. Testing Code Invariants & Server-Side Gates ---\n";
 
 $examPhp = (string)file_get_contents($rootDir . '/student/exam.php');
-assert_test("student/exam.php checks for existing disqualified attempt before PIN/join", str_contains($examPhp, "\$existingAttempt['status'] === 'disqualified'") && str_contains($examPhp, "set_flash('error'"));
+// FIX: Updated to match the new optimized $attempt_status variable logic we wrote
+assert_test("student/exam.php checks for existing disqualified attempt before PIN/join", (str_contains($examPhp, "\$attempt_status === 'disqualified'") || str_contains($examPhp, "\$existingAttempt['status'] === 'disqualified'")) && str_contains($examPhp, "set_flash('error'"));
 assert_test("student/exam.php redirects disqualified students to dashboard.php", str_contains($examPhp, "redirect('dashboard.php')"));
 assert_test("student/exam.php WebSocket listener handles student_disqualified event", str_contains($examPhp, "student_disqualified"));
 

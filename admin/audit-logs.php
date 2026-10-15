@@ -97,7 +97,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 @media (min-width: 769px) and (min-height: 550px) {
     html, body.audit-logs-page {
         height: 100%;
-        overflow: hidden;
+        /* overflow: hidden; */
     }
 
     .audit-page-container {

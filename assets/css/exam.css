@@ -262,6 +262,41 @@
   gap: 8px;
 }
 
+.question-type-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 0 12px;
+}
+.question-type-row .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+}
+.question-type-row .material-symbols-outlined {
+    font-size: 14px;
+}
+
+.option-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+.option-item input[type="radio"],
+.option-item input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    accent-color: var(--primary, #4f46e5);
+}
+.option-item .option-label {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 @media (max-width: 850px) {
   .exam-container {
     grid-template-columns: 1fr;

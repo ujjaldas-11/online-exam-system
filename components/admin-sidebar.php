@@ -42,8 +42,7 @@ $admin_nav = [
     'manage-questions.php' => ['label' => 'Questions', 'icon' => 'quiz', 'title' => 'questions'],
     'control-exams.php' => ['label' => 'Exams', 'icon' => 'fact_check', 'title' => 'exams'],
     'results.php' => ['label' => 'Results', 'icon' => 'bar_chart', 'title' => 'results'],
-    'manage-requests.php' => ['label' => 'Requests', 'icon' => 'notifications', 'title' => 'profile update request'],
-    'registration-request.php' => ['label' => 'Registration Requests', 'icon' => 'person_add', 'title' => 'registration requests'],
+    'manage-students.php' => ['label' => 'Students', 'icon' => 'group', 'title' => 'Manage Students']
 ];
 
 // Map secondary/child views to parent navigation item
@@ -57,8 +56,9 @@ $route_parents = [
 $effective_active_page = $route_parents[$current_page] ?? $current_page;
 
 if ($isAdminSuper) {
-    $admin_nav['manage-students.php'] = ['label' => 'Students', 'icon' => 'group', 'title' => 'Manage Students'];
     $admin_nav['manage-teachers.php'] = ['label' => 'Teachers', 'icon' => 'school', 'title' => 'teachers'];
+    $admin_nav['registration-request.php'] = ['label' => 'Registration Requests', 'icon' => 'person_add', 'title' => 'registration requests'];
+    $admin_nav['manage-requests.php'] = ['label' => 'update Requests', 'icon' => 'notifications', 'title' => 'profile update request'];
     $admin_nav['audit-logs.php'] = ['label' => 'Audit Trail', 'icon' => 'receipt_long', 'title' => 'logs'];
     $admin_nav['settings.php'] = ['label' => 'Settings & Backup', 'icon' => 'settings', 'title' => 'system settings and backup'];
 } else {
@@ -71,28 +71,32 @@ if ($isAdminSuper) {
 <header class="admin-topbar">
     <div class="topbar-inner">
         <div class="topbar-left">
-            <button class="icon-btn desktop-collapse-btn" id="desktopCollapseBtn" aria-label="Collapse sidebar">
-                <span class="material-symbols-outlined">dock_to_right</span>
-            </button>
             <button class="icon-btn mobile-menu-btn" id="sidebarToggle" aria-label="Open navigation" title="menu bar">
                 <span class="material-symbols-outlined">menu</span>
             </button>
+            <a href="admin-dashboard.php" class="student-brand" style="margin-left: -0.7rem;">
+                <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+                <span class="nav-logo" style="margin-left: -20px; font-size: 1.4rem; margin-top: 7.5px;">xamify</span>
+            </a>
+
         </div>
 
         <div class="topbar-right">
-            <a href="registration-request.php" class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Notifications" title="registration requests">
-                <span class="material-symbols-outlined">person_add</span>
-                <?php if (!empty($pending_registration_requests_count)): ?>
-                    <span class="topbar-badge"><?= (int) $pending_registration_requests_count ?></span>
-                <?php endif; ?>
-            </a>
+            <?php if($isAdminSuper): ?>
+                <a href="registration-request.php" class="icon-btn topbar-shortcut <?= $current_page === 'registration-request.php' ? 'active' : '' ?>" aria-label="Notifications" title="registration requests">
+                    <span class="material-symbols-outlined">person_add</span>
+                    <?php if (!empty($pending_registration_requests_count)): ?>
+                        <span class="topbar-badge"><?= (int) $pending_registration_requests_count ?></span>
+                    <?php endif; ?>
+                </a>
 
-            <a href="manage-requests.php" class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="profile update requests">
-                <span class="material-symbols-outlined">notifications</span>
-                <?php if (!empty($pending_requests_count)): ?>
-                    <span class="topbar-badge"><?= (int) $pending_requests_count ?></span>
-                <?php endif; ?>
-            </a>
+                <a href="manage-requests.php" class="icon-btn topbar-shortcut <?= $current_page === 'manage-requests.php' ? 'active' : '' ?>" aria-label="Notifications" title="profile update requests">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <?php if (!empty($pending_requests_count)): ?>
+                        <span class="topbar-badge"><?= (int) $pending_requests_count ?></span>
+                    <?php endif; ?>
+                </a>
+            <?php endif; ?>
 
             <a href="../docs/user/admin-doc.php" class="icon-btn topbar-shortcut" aria-label="help file" title="Read Documentation">
                 <span class="material-symbols-outlined">docs</span>
@@ -120,7 +124,7 @@ if ($isAdminSuper) {
                             <p style="color: var(--color-gold); text-align: center;"> <?= $collegeName ?></p>
                         </div>
                     </div>
-                    
+
                     <!-- Extended Admin Details -->
                     <div class="dropdown-admin-details">
                         <p><span class="material-symbols-outlined">email</span> <?= htmlspecialchars($adminEmail, ENT_QUOTES, 'UTF-8') ?></p>
@@ -128,14 +132,20 @@ if ($isAdminSuper) {
                     </div>
                     
                     <hr class="dropdown-divider" style="margin: 0;">
-                    <a href="admin-reset-password.php" class="dropdown-reset-btn-item">
-                        <span class="material-symbols-outlined" aria-hidden="true">lock_reset</span>
-                        Reset Password
+                    <a href="admin-reset-password.php" class="dropdown-reset-btn-item"  style="display: flex; justify-content: space-between;">
+                        <div>
+                            <span class="material-symbols-outlined" aria-hidden="true">lock_reset</span>
+                            Reset Password
+                        </div>
+                        <span class="material-symbols-outlined">Chevron_Right</span>
                     </a>
                     <hr class="dropdown-divider" style="margin: 0;">
-                    <a href="admin-logout.php" class="logout-btn">
-                        <span class="material-symbols-outlined" aria-hidden="true">logout</span>
-                        Logout
+                    <a href="admin-logout.php" class="logout-btn" style="display: flex; justify-content: space-between;">
+                        <div>
+                            <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                            Logout
+                        </div>
+                        <span class="material-symbols-outlined">Chevron_Right</span>
                     </a>
                 </div>
             </div>
@@ -163,7 +173,16 @@ if ($isAdminSuper) {
                 </span>
                 <span class="link-label"><?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?></span>
             </a>
-        <?php endforeach; ?>
+
+            <?php endforeach; ?>
+
+            <a class="desktop-collapse-btn" id="desktopCollapseBtn" aria-label="Collapse sidebar" style="margin-top: auto;" data-tooltip="Close Sidebar">
+                <span class="material-symbols-outlined">dock_to_right</span>
+                <div class="link-label">
+                    <span>Collapse</span>
+                    <span class="material-symbols-outlined" style="margin-left: 4rem;">Chevron_Right</span>
+                </div>
+            </a>
     </nav>
 </aside>
 

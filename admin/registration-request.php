@@ -109,7 +109,7 @@ $whereClause = "WHERE " . implode(" AND ", $queryWhere);
 
 // Setup Pagination Variables
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$per_page = 10; // Number of exams per page
+$per_page = 20; // Number of exams per page
 $total_result_count = 0;
 
 try {
@@ -206,21 +206,23 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td><?= date('d M Y, h:i A', strtotime($req['created_at'])) ?></td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                                        <form method="POST" style="display: inline;">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                            <button type="submit" name="action" value="approve" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-                                                <span class="material-symbols-outlined icon-xs">check</span> Approve
-                                            </button>
-                                        </form>
+                                        <?php if($isAdminSuper): ?>
+                                            <form method="POST" style="display: inline;">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                                                <button type="submit" name="action" value="approve" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span class="material-symbols-outlined icon-xs">check</span> Approve
+                                                </button>
+                                            </form>
 
-                                        <form method="POST" style="display: inline;">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px; background-color: var(--color-error, #dc2626); color: #ffffff;">
-                                                <span class="material-symbols-outlined icon-xs">close</span> Reject
-                                            </button>
-                                        </form>
+                                            <form method="POST" style="display: inline;">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                                                <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center; gap: 4px; background-color: var(--color-error, #dc2626); color: #ffffff;">
+                                                    <span class="material-symbols-outlined icon-xs">close</span> Reject
+                                                </button>
+                                            </form>
+                                        <?php endif ?>
                                     </div>
                                 </td>
                             </tr>

@@ -25,7 +25,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'download_template') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
     verify_csrf();
-
+    set_time_limit(120);
     $subject_id = int_param($_POST['subject_id'] ?? 0);
     $csv_text = trim($_POST['csv_text'] ?? '');
     $maxFileSize = 5 * 1024 * 1024; // 5MB max

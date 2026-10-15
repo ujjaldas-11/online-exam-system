@@ -200,7 +200,7 @@ body.sidebar-collapsed .main-content {
 .dropdown-admin-details {
     padding: 12px 16px; 
     background: transparent;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     font-size: 0.85rem; color: #e2e8f0; line-height: 1.5;
 }
@@ -268,7 +268,7 @@ body.sidebar-collapsed .main-content {
 /* ---------- Sidebar ---------- */
 .admin-sidebar {
   position: fixed;
-  top: 35px;
+  top: 30px;
   left: 0;
   bottom: 0;
   width: var(--sidebar-w);

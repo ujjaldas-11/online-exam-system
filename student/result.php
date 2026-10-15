@@ -116,6 +116,16 @@ include __DIR__ . '/../components/student-navbar.php';
                 <div style="font-weight: 700; font-size: 1.1rem; color: <?= $percentage >= 50 ? 'var(--color-success)' : 'var(--color-error)' ?>;">
                     Score Percentage: <?= $percentage ?>%
                 </div>
+                <br>
+                <?php if($attempt['status'] === 'desqualified'): ?>
+                    <div class="badge badge-danger" style="font-weight: 700; font-size: 1.1rem;">
+                        <?= $attempt['status'] ?>
+                    </div>
+                <?php else: ?>
+                    <div class="badge badge-success" style="font-weight: 700; font-size: 1.1rem;">
+                        <?= $attempt['status'] ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
 

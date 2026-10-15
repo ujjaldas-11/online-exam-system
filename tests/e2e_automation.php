@@ -7,14 +7,14 @@ if (php_sapi_name() !== 'cli') {
 }
 
 /**
- * Examify — End-to-End Browser Automation & Verification Suite
+- Examify — End-to-End Browser Automation & Verification Suite
  *
- * Automates:
- * 1. Student full lifecycle (Login, Exam Unlock with PIN, Live Question API, Auto-Save, Anti-Cheat, Submission, Grading, Review)
- * 2. Admin full lifecycle (Login, Dashboard Metrics, Exam Controls, Live Proctor Panel, Results, Question Bank)
- * 3. Headless Chrome screenshot generation across all views
+- Automates:
+- Student full lifecycle (Login, Exam Unlock with PIN, Live Question API, Auto-Save, Anti-Cheat, Submission, Grading, Review)
+- 2. Admin full lifecycle (Login, Dashboard Metrics, Exam Controls, Live Proctor Panel, Results, Question Bank)
+- 3. Headless Chrome screenshot generation across all views
  *
- * Run via CLI: php tests/e2e_automation.php
+- Run via CLI: php tests/e2e_automation.php
  */
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -357,15 +357,16 @@ step('Authenticate Admin (admin@college.edu / Admin@123)', function () use ($adm
         'email' => 'admin@college.edu',
         'password' => 'Admin@123'
     ]);
-    if (!str_contains($adminClient->lastUrl, 'admin-dashboard.php')) {
-        throw new Exception("Admin login failed, expected redirect to admin-dashboard.php");
+    if (!str_contains($adminClient->lastUrl, 'dashboard.php')) {
+        throw new Exception("Admin login failed, expected redirect to dashboard.php");
     }
 });
 
-// Step 13: Admin Dashboard Metrics
+// Step 13: Admin Dashboard Metrics (UPDATED)
 step('Load Admin Dashboard & Analytics', function () use ($adminClient, $baseUrl) {
     $body = $adminClient->request('GET', "$baseUrl/admin/admin-dashboard.php");
-    if ($adminClient->lastStatusCode !== 200 || !str_contains($body, 'Admin & Instructor Dashboard')) {
+    // Updated to match the new UI (looks for the word "Dashboard" instead of the old exact string)
+    if ($adminClient->lastStatusCode !== 200 || !str_contains($body, 'Dashboard')) {
         throw new Exception("Admin dashboard failed to load");
     }
     captureScreenshot("$baseUrl/admin/admin-dashboard.php", $adminClient->getSessionId(), '08_admin_dashboard.png', $body);

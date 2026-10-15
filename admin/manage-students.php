@@ -462,7 +462,7 @@ try {
 
     // Pagination parameters
     $page = max(1, (int)($_GET['page'] ?? 1));
-    $per_page = 50;
+    $per_page = 20;
     $offset = ($page - 1) * $per_page;
 
     // Roster query
@@ -512,21 +512,33 @@ include __DIR__ . '/../components/admin-sidebar.php';
             $exportParams['export'] = 'csv';
             $exportUrl = 'manage-students.php?' . http_build_query($exportParams);
             ?>
-
-            <?php if ($isAdminSuper): ?>
-                <a href="import-students.php" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">group</span>Bulk Student Insert
-                </a>
-                <button type="button" class="btn btn-primary btn-sm" onclick="openBulkPromoteModal()" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">upgrade</span> Bulk Semester Promote
-                </button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="openAddStudentModal()" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">person_add</span> Add New Student
-                </button>
-            <?php endif; ?>
             <a href="<?= e($exportUrl) ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">download</span> Export CSV
             </a>
+            <!-- action dropdown -->
+            <div class="action-dropdown" style="position: relative; display: inline-block; text-align: left;">
+                <?php if ($isAdminSuper): ?>
+                    <!-- Three-Dot Trigger Button -->
+                    <button type="button" class="btn btn-primary btn-sm" onclick="toggleActionMenu(event)" global-data-tooltip="more actions">
+                        Advance Actions
+                    </button>
+
+                    <!-- Dropdown Box -->
+                    <div class="action-menu-content">
+                        <a href="import-students.php" class="action-menu-item" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined icon-sm">group</span>Bulk Student Insert
+                        </a>
+                        <div class="action-menu-divider"></div>
+                        <button type="button" class="action-menu-item" onclick="openBulkPromoteModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined icon-sm">upgrade</span> Bulk Semester Promote
+                        </button>
+                        <div class="action-menu-divider"></div>
+                        <button type="button" class="action-menu-item" onclick="openAddStudentModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined icon-sm">person_add</span> Add New Student
+                        </button>
+                    </div>
+                <?php endif; ?>         
+            </div>
         </div>
     </div>
 
@@ -558,67 +570,19 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
     </div>
 
-    <!-- Search & Filter Card -->
-    <!-- <div class="card" style="margin-bottom: 24px;">
-        <form method="GET" action="manage-students.php" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
-            <div class="form-group" style="margin-bottom: 0; flex: 2; min-width: 220px;">
-                <label>Search Roster</label>
-                <input type="text" name="q" value="<?= e($filterQ) ?>" placeholder="Search by name, roll no, email, or phone...">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
-                <label>Department</label>
-                <select name="department">
-                    <option value="">All Departments</option>
-                    <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
-                        <option value="<?= e($d) ?>" <?= $filterDept === $d ? 'selected' : '' ?>><?= e($d) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
-                <label>Semester</label>
-                <select name="semester">
-                    <option value="">All Semesters</option>
-                    <?php for ($i = 1; $i <= 8; $i++): ?>
-                        <option value="<?= $i ?>" <?= $filterSem === $i ? 'selected' : '' ?>>Semester <?= $i ?></option>
-                    <?php endfor; ?>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 130px;">
-                <label>Status</label>
-                <select name="status">
-                    <option value="">All Statuses</option>
-                    <option value="active" <?= $filterStatus === 'active' ? 'selected' : '' ?>>Active</option>
-                    <option value="blocked" <?= $filterStatus === 'blocked' ? 'selected' : '' ?>>Blocked</option>
-                    <option value="pending" <?= $filterStatus === 'pending' ? 'selected' : '' ?>>Pending</option>
-                    <option value="rejected" <?= $filterStatus === 'rejected' ? 'selected' : '' ?>>Rejected</option>
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <button type="submit" class="btn btn-primary" style="height: 38px; display: inline-flex; align-items: center; gap: 6px;">
-                    <span class="material-symbols-outlined icon-sm">filter_alt</span> Filter
-                </button>
-
-                <a href="manage-students.php" class="btn btn-secondary" style="height: 38px; display: inline-flex; align-items: center; gap: 4px;" title="Reset filters">
-                    <span class="material-symbols-outlined icon-sm">restart_alt</span>
-                </a>
-            </div>
-        </form>
-    </div> -->
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
     <!-- Student Roster Table -->
     <div class="card" style="overflow: hidden; max-width: 100%;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
             <div class="card-title" style="margin-bottom: 0;">
-                Enrolled Students (<?= count($students) ?> <?= count($students) === 1 ? 'record' : 'records' ?>)
+                Enrolled Students (<?= $total_students_count ?>)
             </div>
-            <?php if ($pendingCount > 0): ?>
-                <a href="registration-request.php" class="badge badge-warning" style="text-decoration: none; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
-                    <span class="material-symbols-outlined icon-xs">notifications_active</span> <?= $pendingCount ?> pending approval
-                </a>
+            <?php if($isAdminSuper): ?>
+                <?php if ($pendingCount > 0): ?>
+                    <a href="registration-request.php" class="badge badge-warning" style="text-decoration: none; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-xs">notifications_active</span> <?= $pendingCount ?> pending approval
+                    </a>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
 
@@ -711,12 +675,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td style="text-align: right; white-space: nowrap;">
                                     <div style="display: inline-flex; gap: 4px; align-items: center; justify-content: flex-end;">
                                         <!-- Edit Modal Trigger -->
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick='openEditStudentModal(<?= json_encode($st, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)' title="Edit Details">
-                                            <span class="material-symbols-outlined icon-xs">edit</span>
-                                        </button>
+                                         <?php if($isAdminSuper): ?>
+                                            <button type="button" class="btn btn-secondary btn-sm" onclick='openEditStudentModal(<?= json_encode($st, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)' global-data-tooltip="Edit Details">
+                                                <span class="material-symbols-outlined icon-xs">edit</span>
+                                            </button>
+                                        <?php endif; ?>
 
                                         <!-- Reset Password Trigger -->
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="openResetPasswordModal(<?= (int)$st['id'] ?>, '<?= e(addslashes($st['name'])) ?>', '<?= e(addslashes($st['roll_number'])) ?>')" title="Reset Password">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="openResetPasswordModal(<?= (int)$st['id'] ?>, '<?= e(addslashes($st['name'])) ?>', '<?= e(addslashes($st['roll_number'])) ?>')" global-data-tooltip="Reset Password">
                                             <span class="material-symbols-outlined icon-xs">key</span>
                                         </button>
 
@@ -726,7 +692,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="student_id" value="<?= (int) $st['id'] ?>">
                                                 <input type="hidden" name="target_status" value="blocked">
-                                                <button type="submit" name="toggle_status" class="btn btn-secondary btn-sm" style="color: #dc2626;" title="Block Account">
+                                                <button type="submit" name="toggle_status" class="btn btn-secondary btn-sm" style="color: #dc2626;" global-data-tooltip="Block User">
                                                     <span class="material-symbols-outlined icon-xs">block</span>
                                                 </button>
                                             </form>
@@ -1176,6 +1142,57 @@ document.querySelectorAll('.admin-modal-overlay').forEach(overlay => {
         }
     });
 });
+
+
+ function toggleActionMenu(event) {
+        event.stopPropagation();
+        const button = event.currentTarget;
+        const currentMenu = button.nextElementSibling;
+        
+        // Close all other open menus
+        document.querySelectorAll('.action-menu-content.show').forEach(menu => {
+            if (menu !== currentMenu) {
+                menu.classList.remove('show');
+            }
+        });
+        
+        // Toggle the clicked menu
+        const isNowOpen = currentMenu.classList.toggle('show');
+        
+        if (isNowOpen) {
+            // Get exact coordinates of the 3-dot button on the screen
+            const btnRect = button.getBoundingClientRect();
+            
+            // Align to the right edge of the button
+            currentMenu.style.right = (window.innerWidth - btnRect.right) + 'px';
+            
+            // Check if there is enough space below
+            const menuHeight = currentMenu.offsetHeight;
+            const spaceBelow = window.innerHeight - btnRect.bottom;
+            
+            if (spaceBelow < menuHeight + 20) {
+                // Not enough space! Pop upwards above the button
+                currentMenu.style.top = (btnRect.top - menuHeight - 4) + 'px';
+            } else {
+                // Pop downwards normally
+                currentMenu.style.top = (btnRect.bottom + 4) + 'px';
+            }
+        }
+    }
+
+    // Close menu when clicking anywhere else
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.action-menu-content.show').forEach(menu => {
+            menu.classList.remove('show');
+        });
+    });
+
+    // Close menu when scrolling the table or page (prevents detached floating)
+    document.addEventListener('scroll', function() {
+        document.querySelectorAll('.action-menu-content.show').forEach(menu => {
+            menu.classList.remove('show');
+        });
+    }, true);
 </script>
 
 <?php

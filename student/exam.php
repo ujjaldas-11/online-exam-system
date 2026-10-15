@@ -13,7 +13,7 @@ require_once '../utils/rate-limiter.php';
 require_desktop_for_exam();
 
 if (empty($_GET['id'])) {
-    die("Error: No exam selected.");
+    die('Error: No exam selected.');
 }
 
 $exam_id = int_param($_GET['id']);
@@ -25,7 +25,7 @@ $student_department = (string) $_SESSION['department'];
 try {
     ExamEngine::syncExamStatuses($pdo);
 
-    $examMetaStmt = $pdo->prepare("
+    $examMetaStmt = $pdo->prepare('
         SELECT e.id, e.title, e.duration_minutes, e.total_questions_to_ask, e.total_marks,
                e.access_pin, e.target_units, e.status, e.start_time, e.end_time,
                s.department, s.semester, s.name AS subject_name,
@@ -34,7 +34,7 @@ try {
         JOIN subjects s ON e.subject_id = s.id
         WHERE e.id = ?
         LIMIT 1
-    ");
+    ');
     $examMetaStmt->execute([$exam_id]);
     $exam = $examMetaStmt->fetch();
 
@@ -57,24 +57,38 @@ try {
     }
 
     // Authorization: Department and semester match
-    if ($exam['department'] !== $student_department || (int)$exam['semester'] !== $student_semester) {
+    if ($exam['department'] !== $student_department || (int) $exam['semester'] !== $student_semester) {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>You are not authorized to access this exam.</h2>");
     }
 
-    if ((int)$exam['seconds_left'] <= 0) {
+    if ((int) $exam['seconds_left'] <= 0) {
         die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Time is up! This examination has already concluded.</h2>");
     }
 
-    // Check if student already has a disqualified attempt for this exam
-    $checkAttemptStmt = $pdo->prepare("SELECT id, status FROM exam_attempts WHERE student_id = ? AND exam_id = ? LIMIT 1");
+    // 1. Check if student already has an attempt for this exam
+    $checkAttemptStmt = $pdo->prepare('SELECT id, status FROM exam_attempts WHERE student_id = ? AND exam_id = ? LIMIT 1');
     $checkAttemptStmt->execute([$student_id, $exam_id]);
     $existingAttempt = $checkAttemptStmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($existingAttempt && $existingAttempt['status'] === 'disqualified') {
-        set_flash('error', "You have been disqualified from this examination due to integrity violations.");
-        redirect('dashboard.php');
-    }
+    if ($existingAttempt) {
+        $attempt_status = $existingAttempt['status'];
 
+        if ($attempt_status === 'completed') {
+            // RULE 1: Block Batch 1 students (or anyone who finished and submitted)
+            set_flash('error', 'Access Denied: You have already completed this examination in a previous batch.');
+            redirect('dashboard.php');
+            exit;
+        } elseif ($attempt_status === 'disqualified') {
+            // RULE 2: Block cheaters. (If a teacher wants to forgive them, they must
+            // manually change their status back to 'in_progress' from the Admin Proctor Panel)
+            set_flash('error', 'Access Denied: Your exam was terminated due to rule violations.');
+            redirect('dashboard.php');
+            exit;
+        } elseif ($attempt_status === 'in_progress') {
+            // RULE 3: Allow Auto-Resume! If their PC crashed, do NOT block them.
+            // Let the script bypass this block so they resume exactly where they left off.
+        }
+    }
     // 2. Classroom PIN Check with Rate Limiting
     $pinRequired = !empty($exam['access_pin']);
     $isUnlocked = isset($_SESSION['unlocked_exams'][$exam_id]);
@@ -99,9 +113,9 @@ try {
                     $hit = RateLimiter::hit($pdo, $pinKey, 600, 5);
                     $rem = max(0, 5 - $hit['hits']);
                     if ($rem > 0) {
-                        $pinError = "Incorrect Classroom Exam PIN. {$rem} attempt" . ($rem === 1 ? '' : 's') . " remaining before a 10-minute lockout.";
+                        $pinError = "Incorrect Classroom Exam PIN. {$rem} attempt" . ($rem === 1 ? '' : 's') . ' remaining before a 10-minute lockout.';
                     } else {
-                        $pinError = "Incorrect Classroom Exam PIN. Maximum attempts exceeded. Locked out for 10 minutes.";
+                        $pinError = 'Incorrect Classroom Exam PIN. Maximum attempts exceeded. Locked out for 10 minutes.';
                     }
                 }
             }
@@ -113,29 +127,31 @@ try {
 
     if ($pinRequired && !$isUnlocked) {
         $page_title = 'Enter Exam PIN • Examify';
-        $body_class = 'auth-body';
+        $body_class = 'auth-body auth-page-wrapper';
         include __DIR__ . '/../components/header.php';
         ?>
-        <div class="auth-card">
-            <h1>Classroom Access PIN</h1>
-            <p class="subtitle">Enter the PIN provided by your instructor to unlock <strong><?= e($exam['title']) ?></strong></p>
+        <main class="auth-main-container">
+            <div class="auth-card">
+                <h1>Classroom Access PIN</h1>
+                <p class="subtitle">Enter the PIN provided by your instructor to unlock <strong><?= e($exam['title']) ?></strong></p>
 
-            <?php if ($pinError): ?>
-                <div class="alert alert-error"><?= e($pinError) ?></div>
-            <?php endif; ?>
+                <?php if ($pinError): ?>
+                    <div class="alert alert-error"><?= e($pinError) ?></div>
+                <?php endif; ?>
 
-            <form method="POST">
-                <?= csrf_field() ?>
-                <div class="form-group">
-                    <label>Exam PIN / Passcode</label>
-                    <input type="text" name="exam_pin" required autofocus placeholder="e.g. 1234" style="text-align: center; font-size: 1.5rem; letter-spacing: 4px;">
-                </div>
-                <button type="submit" name="verify_pin" class="btn btn-primary btn-block">Unlock Exam</button>
-                <div style="text-align: center; margin-top: 16px;">
-                    <a href="dashboard.php" class="btn btn-secondary btn-sm">Return to Dashboard</a>
-                </div>
-            </form>
-        </div>
+                <form method="POST">
+                    <?= csrf_field() ?>
+                    <div class="form-group">
+                        <label>Exam PIN / Passcode</label>
+                        <input type="text" name="exam_pin" required autofocus placeholder="e.g. 1234" style="text-align: center; font-size: 1.5rem; letter-spacing: 4px;">
+                    </div>
+                    <button type="submit" name="verify_pin" class="btn btn-primary btn-block">Unlock Exam</button>
+                    <div style="text-align: center; margin-top: 16px;">
+                        <a href="dashboard.php" class="btn btn-secondary btn-sm">Return to Dashboard</a>
+                    </div>
+                </form>
+            </div>
+        </main>
         <?php
         include __DIR__ . '/../components/footer.php';
         exit;
@@ -144,16 +160,16 @@ try {
     // 3. Initialize or fetch Attempt via ExamEngine
     $res = ExamEngine::getOrStartAttempt($pdo, $student_id, $exam_id, $student_semester, $student_department);
     if (!empty($res['disqualified'])) {
-        set_flash('error', $res['error'] ?? "You have been disqualified from this examination due to integrity violations.");
+        set_flash('error', $res['error'] ?? 'You have been disqualified from this examination due to integrity violations.');
         redirect('dashboard.php');
     }
     if (!empty($res['error'])) {
-        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>" . e($res['error']) . "</h2>");
+        die("<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>" . e($res['error']) . '</h2>');
     }
 
     $attempt = $res['attempt'];
     if (($attempt['status'] ?? '') === 'disqualified') {
-        set_flash('error', "You have been disqualified from this examination due to integrity violations.");
+        set_flash('error', 'You have been disqualified from this examination due to integrity violations.');
         redirect('dashboard.php');
     }
     if (($attempt['status'] ?? '') === 'completed') {
@@ -162,19 +178,18 @@ try {
 
     $attempt_id = (int) $attempt['id'];
     $total_questions = (int) $attempt['total_questions'];
-    $points_per_question = ($total_questions > 0) ? round((float)$exam['total_marks'] / $total_questions, 2) : 0;
+    $points_per_question = ($total_questions > 0) ? round((float) $exam['total_marks'] / $total_questions, 2) : 0;
 
     if (!empty($res['is_new'])) {
         require_once __DIR__ . '/../utils/websocket-pusher.php';
-        WebSocketPusher::emit("exam:{$exam_id}", "student_started", [
+        WebSocketPusher::emit("exam:{$exam_id}", 'student_started', [
             'student_id' => $student_id,
             'attempt_id' => $attempt_id,
         ]);
     }
-
 } catch (PDOException $e) {
-    log_error("Exam loading error", $e);
-    die("Database Error. Please contact your instructor.");
+    log_error('Exam loading error', $e);
+    die('Database Error. Please contact your instructor.');
 }
 
 $page_title = ($exam['title'] ?? 'Exam') . ' • Examify';
@@ -189,7 +204,7 @@ include __DIR__ . '/../components/header.php';
             <span class="material-symbols-outlined icon-xs">grid_view</span> Palette
         </button>
         <div class="timer-box">
-            <div class="timer" id="timerDisplay" data-time-left="<?= max(0, (int)$exam['seconds_left']) ?>" style="display: inline-flex; align-items: center; gap: 6px;">
+            <div class="timer" id="timerDisplay" data-time-left="<?= max(0, (int) $exam['seconds_left']) ?>" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">timer</span> <span id="timerText">--:--</span>
             </div>
         </div>
@@ -439,58 +454,59 @@ include __DIR__ . '/../components/header.php';
         }
     }
 
-    function renderQuestion(q, selected, marked) {
-        const container = document.getElementById('question-container');
-        if (!container) return;
+   function renderQuestion(q, selected, marked) {
+    const container = document.getElementById('question-container');
+    if (!container) return;
 
-        const safeQuestionText = escapeHtml(q.question_text);
-        const qType = q.question_type || 'single';
-        const isMulti = (qType === 'multiple');
+    const safeQuestionText = escapeHtml(q.question_text);
+    const qType = q.question_type || 'single';
+    const isMulti = (qType === 'multiple');
 
-        let typeBadge = '';
-        if (isMulti) {
-            typeBadge = `<span class="badge badge-warning" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;"><span class="material-symbols-outlined" style="font-size: 13px; vertical-align: -2px;">check_box</span> Select all that apply</span>`;
-        } else if (qType === 'case_study') {
-            typeBadge = `<span class="badge badge-info" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;">Case Study</span>`;
-        } else if (qType === 'assertion_reason') {
-            typeBadge = `<span class="badge badge-secondary" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;">Assertion-Reason</span>`;
-        } else if (qType === 'matching') {
-            typeBadge = `<span class="badge badge-outline" style="margin-left: 8px; font-size: 0.75rem; vertical-align: middle;">Matching</span>`;
-        }
-
-        let html = `
-            <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''} ${typeBadge}</div>
-            <div class="question-text">${safeQuestionText}</div>
-            <div class="options-list">
-        `;
-
-        const order = (q.options_order && Array.isArray(q.options_order)) ? q.options_order : ['A', 'B', 'C', 'D'];
-        const displayLetters = ['A', 'B', 'C', 'D'];
-        const selectedTokens = selected ? String(selected).split(',').map(s => s.trim().toUpperCase()) : [];
-        let renderedCount = 0;
-        const inputType = isMulti ? 'checkbox' : 'radio';
-
-        order.forEach((opt) => {
-            const text = q['option_' + opt.toLowerCase()];
-            if (text !== null && text !== undefined && String(text).trim() !== '') {
-                const isSelected = selectedTokens.includes(opt);
-                const safeText = escapeHtml(text);
-                const displayLetter = displayLetters[renderedCount] || opt;
-                renderedCount++;
-                html += `
-                    <label class="option-item ${isSelected ? 'selected' : ''}">
-                        <input type="${inputType}" name="answer" value="${opt}" ${isSelected ? 'checked' : ''}>
-                        <span><strong>${displayLetter}.</strong> ${safeText}</span>
-                    </label>
-                `;
-            }
-        });
-
-        html += `</div>`;
-        container.innerHTML = html;
-
-        setReviewButtonState(!!marked);
+    let typeBadge = '';
+    if (isMulti) {
+        typeBadge = `<span class="badge badge-warning"><span class="material-symbols-outlined">check_box</span> Select all that apply</span>`;
+    } else if (qType === 'case_study') {
+        typeBadge = `<span class="badge badge-info">Case Study</span>`;
+    } else if (qType === 'assertion_reason') {
+        typeBadge = `<span class="badge badge-secondary">Assertion-Reason</span>`;
+    } else if (qType === 'matching') {
+        typeBadge = `<span class="badge badge-outline">Matching</span>`;
     }
+
+    let html = `
+        <div class="question-meta">Question ${currentIndex + 1} of ${totalQuestions} • ${pointsPerQuestion} Mark${pointsPerQuestion > 1 ? 's' : ''}</div>
+        ${typeBadge ? `<div class="question-type-row">${typeBadge}</div>` : ''}
+        <div class="question-text">${safeQuestionText}</div>
+        <div class="options-list ${isMulti ? 'options-multi' : ''}">
+    `;
+
+    const order = (q.options_order && Array.isArray(q.options_order)) ? q.options_order : ['A', 'B', 'C', 'D'];
+    const displayLetters = ['A', 'B', 'C', 'D'];
+    const selectedTokens = selected ? String(selected).split(',').map(s => s.trim().toUpperCase()) : [];
+    let renderedCount = 0;
+    const inputType = isMulti ? 'checkbox' : 'radio';
+
+    order.forEach((opt) => {
+        const text = q['option_' + opt.toLowerCase()];
+        if (text !== null && text !== undefined && String(text).trim() !== '') {
+            const isSelected = selectedTokens.includes(opt);
+            const safeText = escapeHtml(text);
+            const displayLetter = displayLetters[renderedCount] || opt;
+            renderedCount++;
+            html += `
+                <label class="option-item ${isSelected ? 'selected' : ''}">
+                    <input type="${inputType}" name="answer" value="${opt}" ${isSelected ? 'checked' : ''}>
+                    <span class="option-label"><strong>${displayLetter}.</strong> ${safeText}</span>
+                </label>
+            `;
+        }
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+    setReviewButtonState(!!marked);
+  }
 
     let currentPaletteFilter = 'all';
 
@@ -618,10 +634,15 @@ include __DIR__ . '/../components/header.php';
         }
     }
 
-    // Auto-save when option is selected or deselected
+    // Add this variable at the top of your script with the others
+    let autoSaveTimeout = null;
+
+    // Optimized Auto-save with 500ms Debounce
     document.getElementById('question-container').addEventListener('change', e => {
         if (e.target.name === 'answer') {
             const isCheckbox = e.target.type === 'checkbox';
+            
+            // 1. Update UI Instantly (No delay for the student)
             if (isCheckbox) {
                 if (e.target.checked) {
                     e.target.closest('.option-item')?.classList.add('selected');
@@ -633,17 +654,21 @@ include __DIR__ . '/../components/header.php';
                 e.target.closest('.option-item')?.classList.add('selected');
             }
 
-            saveCurrentAnswer().then(() => {
-                const hasAnyChecked = document.querySelectorAll('input[name="answer"]:checked').length > 0;
-                const gridBtn = document.getElementById(`grid-btn-${currentIndex}`);
-                if (gridBtn) {
-                    if (hasAnyChecked) {
-                        gridBtn.classList.add('answered');
-                    } else {
-                        gridBtn.classList.remove('answered');
+            // 2. Debounce the Server Request
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                saveCurrentAnswer().then(() => {
+                    const hasAnyChecked = document.querySelectorAll('input[name="answer"]:checked').length > 0;
+                    const gridBtn = document.getElementById(`grid-btn-${currentIndex}`);
+                    if (gridBtn) {
+                        if (hasAnyChecked) {
+                            gridBtn.classList.add('answered');
+                        } else {
+                            gridBtn.classList.remove('answered');
+                        }
                     }
-                }
-            });
+                });
+            }, 500); // Waits half a second after their last click before hitting the DB
         }
     });
 
@@ -702,13 +727,26 @@ include __DIR__ . '/../components/header.php';
         };
     }
 
+    // Warn student if they accidentally try to close the tab or hit the back button
+    let isSubmitting = false;
+
+    window.addEventListener('beforeunload', function (e) {
+        if (!isSubmitting) {
+            // Standard message required by modern browsers to trigger the warning dialog
+            e.preventDefault(); 
+            e.returnValue = 'Are you sure you want to leave? Your exam is still in progress.';
+        }
+    });
+
+    // When they actually click the final submit button, bypass the warning
     if (confirmSubmitBtn) {
         confirmSubmitBtn.onclick = async () => {
+            isSubmitting = true; // Bypass the warning above
+            
             confirmSubmitBtn.disabled = true;
             confirmSubmitBtn.innerHTML = '<span class="material-symbols-outlined icon-xs">sync</span> Submitting...';
             if (cancelSubmitBtn) cancelSubmitBtn.disabled = true;
-
-            // Stop AntiCheat monitoring to prevent false violations during form submission & page transition
+    
             if (window.AntiCheat && typeof window.AntiCheat.stop === 'function') {
                 window.AntiCheat.stop();
             }
@@ -749,13 +787,13 @@ include __DIR__ . '/../components/header.php';
                 socket.send(JSON.stringify({
                     action: 'candidate_join',
                     exam_id: examId,
-                    student_id: <?= (int)($_SESSION['student_id'] ?? 0) ?>
+                    student_id: <?= (int) ($_SESSION['student_id'] ?? 0) ?>
                 }));
             };
             socket.onmessage = function (e) {
                 try {
                     const data = JSON.parse(e.data);
-                    if ((data.action === 'student_disqualified' || data.event === 'student_disqualified') && parseInt(data.student_id, 10) === <?= (int)$student_id ?>) {
+                    if ((data.action === 'student_disqualified' || data.event === 'student_disqualified') && parseInt(data.student_id, 10) === <?= (int) $student_id ?>) {
                         alert("You have been disqualified from this examination due to integrity violations.");
                         window.location.href = 'dashboard.php';
                         return;
@@ -779,6 +817,9 @@ include __DIR__ . '/../components/header.php';
             // Silently ignore if offline socket server is unreachable
         }
     })();
+
+
+
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

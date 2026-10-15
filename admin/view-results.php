@@ -21,10 +21,15 @@ if (isset($_GET['download_student_answers']) && isset($_GET['attempt_id'])) {
     // 1. Fetch Student and Exam Meta via Attempt ID
     // Notice: No "AND ea.student_id = ?" because Admins can view all attempts
     $metaStmt = $pdo->prepare('
-        SELECT s.name, s.roll_number, e.title 
+        SELECT 
+            s.name, s.roll_number, e.title, 
+            sub.name AS subject_name, 
+            sub.department AS exam_department, 
+            sub.semester AS exam_semester
         FROM exam_attempts ea
         JOIN students s ON ea.student_id = s.id
         JOIN exams e ON ea.exam_id = e.id
+        JOIN subjects sub ON e.subject_id = sub.id
         WHERE ea.id = ?
     ');
     $metaStmt->execute([$dl_attempt_id]);
@@ -32,7 +37,7 @@ if (isset($_GET['download_student_answers']) && isset($_GET['attempt_id'])) {
 
     if ($metaData) {
         $pdfStudent = ['name' => $metaData['name'], 'roll_number' => $metaData['roll_number']];
-        $pdfExam = ['title' => $metaData['title']];
+        $pdfExam = ['title' => $metaData['title'], 'subject' => $metaData['subject_name'], 'department' => $metaData['exam_department'] , 'semester' => $metaData['exam_semester']];
 
         // 2. Fetch the detailed Question & Answer history
         $qaStmt = $pdo->prepare('
@@ -57,9 +62,11 @@ try {
     // Fetch Exam Details
     $examStmt = $pdo->prepare('
         SELECT e.id, e.title, e.total_marks, e.duration_minutes, e.start_time, e.status, e.results_published,
-               a.name as creator_name, a.status as creator_status
+               a.name AS creator_name, a.status AS creator_status,
+               s.name AS subject_name, s.department, s.semester
         FROM exams e
         LEFT JOIN admins a ON e.created_by = a.id
+        JOIN subjects s ON e.subject_id = s.id
         WHERE e.id = ?
     ');
     $examStmt->execute([$exam_id]);
@@ -105,10 +112,10 @@ try {
     }
 
     // Fetch All Completed Attempts (Ordered by Score)
-    $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at
+    $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at, ea.status AS attempt_status
         FROM exam_attempts ea
         JOIN students s ON ea.student_id = s.id
-        WHERE ea.exam_id = :exam_id AND ea.status = 'completed'
+        WHERE ea.exam_id = :exam_id AND ea.status IN ('completed', 'disqualified')
         ORDER BY ea.score DESC, ea.submitted_at ASC";
     $resultsStmt = $pdo->prepare($resultsSql);
     $resultsStmt->execute([':exam_id' => $exam_id]);
@@ -238,10 +245,11 @@ include __DIR__ . '/../components/header.php';
 
         <!-- All Submissions -->
         <div class="card">
-            <div class="card-title">All Student Submissions (<?= count($all_results) ?>)</div>
-
-            <div style="margin-bottom: 10px;">
-                <?php include '../components/searchbar.php' ?>
+            <div style="display: flex; flex-direction: row; justify-content: space-between; padding: 10px;">
+                <div class="card-title">All Student Submissions (<?= count($all_results) ?>)</div>
+                <div style="width: 50%;">
+                    <?php include '../components/searchbar.php' ?>
+                </div>
             </div>
 
             <div class="table-wrap">
@@ -253,6 +261,7 @@ include __DIR__ . '/../components/header.php';
                             <th>Score</th>
                             <th>Percentage</th>
                             <th>Submitted At</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -267,7 +276,7 @@ include __DIR__ . '/../components/header.php';
                                 <td>
                                     <strong><?= e($row['name']) ?></strong><br>
                                     <small style="color: var(--color-text-secondary);">
-                                        <?= e($row['roll_number']) ?> • <?= e($row['department']) ?>, Sem <?= e((string) $row['semester']) ?>
+                                        <?= e($row['roll_number']) ?> • <?= e($row['department']) ?>, Sem <?= e((string) $exam['semester']) ?>
                                     </small>
                                 </td>
                                 <td>
@@ -279,6 +288,13 @@ include __DIR__ . '/../components/header.php';
                                     </span>
                                 </td>
                                 <td><?= date('d M Y, h:i A', strtotime($row['submitted_at'])) ?></td>
+                                <td>
+                                    <?php if($row['attempt_status'] === 'disqualified'): ?>
+                                        <p class="badge badge-danger"><?= $row['attempt_status'] ?></p>
+                                    <?php else: ?>
+                                        <p class="badge badge-success"><?= $row['attempt_status'] ?></p>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <a href="view-student-answers.php?attempt_id=<?= $row['attempt_id'] ?>" 
                                     class="btn btn-secondary btn-sm" 

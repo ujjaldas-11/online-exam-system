@@ -16,53 +16,81 @@ class ExamifyPdf extends FPDF
     public string $examTitle = '';
     public string $metaInfo = '';
     public string $footerSubtext = 'Official Academic Assessment Record';
+    public bool $hideHeader = false;
 
     public function Header(): void
     {
-        // Dark slate header background band
-        $this->SetFillColor(30, 41, 59);
-        $this->Rect(0, 0, $this->GetPageWidth(), 24, 'F');
-
-        $this->SetY(4);
-        $this->SetFont('Helvetica', 'B', 14);
-        $this->SetTextColor(255, 255, 255);
-        $this->Cell(0, 7, 'BENGAL INSTITUE OF SCIENCE & TECHNOLOGY', 0, 1, 'C');
-        $this->Cell(0, 6, 'EXAMIFY - COLLEGE EXAMINATION PORTAL', 0, 1, 'C');
-
-        $this->SetFont('Helvetica', '', 9);
-        $this->SetTextColor(203, 213, 225);
-        $this->Cell(0, 5, 'Official Academic Assessment Record', 0, 1, 'C');
-
-        $this->SetTextColor(30, 41, 59);
-        $this->SetY(30);
-
-        if ($this->examTitle) {
-            $titleStr = strtoupper($this->examTitle);
-            $fontSize = 13;
-            $this->SetFont('Helvetica', 'B', $fontSize);
-            while ($this->GetStringWidth($titleStr) > 185 && $fontSize > 9) {
-                $fontSize -= 0.5;
-                $this->SetFont('Helvetica', 'B', $fontSize);
-            }
-            while ($this->GetStringWidth($titleStr) > 185 && mb_strlen($titleStr) > 10) {
-                $titleStr = mb_substr($titleStr, 0, -1);
-            }
-            $this->Cell(0, 7, $titleStr, 0, 1, 'L');
+        // Skip header generation if the flag is set (e.g. for offline question paper)
+        if ($this->hideHeader) {
+            return;
         }
 
-        if ($this->metaInfo) {
+        // ---------------------------------------------------------
+        // ONLY print the full detailed header on PAGE 1
+        // ---------------------------------------------------------
+        if ($this->PageNo() === 1) {
+            // Dark slate header background band
+            $this->SetFillColor(30, 41, 59);
+            $this->Rect(0, 0, $this->GetPageWidth(), 24, 'F');
+
+            $this->SetY(3);
+            $this->SetFont('Helvetica', 'B', 10);
+            $this->SetTextColor(255, 255, 255);
+            $this->Cell(0, 7, 'BENGAL INSTITUTE OF SCIENCE & TECHNOLOGY', 0, 1, 'C');
             $this->SetFont('Helvetica', '', 9);
-            $this->SetTextColor(100, 116, 139);
-            $this->Cell(0, 5, $this->metaInfo, 0, 1, 'L');
+            $this->SetTextColor(203, 213, 225);
+            $this->Cell(0, 5, 'EXAMIFY - COLLEGE EXAMINATION PORTAL', 0, 1, 'C');
+
+            // $this->Cell(0, 5, 'Official Academic Assessment Record', 0, 1, 'C');
+
             $this->SetTextColor(30, 41, 59);
-        }
+            $this->SetY(30);
 
-        $this->Ln(2);
+            if ($this->examTitle) {
+                $titleStr = strtoupper($this->examTitle);
+                $fontSize = 13;
+                $this->SetFont('Helvetica', 'B', $fontSize);
+                while ($this->GetStringWidth($titleStr) > 185 && $fontSize > 9) {
+                    $fontSize -= 0.5;
+                    $this->SetFont('Helvetica', 'B', $fontSize);
+                }
+                while ($this->GetStringWidth($titleStr) > 185 && mb_strlen($titleStr) > 10) {
+                    $titleStr = mb_substr($titleStr, 0, -1);
+                }
+                $this->Cell(0, 7, $titleStr, 0, 1, 'L');
+            }
 
-        // Header bottom separator line
-        $this->SetDrawColor(226, 232, 240);
-        $this->Line(10, $this->GetY(), $this->GetPageWidth() - 10, $this->GetY());
-        $this->Ln(4);
+            if ($this->metaInfo) {
+                $this->SetFont('Helvetica', '', 9);
+                $this->SetTextColor(100, 116, 139);
+                $this->Cell(0, 5, $this->metaInfo, 0, 1, 'L');
+                $this->SetTextColor(30, 41, 59);
+            }
+
+            $this->Ln(2);
+
+            // Header bottom separator line
+            $this->SetDrawColor(226, 232, 240);
+            $this->Line(10, $this->GetY(), $this->GetPageWidth() - 10, $this->GetY());
+            $this->Ln(4);
+            
+        } 
+        // else {
+        //     // ---------------------------------------------------------
+        //     // COMPACT HEADER for Page 2 and beyond
+        //     // ---------------------------------------------------------
+        //     $this->SetFillColor(30, 41, 59);
+        //     $this->Rect(0, 0, $this->GetPageWidth(), 14, 'F'); // Shorter background band
+
+        //     $this->SetY(4);
+        //     $this->SetFont('Helvetica', 'B', 11);
+        //     $this->SetTextColor(255, 255, 255);
+        //     $this->Cell(0, 6, 'BENGAL INSTITUTE OF SCIENCE & TECHNOLOGY', 0, 1, 'C');
+
+        //     // Reset text color to dark and move Y down so content starts cleanly below
+        //     $this->SetTextColor(30, 41, 59);
+        //     $this->SetY(20); 
+        // }
     }
 
     public function Footer(): void
@@ -272,25 +300,55 @@ class PdfService
         exit;
     }
 
-    /**
-     * 2. Generate Printable Offline Exam Paper (Admin: Print questions without answers)
+/**
+     * 2. Generate Printable Offline Exam Paper (With Answer Key at the end)
      */
+    /**
+     * Counts how many lines $text needs when wrapped into a cell of width $w (mm),
+     * using the CURRENT font of $pdf (set the font before calling).
+     */
+    private static function countWrappedLines($pdf, string $text, float $w): int
+    {
+        $maxW = $w - 2; // 1mm cell margin on each side
+        $lines = 0;
+        foreach (explode("\n", $text) as $para) {
+            $words = preg_split('/\s+/', trim($para));
+            $cur = '';
+            $paraLines = 1;
+            foreach ($words as $word) {
+                $try = ($cur === '') ? $word : $cur . ' ' . $word;
+                if ($pdf->GetStringWidth($try) > $maxW && $cur !== '') {
+                    $paraLines++;
+                    $cur = $word;
+                } else {
+                    $cur = $try;
+                }
+            }
+            $lines += $paraLines;
+        }
+        return max(1, $lines);
+    }
+
     public static function generateOfflineExamPaperPdf(array $exam, array $questions, string $mode = 'I'): string
     {
         $pdf = new ExamifyPdf('P', 'mm', 'A4');
+        $pdf->hideHeader = false; // Disable header specifically for the offline paper
         $pdf->examTitle = (string) ($exam['title'] ?? 'Examination Paper');
         $pdf->footerSubtext = 'Official Offline Question Paper';
         $pdf->AliasNbPages();
+        $pdf->SetMargins(10, 10, 10);
         $pdf->AddPage();
         $pdf->SetAutoPageBreak(true, 15);
 
-        // Header Info Box (Department, Instructor, Target Units, Duration)
+        $pageBottom = 297 - 15; // A4 height - bottom margin
+
+        // ---------------- Header Info Box (compact) ----------------
         $pdf->SetFillColor(248, 250, 252);
         $pdf->SetDrawColor(203, 213, 225);
-        $pdf->Rect(10, $pdf->GetY(), 190, 22, 'DF');
+        $pdf->Rect(10, $pdf->GetY(), 190, 17, 'DF');
 
-        $pdf->SetY($pdf->GetY() + 3);
-        $pdf->SetFont('Helvetica', 'B', 9);
+        $pdf->SetY($pdf->GetY() + 2);
+        $pdf->SetFont('Helvetica', 'B', 8.5);
         $pdf->SetTextColor(100, 116, 139);
 
         $dept = ($exam['department'] ?? 'General') . ' (Sem ' . ($exam['semester'] ?? 'All') . ')';
@@ -316,33 +374,148 @@ class PdfService
         $pdf->SetTextColor(15, 23, 42);
         $pdf->Cell(70, 5, ($exam['duration_minutes'] ?? 0) . ' Mins | Max Marks: ' . ($exam['total_marks'] ?? 0), 0, 1, 'L');
 
-        $pdf->Ln(10);
-        $pdf->SetFont('Helvetica', 'B', 12);
-        $pdf->Cell(0, 8, 'MULTIPLE CHOICE QUESTIONS', 0, 1, 'C');
-        $pdf->Ln(4);
+        $pdf->Ln(5);
+        $pdf->SetFont('Helvetica', 'B', 11);
+        $pdf->Cell(0, 6, 'MULTIPLE CHOICE QUESTIONS', 0, 1, 'C');
+        $pdf->Ln(1);
+
+        // ---------------------------------------------------------
+        // PART 1: Student Question Paper (compact: 12+ questions/page)
+        // ---------------------------------------------------------
+        $qLineH = 4.4;   // question line height
+        $oLineH = 4.2;   // option line height
+        $gap    = 2.2;   // space between questions
 
         $qNum = 1;
         foreach ($questions as $q) {
-            if ($pdf->GetY() > 250) {
+            $qText = $qNum . '. ' . str_replace("\r", '', (string) ($q['question_text'] ?? ''));
+
+            // Collect non-empty options
+            $opts = [];
+            foreach (['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d'] as $letter => $key) {
+                $t = trim(str_replace("\r", '', (string) ($q[$key] ?? '')));
+                if ($t !== '') {
+                    $opts[] = "($letter)  " . $t;
+                }
+            }
+
+            // Measure question
+            $pdf->SetFont('Helvetica', 'B', 9);
+            $qLines = self::countWrappedLines($pdf, $qText, 190);
+
+            // Choose option layout: all in one row, 2x2 grid, or stacked
+            $pdf->SetFont('Helvetica', '', 8.5);
+            $n = count($opts);
+            $layout = 'stack';
+            if ($n > 0) {
+                $fitsRow = true;
+                $fitsGrid = true;
+                foreach ($opts as $o) {
+                    $w = $pdf->GetStringWidth($o) + 2;
+                    if ($w > (182 / $n)) $fitsRow = false;
+                    if ($w > 91)         $fitsGrid = false;
+                }
+                if ($fitsRow)       $layout = 'row';
+                elseif ($fitsGrid)  $layout = 'grid';
+            }
+
+            if ($layout === 'row') {
+                $optH = $n ? $oLineH : 0;
+            } elseif ($layout === 'grid') {
+                $optH = ceil($n / 2) * $oLineH;
+            } else {
+                $optH = 0;
+                foreach ($opts as $o) {
+                    $optH += self::countWrappedLines($pdf, $o, 182) * $oLineH;
+                }
+            }
+
+            $blockH = $qLines * $qLineH + $optH + $gap;
+
+            // New page only if the whole question block doesn't fit
+            if ($pdf->GetY() + $blockH > $pageBottom) {
                 $pdf->AddPage();
             }
 
-            $pdf->SetFont('Helvetica', 'B', 10);
+            // Question
+            $pdf->SetFont('Helvetica', 'B', 9);
             $pdf->SetTextColor(15, 23, 42);
-            $pdf->MultiCell(190, 6, $qNum . '. ' . str_replace("\r", '', $q['question_text']), 0, 'L');
+            $pdf->SetX(10);
+            $pdf->MultiCell(190, $qLineH, $qText, 0, 'L');
 
-            $pdf->SetFont('Helvetica', '', 10);
-            $pdf->SetTextColor(71, 85, 105);
+            // Options
+           $pdf->SetFont('Helvetica', '', 8.5);
+           $pdf->SetTextColor(33, 33, 33);
 
-            $options = ['A' => $q['option_a'] ?? '', 'B' => $q['option_b'] ?? '', 'C' => $q['option_c'] ?? '', 'D' => $q['option_d'] ?? ''];
-            foreach ($options as $letter => $text) {
-                if (!empty(trim($text))) {
-                    $pdf->SetX(18);  // Indent
-                    $pdf->MultiCell(182, 5, "($letter)  $text", 0, 'L');
+
+            if ($layout === 'row') {
+                $pdf->SetX(18);
+                $cw = 182 / $n;
+                foreach ($opts as $i => $o) {
+                    $pdf->Cell($cw, $oLineH, $o, 0, ($i === $n - 1) ? 1 : 0, 'L');
+                }
+            } elseif ($layout === 'grid') {
+                for ($i = 0; $i < $n; $i += 2) {
+                    $pdf->SetX(18);
+                    $pdf->Cell(91, $oLineH, $opts[$i], 0, isset($opts[$i + 1]) ? 0 : 1, 'L');
+                    if (isset($opts[$i + 1])) {
+                        $pdf->Cell(91, $oLineH, $opts[$i + 1], 0, 1, 'L');
+                    }
+                }
+            } else {
+                foreach ($opts as $o) {
+                    $pdf->SetX(18);
+                    $pdf->MultiCell(182, $oLineH, $o, 0, 'L');
                 }
             }
-            $pdf->Ln(6);
+
+            $pdf->Ln($gap);
             $qNum++;
+        }
+
+        // ---------------------------------------------------------
+        // PART 2: Master Answer Key - ALL answers on ONE page
+        // ---------------------------------------------------------
+        $pdf->SetAutoPageBreak(false); // guarantee a single page
+        $pdf->AddPage();
+
+        $pdf->SetFont('Helvetica', 'B', 14);
+        $pdf->SetTextColor(15, 23, 42);
+        $pdf->Cell(0, 9, 'MASTER ANSWER KEY', 0, 1, 'C');
+
+        $pdf->SetFont('Helvetica', '', 9);
+        $pdf->SetTextColor(100, 116, 139);
+        $pdf->Cell(0, 5, 'Instructor Reference Only - Do Not Distribute', 0, 1, 'C');
+        $pdf->Ln(5);
+
+        $total = count($questions);
+        $rowH = 6.5;
+        $startY = $pdf->GetY();
+        $maxRows = (int) floor(($pageBottom - $startY) / $rowH);
+        $cols = max(5, (int) ceil($total / max(1, $maxRows)));
+        $cols = min($cols, 8);
+        $cellW = 190 / $cols;
+        $rows = (int) ceil($total / $cols);
+        // Fill column by column so numbering reads top-to-bottom: Q1..Qrows in col 1, etc.
+
+        $pdf->SetDrawColor(226, 232, 240);
+        foreach ($questions as $idx => $q) {
+            $col = intdiv($idx, $rows);
+            $row = $idx % $rows;
+            $x = 10 + $col * $cellW;
+            $y = $startY + $row * $rowH;
+
+            $correct = (string) ($q['correct_option'] ?? '');
+            $tokens = array_filter(array_map('trim', explode(',', $correct)));
+            $ans = implode(',', array_map('strtoupper', $tokens));
+
+            $pdf->SetXY($x, $y);
+            $pdf->SetFont('Helvetica', 'B', 9);
+            $pdf->SetTextColor(30, 41, 59);
+            $pdf->Cell($cellW * 0.45, $rowH, 'Q' . ($idx + 1) . '.', 'B', 0, 'L');
+
+            $pdf->SetTextColor(22, 163, 74); // green
+            $pdf->Cell($cellW * 0.55, $rowH, $ans, 'B', 0, 'L');
         }
 
         if (ob_get_length())
@@ -352,7 +525,6 @@ class PdfService
         $pdf->Output($mode, 'Offline_Exam_Paper.pdf');
         exit;
     }
-
     /**
      * 3. Generate Student Detailed Answer Sheet (Student Review Page)
      */
@@ -361,7 +533,7 @@ class PdfService
         $pdf = new ExamifyPdf('P', 'mm', 'A4');
         $pdf->examTitle = (string) ($exam['title'] ?? 'Detailed Answer Sheet');
         $pdf->footerSubtext = 'Student Review & Feedback Report';
-        $pdf->metaInfo = 'Candidate: ' . ($student['name'] ?? 'Unknown') . '  |  Roll Number: ' . ($student['roll_number'] ?? '-');
+        $pdf->metaInfo = 'Candidate: ' . ($student['name'] ?? 'Unknown') . '  |  Roll Number: ' . ($student['roll_number'] ?? '-') . '| Department: ' . ($exam['department'] ?? '-'). '| Sem: ' . ($exam['semester']) . '|Subject: ' . $exam['subject'];
         $pdf->AliasNbPages();
         $pdf->AddPage();
         $pdf->SetAutoPageBreak(true, 15);
@@ -418,7 +590,7 @@ class PdfService
                 $pdf->Cell(6, 6, $symbol, 0, 0, 'L');
 
                 // Then switch back to your normal font for the option text
-                $pdf->SetFont('Arial', '', 10);  // adjust size/family to match your existing font
+                $pdf->SetFont('Arial', '', 10); 
                 $pdf->MultiCell(152, 6, implode('  |  ', $selParts), 0, 'L');
             }
 
@@ -463,10 +635,13 @@ class PdfService
         $pdf->SetFillColor(30, 41, 59);
         $pdf->Rect(0, 0, 210, 28, 'F');
 
-        $pdf->SetY(6);
-        $pdf->SetFont('Helvetica', 'B', 15);
+        $pdf->SetY(4);
+        $pdf->SetFont('Helvetica', 'B', 13);
         $pdf->SetTextColor(255, 255, 255);
-        $pdf->Cell(0, 7, 'EXAMIFY - EXAMINATION SCORECARD', 0, 1, 'C');
+        $pdf->Cell(0, 7, 'BENGAL INSTITUTE OF SCIENCE & TECHNOLOGY', 0, 1, 'C');
+
+        $pdf->SetFont('Helvetica', 'B', 11);
+        $pdf->Cell(0, 6, 'EXAMIFY - EXAMINATION SCORECARD', 0, 1, 'C');
 
         $pdf->SetFont('Helvetica', '', 9);
         $pdf->SetTextColor(203, 213, 225);
@@ -484,7 +659,7 @@ class PdfService
         $pdf->SetTextColor(100, 116, 139);
         $pdf->Cell(28, 6, 'EXAMINATION:', 0, 0, 'L');
 
-        $examTitle = (string) ($exam['title'] ?? 'Examination');
+        $examTitle = (string) ($exam['title'] ?? 'Examination') . '| Subject: ' . ($exam['subject']);
         $pdf->SetFont('Helvetica', 'B', 10);
         $pdf->SetTextColor(15, 23, 42);
         $titleDisplay = $examTitle;

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/mega-linter.yml/badge.svg?branch=main)](https://github.com/ujjaldas-11/online-exam-system/actions/workflows/mega-linter.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![PHP](https://img.shields.io/badge/PHP-8.1%20--%208.5%2B-777bb4.svg)](https://www.php.net/)
+[![PHP](https://img.shields.io/badge/PHP-8.1_--_8.5%2B-777bb4.svg?style=flat)](https://www.php.net/)
 
 Examify is an institutional web-based examination platform designed specifically for college computer laboratories and local area networks (LAN). It delivers timed assessments, semester examinations, and quizzes with real-time proctoring and automated evaluation—operating with zero external internet dependencies.
 
