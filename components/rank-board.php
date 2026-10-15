@@ -134,7 +134,7 @@ $rb_total = count($class_leaderboard ?? []);
                             <td><strong>#<?= (int) $s['rank'] ?></strong></td>
                             <td class="search-name"><?= e($s['name']) ?> <?= $isMe ? '<span class="badge badge-info">You</span>' : '' ?></td>
                             <td class="search-roll"><?= e((string) $s['roll']) ?></td>
-                            <td><?= (int) $s['exams_taken'] ?></td>
+                            <td><?= (int) $s['local_exams_taken'] ?></td>
                             <td><strong><?= sprintf('%.1f', $s['average']) ?>%</strong></td>
                         </tr>
                     <?php endforeach; ?>

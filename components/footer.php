@@ -20,7 +20,7 @@ $assetVersion = asset_version();
             margin-top: auto; /* Helps push footer to the bottom of the page */
             padding: 24px 20px;
             text-align: center;
-            border-top: 1px solid var(--color-border, #e2e8f0);
+            border-top: 1px solid var(--color-gold,);
             color: var(--color-text-secondary, #64748b);
             font-size: 0.85rem;
             background: transparent;
