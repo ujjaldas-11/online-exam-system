@@ -1,13 +1,5 @@
 <?php
-/**
- * Rank Board component (class ranking card + "View all" modal)
- *
- * Expects from the including page:
- *   $top_10                      array       top 10 of the class (rank, id, name, average)
- *   $class_leaderboard           array       full class ranking (rank, id, name, roll, exams_taken, average)
- *   $current_student_rank_data   array|null
- *   $student_id                  int
- */
+
 $rb_total = count($class_leaderboard ?? []);
 ?>
 
@@ -70,18 +62,6 @@ $rb_total = count($class_leaderboard ?? []);
         <button type="button" id="btn-view-all-ranks" class="btn btn-outline btn-sm">View all</button>
     </div>
 
-    <?php if (!empty($current_student_rank_data)): ?>
-        <div class="rank-me">
-            <div>
-                <div class="rank-me__lbl">Your rank</div>
-                <div class="rank-me__val">#<?= (int) $current_student_rank_data['rank'] ?> <span class="rank-me__of">of <?= $rb_total ?></span></div>
-            </div>
-            <div class="rank-me__avg">
-                Average
-                <strong><?= sprintf('%.1f', $current_student_rank_data['average']) ?>%</strong>
-            </div>
-        </div>
-    <?php endif; ?>
 
     <?php if (empty($top_10)): ?>
         <div class="rank-empty">No exams completed yet.</div>
@@ -106,6 +86,20 @@ $rb_total = count($class_leaderboard ?? []);
                     <span class="rank-avg"><?= sprintf('%.1f', $current_student_rank_data['average']) ?>%</span>
                 </li>
             <?php endif; ?>
+
+
+            <?php if (!empty($current_student_rank_data)): ?>
+                <div class="rank-me">
+                    <div>
+                        <div class="rank-me__lbl">Your rank</div>
+                        <div class="rank-me__val">#<?= (int) $current_student_rank_data['rank'] ?> <span class="rank-me__of">of <?= $rb_total ?></span></div>
+                    </div>
+                    <div class="rank-me__avg">
+                        Average
+                        <strong><?= sprintf('%.1f', $current_student_rank_data['average']) ?>%</strong>
+                    </div>
+                </div>
+            <?php endif; ?> 
         </ol>
     <?php endif; ?>
 </aside>
@@ -159,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const rows = document.querySelectorAll('#fullRankTable tbody tr');
     if (!modal) return;
 
-    const open = () => { modal.classList.add('active'); if (searchInput) searchInput.focus(); };
+    const open = () => { modal.classList.add('active');};
     const close = () => modal.classList.remove('active');
 
     if (openBtn) openBtn.addEventListener('click', open);

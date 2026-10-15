@@ -80,9 +80,13 @@ include __DIR__ . '/../components/student-navbar.php';
             <h1>Request Profile Change</h1>
             <p>Updates must be reviewed by your course coordinator</p>
         </div>
-        <a href="profile.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+        <button type="button" id="openPasswordBtn" class="btn btn-secondary btn-sm">
+            <span class="material-symbols-outlined icon-sm">lock_reset</span>
+                Reset Password
+        </button>
+        <!-- <a href="profile.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
             <span class="material-symbols-outlined icon-xs">arrow_back</span> Back to Profile
-        </a>
+        </a> -->
     </div>
 
     <?php if ($message): ?>
@@ -169,5 +173,81 @@ include __DIR__ . '/../components/student-navbar.php';
         </form>
     </div>
 </div>
+
+
+
+
+<!-- ===================== CHANGE PASSWORD MODAL (uses admin-modal components) ===================== -->
+<div id="passwordModal" class="admin-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle">
+    <div class="admin-modal-card">
+        <div class="admin-modal-header">
+            <h3 id="passwordModalTitle"><span class="material-symbols-outlined">lock_reset</span> Change Password</h3>
+            <button type="button" id="closePasswordBtn" class="admin-modal-close" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form method="POST" action="profile.php">
+            <?= csrf_field() ?>
+            <input type="hidden" name="change_password" value="1">
+
+            <div class="admin-modal-body">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="current_password" required>
+                        <button type="button" class="password-toggle-btn">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>New Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="new_password" required minlength="8">
+                        <button type="button" class="password-toggle-btn">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Confirm New Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="confirm_password" required minlength="8">
+                        <button type="button" class="password-toggle-btn">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-modal-footer">
+                <button type="button" id="cancelPasswordBtn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('passwordModal');
+        const openBtn = document.getElementById('openPasswordBtn');
+        const closeBtn = document.getElementById('closePasswordBtn');
+        const cancelBtn = document.getElementById('cancelPasswordBtn');
+        if (!modal) return;
+
+        const open = () => modal.classList.add('active');
+        const close = () => modal.classList.remove('active');
+
+        if (openBtn) openBtn.addEventListener('click', function (e) { e.preventDefault(); open(); });
+        if (closeBtn) closeBtn.addEventListener('click', close);
+        if (cancelBtn) cancelBtn.addEventListener('click', close);
+        modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+        window.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    });
+</script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

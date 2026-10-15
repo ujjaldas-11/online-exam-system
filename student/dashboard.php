@@ -82,8 +82,21 @@ foreach ($available_exams as $exam) {
 
 // --- 2. LEADERBOARD & BADGE CALCULATION LOGIC ---
 try {
-    // Fetch ALL completed attempts for the ENTIRE college.
-    // We JOIN `subjects s` so we can strictly match the exam's dept/sem against the student's.
+    // Fetch TOTAL exams conducted per Dept & Semester (For GOAT logic)
+    $examCountStmt = $pdo->query("
+        SELECT s.department, s.semester, COUNT(e.id) as total_exams 
+        FROM exams e 
+        JOIN subjects s ON e.subject_id = s.id 
+        WHERE e.status IN ('ended', 'active') 
+        GROUP BY s.department, s.semester
+    ");
+    $semester_exam_counts = [];
+    while ($row = $examCountStmt->fetch()) {
+        $key = $row['department'] . '_' . $row['semester'];
+        $semester_exam_counts[$key] = (int) $row['total_exams'];
+    }
+
+    // Fetch ALL completed attempts for the ENTIRE college
     $rankSql = "
         SELECT 
             st.id AS student_id, st.name, st.roll_number, 
@@ -98,11 +111,11 @@ try {
         ORDER BY ea.submitted_at ASC
     ";
     $rankStmt = $pdo->query($rankSql);
-    $all_attempts =$rankStmt->fetchAll();
+    $all_attempts = $rankStmt->fetchAll();
 
     $college_stats = [];
-    foreach ($all_attempts as$att) {
-        $sid =$att['student_id'];
+    foreach ($all_attempts as $att) {
+        $sid = $att['student_id'];
         if (!isset($college_stats[$sid])) {
             $college_stats[$sid] = [
                 'id'                => $sid,
@@ -110,81 +123,92 @@ try {
                 'roll'              => $att['roll_number'],
                 'student_dept'      => $att['student_dept'],
                 'student_sem'       => $att['student_sem'],
-                'current_streak'    => 0,
+                'full_marks_count'  => 0,
                 'local_percentage'  => 0,
                 'local_exams_taken' => 0,
                 'badge'             => null
             ];
         }
 
-        // 1. GLOBAL STREAK MATH (College-wide: Any exam counts toward the badge)
-        if ($att['score'] == $att['total_marks'] &&$att['total_marks'] > 0) {
-            $college_stats[$sid]['current_streak']++;
-        } else {
-            $college_stats[$sid]['current_streak'] = 0; // Mistake drops streak to zero
-        }
-
-        // 2. LOCAL RANK MATH (Only exams belonging to the dashboard's specific Dept & Sem)
-        if ($att['exam_dept'] ===$department && (int)$att['exam_sem'] ===$semester) {
-            $percentage = ($att['total_marks'] > 0) ? ($att['score'] /$att['total_marks']) * 100 : 0;
-            $college_stats[$sid]['local_percentage'] +=$percentage;
+        // FRESH START LOGIC: 
+        // We ONLY count exams that belong to the student's CURRENT department and semester.
+        // If they get promoted, their old exams are ignored here and counts drop to zero.
+        if ($att['exam_dept'] === $att['student_dept'] && (int)$att['exam_sem'] === (int)$att['student_sem']) {
+            
+            // Add to Local Average
+            $percentage = ($att['total_marks'] > 0) ? ($att['score'] / $att['total_marks']) * 100 : 0;
+            $college_stats[$sid]['local_percentage'] += $percentage;
             $college_stats[$sid]['local_exams_taken']++;
+
+            // Add to Cumulative Badge Count
+            if ($att['score'] == $att['total_marks'] && $att['total_marks'] > 0) {
+                $college_stats[$sid]['full_marks_count']++; 
+            }
         }
     }
 
-    $badge_holders = [];$class_leaderboard = [];
+    $badge_holders = [];
+    $class_leaderboard = [];
 
     foreach ($college_stats as &$stat) {
-        $streak =$stat['current_streak'];
+        $fm_count = $stat['full_marks_count'];
+        
+        // Find out how many exams this specific student's class has had
+        $class_key = $stat['student_dept'] . '_' . $stat['student_sem'];
+        $total_class_exams = $semester_exam_counts[$class_key] ?? 0;
 
-        // COLLEGE-WIDE BADGE ASSIGNMENTS
-        if ($streak >= 10) {$stat['badge'] = ['title' => 'GOAT', 'tier' => 'goat', 'icon' => '🐐', 'desc' => '10x Full Marks Streak!'];
-        } elseif ($streak >= 7) {$stat['badge'] = ['title' => 'Legend', 'tier' => 'legend', 'icon' => '👑', 'desc' => '7x Full Marks Streak!'];
-        } elseif ($streak >= 3) {$stat['badge'] = ['title' => 'Knight', 'tier' => 'knight', 'icon' => '🛡️', 'desc' => '3x Full Marks Streak!'];
+        // COLLEGE-WIDE BADGE ASSIGNMENTS (Strictly tied to current semester)
+        if ($total_class_exams >= 5 && $fm_count === $total_class_exams) {
+            $stat['badge'] = ['title' => 'GOAT', 'tier' => 'goat', 'icon' => '𓃵', 'desc' => 'Flawless Semester!'];
+        } elseif ($fm_count >= 7) {
+            $stat['badge'] = ['title' => 'Legend', 'tier' => 'legend', 'icon' => '🗿', 'desc' => '7x Full Marks!'];
+        } elseif ($fm_count >= 3) {
+            $stat['badge'] = ['title' => 'Knight', 'tier' => 'knight', 'icon' => '🥷🏻', 'desc' => '3x Full Marks!'];
         }
 
         if ($stat['badge']) {
-            $badge_holders[] =$stat;
+            $badge_holders[] = $stat;
         }
 
-        // LOCAL CLASS LEADERBOARD
-        // Filter: Ensure the student currently belongs to the dashboard's department/semester
-        if ($stat['student_dept'] ===$department && (int)$stat['student_sem'] ===$semester) {
-            // Calculate the average ONLY using exams taken in this specific semester
-            $stat['average'] =$stat['local_exams_taken'] > 0 
-                ? ($stat['local_percentage'] /$stat['local_exams_taken']) 
+        // LOCAL CLASS LEADERBOARD (Only show logged-in student's exact classmates)
+        if ($stat['student_dept'] === $department && (int)$stat['student_sem'] === $semester) {
+            $stat['average'] = $stat['local_exams_taken'] > 0 
+                ? ($stat['local_percentage'] / $stat['local_exams_taken']) 
                 : 0;
-            
-            $class_leaderboard[] =$stat;
+            $class_leaderboard[] = $stat;
         }
     }
-    unset($stat); // Break reference
+    unset($stat);
 
-    // Sort Hall of Fame by longest streak first
-    usort($badge_holders, function ($a,$b) {
-        return $b['current_streak'] <=>$a['current_streak'];
+    // Sort Hall of Fame by most Full Marks first
+    usort($badge_holders, function ($a, $b) {
+        return $b['full_marks_count'] <=> $a['full_marks_count'];
     });
 
     // Sort Local Class Leaderboard by average DESC
-    usort($class_leaderboard, function ($a,$b) {
-        return $b['average'] <=>$a['average'];
+    usort($class_leaderboard, function ($a, $b) {
+        return $b['average'] <=> $a['average'];
     });
 
     $current_student_rank_data = null;
     $rank = 1;
     foreach ($class_leaderboard as &$stat) {
-        $stat['rank'] =$rank++;
-        if ($stat['id'] ==$student_id) {
-            $current_student_rank_data =$stat;
+        $stat['rank'] = $rank++;
+        if ($stat['id'] == $student_id) {
+            $current_student_rank_data = $stat;
         }
     }
-    unset($stat); // Break reference
+    unset($stat);
 
-    // Get Top 10 for the local class
-    $top_10 = array_slice($class_leaderboard, 0, 10);  } catch (PDOException$e) {
-    log_error('Leaderboard generation failed', $e);$college_stats = [];
-    $badge_holders = [];$class_leaderboard = [];
-    $top_10 = [];$current_student_rank_data = null;
+    $top_10 = array_slice($class_leaderboard, 0, 10);
+    
+} catch (PDOException $e) {
+    log_error('Leaderboard generation failed', $e);
+    $college_stats = [];
+    $badge_holders = [];
+    $class_leaderboard = [];
+    $top_10 = [];
+    $current_student_rank_data = null;
 }
 
 // --- 3. Filter Bar Configuration ---
@@ -259,7 +283,7 @@ include __DIR__ . '/../components/student-navbar.php';
     @media (min-width: 992px) {
         .dashboard-layout { grid-template-columns: minmax(0, 1fr) 320px; }
         .dash-sidebar {
-            position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto;
+            /* position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; */
             scrollbar-width: none; -ms-overflow-style: none;
         }
         .dash-sidebar::-webkit-scrollbar { display: none; }
