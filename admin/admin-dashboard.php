@@ -91,33 +91,6 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<style>
-    /* Compact Dashboard Layout Styles */
-    .compact-kpi { padding: 16px; border-radius: var(--radius-md); background: var(--color-bg); border: 1px solid var(--color-border); display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-    .compact-kpi .num { font-size: 1.7rem; font-weight: 800; color: var(--color-dark); line-height: 1.1; margin-bottom: 4px; }
-    .compact-kpi .label { font-size: 0.82rem; color: var(--color-text-secondary); display: flex; align-items: center; gap: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    .dash-grid-main { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
-    .dash-grid-half { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
-    
-    @media (min-width: 1024px) {
-        /* This puts them in one row: 2 equal columns for tables, 1 narrower column for buttons */
-        .dash-grid-main { grid-template-columns: 1fr 1fr 280px; }
-        .dash-grid-half { grid-template-columns: 1fr 1fr; }
-    }
-
-    .compact-table { width: 100%; border-collapse: collapse; }
-    .compact-table th, .compact-table td { padding: 8px 12px; font-size: 0.85rem; border-bottom: 1px solid var(--color-border); text-align: left; }
-    .compact-table th { background: #f8fafc; color: var(--color-text-secondary); font-weight: 600; }
-    .compact-table tbody tr:last-child td { border-bottom: none; }
-    .compact-table tbody tr:hover { background: #f8fafc; }
-
-    .quick-action-btn { justify-content: flex-start; padding: 10px 14px; gap: 10px; margin-bottom: 8px; width: 100%; display: flex; align-items: center; text-align: left; border-radius: var(--radius-md); }
-    .quick-action-btn .icon-md { font-size: 22px; }
-    .quick-action-btn strong { font-size: 0.9rem; display: block; }
-    .quick-action-btn small { font-size: 0.75rem; font-weight: normal; opacity: 0.85; display: block; line-height: 1.2; }
-</style>
-
 <div class="container main-content" style="padding-top: 12px; margin-top: 3rem;">
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 

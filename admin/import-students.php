@@ -221,51 +221,7 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<style>
-    .csv-guide-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 12px;
-        margin-top: 12px;
-        background: #f8fafc;
-        padding: 16px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--color-border);
-    }
-    .csv-guide-item {
-        font-size: 0.85rem;
-    }
-    .csv-guide-item strong {
-        display: block;
-        color: var(--color-dark);
-        margin-bottom: 2px;
-    }
-    .csv-guide-item span {
-        color: var(--color-text-secondary);
-        font-size: 0.75rem;
-    }
-    .error-box {
-        max-height: 150px;
-        overflow-y: auto;
-        background: #fef2f2;
-        border: 1px solid #fca5a5;
-        border-radius: var(--radius-md);
-        padding: 12px;
-        margin-bottom: 20px;
-    }
-    .error-box div {
-        color: #b91c1c;
-        font-size: 0.85rem;
-        margin-bottom: 4px;
-        padding-left: 12px;
-        position: relative;
-    }
-    .error-box div::before {
-        content: "•";
-        position: absolute;
-        left: 0;
-    }
-</style>
+
 
 <div class="container main-content" style="max-width: 850px;">
     <div class="page-header">

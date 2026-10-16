@@ -7,4 +7,8 @@
 @import "./base.css";
 @import "./components.css";
 @import "./admin-sidebar.css";
+@import "./admin-dashboard.css";
+@import "./import-student.css";
 @import "./student-navbar.css";
+@import "./student-profile.css";
+@import "./student-dashboard.css";

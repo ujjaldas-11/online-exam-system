@@ -17,10 +17,15 @@ $rb_total = count($class_leaderboard ?? []);
     .rank-board__title .material-symbols-outlined { color: var(--color-gold); }
 
     .rank-me {
-        display: flex; align-items: center; justify-content: space-between; gap: 8px;
-        margin: 0 16px 12px; padding: 10px 12px;
-        background: var(--color-primary); color: var(--color-surface);
-        border-radius: var(--radius-md); border-bottom: 3px solid var(--color-gold);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 20px;
+        padding: 10px;
+        background: var(--color-primary);
+        border-radius: var(--radius-md);
+        border-left: 4px solid var(--color-gold);
     }
     .rank-me__lbl { font-size: 0.75rem; color: var(--color-text-muted); font-weight: 600; }
     .rank-me__val { font-size: 1.35rem; font-weight: 800; line-height: 1.1; color: var(--color-gold-hover); }
