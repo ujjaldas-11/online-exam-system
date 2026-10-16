@@ -25,17 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($req && $req['status'] === 'pending') {
                     $pdo->beginTransaction();
 
-                    // 1. Update the student record
-                    $updatestmt = $pdo->prepare("UPDATE students SET name = ?, roll_number = ?, department = ?, semester = ? WHERE id = ?");
+                    $updatestmt = $pdo->prepare("UPDATE students SET name = ?, roll_number = ?, department = ?, semester = ?, gender = ? WHERE id = ?");
                     $updateSuccess = $updatestmt->execute([
                         $req['new_name'],
                         $req['new_roll_no'],
                         $req['new_department'],
                         $req['new_semester'],
+                        $req['new_gender'],
                         $req['student_id']
                     ]);
 
-                    // 2. Update the request status
                     $reviewer_id = (int) ($_SESSION['admin_id'] ?? 0);
                     $statusStmt = $pdo->prepare("UPDATE profile_requests SET status = 'approved', reviewed_by = ? WHERE id = ?");
                     $statusSuccess = $statusStmt->execute([$reviewer_id, $request_id]);
@@ -110,9 +109,7 @@ $show_status = false;
 $show_author = false;
 $search_placeholder = "Search by name, roll,";
 
-
 $departments = CurriculumService::getDepartments($pdo);
-
 
 $filterQ = clean_input($_GET['q'] ?? '');
 $filterDept = clean_input($_GET['department'] ?? '');
@@ -136,16 +133,14 @@ if ($filterSem > 0 && $filterSem <= 8) {
     $queryParams[] = $filterSem;
 }
 
-
 $whereClause = "WHERE " . implode(" AND ", $queryWhere);
 
 // Setup Pagination Variables
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$per_page = 20; // Number of exams per page
+$per_page = 20; 
 $total_result_count = 0;
 
 try {
-    // Total count for current filter
     $countSql = "SELECT COUNT(*) FROM profile_requests r JOIN students s ON r.student_id = s.id $whereClause";
     $countStmt = $pdo->prepare($countSql);
     $countStmt->execute($queryParams);
@@ -153,8 +148,9 @@ try {
 
     $offset = ($current_page - 1) * $per_page;
 
+    // ADDED s.gender as old_gender to the select query
     $sql ="
-        SELECT r.*, s.name as old_name, s.roll_number as old_roll, s.department as old_dept, s.semester as old_sem
+        SELECT r.*, s.name as old_name, s.roll_number as old_roll, s.department as old_dept, s.semester as old_sem, s.gender as old_gender
         FROM profile_requests r
         JOIN students s ON r.student_id = s.id
         $whereClause
@@ -193,7 +189,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <div class="alert alert-error"><?= e($error) ?></div>
     <?php endif; ?>
         
-     <!-- filter bar -->
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
     <!-- Pending Profile Requests -->
@@ -202,7 +197,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <?php if (empty($requests)): ?>
             <p style="color: var(--color-text-secondary); padding: 16px 0;">No pending profile requests at this time.</p>
         <?php else: ?>
-
 
             <div class="table-wrap">
                 <table>
@@ -219,19 +213,22 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <?php foreach ($requests as $req): ?>
                             <tr>
                                 <td><strong><?= e($req['old_roll']) ?></strong></td>
+                                
                                 <td>
                                     <strong><?= e($req['old_name']) ?></strong>
                                     (Roll: <?= e($req['old_roll']) ?>) <br>
-                                    <p style="color: var(--color-text-secondary);">
-                                        <?= e($req['old_dept']) ?> • Sem <?= e((string)$req['old_sem']) ?>
+                                    <p style="color: var(--color-text-secondary); font-size: 0.85rem; margin-top: 4px;">
+                                        <?= e($req['old_dept']) ?> Sem <?= e((string)$req['old_sem']) ?> &bull; Gender: <?= ucfirst(e($req['old_gender'] ?? 'Others')) ?>
                                     </p>
                                 </td>
+                                
                                 <td>
                                     <strong style="color: var(--color-error);"><?= e($req['new_name']) ?> (Roll: <?= e($req['new_roll_no']) ?>)</strong><br>
-                                    <p style="color: var(--color-error);">
-                                        <?= e($req['new_department']) ?> • Sem <?= e((string)$req['new_semester']) ?>
+                                    <p style="color: var(--color-error); font-size: 0.85rem; margin-top: 4px;">
+                                        <?= e($req['new_department']) ?> Sem <?= e((string)$req['new_semester']) ?> &bull; Gender: <?= ucfirst(e($req['new_gender'] ?? 'Others')) ?>
                                     </p>
                                 </td>
+                                
                                 <td><?= date('d M Y, h:i A', strtotime($req['request_date'])) ?></td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 6px; justify-content: flex-end;">

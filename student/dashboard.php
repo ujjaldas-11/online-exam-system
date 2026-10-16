@@ -224,7 +224,7 @@ $status_list = [
 $filterQ = strtolower(trim(clean_input($_GET['q'] ?? '')));
 $filterStatus = clean_input($_GET['status'] ?? '');
 $current_page = max(1, (int) ($_GET['page'] ?? 1));
-$per_page = 10;
+$per_page = 9;
 
 $filtered_exams = [];
 foreach ($processed_exams as $exam) {
@@ -417,7 +417,15 @@ include __DIR__ . '/../components/student-navbar.php';
             </div>
 
             <!-- Filter Bar -->
-            <?php include __DIR__ . '/../components/filter-bar.php'; ?>
+            <div style="display: flex; justify-content: space-between; gap: 2px;">
+                <div style="width: 95%;">
+                    <?php include __DIR__ . '/../components/filter-bar.php'; ?>
+                </div>
+                <a href="exam-history.php" class="btn btn-outline btn-sm" style="height: 2.5rem;" global-data-tooltip="view your exam history">
+                <span class="material-symbols-outlined">history</span>    
+                History</a>
+            </div>
+                
 
             <?php if (empty($paginated_exams)): ?>
                 <div class="dash-empty">

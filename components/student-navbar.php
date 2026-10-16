@@ -9,11 +9,16 @@ $student_nav = [
 
 // --- AVATAR LOGIC ---
 $student_name = $_SESSION['student_name'] ?? 'Student';
-$student_gender = strtolower(trim($_SESSION['gender'] ?? 'female'));
+$student_gender = strtolower($_SESSION['gender'] ?? 'others');
 
-$nav_avatar_url = ($student_gender === 'female')
-    ? '../assets/avatars/female.jpg'
-    : '../assets/avatars/male.jpg';
+
+if($student_gender === 'female') {
+    $nav_avatar_url = '../assets/avatars/female.jpg';
+} elseif($student_gender === 'male') {
+    $nav_avatar_url = '../assets/avatars/male.jpg';
+} else {
+    $nav_avatar_url = '../assets/avatars/all-gender.webp';
+}
 
 $student_child_routes = [
     'edit-profile.php' => 'profile.php',
@@ -65,7 +70,7 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
         <div class="student-nav-links" id="navLinks">
             <a href="profile.php" class="drawer-profile">
                 <img src="<?= $esc($nav_avatar_url) ?>" alt="Profile" class="nav-profile-pic lg">
-                <span class="student-greeting">Hi, <?= $esc($student_name) ?></span>
+                <span class="student-greeting">Hi,<?= $esc($student_name) ?></span>
             </a>
 
             <?php foreach ($student_nav as $page => $meta): ?>

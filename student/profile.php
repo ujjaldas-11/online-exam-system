@@ -155,9 +155,14 @@ try {
 
 // --- AUTOMATED AVATAR LOGIC ---
 $student_gender = strtolower($student['gender'] ?? 'male');
-$current_avatar_url = ($student_gender === 'female')
-    ? '../assets/avatars/female.jpg'
-    : '../assets/avatars/male.jpg';
+
+if($student_gender === 'female') {
+    $current_avatar_url = '../assets/avatars/female.jpg';
+} elseif($student_gender === 'male') {
+    $current_avatar_url = '../assets/avatars/male.jpg';
+} else {
+    $current_avatar_url = '../assets/avatars/all-gender.webp';
+}
 
 $page_title = 'My Profile • Examify';
 include __DIR__ . '/../components/header.php';
@@ -165,10 +170,12 @@ include __DIR__ . '/../components/student-navbar.php';
 ?>
 <?php
 
+$hof_img_base = '../assets/badges/';
+
 $tier_meta = [
-    'goat' => ['title' => 'GOAT', 'icon' => '𓃵'],
-    'legend' => ['title' => 'Legend', 'icon' => '🗿'],
-    'knight' => ['title' => 'Knight', 'icon' => '🥷🏻'],
+    'goat' => ['title' => 'GOAT', 'icon' => '𓃵', 'img' => 'goat.jpg', 'description' => 'Score full marks in all exams.'],
+    'legend' => ['title' => 'Legend', 'icon' => '🗿', 'img' => 'legend.jpg', 'description' => 'Score full marks in 7 exams.'],
+    'knight' => ['title' => 'Knight', 'icon' => '🥷🏻','img' => 'knight.jpg', 'description' => 'Score full marks in 3 exams.'],
 ];
 
 $status_key = strtolower((string) $student['status']);
@@ -217,13 +224,12 @@ if ($chart_n > 0) {
                     <h2 class="pf-name">
                         <?= e($student['name']) ?>
                         <?php if (!empty($primary_badge) && isset($tier_meta[$primary_badge])): ?>
-                            <span class="primary-badge badge-<?= e($primary_badge) ?>">
+                            <span class="primary-badge badge-<?= e($primary_badge) ?>" global-data-tooltip="You are <?= $tier_meta[$primary_badge]['title'] ?>">
                                 <span class="badge-icon" style="font-size: 1.1rem;"><?= $tier_meta[$primary_badge]['icon'] ?></span> 
                                 <?= e($tier_meta[$primary_badge]['title']) ?>
                             </span>
                         <?php endif; ?>
                     </h2>
-                    <p class="pf-sub"><?= e($student['department']) ?> &bull; Semester <?= e((string) $student['semester']) ?></p>
                 </div>
             </div>
 
@@ -233,8 +239,8 @@ if ($chart_n > 0) {
             </div>
 
             <div class="pf-chips">
-                <span class="pf-chip"><span class="material-symbols-outlined">school</span><?= e($student['department']) ?> Student</span>
-                <span class="pf-chip">Semester <?= e((string) $student['semester']) ?></span>
+                <span class="badge pf-chip"><span class="material-symbols-outlined">school</span><?= e($student['department']) ?> Student</span>
+                <span class="badge pf-chip">Semester <?= e((string) $student['semester']) ?></span>
             </div>
 
             <div class="pf-details">
@@ -388,9 +394,9 @@ if ($chart_n > 0) {
                             <!-- Dynamically applies .badge-goat, .badge-legend, .badge-knight -->
                             <div class="pf-ach-chip badge-<?= $tier ?>">
                                 
-                                <span class="badge-icon" style="font-size: 1.2rem;"><?= $meta['icon'] ?></span>
-                                <span class="pf-ach-chip__name"><?= e($meta['title']) ?></span>
-                                
+                                <!-- <span class="badge-icon" style="font-size: 1.2rem;"><?= $meta['icon'] ?></span>
+                                <span class="pf-ach-chip__name"><?= e($meta['title']) ?></span> -->
+                                <img src="<?= e($hof_img_base . $meta['img'])  ?>" alt="<?= e($meta['title']) ?>" title="<?= e($meta['title']) ?> For a reason." width="70px" height="50px" style="border-radius: 50%;">
                                 <?php if ($count > 1): ?>
                                     <span class="pf-ach-chip__count">x<?= $count ?></span>
                                 <?php endif; ?>
@@ -545,11 +551,7 @@ if ($chart_n > 0) {
     .pf-institute .material-symbols-outlined { font-size: 20px; color: var(--color-primary-light); }
 
     .pf-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 20px 0; }
-    .pf-chip {
-        display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
-        border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
-        background: var(--color-primary-soft); color: var(--color-primary-light);
-    }
+    .pf-chip {background: var(--color-primary); color: var(--color-gold);text-align: center;}
     .pf-chip .material-symbols-outlined { font-size: 16px; }
 
     .pf-details { flex: 1; display: flex; flex-direction: column; gap: 2px; margin: 14px 20px 14px; padding-top: 14px; border-top: 1px solid var(--color-border); }

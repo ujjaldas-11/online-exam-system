@@ -102,7 +102,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $dept = clean_input($_POST['department'] ?? '');
         $sem = int_param($_POST['semester'] ?? 0);
         $phone = clean_input($_POST['phone_number'] ?? '');
-        $gender = clean_input($_POST['gender'] ?? '');
+        $gender = strtolower(clean_input($_POST['gender'] ?? '')); // Normalized to lowercase
         $password = $_POST['password'] ?? '';
 
         if (empty($name) || empty($email) || empty($roll) || empty($dept) || $sem < 1 || $sem > 8 || empty($password)) {
@@ -113,6 +113,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $message_type = 'error';
         } elseif (strlen($password) < 6) {
             $message = "Password must be at least 6 characters long.";
+            $message_type = 'error';
+        } elseif (!in_array($gender, ['male', 'female', 'others'])) { // Added Gender Validation
+            $message = "Please select a valid gender (Male, Female, or Others).";
             $message_type = 'error';
         } else {
             try {
@@ -127,7 +130,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         INSERT INTO students (name, email, password, roll_number, department, semester, phone_number, gender, status, reviewed_by, reviewed_at)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, NOW())
                     ");
-                    $ins->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone ?: null, $gender ?: null, $adminId]);
+                    // Insert the validated gender safely
+                    $ins->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone ?: null, $gender, $adminId]);
                     $newId = (int) $pdo->lastInsertId();
 
                     log_admin_action($pdo, 'create_student', 'student', $newId, "Enrolled student $name (Roll: $roll, Dept: $dept, Sem $sem)");
@@ -142,7 +146,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         }
     }
 
-
+    
     elseif (isset($_POST['edit_student'])) {
         $studentId = int_param($_POST['student_id'] ?? 0);
         $name = clean_input($_POST['name'] ?? '');
@@ -151,7 +155,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $dept = clean_input($_POST['department'] ?? '');
         $sem = int_param($_POST['semester'] ?? 0);
         $phone = clean_input($_POST['phone_number'] ?? '');
-        $gender = clean_input($_POST['gender'] ?? '');
+        $gender = strtolower(clean_input($_POST['gender'] ?? ''));
         $status = clean_input($_POST['status'] ?? 'active');
 
         if ($studentId <= 0 || empty($name) || empty($email) || empty($roll) || empty($dept) || $sem < 1 || $sem > 8) {
@@ -160,10 +164,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         } elseif (!in_array($status, ['active', 'blocked', 'pending', 'rejected'], true)) {
             $message = "Invalid student status specified.";
             $message_type = 'error';
+        } elseif (!in_array($gender, ['male', 'female', 'others'])) {
+            $message = "Please select a valid gender (Male, Female, or Others).";
+            $message_type = 'error';
         } else {
             try {
-
-            $chk = $pdo->prepare("SELECT id FROM students WHERE (email = ? OR roll_number = ?) AND id != ? LIMIT 1");
+                $chk = $pdo->prepare("SELECT id FROM students WHERE (email = ? OR roll_number = ?) AND id != ? LIMIT 1");
                 $chk->execute([$email, $roll, $studentId]);
                 if ($chk->fetch()) {
                     $message = "Another student is already using this email or roll number.";
@@ -174,7 +180,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         SET name = ?, email = ?, roll_number = ?, department = ?, semester = ?, phone_number = ?, gender = ?, status = ?
                         WHERE id = ?
                     ");
-                    $up->execute([$name, $email, $roll, $dept, $sem, $phone ?: null, $gender ?: null, $status, $studentId]);
+                    $up->execute([$name, $email, $roll, $dept, $sem, $phone ?: null, $gender, $status, $studentId]);
 
                     // If student was blocked or rejected, immediately terminate active session
                     if (in_array($status, ['blocked', 'rejected'], true)) {

@@ -10,7 +10,32 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-width: thin;         
+  scrollbar-color: #a0aec0 #edf2f7;
 }
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 5px;
+}
+
+/* The background track */
+::-webkit-scrollbar-track {
+  background: #edf2f7;
+  border-radius: 100vw;
+  margin-block: 0.5rem;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a0aec0;
+  border-radius: 100vw;
+  border: 2px solid #edf2f7;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
 
 body {
   font-family: var(--font-sans);
