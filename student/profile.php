@@ -489,7 +489,7 @@ if ($chart_n > 0) {
     .pf-header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
     .profile-layout {
-        flex: 1; min-height: 0;
+        /* flex: 1; min-height: 0; */
         display: grid; grid-template-columns: clamp(290px, 26vw, 350px) minmax(0, 1fr);
         gap: 20px;
     }
@@ -509,7 +509,7 @@ if ($chart_n > 0) {
     .pf-muted { font-size: 0.82rem; color: var(--color-text-secondary); }
 
     /* ---------- Left card ---------- */
-    .pf-left { padding: 0; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+    .pf-left { padding: 0; display: flex; flex-direction: column; overflow: hidden; }
     .pf-banner {
         position: relative; height: 76px; flex-shrink: 0;
         background: linear-gradient(120deg, var(--color-primary-soft), color-mix(in srgb, var(--color-primary-light) 35%, var(--color-surface)));
@@ -670,12 +670,13 @@ if ($chart_n > 0) {
     /* ---------- Tablet / mobile ---------- */
     @media (max-width: 1040px), (max-height: 639px) {
         .profile-page { height: auto; }
-        .profile-layout { grid-template-columns: minmax(0, 1fr); }
+        /* .profile-layout { grid-template-columns: minmax(0, 1fr); } */
         .pf-plot { min-height: 180px; }
         .detail-row { padding: 12px 0; }
     }
     @media (max-width: 760px) {
         .pf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .profile-layout { grid-template-columns: minmax(0, 1fr); } 
     }
     @media (max-width: 560px) {
         .profile-page { padding: 16px; }
@@ -684,4 +685,3 @@ if ($chart_n > 0) {
 </style>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
-
