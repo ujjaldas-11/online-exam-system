@@ -84,8 +84,9 @@ include __DIR__ . '/../components/student-navbar.php';
         <div>
             <h1 class="page-title">Exam History</h1>
             <p class="page-subtitle">
-                <?= e((string) $total_items) ?> completed
-                <?= $total_items === 1 ? 'exam' : 'exams' ?> found
+                You have successfully completed
+                <?= e((string) $total_items) ?> 
+                <?= $total_items === 1 ? 'exam' : 'exams' ?> 
             </p>
         </div>
         <a href="profile.php" class="btn btn-secondary">

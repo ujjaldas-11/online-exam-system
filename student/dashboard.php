@@ -218,7 +218,7 @@ $show_status = true;
 $status_list = [
     'active' => 'Active Now',
     'scheduled' => 'Upcoming',
-    'completed' => 'Completed'
+    'ended' => 'Ended',
 ];
 
 $filterQ = strtolower(trim(clean_input($_GET['q'] ?? '')));
