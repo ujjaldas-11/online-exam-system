@@ -62,7 +62,7 @@ $rb_total = count($class_leaderboard ?? []);
 <aside class="rank-board card" aria-label="Class leaderboard">
     <div class="rank-board__head">
         <h3 class="rank-board__title">
-            <span class="material-symbols-outlined">trophy</span> Class rank
+            <span class="material-symbols-outlined">trophy</span> Class Leaderboard
         </h3>
         <button type="button" id="btn-view-all-ranks" class="btn btn-outline btn-sm">View all</button>
     </div>

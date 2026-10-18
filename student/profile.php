@@ -217,7 +217,7 @@ if ($chart_n > 0) {
 
             <div class="pf-identity">
                 <div class="pf-avatar-wrap">
-                    <img src="<?= e($current_avatar_url) ?>" alt="Profile avatar" class="pf-avatar">
+                    <img src="<?= e($current_avatar_url) ?>" alt="Profile avatar" class="pf-avatar" loading="lazy">
                     <span class="pf-status-dot pf-status-dot--<?= e($status_class) ?>" title="<?= e($student['status']) ?>"></span>
                 </div>
                 <div class="pf-identity-text">
@@ -321,7 +321,7 @@ if ($chart_n > 0) {
                 </div>
             </section>
             
-            <div style="display: flex; flex-direction: row; gap: 16px;">
+            <div class="pf-sub-right">
                 <!-- Performance Over Time -->
                 <section class="card pf-chart-card">
                     <div class="pf-head">   

@@ -2,7 +2,7 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 
 $student_nav = [
-    'dashboard.php' => ['label' => 'Home', 'icon' => 'space_dashboard'],
+    'dashboard.php' => ['label' => 'Home', 'icon' => 'home'],
     // 'exam-history.php' => ['label' => 'Exam History', 'icon' => 'history_edu'],
     '../docs/user/user-doc.php' => ['label' => 'docs', 'icon' => 'docs']
 ];
@@ -30,35 +30,12 @@ $effective_student_page = $student_child_routes[$current_page] ?? $current_page;
 $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
 ?>
 
-<style>
-    /* Layout-only fixes. No colors changed: your existing navbar styles still apply. */
-    .nav-profile-pic {
-        width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
-        border: 2px solid var(--color-border, #e5e7eb);
-        background-color: #fff;
-    }
-    .nav-profile-pic.lg { width: 64px; height: 64px; margin-bottom: 8px; }
-
-    .student-navbar .student-greeting-mobile-hidden { display: flex; align-items: center; gap: 10px; }
-    .student-navbar .student-greeting { white-space: nowrap; }
-
-    /* Drawer avatar block: desktop hidden (this was the duplicate avatar), mobile shown */
-    .student-navbar .drawer-profile { display: none; }
-
-    @media (max-width: 768px) {
-        .student-navbar .student-greeting-mobile-hidden { display: none; }
-        .student-navbar .drawer-profile {
-            display: flex; flex-direction: column; align-items: center; padding: 20px 0;
-        }
-        .student-navbar .drawer-profile .student-greeting { margin-left: 0; }
-    }
-</style>
 
 <nav class="student-navbar" aria-label="Main navigation">
     <div class="student-nav-inner">
 
         <a href="dashboard.php" class="student-brand">
-                <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
+                <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo" loading="lazy">
                 <span class="nav-logo" style="margin-left: -20px; font-size: 1.4rem; margin-top: 7.5px;">xamify</span>
         </a>
 
@@ -69,7 +46,7 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
 
         <div class="student-nav-links" id="navLinks">
             <a href="profile.php" class="drawer-profile">
-                <img src="<?= $esc($nav_avatar_url) ?>" alt="Profile" class="nav-profile-pic lg">
+                <img src="<?= $esc($nav_avatar_url) ?>" alt="Profile" class="nav-profile-pic lg" loading="lazy">
                 <span class="student-greeting">Hi,<?= $esc($student_name) ?></span>
             </a>
 
@@ -82,10 +59,18 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
                 </a>
             <?php endforeach; ?>
 
+            <div class="logout">
+                <a href="logout.php" class="logout-btn">
+                    <span class="material-symbols-outlined">logout</span>
+                    Logout
+                </a>
+            </div>
+                
+                
             <div class="profile-widget">
                 <button class="profile-trigger" id="profileTrigger" aria-haspopup="true" aria-expanded="false">
                     <!-- Dynamic Topbar Avatar -->
-                    <img src="<?= htmlspecialchars($esc($nav_avatar_url), ENT_QUOTES, 'UTF-8') ?>" alt="Admin Profile" class="nav-profile-pic">
+                    <img src="<?= htmlspecialchars($esc($nav_avatar_url), ENT_QUOTES, 'UTF-8') ?>" alt="Admin Profile" class="nav-profile-pic" loading="lazy">
                     
                     <div class="profile-text">
                         <span class="admin-name"><?= htmlspecialchars($esc($student_name), ENT_QUOTES, 'UTF-8') ?></span>
@@ -99,7 +84,7 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
                 <div class="profile-dropdown" id="profileDropdown">
                     <div class="dropdown-header">
                         <!-- Dynamic Dropdown Avatar -->
-                        <img src="<?= htmlspecialchars($nav_avatar_url, ENT_QUOTES, 'UTF-8') ?>" alt="Admin Profile" class="nav-profile-pic lg" style="width: 90px; height: 90px;">
+                        <img src="<?= htmlspecialchars($nav_avatar_url, ENT_QUOTES, 'UTF-8') ?>" alt="Admin Profile" class="nav-profile-pic lg" style="width: 90px; height: 90px;" loading="lazy">
                         <div>
                             <p class="dropdown-name"><?= htmlspecialchars($student_name, ENT_QUOTES, 'UTF-8') ?></p>
                             <p class="badge badge-active" style="background-color: #2c3343;">Student</p>
@@ -125,9 +110,9 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
                     </a>
                 </div>
             </div>
+
         </div>
     </div>
-
     <div class="student-nav-overlay" id="navOverlay"></div>
 </nav>
 

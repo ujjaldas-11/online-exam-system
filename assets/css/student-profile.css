@@ -302,6 +302,12 @@
   flex-shrink: 0;
 }
 
+.pf-sub-right {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
 /* Snapshot stats */
 .pf-stats {
   display: grid;
@@ -535,6 +541,10 @@
   }
   .detail-row {
     padding: 12px 0;
+  }
+  .pf-sub-right {
+    display: flex;
+    flex-direction: column;
   }
 }
 @media (max-width: 760px) {

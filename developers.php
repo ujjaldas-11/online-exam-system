@@ -382,7 +382,7 @@ $testedBy = [
 
 <header class="dev-nav">
     <a href="index.php" class="dev-brand">
-        <img src="assets/images/examify_logo.png" alt="Examify">
+        <img src="assets/images/examify_logo.png" alt="Examify" loading="lazy">
         <span>Examify</span>
     </a>
     <a href="index.php" class="dev-home">
