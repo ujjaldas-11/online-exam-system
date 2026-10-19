@@ -9,6 +9,7 @@ $hof_tiers = [
     'goat'   => ['title' => 'GOAT',   'streak' => 'all', 'img' => 'goat.jpg',   'deco' => 'workspace_premium'],
     'legend' => ['title' => 'Legend', 'streak' => '7',  'img' => 'legend.jpg', 'deco' => 'workspace_premium'],
     'knight' => ['title' => 'Knight', 'streak' => '3',  'img' => 'knight.jpg', 'deco' => 'shield'],
+    'ace' => ['title' => 'ace', 'streak' => '1', 'img' => 'ace.png', 'deco' => 'star' ]
 ];
 
 $hof_groups = array_fill_keys(array_keys($hof_tiers), []);
@@ -149,6 +150,16 @@ $hof_my_count = (int) ($college_stats[$student_id]['full_marks_count'] ?? 0);
         --pill-bg: #a7e4f7; --pill-text: #0b3b5a; --pill-border: #a7e4f7;
         --holder: #0b2e4a; --meta: #4a7390;
         --you-bg: #0b3b5a; --you-text: #fff;
+    }
+    .hof-row--ace {
+        background: linear-gradient(100deg, #2b2f35 0%, #3a3f46 55%, #2f343a 100%);
+        border-color: #565d66;
+        --streak: linear-gradient(90deg, rgba(170,178,188,.1), rgba(170,178,188,.5));
+        --deco: #9aa3ad; --glow: rgba(190,198,208,.35);
+        --title: #f1f3f5;
+        --pill-bg: #4a5058; --pill-text: #f1f3f5; --pill-border: #5c636c;
+        --holder: #ffffff; --meta: #a3acb6;
+        --you-bg: #f1f3f5; --you-text: #1f2328;
     }
 </style>
 

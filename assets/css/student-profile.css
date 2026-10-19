@@ -510,8 +510,7 @@
 }
 .pf-ach-chip {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  align-items: start;
   padding: 6px 12px;
   border-radius: 2rem;
 }
@@ -522,12 +521,16 @@
 }
 
 .pf-ach-chip__count {
-  margin-left: 2px;
+  position: relative;
+  z-index: 999;
+  right: 2rem;
+  margin-top: auto;
   padding: 1px 6px;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 800;
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--color-dark);
+  color: var(--color-border);
 }
 
 /* ---------- Tablet / mobile ---------- */

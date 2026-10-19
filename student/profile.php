@@ -136,6 +136,8 @@ try {
                 $earned_badges['legend']++;
             } elseif ($fm_count >= 3) {
                 $earned_badges['knight']++;
+            } elseif ($fm_count >= 1) {
+                $earned_badges['ace']++;
             }
         }
     }
@@ -148,6 +150,8 @@ try {
         $primary_badge = 'legend';
     elseif ($earned_badges['knight'] > 0)
         $primary_badge = 'knight';
+    elseif ($earned_badges['ace'] > 0)
+        $primary_badge = 'ace';
 } catch (PDOException $e) {
     log_error("Failed to load profile for student $student_id", $e);
     die('Database Error. Please try again later.');
@@ -174,8 +178,9 @@ $hof_img_base = '../assets/badges/';
 
 $tier_meta = [
     'goat' => ['title' => 'GOAT', 'icon' => '𓃵', 'img' => 'goat.jpg', 'description' => 'Score full marks in all exams.'],
-    'legend' => ['title' => 'Legend', 'icon' => '🗿', 'img' => 'legend.jpg', 'description' => 'Score full marks in 7 exams.'],
-    'knight' => ['title' => 'Knight', 'icon' => '🥷🏻','img' => 'knight.jpg', 'description' => 'Score full marks in 3 exams.'],
+    'legend' => ['title' => 'LEGEND', 'icon' => '🗿', 'img' => 'legend.jpg', 'description' => 'Score full marks in 7 exams.'],
+    'knight' => ['title' => 'KNIGHT', 'icon' => '🥷🏻','img' => 'knight.jpg', 'description' => 'Score full marks in 3 exams.'],
+    'ace' => ['title' => 'ACE', 'icon' => '★', 'img' => 'ace.png', 'description' => 'Score full marks in one exam.'], 
 ];
 
 $status_key = strtolower((string) $student['status']);
@@ -385,7 +390,7 @@ if ($chart_n > 0) {
                     <div class="pf-ach-container">
                         <?php
                         $has_badges = false;
-                        foreach (['goat', 'legend', 'knight'] as $tier):
+                        foreach (['goat', 'legend', 'knight', 'ace'] as $tier):
                             $count = (int) ($earned_badges[$tier] ?? 0);
                             if ($count > 0):
                                 $has_badges = true;
@@ -397,11 +402,11 @@ if ($chart_n > 0) {
                                 <!-- <span class="badge-icon" style="font-size: 1.2rem;"><?= $meta['icon'] ?></span>
                                 <span class="pf-ach-chip__name"><?= e($meta['title']) ?></span> -->
                                 <img src="<?= e($hof_img_base . $meta['img'])  ?>" alt="<?= e($meta['title']) ?>" title="<?= e($meta['title']) ?> For a reason." width="70px" height="50px" style="border-radius: 50%;">
+                            </div>
                                 <?php if ($count > 1): ?>
                                     <span class="pf-ach-chip__count">x<?= $count ?></span>
                                 <?php endif; ?>
                                 
-                            </div>
                         <?php
                             endif;
                         endforeach;
@@ -453,6 +458,13 @@ if ($chart_n > 0) {
                     <div>
                         <strong style="display: block; color: #1d4ed8; margin-bottom: 2px;">Knight</strong>
                         <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Score 100% on <strong>3</strong> exams in a semester.</span>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--color-gray-100); border-radius: 8px;">
+                    <span style="font-size: 1.6rem;">★</span>
+                    <div>
+                        <strong style="display: block; color: #1d4ed8; margin-bottom: 2px;">Ace</strong>
+                        <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Score 100% on <strong>1</strong> exams in a semester.</span>
                     </div>
                 </div>
             </div>

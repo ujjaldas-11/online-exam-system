@@ -297,7 +297,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
 
                 <div class="exam-form__field">
-                    <label>Questions / student</label>
+                    <label>Total Questions</label>
                     <input type="number" name="total_questions_to_ask" required min="1" placeholder="20" value="<?= e($form_data['total_questions_to_ask'] ?? '20') ?>">
                 </div>
 

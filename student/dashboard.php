@@ -164,6 +164,8 @@ try {
             $stat['badge'] = ['title' => 'Legend', 'tier' => 'legend', 'icon' => '🗿', 'desc' => '7x Full Marks!'];
         } elseif ($fm_count >= 3) {
             $stat['badge'] = ['title' => 'Knight', 'tier' => 'knight', 'icon' => '🥷🏻', 'desc' => '3x Full Marks!'];
+        } elseif ($fm_count >= 1) {
+            $stat['badge'] = ['title' => 'Ace', 'tier' => 'ace', 'icon' => '★', 'desc' => '1x Full Marks!'];
         }
 
         if ($stat['badge']) {
@@ -228,7 +230,7 @@ $per_page = 9;
 
 $filtered_exams = [];
 foreach ($processed_exams as $exam) {
-    if ($filterStatus !== '' && $exam['category'] !== $filterStatus) {
+    if ($filterStatus !== '' && $exam['status'] !== $filterStatus) {
         continue;
     }
     if ($filterQ !== '') {
