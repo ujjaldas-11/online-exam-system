@@ -52,10 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_update']) && 
                 $insertStmt->execute([$student_id, $name, $roll_number, $department, $semester, $gender]);
 
                 $has_pending_request = true;
-                $message = "Update request sent to instructor/admin for approval!";
+                set_flash('info', "Update request sent to instructor/admin for approval!");
+                redirect('dashboard.php');
             }
         } catch (PDOException $e) {
-            $error = safe_db_error($e, "Failed to submit request. Please try again.");
+            set_flash('error', safe_db_error($e, "Failed to submit request. Please try again."));
+            redirect('edit-profile.php');
         }
     }
 }
@@ -96,6 +98,8 @@ include __DIR__ . '/../components/student-navbar.php';
     <?php if ($error): ?>
         <div class="alert alert-error"><?= e($error) ?></div>
     <?php endif; ?>
+
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <?php if ($has_pending_request): ?>
         <div class="alert alert-warning" style="display: flex; align-items: center; gap: 8px;">
