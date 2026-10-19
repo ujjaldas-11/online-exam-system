@@ -34,11 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
 
             log_admin_action($pdo, 'create_subject', 'subject', $newSubId, "Created subject $name ($department, Sem $semester)");
 
-            $message = "Subject created successfully!";
-            $message_type = 'success';
+            set_flash('success',"Subject created successfully!");
+            redirect('manage-subjects.php');
         } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to create subject. Please check inputs.");
-            $message_type = 'error';
+            set_flash('error', safe_db_error($e, "Failed to create subject. Please check inputs."));
+            redirect('manage-subjects.php');
         }
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_subject'])) {
@@ -66,11 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
                 $up = $pdo->prepare("UPDATE subjects SET name = ?, department = ?, semester = ? WHERE id = ?");
                 $up->execute([$name, $department, $semester, $subId]);
                 log_admin_action($pdo, 'edit_subject', 'subject', $subId, "Updated subject $name ($department, Sem $semester)");
-                $message = "Subject updated successfully!";
-                $message_type = 'success';
+                set_flash('info',"Subject updated successfully!");
+                redirect('manage-subjects.php');
             } catch (PDOException $e) {
-                $message = safe_db_error($e, "Failed to update subject.");
-                $message_type = 'error';
+                set_flash('error', safe_db_error($e, "Failed to update subject."));
+                redirect('manage-subjects.php');
             }
         }
     }
@@ -106,11 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
                     $del = $pdo->prepare("DELETE FROM subjects WHERE id = ?");
                     $del->execute([$subId]);
                     log_admin_action($pdo, 'delete_subject', 'subject', $subId, "Deleted subject {$sub['name']} (#$subId)");
-                    $message = "Subject deleted successfully.";
-                    $message_type = 'success';
+                    set_flash('success',"Subject deleted successfully.");
+                    redirect('manage-subjects.php');
                 } catch (PDOException $e) {
-                    $message = safe_db_error($e, "Failed to delete subject.");
-                    $message_type = 'error';
+                    set_flash('error', safe_db_error($e, "Failed to delete subject."));
+                    redirect('manage-subjects.php');
                 }
             }
         }
@@ -233,6 +233,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?= e($message) ?>
         </div>
     <?php endif; ?>
+
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <div class="subjects-layout-grid">

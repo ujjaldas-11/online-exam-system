@@ -62,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isOwnerOrSuper = can_admin_manage_exam($pdo, $exam_id);
 
     if (!$isOwnerOrSuper) {
-        $message = "Access Denied: You can only control exams you have authored.";
-        $message_type = 'error';
+        set_flash('warning',"Access Denied: You can only control exams you have authored.");
+        redirect('control-exams.php');
     } elseif (isset($_POST['start_exam'])) {
         try {
             $stmt = $pdo->prepare("SELECT status FROM exams WHERE id = ?");
@@ -76,34 +76,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif (in_array($status, ['inactive', 'scheduled'], true)) {
                 $pdo->prepare("UPDATE exams SET status = 'active', start_time = NOW() WHERE id = ?")->execute([$exam_id]);
                 log_admin_action($pdo, 'start_exam', 'exam', $exam_id, "Launched/Started exam #$exam_id");
-                $message = "Exam has been started successfully. Students can now access and join.";
-                $message_type = 'success';
+                set_flash('success', "Exam has been started successfully. Students can now access and join.");
+                redirect('control-exams.php');
             } else {
-                $message = "Exam cannot be started in its current status: $status.";
-                $message_type = 'error';
+                set_flash('error',"Exam cannot be started in its current status: $status.");
+                redirect('control-exams.php');
             }
         } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to start exam.");
-            $message_type = 'error';
+            set_flash('error', safe_db_error($e, "Failed to start exam."));
+            redirect('control-exams.php');
         }
     } elseif (isset($_POST['delete_exam'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         try {
             $pdo->prepare("DELETE FROM exams WHERE id = ?")->execute([$exam_id]);
             log_admin_action($pdo, 'delete_exam', 'exam', $exam_id, "Deleted exam #$exam_id");
-            $message = "Exam deleted successfully.";
-            $message_type = 'success';
+            set_flash('warning', "Exam deleted successfully.");
+            redirect('control-exams.php');
         } catch (PDOException $e) {
-            $message = "Cannot delete exam: Student attempts are linked to it.";
-            $message_type = 'error';
+            set_flash('error', "Cannot delete exam: Student attempts are linked to it.");
+            redirect('control-exams.php');
         }
     } elseif (isset($_POST['add_time'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         $extra_minutes = int_param($_POST['extra_minutes'] ?? 5);
 
         if ($extra_minutes < 1 || $extra_minutes > 120) {
-            $message = "Time extension must be between 1 and 120 minutes.";
-            $message_type = 'error';
+            set_flash('warning',"Time extension must be between 1 and 120 minutes.");
+            redirect('control-exams.php');
         } else {
             try {
                 $upStmt = $pdo->prepare("UPDATE exams SET duration_minutes = duration_minutes + ? WHERE id = ?");
@@ -114,11 +114,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 WebSocketPusher::emit("exam:{$exam_id}", "time_extended", [
                     'extra_minutes' => $extra_minutes,
                 ]);
-                $message = "Added +$extra_minutes minutes to exam duration.";
-                $message_type = 'success';
+                set_flash('info', "Added +$extra_minutes minutes to exam duration.");
+                redirect('control-exams.php');
             } catch (PDOException $e) {
-                $message = safe_db_error($e, "Failed to extend exam time.");
-                $message_type = 'error';
+                set_flash('error', safe_db_error($e, "Failed to extend exam time."));
+                redirect('control-exams.php');
             }
         }
     } elseif (isset($_POST['end_exam'])) {
@@ -132,11 +132,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'exam_id' => $exam_id,
             ]);
 
-            $message = "Exam has been ended for all students.";
-            $message_type = 'success';
+            set_flash('info', "Exam has been ended for all students.");
+            redirect('control-exams.php');
         } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to end exam.");
-            $message_type = 'error';
+            set_flash('error', safe_db_error($e, "Failed to end exam."));
+            redirect('control-exams.php');
         }
     } elseif (isset($_POST['publish_results'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
@@ -155,28 +155,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($examOngoing) {
-                $message = "Cannot publish results: Exam #$exam_id is still ongoing.";
-                $message_type = 'error';
+                set_flash('warning', "Cannot publish results: Exam #$exam_id is still ongoing.");
+                redirect('control-exams.php');
             } else {
                 $pdo->prepare("UPDATE exams SET results_published = 1 WHERE id = ?")->execute([$exam_id]);
                 log_admin_action($pdo, 'publish_results', 'exam', $exam_id, "Published results for exam #$exam_id to students");
-                $message = "Results for exam #$exam_id have been published to students.";
-                $message_type = 'success';
+                set_flash('info', "Results for exam #$exam_id have been published to students.");
+                redirect('control-exams.php');
             }
         } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to publish results.");
-            $message_type = 'error';
+            set_flash('error', safe_db_error($e, "Failed to publish results."));
+            redirect('control-exams.php');
         }
     } elseif (isset($_POST['unpublish_results'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         try {
             $pdo->prepare("UPDATE exams SET results_published = 0 WHERE id = ?")->execute([$exam_id]);
             log_admin_action($pdo, 'unpublish_results', 'exam', $exam_id, "Unpublished results for exam #$exam_id");
-            $message = "Results for exam #$exam_id are now hidden from students.";
-            $message_type = 'success';
+            set_flash('warning',"Results for exam #$exam_id are now hidden from students.");
+            redirect('control-exams.php');
         } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to unpublish results.");
-            $message_type = 'error';
+            set_flash('error', safe_db_error($e, "Failed to unpublish results."));
+            redirect('control-exams.php');
         }
     }
 
@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 log_admin_action($pdo, 'reopen_exam', 'exam', $exam_to_reopen, "Reopened exam for next batch.");
             }
             
-            set_flash('success', "Exam reopened for the next batch! Please Edit the exam to generate a NEW Access PIN before starting it.");
+            set_flash('info', "Exam reopened for the next batch! Please Edit the exam to generate a NEW Access PIN before starting it.");
             redirect('control-exams.php');
         } catch (PDOException $e) {
             set_flash('error', "Database error while reopening exam.");
@@ -338,6 +338,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?= e($message) ?>
         </div>
     <?php endif; ?>
+
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
     
     <!-- filter bar -->
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>

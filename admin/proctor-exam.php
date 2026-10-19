@@ -53,11 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
             }
 
-            $message = "Student attempt has been unlocked and set to In Progress.";
-            $message_type = 'success';
+            set_flash('success',"Student attempt has been unlocked and set to In Progress.");
+            redirect('proctor-exam.php');
         } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to reset student attempt.");
-            $message_type = 'error';
+            set_flash('error', safe_db_error($e, "Failed to reset student attempt."));
+            redirect('proctor-exam.php');
         }
     } elseif (isset($_POST['force_submit_attempt'])) {
         $attempt_id = int_param($_POST['attempt_id'] ?? 0);
@@ -96,15 +96,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     );
                 }
 
-                $message = "Attempt #$attempt_id has been successfully auto-graded and marked completed (Score: " . sprintf('%.2f', $finalScore) . ").";
-                $message_type = 'success';
+                set_flash('success', "Attempt #$attempt_id has been successfully auto-graded and marked completed (Score: " . sprintf('%.2f', $finalScore) . ").");
+                redirect('proctor-exam.php');
             } else {
-                $message = "Failed to force submit attempt: " . ($result['error'] ?? 'Unknown error');
-                $message_type = 'error';
+                set_flash('error', "Failed to force submit attempt: " . ($result['error'] ?? 'Unknown error'));
+                redirect('proctor-exam.php');
             }
         } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to submit attempt.");
-            $message_type = 'error';
+            set_flash('error', safe_db_error($e, "Failed to submit attempt."));
+            redirect('proctor-exam.php');
         }
     } elseif (isset($_POST['disqualify_student_attempt'])) {
         $attempt_id = int_param($_POST['attempt_id'] ?? 0);
@@ -140,11 +140,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
             }
 
-            $message = "Student attempt #$attempt_id has been disqualified.";
-            $message_type = 'warning';
+            set_flash('warning', "Student attempt #$attempt_id has been disqualified.");
+            redirect('proctor-exam.php');
         } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to disqualify attempt.");
-            $message_type = 'error';
+            set_flash('error', safe_db_error($e, "Failed to disqualify attempt."));
+            redirect('proctor-exam.php');
         }
     }
 }
@@ -281,8 +281,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php if ($message): ?>
         <div class="alert alert-<?= $message_type === 'success' ? 'success' : 'error' ?>">
             <?= e($message) ?>
-        </div>2 
+        </div>
     <?php endif; ?>
+
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <!-- Real-time Stats Grid -->
     <div class="stats">

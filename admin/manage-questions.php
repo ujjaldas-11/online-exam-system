@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
     set_time_limit(120);
     $subject_id = int_param($_POST['subject_id'] ?? 0);
     $csv_text = trim($_POST['csv_text'] ?? '');
-    $maxFileSize = 5 * 1024 * 1024; // 5MB max
+    $maxFileSize = 5 * 1024 * 1024;  // 5MB max
     $has_file = !empty($_FILES['csv_file']['name']);
 
     if (empty($subject_id)) {
@@ -71,13 +71,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                 $validTypes = ['single', 'multiple', 'case_study', 'assertion_reason', 'matching'];
 
                 while (($data = fgetcsv($handle, 4000, ',')) !== false) {
-                    if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) {
+                    if (empty(array_filter($data, fn($v) => trim((string) $v) !== ''))) {
                         continue;
                     }
 
                     if ($is_header) {
-                        $col0 = strtolower(trim((string)($data[0] ?? '')));
-                        $col1 = trim((string)($data[1] ?? ''));
+                        $col0 = strtolower(trim((string) ($data[0] ?? '')));
+                        $col1 = trim((string) ($data[1] ?? ''));
                         if (str_contains($col0, 'question') || !is_numeric($col1)) {
                             $is_header = false;
                             continue;
@@ -92,14 +92,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                     // Auto-heal and normalize raw CSV data (e.g. unquoted commas in assertion-reason/matching options)
                     $data = CsvService::normalizeQuestionRow($data);
 
-                    $q_text  = clean_input($data[0] ?? '');
+                    $q_text = clean_input($data[0] ?? '');
                     // Normalize literal \n or \r\n to real newlines so questions render with proper line breaks
-                    $q_text  = str_replace(['\r\n', '\r', '\n'], "\n", $q_text);
-                    $u_num   = (int) clean_input($data[1] ?? '1');
-                    $opt_a   = trim($data[2] ?? '');
-                    $opt_b   = trim($data[3] ?? '');
-                    $opt_c   = isset($data[4]) ? trim($data[4]) : null;
-                    $opt_d   = isset($data[5]) ? trim($data[5]) : null;
+                    $q_text = str_replace(['\r\n', '\r', '\n'], "\n", $q_text);
+                    $u_num = (int) clean_input($data[1] ?? '1');
+                    $opt_a = trim($data[2] ?? '');
+                    $opt_b = trim($data[3] ?? '');
+                    $opt_c = isset($data[4]) ? trim($data[4]) : null;
+                    $opt_d = isset($data[5]) ? trim($data[5]) : null;
                     $rawCorrect = strtoupper(clean_input($data[6] ?? ''));
 
                     if (empty($q_text) || empty($opt_a) || empty($opt_b) || empty($rawCorrect)) {
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                                     $letters[] = $tok;
                                 }
                             } else {
-                                throw new Exception("Row " . ($count + 1) . " has invalid Correct Option '$rawCorrect'. Must be A, B, C, or D.");
+                                throw new Exception('Row ' . ($count + 1) . " has invalid Correct Option '$rawCorrect'. Must be A, B, C, or D.");
                             }
                         }
                     } else {
@@ -128,19 +128,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                                     $letters[] = $ch;
                                 }
                             } elseif ($ch !== ' ' && $ch !== ';') {
-                                throw new Exception("Row " . ($count + 1) . " has invalid Correct Option '$rawCorrect'. Must be A, B, C, or D.");
+                                throw new Exception('Row ' . ($count + 1) . " has invalid Correct Option '$rawCorrect'. Must be A, B, C, or D.");
                             }
                         }
                     }
 
                     if (empty($letters)) {
-                        throw new Exception("Row " . ($count + 1) . " has invalid Correct Option '$rawCorrect'. Must be A, B, C, or D.");
+                        throw new Exception('Row ' . ($count + 1) . " has invalid Correct Option '$rawCorrect'. Must be A, B, C, or D.");
                     }
                     sort($letters);
                     $correct = implode(',', $letters);
 
                     // Parse optional 8th column: question_type
-                    $rawType = strtolower(trim((string)($data[7] ?? '')));
+                    $rawType = strtolower(trim((string) ($data[7] ?? '')));
                     if (!empty($rawType) && in_array($rawType, $validTypes, true)) {
                         $q_type = $rawType;
                     } else {
@@ -170,7 +170,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
 
                 $pdo->commit();
                 log_admin_action($pdo, 'import_questions', 'questions', $subject_id, "Imported $count questions into subject #$subject_id");
-                $success_message = "$count questions imported successfully!";
+                set_flash('success', "$count questions imported successfully!");
+                redirect('manage-questions.php');
             } catch (Exception $e) {
                 if (is_resource($handle)) {
                     fclose($handle);
@@ -178,7 +179,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-                $error_message = 'Error: ' . $e->getMessage();
+                set_flash('error', $e->getMessage());
+                redirect('mnage-questions.php');
             }
         }
     }
@@ -207,6 +209,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php if ($error_message): ?>
         <div class="alert alert-error"><?= e($error_message) ?></div>
     <?php endif; ?>
+
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <div class="card">
         <div class="card-title">Bulk Insert Questions (CSV)</div>
@@ -238,7 +242,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <div class="form-group">
                 <label>Select Subject <span style="color:red;">*</span></label>
-                <select name="subject_id" id="subject_id" required>
+                
+                <input type="text" id="subject_search" class="form-control" placeholder="🔍 Search subject or department..." autocomplete="off" style="margin-bottom: 8px;">
+                
+                <select name="subject_id" id="subject_id" class="form-control" required>
                     <option value="">-- Choose Target Subject --</option>
                     <?php foreach ($subjects as $sub): ?>
                         <option value="<?= $sub['id'] ?>">
@@ -247,7 +254,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <?php endforeach; ?>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Option 1: Upload .CSV File</label>
                 <input type="file" name="csv_file" id="csv_file" accept=".csv,text/csv" class="form-control">
@@ -830,6 +836,35 @@ Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Que
     if (previewBtn) {
         previewBtn.addEventListener('click', handlePreviewClick);
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('subject_search');
+    const selectBox = document.getElementById('subject_id');
+    
+    // Clone all original options into memory so we don't lose them when filtering
+    const originalOptions = Array.from(selectBox.options);
+
+    searchInput.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        
+        // Clear current select box
+        selectBox.innerHTML = '';
+        
+        // Re-append only the options that match the search
+        originalOptions.forEach(opt => {
+            if (opt.value === '' || opt.text.toLowerCase().includes(filter)) {
+                selectBox.appendChild(opt.cloneNode(true));
+            }
+        });
+        
+        selectBox.size = filter.length > 0 ? Math.min(selectBox.options.length, 6) : 1;
+    });
+
+    selectBox.addEventListener('change', function() {
+        selectBox.size = 1;
+    });
+});
+
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

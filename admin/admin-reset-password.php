@@ -25,11 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm_password = $_POST['confirm_password'] ?? '';
 
     if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
-        $error = "All password fields are required.";
+        set_flash('error',"All password fields are required.");
     } elseif ($new_password !== $confirm_password) {
-        $error = "New passwords do not match.";
+        set_flash('error', "New passwords do not match.");
     } elseif (strlen($new_password) < 8) {
-        $error = "New password must be at least 8 characters long.";
+        set_flash('error',"New password must be at least 8 characters long.");
     } else {
         try {
             $stmt = $pdo->prepare("SELECT password FROM admins WHERE id = ?");
@@ -41,10 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $updateStmt = $pdo->prepare("UPDATE admins SET password = ? WHERE id = ?");
                 $updateStmt->execute([$new_hash, $admin_id]);
                 
-                $success = "Password updated successfully.";
+                set_flash('success',"Password updated successfully.");
                 log_admin_action($pdo, 'password_change', 'admin', $admin_id, "Admin updated their password.");
+                redirect('admin-dashboard.php');
             } else {
-                $error = "Incorrect current password.";
+                set_flash('error',"Incorrect current password.");
+                redirect('admin-reset-password.php');
             }
         } catch (PDOException $e) {
             log_error("Password change failed for admin $admin_id", $e);
@@ -67,13 +69,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <p style="color: var(--color-text-secondary); margin: 4px 0 0;">Update your administrator account password securely.</p>
         </div>
 
-        <?php if ($error): ?>
-            <div class="alert alert-error" style="margin-bottom: 24px;"><?= e($error) ?></div>
-        <?php endif; ?>
-
-        <?php if ($success): ?>
-            <div class="alert alert-success" style="margin-bottom: 24px;"><?= e($success) ?></div>
-        <?php endif; ?>
+        <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
         <div class="card" style="background: #fff; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); padding: 32px;">
             <form method="POST" action="">

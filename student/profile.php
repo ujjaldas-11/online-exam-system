@@ -92,7 +92,7 @@ try {
 
     // Badge Tracking Variables
     $semester_buckets = [];
-    $earned_badges = ['goat' => 0, 'legend' => 0, 'knight' => 0];
+    $earned_badges = ['goat' => 0, 'legend' => 0, 'knight' => 0, 'ace' => 0];
 
     if ($completed_exams > 0) {
         $percentages = [];

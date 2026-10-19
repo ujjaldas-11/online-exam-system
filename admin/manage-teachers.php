@@ -69,12 +69,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         "Created instructor account for $name ($email, Dept: $department)"
                     );
 
-                    $message = "Teacher account created successfully for $name. They can now log in using $email.";
-                    $message_type = 'success';
+                    set_flash('success',"Teacher account created successfully for $name. They can now log in using $email.");
+                    redirect('manage-teachers.php');
                 }
             } catch (PDOException $e) {
-                $message = safe_db_error($e, "Failed to create teacher account.");
-                $message_type = 'error';
+                set_flash('error', safe_db_error($e, "Failed to create teacher account."));
+                redirect('manage-teachers.php');
             }
         }
     } elseif (isset($_POST['retire_teacher'])) {
@@ -107,12 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         "Retired instructor {$teacher['name']} (#$teacher_id). All created exams and questions remain preserved."
                     );
 
-                    $message = "Instructor {$teacher['name']} has been marked as retired. Login access is disabled, while all their authored exams, questions, and records are permanently retained.";
-                    $message_type = 'success';
+                    set_flash('success',"Instructor {$teacher['name']} has been marked as retired. Login access is disabled, while all their authored exams, questions, and records are permanently retained.");
+                    redirect('manage-teachers.php');
                 }
             } catch (PDOException $e) {
-                $message = safe_db_error($e, "Failed to retire instructor.");
-                $message_type = 'error';
+                set_flash('error', safe_db_error($e, "Failed to retire instructor."));
+                redirect('manage-teachers.php');
             }
         }
     } elseif (isset($_POST['reactivate_teacher'])) {
@@ -135,12 +135,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "Reactivated instructor {$teacher['name']} (#$teacher_id)."
                 );
 
-                $message = "Instructor {$teacher['name']} has been reactivated successfully.";
-                $message_type = 'success';
+                set_flash('success',"Instructor {$teacher['name']} has been reactivated successfully.");
+                redirect('manage-teachers.php');
             }
         } catch (PDOException $e) {
-            $message = safe_db_error($e, "Failed to reactivate instructor.");
-            $message_type = 'error';
+            set_flash('error',safe_db_error($e, "Failed to reactivate instructor."));
+            redirect('manage-teachers.php');
         }
     } elseif (isset($_POST['reset_password'])) {
         $teacher_id = int_param($_POST['teacher_id'] ?? 0);
@@ -172,15 +172,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         "Reset password for {$roleLabel} {$teacher['name']} (#$teacher_id)."
                     );
 
-                    $message = "Password updated successfully for {$teacher['name']}.";
-                    $message_type = 'success';
+                    set_flash('success',"Password updated successfully for {$teacher['name']}.");
+                    redirect('manage-teachers.php');
                 } else {
                     $message = "Account not found.";
                     $message_type = 'error';
                 }
             } catch (PDOException $e) {
-                $message = safe_db_error($e, "Failed to update password.");
-                $message_type = 'error';
+                set_flash('error', safe_db_error($e, "Failed to update password."));
+                redirect('manage-teachers.php');
             }
         }
     }
@@ -332,6 +332,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?= e($message) ?>
         </div>
     <?php endif; ?>
+
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <!-- Stats Grid -->
     <div class="stats">

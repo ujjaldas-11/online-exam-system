@@ -48,26 +48,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $request_id,
                             "Approved profile edit for student #{$req['student_id']}: {$req['new_name']} ({$req['new_roll_no']})"
                         );
-                        $message = "Student profile updated successfully!";
+                        set_flash('success',"Student profile updated successfully!");
+                        redirect('manage-requests.php');
                     } else {
                         $pdo->rollBack();
-                        $error = "Failed to update profile constraints.";
+                        set_flash('error',"Failed to update profile constraints.");
+                        redirect('manage-requests.php');
                     }
                 }
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-                $error = safe_db_error($e, "Failed to approve request. Roll number might already exist.");
+                set_flash('error',safe_db_error($e, "Failed to approve request. Roll number might already exist."));
+                redirect('manage-requests.php');
             }
         } elseif ($_POST['action'] === 'reject') {
             try {
                 $reviewer_id = (int) ($_SESSION['admin_id'] ?? 0);
                 $pdo->prepare("UPDATE profile_requests SET status = 'rejected', reviewed_by = ? WHERE id = ?")->execute([$reviewer_id, $request_id]);
                 log_admin_action($pdo, 'reject_profile_edit', 'profile_request', $request_id, "Rejected profile edit request #$request_id");
-                $message = "Request has been rejected.";
+                set_flash('success',"Request has been rejected.");
+                redirect('manage-requests.php');
             } catch (PDOException $e) {
-                $error = safe_db_error($e, "Failed to reject request.");
+                set_flash('error', safe_db_error($e, "Failed to reject request."));
+                redirect('manage-requests.php');
             }
         }
     } elseif (isset($_POST['reset_password'])) {
@@ -189,6 +194,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <div class="alert alert-error"><?= e($error) ?></div>
     <?php endif; ?>
         
+    <?php include __DIR__ . '/../components/flash-messages.php'?>
+
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
     <!-- Pending Profile Requests -->

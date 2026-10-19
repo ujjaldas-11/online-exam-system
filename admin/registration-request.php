@@ -35,12 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $student_id,
                         "Approved registration for {$student['name']} (Roll: {$student['roll_number']}, Dept: {$student['department']})"
                     );
-                    $message = "Student {$student['name']} ({$student['roll_number']}) approved and enrolled successfully!";
+                    set_flash('success', "Student {$student['name']} ({$student['roll_number']}) approved and enrolled successfully!");
+                    redirect('registration-request.php');
                 } else {
                     $error = "Student request not found or already reviewed.";
                 }
             } catch (PDOException $e) {
-                $error = safe_db_error($e, "Failed to approve student registration.");
+                set_flash('error', safe_db_error($e, "Failed to approve student registration."));
+                redirect('registration-request.php');
             }
         } elseif ($_POST['action'] === 'reject') {
             try {
@@ -59,12 +61,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $student_id,
                         "Rejected registration request for {$student['name']} (Roll: {$student['roll_number']})"
                     );
-                    $message = "Registration request for {$student['name']} has been rejected.";
+                    set_flash('warning',"Registration request for {$student['name']} has been rejected.");
+                    redirect('registration-request.php');
                 } else {
                     $error = "Student request not found or already reviewed.";
                 }
             } catch (PDOException $e) {
-                $error = safe_db_error($e, "Failed to reject registration request.");
+                set_flash('error', safe_db_error($e, "Failed to reject registration request."));
+                redirect('registration-request.php');
             }
         }
     }
@@ -162,6 +166,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php if ($error): ?>
         <div class="alert alert-error"><?= e($error) ?></div>
     <?php endif; ?>
+
+    <?php include __DIR__ . '/../components/flash-messages.php' ?>
 
     <!-- filter bar -->
     <?php include __DIR__ . '/../components/filter-bar.php' ?>

@@ -159,13 +159,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['create_exam']) || is
                         log_admin_action($pdo, 'create_exam', 'exam',$newExamId, "Created exam: {$form_data['title']} (Status:$calc_status)");
                     }
                     
-                    $message = ($calc_status === 'scheduled')
+                    set_flash('success',($calc_status === 'scheduled')
                         ? "Exam scheduled successfully for " . date('M d, Y h:i A', strtotime($start_time_db)) . "! It will activate automatically."
-                        : "Exam created successfully! Navigate to 'Control Exams' to manage and monitor it.";
-                    $message_type = 'success';$form_data = []; // Clear form on success
+                        : "Exam created successfully!");
+                    redirect('control-exams.php');
+                    // $message_type = 'success';
+                    $form_data = []; // Clear form on success
                 }
-            } catch (PDOException $e) {$message = safe_db_error($e, 'Failed to save examination.');$message_type = 'error';
-            }
+            } catch (PDOException $e) {
+                set_flash('error', safe_db_error($e, 'Failed to save examination.'));
+                redirect('manage-exam.php');
+                // $message_type = 'error');
+                }
         }
     }
 }
@@ -219,6 +224,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?= e($message) ?>
         </div>
     <?php endif; ?>
+
+    <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <div class="card exam-card">
         <!-- The form action MUST include the ?edit= ID if in edit mode!  -->
