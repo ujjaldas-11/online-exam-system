@@ -15,10 +15,10 @@ try {
     //  High-Level KPIs
     $total_students = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status = 'active'")->fetchColumn();
     $total_teachers = (int) $pdo->query("SELECT COUNT(*) FROM admins WHERE role = 'teacher' AND status = 'active'")->fetchColumn();
-    $total_exams = (int) $pdo->query("SELECT COUNT(*) FROM exams")->fetchColumn();
+    $total_exams = (int) $pdo->query('SELECT COUNT(*) FROM exams')->fetchColumn();
     $active_exams_count = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'active'")->fetchColumn();
-    $total_subjects = (int) $pdo->query("SELECT COUNT(*) FROM subjects")->fetchColumn();
-    $total_questions = (int) $pdo->query("SELECT COUNT(*) FROM questions")->fetchColumn();
+    $total_subjects = (int) $pdo->query('SELECT COUNT(*) FROM subjects')->fetchColumn();
+    $total_questions = (int) $pdo->query('SELECT COUNT(*) FROM questions')->fetchColumn();
 
     //  Live / Ongoing Exams
     // Exams that are active and currently within their time window
@@ -74,16 +74,15 @@ try {
     $top_submissions = $topSubmissionsStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // 5. System Audit Logs
-    $auditStmt = $pdo->query("
+    $auditStmt = $pdo->query('
         SELECT details, created_at 
         FROM admin_audit_logs 
         ORDER BY created_at DESC LIMIT 5
-    ");
+    ');
     $recent_logs = $auditStmt->fetchAll(PDO::FETCH_ASSOC);
-
 } catch (PDOException $e) {
-    log_error("Admin dashboard database error", $e);
-    die("Database Error. Please try again later.");
+    log_error('Admin dashboard database error', $e);
+    die('Database Error. Please try again later.');
 }
 
 $page_title = 'Admin Dashboard • Examify';
@@ -153,7 +152,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             <tr>
                                 <td>
                                     <strong><?= e($le['title']) ?></strong><br>
-                                    <span style="color: var(--color-text-secondary); font-size: 0.75rem;"><?= e($le['department']) ?>, Sem <?= e((string)$le['semester']) ?></span>
+                                    <span style="color: var(--color-text-secondary); font-size: 0.75rem;"><?= e($le['department']) ?>, Sem <?= e((string) $le['semester']) ?></span>
                                 </td>
                                 <td style="text-align: right;">
                                     <a href="proctor-exam.php?exam_id=<?= $le['id'] ?>" class="btn btn-success btn-sm">
@@ -177,13 +176,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?php else: ?>
                 <table class="compact-table">
                     <tbody>
-                        <?php foreach ($scheduled_exams as $se): 
-                            $is_soon = (strtotime($se['start_time']) - time()) < 86400; // Less than 24 hours
-                        ?>
+                        <?php
+                        foreach ($scheduled_exams as $se):
+                            $is_soon = (strtotime($se['start_time']) - time()) < 86400;  // Less than 24 hours
+                            ?>
                             <tr>
                                 <td>
                                     <strong><?= e($se['title']) ?></strong><br>
-                                    <span style="color: var(--color-text-secondary); font-size: 0.75rem;"><?= e($se['department']) ?>, Sem <?= e((string)$se['semester']) ?></span>
+                                    <span style="color: var(--color-text-secondary); font-size: 0.75rem;"><?= e($se['department']) ?>, Sem <?= e((string) $se['semester']) ?></span>
                                 </td>
                                 <td>
                                     <span style="font-size: 0.8rem; <?= $is_soon ? 'color: #ea580c; font-weight: 600;' : 'color: var(--color-text-secondary);' ?>">
@@ -254,11 +254,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             </tr>
                         </thead>
                         <tbody>
-                            <?php 
+                            <?php
                             $pos = 1;
-                            foreach ($top_submissions as $ts): 
+                            foreach ($top_submissions as $ts):
                                 $pct = (float) $ts['percentage'];
-                            ?>
+                                ?>
                                 <tr>
                                     <!-- <td><strong>#<?= $pos++ ?></strong></td> -->
                                     <td>
@@ -274,7 +274,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <?= e($ts['exam_title']) ?>
                                     </td>
                                     <td>
-                                        <strong><?= sprintf('%.2f', (float)$ts['score']) ?></strong> / <?= (int)$ts['total_marks'] ?>
+                                        <strong><?= sprintf('%.2f', (float) $ts['score']) ?></strong> / <?= (int) $ts['total_marks'] ?>
                                     </td>
                                     <td>
                                         <span class="badge <?= $pct >= 50 ? 'badge-active' : 'badge-rejected' ?>" style="font-size: 0.72rem; padding: 2px 6px;">

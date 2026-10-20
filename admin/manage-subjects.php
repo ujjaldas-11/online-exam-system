@@ -18,26 +18,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     $semester = int_param($_POST['semester'] ?? 0);
 
     if (empty($name) || empty($department) || $semester < 1 || $semester > 8) {
-        $message = "Please fill all fields correctly.";
-        $message_type = 'error';
+        set_flash('error', 'Please fill all fields correctly.');
+        redirect('manage-subjects.php');
     } elseif (strlen($name) > 200) {
-        $message = "Subject name cannot exceed 200 characters.";
-        $message_type = 'error';
+        set_flash('error', 'Subject name cannot exceed 200 characters.');
+        redirect('manage-subjects.php');
     } elseif (!CurriculumService::isValidDepartment($pdo, $department)) {
-        $message = "Invalid department selected.";
-        $message_type = 'error';
+        set_flash('error', 'Invalid department selected.');
+        redirect('manage-subjects.php');
     } else {
         try {
-            $stmt = $pdo->prepare("INSERT INTO subjects (name, department, semester, created_by) VALUES (?, ?, ?, ?)");
+            $stmt = $pdo->prepare('INSERT INTO subjects (name, department, semester, created_by) VALUES (?, ?, ?, ?)');
             $stmt->execute([$name, $department, $semester, $_SESSION['admin_id'] ?? null]);
             $newSubId = (int) $pdo->lastInsertId();
 
             log_admin_action($pdo, 'create_subject', 'subject', $newSubId, "Created subject $name ($department, Sem $semester)");
 
-            set_flash('success',"Subject created successfully!");
+            set_flash('success', 'Subject created successfully!');
             redirect('manage-subjects.php');
         } catch (PDOException $e) {
-            set_flash('error', safe_db_error($e, "Failed to create subject. Please check inputs."));
+            set_flash('error', safe_db_error($e, 'Failed to create subject. Please check inputs.'));
             redirect('manage-subjects.php');
         }
     }
@@ -49,27 +49,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     $semester = int_param($_POST['semester'] ?? 0);
 
     if ($subId <= 0 || empty($name) || empty($department) || $semester < 1 || $semester > 8) {
-        $message = "Please fill all fields correctly.";
-        $message_type = 'error';
+        set_flash('error', 'Please fill all fields correctly.');
+        redirect('manage-subjects.php');
     } elseif (strlen($name) > 200) {
-        $message = "Subject name cannot exceed 200 characters.";
-        $message_type = 'error';
+        set_flash('error', 'Subject name cannot exceed 200 characters.');
+        redirect('manage-subjects.php');
     } elseif (!CurriculumService::isValidDepartment($pdo, $department)) {
-        $message = "Invalid department selected.";
-        $message_type = 'error';
+        set_flash('error', 'Invalid department selected.');
+        redirect('manage-subjects.php');
     } else {
         if (!can_admin_manage_subject($pdo, $subId)) {
-            $message = "Unauthorized: You can only edit subjects you created.";
-            $message_type = 'error';
+            set_flash('warning', 'Unauthorized: You can only edit subjects you created.');
+            redirect('manage-subjects.php');
         } else {
             try {
-                $up = $pdo->prepare("UPDATE subjects SET name = ?, department = ?, semester = ? WHERE id = ?");
+                $up = $pdo->prepare('UPDATE subjects SET name = ?, department = ?, semester = ? WHERE id = ?');
                 $up->execute([$name, $department, $semester, $subId]);
                 log_admin_action($pdo, 'edit_subject', 'subject', $subId, "Updated subject $name ($department, Sem $semester)");
-                set_flash('info',"Subject updated successfully!");
+                set_flash('success', 'Subject updated successfully!');
                 redirect('manage-subjects.php');
             } catch (PDOException $e) {
-                set_flash('error', safe_db_error($e, "Failed to update subject."));
+                set_flash('error', safe_db_error($e, 'Failed to update subject.'));
                 redirect('manage-subjects.php');
             }
         }
@@ -78,38 +78,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     verify_csrf();
     $subId = int_param($_POST['subject_id'] ?? 0);
     if ($subId > 0) {
-        $chk = $pdo->prepare("SELECT name FROM subjects WHERE id = ?");
+        $chk = $pdo->prepare('SELECT name FROM subjects WHERE id = ?');
         $chk->execute([$subId]);
         $sub = $chk->fetch();
 
         if (!$sub) {
-            $message = "Subject not found.";
-            $message_type = 'error';
+            set_flash('error', 'Subject not found.');
+            redirect('manage-subjects.php');
         } elseif (!can_admin_manage_subject($pdo, $subId)) {
-            $message = "Unauthorized: You can only delete subjects you created.";
-            $message_type = 'error';
+            set_flash('warning', 'Unauthorized: You can only delete subjects you created.');
+            redirect('manage-subjects.php');
         } else {
             // Constraint check: check questions and exams attached
-            $qCountStmt = $pdo->prepare("SELECT COUNT(*) FROM questions WHERE subject_id = ?");
+            $qCountStmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ?');
             $qCountStmt->execute([$subId]);
-            $qCount = (int)$qCountStmt->fetchColumn();
+            $qCount = (int) $qCountStmt->fetchColumn();
 
-            $eCountStmt = $pdo->prepare("SELECT COUNT(*) FROM exams WHERE subject_id = ?");
+            $eCountStmt = $pdo->prepare('SELECT COUNT(*) FROM exams WHERE subject_id = ?');
             $eCountStmt->execute([$subId]);
-            $eCount = (int)$eCountStmt->fetchColumn();
+            $eCount = (int) $eCountStmt->fetchColumn();
 
             if ($qCount > 0 || $eCount > 0) {
-                $message = "Cannot delete subject '{$sub['name']}': It has $qCount question(s) and $eCount examination(s) linked to it. Delete or reassign them first.";
-                $message_type = 'error';
+                set_flash('warning', "Cannot delete subject '{$sub['name']}': It has $qCount question(s) and $eCount examination(s) linked to it. Delete or reassign them first.");
+                redirect('manage-subjects.php');
             } else {
                 try {
-                    $del = $pdo->prepare("DELETE FROM subjects WHERE id = ?");
+                    $del = $pdo->prepare('DELETE FROM subjects WHERE id = ?');
                     $del->execute([$subId]);
                     log_admin_action($pdo, 'delete_subject', 'subject', $subId, "Deleted subject {$sub['name']} (#$subId)");
-                    set_flash('success',"Subject deleted successfully.");
+                    set_flash('success', 'Subject deleted successfully.');
                     redirect('manage-subjects.php');
                 } catch (PDOException $e) {
-                    set_flash('error', safe_db_error($e, "Failed to delete subject."));
+                    set_flash('error', safe_db_error($e, 'Failed to delete subject.'));
                     redirect('manage-subjects.php');
                 }
             }
@@ -123,54 +123,53 @@ $show_dept = true;
 $show_sem = true;
 $show_status = false;
 $show_author = true;
-$search_placeholder = "Search by subject name";
+$search_placeholder = 'Search by subject name';
 
 $departments = CurriculumService::getDepartments($pdo);
 
 $authors_list = [];
 try {
     // Fetch all admins to populate the Author dropdown
-    $authors_list = $pdo->query("SELECT id, name FROM admins ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $authors_list = $pdo->query('SELECT id, name FROM admins ORDER BY name ASC')->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    log_error("Failed to fetch authors list", $e);
+    log_error('Failed to fetch authors list', $e);
 }
 
 $filterQ = clean_input($_GET['q'] ?? '');
 $filterDept = clean_input($_GET['department'] ?? '');
-$filterSem = isset($_GET['semester']) ? (int)$_GET['semester'] : 0;
-$filterAuthor = isset($_GET['author']) ? (int)$_GET['author'] : 0;
+$filterSem = isset($_GET['semester']) ? (int) $_GET['semester'] : 0;
+$filterAuthor = isset($_GET['author']) ? (int) $_GET['author'] : 0;
 
 $queryWhere = [];
 $queryParams = [];
 
 if ($filterQ !== '') {
-    $queryWhere[] = "(s.name LIKE ?)"; 
+    $queryWhere[] = '(s.name LIKE ?)';
     $queryParams[] = "%$filterQ%";
 }
 if ($filterDept !== '') {
-    $queryWhere[] = "s.department = ?";
+    $queryWhere[] = 's.department = ?';
     $queryParams[] = $filterDept;
 }
 if ($filterSem > 0 && $filterSem <= 8) {
-    $queryWhere[] = "s.semester = ?";
+    $queryWhere[] = 's.semester = ?';
     $queryParams[] = $filterSem;
 }
 
 if ($filterAuthor > 0) {
-    $queryWhere[] = "s.created_by = ?";
+    $queryWhere[] = 's.created_by = ?';
     $queryParams[] = $filterAuthor;
 }
 
-$whereClause = !empty($queryWhere) ? "WHERE " . implode(" AND ", $queryWhere) : "";
+$whereClause = !empty($queryWhere) ? 'WHERE ' . implode(' AND ', $queryWhere) : '';
 
-$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$per_page = 10; // Number of exams per page
+$current_page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+$per_page = 10;  // Number of exams per page
 $total_subject_count = 0;
-
 
 try {
     // Stats
-    $totalCount = (int) $pdo->query("SELECT COUNT(*) FROM subjects")->fetchColumn();
+    $totalCount = (int) $pdo->query('SELECT COUNT(*) FROM subjects')->fetchColumn();
 
     // Total count for current filter
     $countSql = "SELECT COUNT(*) FROM subjects s LEFT JOIN admins a ON s.created_by = a.id $whereClause";
@@ -179,7 +178,6 @@ try {
     $total_subject_count = (int) $countStmt->fetchColumn();
 
     $offset = ($current_page - 1) * $per_page;
-
 
     $sql = "
         SELECT
@@ -199,14 +197,11 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($queryParams);
     $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
 } catch (PDOException $e) {
-    log_error("Failed to fetch subjects", $e);
+    log_error('Failed to fetch subjects', $e);
     $subjects = [];
     $totalCount = 0;
 }
-
 
 $page_title = 'Manage Subjects • Examify';
 include __DIR__ . '/../components/header.php';
@@ -228,16 +223,15 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 
 
-    <?php if ($message): ?>
+    <!-- <?php if ($message): ?>
         <div class="alert alert-<?= $message_type === 'success' ? 'success' : 'error' ?>">
             <?= e($message) ?>
         </div>
-    <?php endif; ?>
+    <?php endif; ?> -->
 
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <div class="subjects-layout-grid">
-        <!-- CHANGED: the inline "Add New Subject" card was removed; the form now lives in the Create Subject modal below -->
 
         <!-- filter section -->
         <?php include __DIR__ . '/../components/filter-bar.php'; ?>
@@ -283,27 +277,27 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         </div>
                                     </td>
                                     <td><span class="badge badge-inactive"><?= e($sub['department']) ?></span></td>
-                                    <td>Sem <?= e((string)$sub['semester']) ?></td>
+                                    <td>Sem <?= e((string) $sub['semester']) ?></td>
                                     <td>
-                                        <span class="badge badge-active"><?= (int)$sub['question_count'] ?> Qs</span>
+                                        <span class="badge badge-active"><?= (int) $sub['question_count'] ?> Qs</span>
                                     </td>
                                     <td style="text-align: right; white-space: nowrap;">
                                         <div class="subject-actions">
-                                            <a href="view-questions.php?subject_id=<?= (int)$sub['id'] ?>" class="btn btn-secondary btn-sm" title="View Questions" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <a href="view-questions.php?subject_id=<?= (int) $sub['id'] ?>" class="btn btn-secondary btn-sm" title="View Questions" style="display: inline-flex; align-items: center; gap: 4px;">
                                                 <span class="material-symbols-outlined icon-xs">visibility</span> <span class="action-btn-label">View Qs</span>
                                             </a>
                                             <button type="button" class="btn btn-outline btn-sm btn-edit-subject"
-                                                data-id="<?= (int)$sub['id'] ?>"
+                                                data-id="<?= (int) $sub['id'] ?>"
                                                 data-name="<?= e($sub['name']) ?>"
                                                 data-department="<?= e($sub['department']) ?>"
-                                                data-semester="<?= (int)$sub['semester'] ?>"
+                                                data-semester="<?= (int) $sub['semester'] ?>"
                                                 title="Edit Subject"
                                                 style="display: inline-flex; align-items: center; gap: 4px;">
                                                 <span class="material-symbols-outlined icon-xs">edit</span> <span class="action-btn-label">Edit</span>
                                             </button>
                                             <!-- <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete subject '<?= e($sub['name']) ?>' and all associated questions?" data-confirm-title="Delete Subject" data-confirm-btn="Delete Subject">
                                                 <?= csrf_field() ?>
-                                                <input type="hidden" name="subject_id" value="<?= (int)$sub['id'] ?>">
+                                                <input type="hidden" name="subject_id" value="<?= (int) $sub['id'] ?>">
                                                 <button type="submit" name="delete_subject" class="btn btn-danger btn-sm" title="Delete Subject" style="display: inline-flex; align-items: center;">
                                                     <span class="material-symbols-outlined icon-xs">delete</span>
                                                 </button>
