@@ -32,13 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
     $has_file = !empty($_FILES['csv_file']['name']);
 
     if (empty($subject_id)) {
-        $error_message = 'Please select a subject.';
+        set_flash('warning', 'Please select a subject.');
+        redirect('manage-questions.php');
     } elseif (!can_admin_manage_subject($pdo, $subject_id)) {
-        $error_message = 'Access Denied: You do not have permission to manage questions for this subject.';
+        set_flash('warning', 'Access Denied: You do not have permission to manage questions for this subject.');
+        redirect('manage-questions.php');
     } elseif (!$has_file && empty($csv_text)) {
-        $error_message = 'Please either upload a CSV file OR paste CSV content.';
+        set_flash('error', 'Please either upload a CSV file OR paste CSV content.');
+        redirect('manage-questions.php');
     } elseif (!$has_file && strlen($csv_text) > $maxFileSize) {
-        $error_message = 'Pasted CSV content too large. Maximum size allowed is 5MB.';
+        set_flash('warning', 'Pasted CSV content too large. Maximum size allowed is 5MB.');
+        redirect('manage-questions.php');
     } else {
         $handle = false;
 
@@ -180,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
                     $pdo->rollBack();
                 }
                 set_flash('error', $e->getMessage());
-                redirect('mnage-questions.php');
+                redirect('manage-questions.php');
             }
         }
     }
@@ -838,32 +842,32 @@ Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Que
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('subject_search');
-    const selectBox = document.getElementById('subject_id');
-    
-    // Clone all original options into memory so we don't lose them when filtering
-    const originalOptions = Array.from(selectBox.options);
+        const searchInput = document.getElementById('subject_search');
+        const selectBox = document.getElementById('subject_id');
+        
+        // Clone all original options into memory so we don't lose them when filtering
+        const originalOptions = Array.from(selectBox.options);
 
-    searchInput.addEventListener('input', function() {
-        const filter = this.value.toLowerCase();
-        
-        // Clear current select box
-        selectBox.innerHTML = '';
-        
-        // Re-append only the options that match the search
-        originalOptions.forEach(opt => {
-            if (opt.value === '' || opt.text.toLowerCase().includes(filter)) {
-                selectBox.appendChild(opt.cloneNode(true));
-            }
+        searchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            
+            // Clear current select box
+            selectBox.innerHTML = '';
+            
+            // Re-append only the options that match the search
+            originalOptions.forEach(opt => {
+                if (opt.value === '' || opt.text.toLowerCase().includes(filter)) {
+                    selectBox.appendChild(opt.cloneNode(true));
+                }
+            });
+            
+            selectBox.size = filter.length > 0 ? Math.min(selectBox.options.length, 6) : 1;
         });
-        
-        selectBox.size = filter.length > 0 ? Math.min(selectBox.options.length, 6) : 1;
-    });
 
-    selectBox.addEventListener('change', function() {
+        selectBox.addEventListener('change', function() {
         selectBox.size = 1;
+        });
     });
-});
 
 </script>
 
