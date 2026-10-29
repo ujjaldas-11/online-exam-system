@@ -1527,3 +1527,48 @@ tr:hover td {
         font-size: 13px;
     }
 }
+/* =========================================
+   AUTH PAGE MOTION ANIMATIONS
+========================================= */
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 1. Main Card Load In */
+.auth-card {
+  animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 2. Header Animation */
+.auth-header {
+  opacity: 0;
+  animation: slideUpFade 0.5s ease forwards;
+  animation-delay: 0.1s;
+}
+
+/* 3. Form Elements Waterfall Effect */
+.auth-card form > * {
+  opacity: 0;
+  animation: slideUpFade 0.5s ease forwards;
+}
+
+/* Staggered delays for each row */
+.auth-card form > *:nth-child(1) { animation-delay: 0.2s; }
+.auth-card form > *:nth-child(2) { animation-delay: 0.3s; }
+.auth-card form > *:nth-child(3) { animation-delay: 0.4s; }
+.auth-card form > *:nth-child(4) { animation-delay: 0.5s; }
+.auth-card form > *:nth-child(5) { animation-delay: 0.6s; }
+
+/* 4. Footer link animation */
+.auth-card .footer {
+  opacity: 0;
+  animation: slideUpFade 0.5s ease forwards;
+  animation-delay: 0.7s;
+}

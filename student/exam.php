@@ -133,7 +133,7 @@ try {
         <main class="auth-main-container">
             <div class="auth-card">
                 <h1>Classroom Access PIN</h1>
-                <p class="subtitle">Enter the PIN provided by your instructor to unlock <strong><?= e($exam['title']) ?></strong></p>
+                <p class="subtitle" style="margin-bottom: 20px;">Enter the PIN provided by your instructor to unlock <strong><?= e($exam['title']) ?></strong></p>
 
                 <?php if ($pinError): ?>
                     <div class="alert alert-error"><?= e($pinError) ?></div>
@@ -142,8 +142,8 @@ try {
                 <form method="POST">
                     <?= csrf_field() ?>
                     <div class="form-group">
-                        <label>Exam PIN / Passcode</label>
-                        <input type="text" name="exam_pin" required autofocus placeholder="e.g. 1234" style="text-align: center; font-size: 1.5rem; letter-spacing: 4px;">
+                        <input type="text" name="exam_pin" id="exam_pin" required autofocus autocomplete="off" placeholder="e.g. 1234" style="text-align: center; font-size: 1.5rem; letter-spacing: 4px; padding-top: 0; padding-bottom: 0;">
+                        <label for="exam_pin">Exam PIN / Passcode</label>
                     </div>
                     <button type="submit" name="verify_pin" class="btn btn-primary btn-block">Unlock Exam</button>
                     <div style="text-align: center; margin-top: 16px;">
