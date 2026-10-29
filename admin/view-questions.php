@@ -162,19 +162,23 @@ try {
 $filterQ = clean_input($_GET['q'] ?? '');
 $filterAuthor = isset($_GET['author']) ? (int)$_GET['author'] : 0;
 
-// 1. CRITICAL: Anchor the WHERE clause to the current subject_id!
+
 $queryWhere = ["q.subject_id = ?"];
-$queryParams = [$subject_id]; // Assumes $subject_id is defined at the top of the file
+$queryParams = [$subject_id];
 
 if ($filterQ !== '') {
     // Search question text and options
-    $queryWhere[] = "(q.unit_number LIKE ? OR q.question_text LIKE ? OR q.option_a LIKE ? OR q.option_b LIKE ? OR q.option_c LIKE ? OR q.option_d LIKE ?)"; 
-    $queryParams[] = "%$filterQ%";
-    $queryParams[] = "%$filterQ%";
-    $queryParams[] = "%$filterQ%";
-    $queryParams[] = "%$filterQ%";
-    $queryParams[] = "%$filterQ%";
-    $queryParams[] = "%$filterQ%";
+    if(is_numeric($filterQ)) {
+        $queryWhere[] = "q.unit_number = ?";
+        $queryParams[] = (int)$filterQ;
+    } else {
+        $queryWhere[] = "(q.question_text LIKE ? OR q.option_a LIKE ? OR q.option_b LIKE ? OR q.option_c LIKE ? OR q.option_d LIKE ?)"; 
+        $queryParams[] = "%$filterQ%";
+        $queryParams[] = "%$filterQ%";
+        $queryParams[] = "%$filterQ%";
+        $queryParams[] = "%$filterQ%";
+        $queryParams[] = "%$filterQ%";
+    }
 }
 
 if ($filterAuthor > 0) {
@@ -199,7 +203,6 @@ if ($subject_id > 0) {
         if ($subject) {
             
             // 2. Count Total (With Filters Applied)
-            // FIX: Using 'questions q' and JOINing admins so 'a.name' works
             $countSql = "SELECT COUNT(*) FROM questions q LEFT JOIN admins a ON q.created_by = a.id $whereClause";
             $countStmt = $pdo->prepare($countSql);
             $countStmt->execute($queryParams);
@@ -208,7 +211,6 @@ if ($subject_id > 0) {
             // 3. Fetch Data (With Filters Applied)
             $offset = ($this_page - 1) * $per_page;
 
-            // FIX: Replaced :limit and :offset with direct integer insertion to match ? bindings
             $resultsSql = "
                 SELECT q.id, q.unit_number, q.question_type, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
                        a.name as creator_name, a.status as creator_status
@@ -220,7 +222,7 @@ if ($subject_id > 0) {
             ";
             
             $resultsStmt = $pdo->prepare($resultsSql);
-            $resultsStmt->execute($queryParams); // Maps directly to our ? placeholders
+            $resultsStmt->execute($queryParams);
             $all_questions = $resultsStmt->fetchAll(PDO::FETCH_ASSOC);
         }
     } catch (PDOException $e) {

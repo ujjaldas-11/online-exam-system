@@ -137,10 +137,30 @@ class CurriculumService
         }
 
         try {
-            $stmt = $pdo->prepare("SELECT DISTINCT unit_number FROM questions WHERE subject_id = ? AND unit_number IS NOT NULL ORDER BY unit_number ASC");
+            // Replaced DISTINCT with GROUP BY and added COUNT(id)
+            $stmt = $pdo->prepare("
+                SELECT unit_number, COUNT(id) as question_count 
+                FROM questions 
+                WHERE subject_id = ? AND unit_number IS NOT NULL 
+                GROUP BY unit_number 
+                ORDER BY unit_number ASC
+            ");
             $stmt->execute([$subjectId]);
-            $units = $stmt->fetchAll(PDO::FETCH_COLUMN);
-            return array_map('intval', $units);
+            $units = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $formatted_units = [];
+            foreach ($units as $row) {
+                $unit = (int) $row['unit_number'];
+                $count = (int) $row['question_count'];
+                
+                $formatted_units[] = [
+                    'unit_number' => $unit,
+                    'question_count' => $count,
+                    'label' => "Unit $unit (Available Questions $count)" // Formatted exactly as requested
+                ];
+            }
+            
+            return $formatted_units;
         } catch (PDOException) {
             return [];
         }

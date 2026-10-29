@@ -21,7 +21,7 @@ $attempt_id = int_param($_GET['attempt_id']);
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $per_page = 10; 
 
-// FIX 1: Safely build the base URL so pagination doesn't lose the attempt_id!
+
 // If your pagination.php uses $form_action, this ensures it works flawlessly.
 $form_action = 'review-exam.php?attempt_id=' . $attempt_id;
 
@@ -146,7 +146,7 @@ $total_marks = (float) ($examOverview['total_marks'] ?? 0);
                 <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
             </div>
             <div style="margin-top: 8px;">
-                <a href="?download_answers=true&attempt_id=<?= $attempt_id ?>" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <a href="?download_answers=true&attempt_id=<?= $attempt_id ?>" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
                     <span class="material-symbols-outlined icon-sm">rule</span> Download Detailed Answer Sheet
                 </a>
             </div>

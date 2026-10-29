@@ -494,8 +494,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         <div class="action-menu-content">
                                             
                                             <!-- Print Paper -->
-                                            <a href="?download_offline=true&exam_id=<?= $exam['id'] ?>" class="action-menu-item">
-                                                <span class="material-symbols-outlined icon-sm">print</span> Print Paper
+                                            <a href="?download_offline=true&exam_id=<?= $exam['id'] ?>" target="_blank" rel="noopener"
+                                            class="action-menu-item">
+                                                <span class="material-symbols-outlined icon-sm">print</span> Preview / Print Paper
                                             </a>
                                             <div class="action-menu-divider"></div>
                                             <!-- EDIT / LOCKED BUTTON LOGIC -->

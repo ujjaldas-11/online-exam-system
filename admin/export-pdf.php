@@ -48,7 +48,7 @@ try {
 
     log_admin_action($pdo, 'export_pdf_results', 'exam', $exam_id, "Exported PDF results report for exam #$exam_id ({$exam['title']})");
 
-    PdfService::generateExamResultsPdf($exam, $attempts, 'I');
+    PdfService::generateExamResultsPdf($exam, $attempts, 'P');
 } catch (PDOException $e) {
     log_error("Failed to generate PDF for exam $exam_id", $e);
     die("Database Error generating PDF report.");

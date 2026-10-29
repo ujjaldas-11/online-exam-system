@@ -49,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bulk_csv'])) {
         if ($has_file) {
             $fileErr = CsvService::validateUploadedCsv($_FILES['csv_file'], $maxFileSize);
             if ($fileErr !== null) {
-                $error_message = $fileErr;
+                set_flash('error', $fileErr);
+                redirect('manage-questions.php');
             } else {
                 $handle = fopen($_FILES['csv_file']['tmp_name'], 'r');
             }
@@ -201,7 +202,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <h1>Manage Questions</h1>
             <p>Bulk upload multiple-choice questions into the curriculum question bank</p>
         </div>
-        <a href="view-questions.php" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <a href="view-questions.php" class="btn btn-primary"
+            style="display: inline-flex; align-items: center; gap: 6px;">
             <span class="material-symbols-outlined icon-sm">visibility</span> View Question Bank
         </a>
     </div>
@@ -220,20 +222,34 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <div class="card-title">Bulk Insert Questions (CSV)</div>
 
         <div class="alert alert-info" style="text-align: left; margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 280px;">
                     <strong>Instructions:</strong> Upload a CSV file OR paste comma-separated text.<br>
-                    • 7 columns required: <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option</code><br>
-                    • <code>Correct Option</code> must be A, B, C, or D. For <em>Multiple-Answer</em> questions, list multiple letters separated by commas (e.g. <code>A,C,D</code> or <code>ACD</code>).<br>
-                    • <em>Optional 8th Column:</em> <code>Question Type</code> (<code>single</code>, <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>, <code>matching</code>). Auto-detected as <code>multiple</code> if multiple correct options are provided.
+                    • 7 columns required:
+                    <code>Question Text, Unit Number, Option A, Option B, Option C, Option D, Correct Option</code><br>
+                    • <code>Correct Option</code> must be A, B, C, or D. For <em>Multiple-Answer</em> questions, list
+                    multiple letters separated by commas (e.g. <code>A,C,D</code> or <code>ACD</code>).<br>
+                    • <em>Optional 8th Column:</em> <code>Question Type</code> (<code>single</code>,
+                    <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>,
+                    <code>matching</code>). Auto-detected as <code>multiple</code> if multiple correct options are
+                    provided.
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;">
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px;">Sample Templates</span>
+                    <span
+                        style="font-size: 0.8rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px;">Sample
+                        Templates</span>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                        <a href="manage-questions.php?action=download_template&format=csv" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Download sample questions CSV template">
+                        <a href="manage-questions.php?action=download_template&format=csv"
+                            class="btn btn-secondary btn-sm"
+                            style="display: inline-flex; align-items: center; gap: 4px;"
+                            title="Download sample questions CSV template">
                             <span class="material-symbols-outlined icon-xs">download</span> CSV (.csv)
                         </a>
-                        <a href="manage-questions.php?action=download_template&format=xlsx" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Download sample questions Excel XLSX template">
+                        <a href="manage-questions.php?action=download_template&format=xlsx"
+                            class="btn btn-secondary btn-sm"
+                            style="display: inline-flex; align-items: center; gap: 4px;"
+                            title="Download sample questions Excel XLSX template">
                             <span class="material-symbols-outlined icon-xs">table_view</span> Excel (.xlsx)
                         </a>
                     </div>
@@ -246,18 +262,17 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <div class="form-group">
                 <label>Select Subject <span style="color:red;">*</span></label>
-                
-                <input type="text" id="subject_search" class="form-control" placeholder="🔍 Search subject or department..." autocomplete="off" style="margin-bottom: 8px;">
-                
-                <select name="subject_id" id="subject_id" class="form-control" required>
-                    <option value="">-- Choose Target Subject --</option>
-                    <?php foreach ($subjects as $sub): ?>
-                        <option value="<?= $sub['id'] ?>">
-                            <?= e($sub['name']) ?> (<?= e($sub['department']) ?>, Sem <?= e((string) $sub['semester']) ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="subject_display_name" class="form-control"
+                        placeholder="-- Click Browse to Select --" readonly
+                        style="flex: 1; background: #f8fafc; cursor: pointer;" onclick="openSubjectModal()">
+                    <button type="button" class="btn btn-secondary" onclick="openSubjectModal()">Browse</button>
+                </div>
+
+                <!-- This is the actual value submitted to MySQL -->
+                <input type="hidden" name="subject_id" id="real_subject_id" required>
             </div>
+
             <div class="form-group">
                 <label>Option 1: Upload .CSV File</label>
                 <input type="file" name="csv_file" id="csv_file" accept=".csv,text/csv" class="form-control">
@@ -268,21 +283,25 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <div class="form-group">
                 <label>Option 2: Paste CSV Text</label>
                 <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt-btn"
+                        style="display: inline-flex; align-items: center; gap: 4px;">
                         <span class="material-symbols-outlined icon-xs">content_copy</span> Copy LLM Prompt
                     </button>
-                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="paste-btn"
+                        style="display: inline-flex; align-items: center; gap: 4px;">
                         <span class="material-symbols-outlined icon-xs">content_paste</span> Paste from Clipboard
                     </button>
-                    <button type="button" class="btn btn-secondary btn-sm" id="preview-btn" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="preview-btn"
+                        style="display: inline-flex; align-items: center; gap: 4px;">
                         <span class="material-symbols-outlined icon-xs">preview</span> Preview Questions
                     </button>
                 </div>
                 <textarea name="csv_text" id="csv_text" rows="8" class="form-control"
-                placeholder='What is an operating system?,1,System software,Application software,Hardware component,Malware,A,single&#10;Which of the following are valid IPC mechanisms?,2,Pipes,Shared Memory,Queues,Registers,"A,B,C",multiple&#10;"Assertion (A): Paging eliminates external fragmentation.&#10;Reason (R): Frames are fixed size.",3,"Both A and R are true, and R is the correct explanation of A","Both A and R are true, but R is NOT the correct explanation of A","A is true, but R is false","A is false, but R is true",A,assertion_reason'></textarea>
+                    placeholder='What is an operating system?,1,System software,Application software,Hardware component,Malware,A,single&#10;Which of the following are valid IPC mechanisms?,2,Pipes,Shared Memory,Queues,Registers,"A,B,C",multiple&#10;"Assertion (A): Paging eliminates external fragmentation.&#10;Reason (R): Frames are fixed size.",3,"Both A and R are true, and R is the correct explanation of A","Both A and R are true, but R is NOT the correct explanation of A","A is true, but R is false","A is false, but R is true",A,assertion_reason'></textarea>
             </div>
 
-            <button type="submit" name="add_bulk_csv" id="submit-upload-btn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 15px;">
+            <button type="submit" name="add_bulk_csv" id="submit-upload-btn" class="btn btn-primary"
+                style="display: inline-flex; align-items: center; gap: 6px; margin-top: 15px;">
                 <span class="material-symbols-outlined icon-sm">upload</span> Upload Questions
             </button>
         </form>
@@ -290,21 +309,25 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
     <!-- In-DOM Accessible Question Preview Modal -->
     <div id="previewQuestionsModal" class="admin-modal-overlay" style="display: none;">
-        <div class="admin-modal-card admin-modal-card-wide" style="max-width: 1100px; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="admin-modal-card admin-modal-card-wide"
+            style="max-width: 1100px; max-height: 90vh; display: flex; flex-direction: column;">
             <div class="admin-modal-header" style="flex-shrink: 0;">
                 <div>
-                    <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.15rem; color: var(--color-dark);">
+                    <h3
+                        style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.15rem; color: var(--color-dark);">
                         <span class="material-symbols-outlined" style="color: var(--color-primary);">preview</span>
                         <span>Questions Import Preview</span>
                     </h3>
-                    <p id="preview-summary-subtext" style="margin: 3px 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
+                    <p id="preview-summary-subtext"
+                        style="margin: 3px 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
                         Review parsed questions and verified question types before committing
                     </p>
                 </div>
                 <button type="button" class="admin-modal-close" id="closePreviewModalBtn">&times;</button>
             </div>
 
-            <div id="preview-summary-badges" style="padding: 10px 20px; background: var(--bg-body, #f8fafc); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 0.85rem;">
+            <div id="preview-summary-badges"
+                style="padding: 10px 20px; background: var(--bg-body, #f8fafc); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 0.85rem;">
                 <!-- Badges will be dynamically injected here -->
             </div>
 
@@ -332,15 +355,60 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
             </div>
 
-            <div class="admin-modal-footer" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
-                <span id="previewValidationError" style="font-size: 0.85rem; color: var(--color-danger, #ef4444); font-weight: 600;"></span>
+            <div class="admin-modal-footer"
+                style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                <span id="previewValidationError"
+                    style="font-size: 0.85rem; color: var(--color-danger, #ef4444); font-weight: 600;"></span>
                 <div style="display: flex; gap: 10px;">
                     <button type="button" class="btn btn-secondary" id="dismissPreviewModalBtn">Close</button>
-                    <button type="button" class="btn btn-primary" id="confirmUploadFromModalBtn" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <button type="button" class="btn btn-primary" id="confirmUploadFromModalBtn"
+                        style="display: inline-flex; align-items: center; gap: 6px;">
                         <span class="material-symbols-outlined icon-sm">upload</span> Proceed to Upload
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- hideen MODAL HTML -->
+<div id="standaloneSubjectModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; justify-content: center; align-items: center;">
+
+    <!-- The White Popup Card -->
+    <div
+        style="background: #fff; width: 100%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 90vh;">
+
+        <!-- Header -->
+        <div
+            style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.2rem;">Choose Subject</h3>
+            <button type="button" onclick="closeSubjectModal()"
+                style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 20px; overflow-y: auto;">
+
+            <!-- Include your exact global search bar component here -->
+            <div style="margin-bottom: 15px;">
+                <?php include __DIR__ . '/../components/searchbar.php'; ?>
+            </div>
+
+            <!-- The Clickable List -->
+            <div style="border: 1px solid #eee; border-radius: 6px;">
+                <?php foreach ($subjects as $sub): ?>
+                    <div class="standalone-list-item"
+                        onclick="pickSubject(<?= $sub['id'] ?>, '<?= e(addslashes($sub['name'])) ?>')"
+                        style="padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;"
+                        onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                        <strong style="color: #0f172a;"><?= e($sub['name']) ?></strong>
+                        <span style="font-size: 0.85rem; color: #64748b; margin-left: 5px;">(<?= e($sub['department']) ?>,
+                            Sem <?= e((string) $sub['semester']) ?>)</span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
         </div>
     </div>
 </div>
@@ -804,9 +872,9 @@ Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Que
             const trClass = q.error ? 'style="background-color: rgba(239, 68, 68, 0.06);"' : '';
             const typeBadgeStyle = q.type === 'multiple' ? 'badge-warning'
                 : q.type === 'case_study' ? 'badge-primary'
-                : q.type === 'assertion_reason' ? 'badge-secondary'
-                : q.type === 'matching' ? 'badge-outline'
-                : 'badge-info';
+                    : q.type === 'assertion_reason' ? 'badge-secondary'
+                        : q.type === 'matching' ? 'badge-outline'
+                            : 'badge-info';
 
             const statusBadge = q.error
                 ? `<span class="badge badge-rejected" title="${escapeHtml(q.error)}">Error</span>`
@@ -841,33 +909,47 @@ Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Que
         previewBtn.addEventListener('click', handlePreviewClick);
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('subject_search');
-        const selectBox = document.getElementById('subject_id');
-        
-        // Clone all original options into memory so we don't lose them when filtering
-        const originalOptions = Array.from(selectBox.options);
+    //  dialog modal for select subject
 
-        searchInput.addEventListener('input', function() {
-            const filter = this.value.toLowerCase();
-            
-            // Clear current select box
-            selectBox.innerHTML = '';
-            
-            // Re-append only the options that match the search
-            originalOptions.forEach(opt => {
-                if (opt.value === '' || opt.text.toLowerCase().includes(filter)) {
-                    selectBox.appendChild(opt.cloneNode(true));
-                }
+    const subjectModal = document.getElementById('standaloneSubjectModal');
+
+    // Open & Close Functions
+    function openSubjectModal() {
+        subjectModal.style.display = 'flex';
+    }
+
+    function closeSubjectModal() {
+        subjectModal.style.display = 'none';
+    }
+
+    // Pick Subject Logic
+    function pickSubject(id, name) {
+        document.getElementById('real_subject_id').value = id;
+        document.getElementById('subject_display_name').value = name;
+        closeSubjectModal();
+
+        // Force a change event in case your API needs to fetch units now
+        document.getElementById('real_subject_id').dispatchEvent(new Event('change'));
+    }
+
+    // Connect the included searchbar.php to filter this list
+    subjectModal.addEventListener('input', function (e) {
+        if (e.target.tagName === 'INPUT') {
+            const filter = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('.standalone-list-item');
+
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(filter) ? '' : 'none';
             });
-            
-            selectBox.size = filter.length > 0 ? Math.min(selectBox.options.length, 6) : 1;
-        });
-
-        selectBox.addEventListener('change', function() {
-        selectBox.size = 1;
-        });
+        }
     });
+
+    // Close the modal if the user clicks the dark background outside the white card
+    subjectModal.addEventListener('click', function (e) {
+        if (e.target === subjectModal) closeSubjectModal();
+    });
+
 
 </script>
 
