@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/../utils/session.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/csrf.php';
@@ -85,7 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $ins->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone, $gender]);
                         $newStudentId = (int) $pdo->lastInsertId();
 
-                        // Notify admins in real-time
                         require_once __DIR__ . '/../utils/websocket-pusher.php';
                         WebSocketPusher::emit("admin:notifications", "new_registration", [
                             'student_id' => $newStudentId,
@@ -95,7 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'semester' => $sem,
                         ]);
 
-                        // Record registration hit
                         RateLimiter::hit($pdo, "register:ip:{$ip}", 900, 5);
 
                         $success = "Registration submitted successfully! Your account is pending instructor approval. Once approved, you can log in.";
@@ -120,23 +117,14 @@ include __DIR__ . '/../components/header.php';
         <div style="display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; margin-bottom: 20px;">
             <span class="material-symbols-outlined" style="font-size: 42px;">verified</span>
         </div>
+        <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--color-dark); margin-bottom: 8px;">Registration Submitted!</h1>
+        <p style="color: var(--color-text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;"><?= e($success) ?></p>
 
-        <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--color-dark); margin-bottom: 8px;">
-            Registration Submitted!
-        </h1>
-
-        <p style="color: var(--color-text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;">
-            <?= e($success) ?>
-        </p>
-
-        <!-- 30-Second Animated Timeout Progress Bar -->
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; text-align: left;">
             <div style="display: flex; align-items: center; gap: 6px; font-size: 0.88rem; color: #64748b; margin-bottom: 10px;">
                 <span class="material-symbols-outlined icon-xs" style="color: #10b981;">schedule</span>
                 <span>Redirecting to homepage...</span>
             </div>
-
-            <!-- Animated Timeout Bar -->
             <div style="background: #e2e8f0; border-radius: 9999px; height: 8px; overflow: hidden; width: 100%;">
                 <div id="timeout-bar" style="background: #1d4ed8; height: 100%; width: 100%; border-radius: 9999px; transition: width 1s linear, background-color 0.5s ease;"></div>
             </div>
@@ -172,19 +160,18 @@ include __DIR__ . '/../components/header.php';
 
             <div class="auth-row-2">
                 <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Tulasi Benjamin Khan">
+                    <input type="text" name="name" id="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder=" ">
+                    <label for="name">Full Name</label>
                 </div>
 
                 <div class="form-group">
-                    <label>Student Email</label>
-                    <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
+                    <input type="email" name="email" id="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder=" ">
+                    <label for="email">Student Email</label>
                 </div>
             </div>
 
             <div class="auth-row-2">
                 <div class="form-group">
-                    <label>Roll Number / Student ID</label>
                     <input type="text"
                         name="roll_number"
                         id="roll_number"
@@ -192,63 +179,62 @@ include __DIR__ . '/../components/header.php';
                         style="text-transform: uppercase;"
                         oninput="this.value = this.value.toUpperCase()"
                         value="<?= e($_POST['roll_number'] ?? '') ?>"
-                        placeholder="e.g. B26BCA01">
+                        placeholder=" ">
+                    <label for="roll_number">Roll Number / Student ID</label>
                 </div>
 
                 <div class="form-group">
-                    <label>Phone Number</label>
                     <input type="text"
                         name="phone_number"
+                        id="phone_number"
                         inputmode="numeric"
                         pattern="[0-9]{10}"
                         maxlength="10"
                         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
                         value="<?= e($_POST['phone_number'] ?? '') ?>"
-                        placeholder="10 digit number"
-                        required
-                    >
+                        placeholder=" "
+                        required>
+                    <label for="phone_number">Phone Number</label>
                 </div>
             </div>
 
             <div class="auth-row-3">
                 <div class="form-group">
-                    <label>Department</label>
-                    <select name="department" required>
-                        <option value="">Select Department</option>
+                    <select name="department" id="department" required>
+                        <option value="" disabled selected></option>
                         <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
                             <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <label for="department">Department</label>
                 </div>
 
                 <div class="form-group">
-                    <label>Semester</label>
-                    <select name="semester" required>
-                        <option value="">Select Semester</option>
+                    <select name="semester" id="semester" required>
+                        <option value="" disabled selected></option>
                         <?php for ($i = 1; $i <= 8; $i++): ?>
-                            <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>
-                                Semester <?= $i ?>
-                            </option>
+                            <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>Semester <?= $i ?></option>
                         <?php endfor; ?>
                     </select>
+                    <label for="semester">Semester</label>
                 </div>
 
                 <div class="form-group">
-                    <label>Gender</label>
-                    <select name="gender" required>
-                        <option value="">Select Gender</option>
+                    <select name="gender" id="gender" required>
+                        <option value="" disabled selected></option>
                         <option value="male" <?= (($_POST['gender'] ?? '') === 'male') ? 'selected' : '' ?>>Male</option>
                         <option value="female" <?= (($_POST['gender'] ?? '') === 'female') ? 'selected' : '' ?>>Female</option>
                         <option value="others" <?= (($_POST['gender'] ?? '') === 'others') ? 'selected' : '' ?>>Others</option>
                     </select>
+                    <label for="gender">Gender</label>
                 </div>
             </div>
 
             <div class="auth-row-2">
                 <div class="form-group">
-                    <label>Password</label>
                     <div class="password-wrapper">
-                        <input type="password" name="password" required placeholder="Min 6 characters">
+                        <input type="password" name="password" id="password" required placeholder=" ">
+                        <label for="password">Password</label>
                         <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
                             <span class="material-symbols-outlined">visibility</span>
                         </button>
@@ -256,9 +242,9 @@ include __DIR__ . '/../components/header.php';
                 </div>
 
                 <div class="form-group">
-                    <label>Confirm Password</label>
                     <div class="password-wrapper">
-                        <input type="password" name="confirm_password" required placeholder="Re-enter password">
+                        <input type="password" name="confirm_password" id="confirm_password" required placeholder=" ">
+                        <label for="confirm_password">Confirm Password</label>
                         <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
                             <span class="material-symbols-outlined">visibility</span>
                         </button>
@@ -292,9 +278,9 @@ include __DIR__ . '/../components/header.php';
                 const percent = Math.max(0, (secondsLeft / totalSeconds) * 100);
                 barEl.style.width = percent + '%';
                 if (percent <= 20) {
-                    barEl.style.background = '#ef4444'; // Red near end
+                    barEl.style.background = '#ef4444'; 
                 } else if (percent <= 50) {
-                    barEl.style.background = '#f59e0b'; // Amber midway
+                    barEl.style.background = '#f59e0b'; 
                 }
             }
 
@@ -308,5 +294,3 @@ include __DIR__ . '/../components/header.php';
 <?php endif; ?>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
-
-

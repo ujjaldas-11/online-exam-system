@@ -1,12 +1,10 @@
 <?php
-
 require_once __DIR__ . '/../utils/session.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/csrf.php';
 require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/logger.php';
 require_once __DIR__ . '/../utils/sanitize.php';
-
 require_once __DIR__ . '/../utils/rate-limiter.php';
 
 init_secure_session();
@@ -32,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = clean_input($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    // Check rate limit before performing password checks
     $rateCheck = RateLimiter::checkLogin($pdo, 'student', $email, 5);
     if (!$rateCheck['allowed']) {
         http_response_code(429);
@@ -56,10 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($status === 'blocked') {
                     $error = "Your account has been blocked. Please contact your instructor.";
                 } else {
-                    // Reset failed login attempts upon successful authentication
                     RateLimiter::clearLogin($pdo, 'student', $email);
-
-                    // Prevent session fixation
                     session_regenerate_id(true);
 
                     $_SESSION['student_id'] = (int) $student['id'];
@@ -67,11 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['roll_number'] = $student['roll_number'];
                     $_SESSION['semester'] = (int) $student['semester'];
                     $_SESSION['department'] = $student['department'];
-                    $_SESSION['gender'] = $student['gender'] ?: 'others';;
+                    $_SESSION['gender'] = $student['gender'] ?: 'others';
 
-                    // Enforce singleton active session
                     bind_active_session($pdo, 'student', (int) $student['id']);
-
                     redirect('dashboard.php');
                 }
             } else {
@@ -115,14 +107,14 @@ include __DIR__ . '/../components/header.php';
             <?= csrf_field() ?>
 
             <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="student@college.edu">
+                <input type="email" name="email" id="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder=" ">
+                <label for="email">Email Address</label>
             </div>
 
             <div class="form-group">
-                <label>Password</label>
                 <div class="password-wrapper">
-                    <input type="password" name="password" required placeholder="••••••••">
+                    <input type="password" name="password" id="password" required placeholder=" ">
+                    <label for="password">Password</label>
                     <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
                         <span class="material-symbols-outlined">visibility</span>
                     </button>
@@ -141,4 +133,3 @@ include __DIR__ . '/../components/header.php';
 </main>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
-

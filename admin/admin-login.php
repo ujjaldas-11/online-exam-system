@@ -6,7 +6,6 @@ require_once __DIR__ . '/../utils/csrf.php';
 require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/logger.php';
 require_once __DIR__ . '/../utils/sanitize.php';
-
 require_once __DIR__ . '/../utils/rate-limiter.php';
 
 init_secure_session();
@@ -57,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter both email and password.";
     } else {
         try {
-            // Added 'email' and 'gender' to the SELECT query!
             $stmt = $pdo->prepare("SELECT id, name, email, password, role, status, department, gender FROM admins WHERE email = :email LIMIT 1");
             $stmt->execute([':email' => $email]);
             $admin = $stmt->fetch();
@@ -136,14 +134,14 @@ include __DIR__ . '/../components/header.php';
             <?= csrf_field() ?>
 
             <div class="form-group">
-                <label>Instructor Email</label>
-                <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="admin@college.edu">
+                <input type="email" name="email" id="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder=" ">
+                <label for="email">Instructor Email</label>
             </div>
 
             <div class="form-group">
-                <label>Password</label>
                 <div class="password-wrapper">
-                    <input type="password" name="password" required placeholder="••••••••">
+                    <input type="password" name="password" id="password" required placeholder=" ">
+                    <label for="password">Password</label>
                     <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
                         <span class="material-symbols-outlined">visibility</span>
                     </button>
@@ -162,4 +160,3 @@ include __DIR__ . '/../components/header.php';
 </main>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
-
