@@ -89,17 +89,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['create_exam']) || is
 
     // Basic Validation
     if (empty($form_data['title']) || empty($form_data['department']) || $form_data['semester'] <= 0 || $form_data['subject_id'] <= 0 || $form_data['duration_minutes'] <= 0 || $form_data['duration_minutes'] > 1440 || $form_data['total_marks'] <= 0 || $form_data['total_marks'] > 10000 || $form_data['total_questions_to_ask'] <= 0 || $form_data['total_questions_to_ask'] > 1000 || empty($form_data['target_units'])) {
-        $message = 'Please fill all required fields with valid values.';
-        $message_type = 'error';
+        set_flash('warning', 'fill all required fields with valid values.');
+        redirect('manage-exam.php');
     } elseif (strlen($form_data['title']) > 200) {
-        $message = 'Exam title cannot exceed 200 characters.';
-        $message_type = 'error';
+        set_flash('warning','Exam title cannot exceed 200 characters.');
+        redirect('manage-exam.php');
     } elseif (strlen($form_data['access_pin']) > 10) {
-        $message = 'Access PIN cannot exceed 10 characters.';
-        $message_type = 'error';
+        set_flash('warning', 'Access PIN cannot exceed 10 characters.');
+        redirect('manage-exam.php');
     } elseif ($start_time_db && $end_time_db && strtotime($end_time_db) <= strtotime($start_time_db)) {
-        $message = 'Scheduled end time must be after the start time.';
-        $message_type = 'error';
+        set_flash('warning','Scheduled end time must be after the start time.');
+        redirect('manage-exam.php');
     } else {
         // Question availability check
         if ($form_data['target_units'] === 'all') {
@@ -113,8 +113,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['create_exam']) || is
         $available = (int)$stmt->fetchColumn();
 
         if ($available <$form_data['total_questions_to_ask']) {
-            $unit_text = ($form_data['target_units'] === 'all') ? "This subject" : "Unit " . $form_data['target_units'];$message = "$unit_text only has$available questions in the bank. You cannot configure an exam for {$form_data['total_questions_to_ask']} questions.";
-            $message_type = 'error';
+            $unit_text = ($form_data['target_units'] === 'all') ? "This subject" : "Unit " . $form_data['target_units'];
+            set_flash('error',"$unit_text only has$available questions in the bank. You cannot configure an exam for {$form_data['total_questions_to_ask']} questions.");
+            redirect('manage-exam.php');
         } else {
             try {
                 // Calculate Status Based on Start Time
@@ -163,13 +164,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['create_exam']) || is
                         ? "Exam scheduled successfully for " . date('M d, Y h:i A', strtotime($start_time_db)) . "! It will activate automatically."
                         : "Exam created successfully!");
                     redirect('control-exams.php');
-                    // $message_type = 'success';
                     $form_data = []; // Clear form on success
                 }
             } catch (PDOException $e) {
                 set_flash('error', safe_db_error($e, 'Failed to save examination.'));
                 redirect('manage-exam.php');
-                // $message_type = 'error');
                 }
         }
     }
@@ -196,9 +195,7 @@ if ($sel_dept &&$sel_sem) {
     $sticky_subjects =$stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 if ($sel_sub) {
-    $stmt =$pdo->prepare("SELECT DISTINCT unit_number FROM questions WHERE subject_id = ? AND unit_number IS NOT NULL ORDER BY unit_number ASC");
-    $stmt->execute([$sel_sub]);
-    $sticky_units =$stmt->fetchAll(PDO::FETCH_COLUMN);
+    $sticky_units = CurriculumService::getUnitsBySubject($pdo, $sel_sub);
 }
 
 $page_title = ($is_edit ? 'Edit Exam' : 'Create Exam') . ' • Examify';
@@ -402,20 +399,31 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    subjectDropdown.addEventListener('change', function() {
+   subjectDropdown.addEventListener('change', function() {
         const subId = this.value;
         resetDropdowns(3);
         if (!subId) return;
+        
         unitDropdown.innerHTML = '<option value="">Loading units...</option>';
         unitDropdown.disabled = false;
-        fetch(`api-get-units.php?subject_id=${subId}`).then(res => res.json()).then(data => {
-            let html = '<option value="">-- Select Target Unit --</option>';
-            if (data.length === 0) { html += '<option value="" disabled>No questions uploaded yet</option>'; } else {
-                html += '<option value="all">All Units (Combined Exam)</option>';
-                data.forEach(unit => { html += `<option value="${unit}">Unit ${unit}</option>`; });
-            }
-            unitDropdown.innerHTML = html;
-        });
+        
+        fetch(`api-get-units.php?subject_id=${subId}`)
+            .then(res => res.json())
+            .then(data => {
+                let html = '<option value="">-- Select Target Unit --</option>';
+                
+                if (data.length === 0) { 
+                    html += '<option value="" disabled>No questions uploaded yet</option>'; 
+                } else {
+                    html += '<option value="all">All Units (Combined Exam)</option>';
+                    
+                    data.forEach(unit => { 
+                        html += `<option value="${unit.unit_number}">${unit.label}</option>`; 
+                    });
+                }
+                
+                unitDropdown.innerHTML = html;
+            });
     });
 
     // 4. Date Picker Restrictions: Disable past dates in UI
