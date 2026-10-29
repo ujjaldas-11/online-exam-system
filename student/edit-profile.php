@@ -112,28 +112,29 @@ include __DIR__ . '/../components/student-navbar.php';
         <form method="POST">
             <?= csrf_field() ?>
 
-            <div class="form-group">
+            <div class="form-group float-field">
+                <input type="text" name="name" required value="<?= e($student['name']) ?>" <?= $has_pending_request ? 'disabled' : '' ?> placeholder=" ">
                 <label>Full Name</label>
-                <input type="text" name="name" required value="<?= e($student['name']) ?>" <?= $has_pending_request ? 'disabled' : '' ?>>
             </div>
 
-            <div class="form-group">
+            <div class="form-group float-field">
+                <input type="email" value="<?= e($student['email']) ?>" disabled style="background: var(--color-gray-100); cursor: not-allowed;" placeholder=" ">
                 <label>Student Email (Fixed)</label>
-                <input type="email" value="<?= e($student['email']) ?>" disabled style="background: var(--color-gray-100); cursor: not-allowed;">
                 <small style="color: var(--color-text-secondary);">Email cannot be changed directly.</small>
             </div>
 
-            <div class="form-group">
-                <label>Roll Number / Student ID</label>
+            <div class="form-group float-field">
+                
                 <input type="text"
                     name="roll_number"
                     style="text-transform: uppercase;"
                     oninput="this.value = this.value.toUpperCase()"
                     required
                     value="<?= e($student['roll_number']) ?>"
-                    <?= $has_pending_request ? 'disabled' : '' ?>>
+                    <?= $has_pending_request ? 'disabled' : '' ?>
+                    placeholder=" ">
+                    <label>Roll Number / Student ID</label>
             </div>
-
             <div class="form-group">
                 <label>Gender</label>
                 <select name="gender" required <?= $has_pending_request ? 'disabled' : '' ?>>
@@ -196,30 +197,30 @@ include __DIR__ . '/../components/student-navbar.php';
             <input type="hidden" name="change_password" value="1">
 
             <div class="admin-modal-body">
-                <div class="form-group">
-                    <label>Current Password</label>
+                <div class="form-group float-field">
                     <div class="password-wrapper">
-                        <input type="password" name="current_password" required>
+                        <input type="password" name="current_password" required placeholder=" ">
+                        <label>Current Password</label>
                         <button type="button" class="password-toggle-btn">
                             <span class="material-symbols-outlined">visibility</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>New Password</label>
+                <div class="form-group float-field">
                     <div class="password-wrapper">
-                        <input type="password" name="new_password" required minlength="8">
+                        <input type="password" name="new_password" required minlength="8" placeholder=" ">
+                        <label>New Password</label>
                         <button type="button" class="password-toggle-btn">
                             <span class="material-symbols-outlined">visibility</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Confirm New Password</label>
+                <div class="form-group float-field" style="margin-bottom: 0;">
                     <div class="password-wrapper">
-                        <input type="password" name="confirm_password" required minlength="8">
+                        <input type="password" name="confirm_password" required minlength="8" placeholder=" ">
+                        <label>Confirm New Password</label>
                         <button type="button" class="password-toggle-btn">
                             <span class="material-symbols-outlined">visibility</span>
                         </button>

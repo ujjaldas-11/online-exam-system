@@ -229,9 +229,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <form method="POST" class="exam-form" action="<?= $is_edit ? 'manage-exam.php?edit='.$edit_id : 'manage-exam.php' ?>">
             <?= csrf_field() ?>
 
-            <div class="exam-form__field exam-form__field--full">
-                <label>Exam title</label>
-                <input type="text" name="title" required placeholder="e.g. Mid-Term Surprise Quiz on DBMS" value="<?= e($form_data['title'] ?? '') ?>">
+            <div class="exam-form__field exam-form__field--full float-field">
+                <input type="text" name="title" required placeholder=" " value="<?= e($form_data['title'] ?? '') ?>">
+                <label>Exam Title</label>
             </div>
 
             <div class="exam-form__section-label">Who it's for</div>
@@ -290,29 +290,29 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <div class="exam-form__section-label">How it runs</div>
             <div class="exam-form__row exam-form__row--4">
-                <div class="exam-form__field">
+                <div class="exam-form__field float-field">
+                    <input type="number" name="duration_minutes" required min="1" max="300" placeholder="30" value="<?= e($form_data['duration_minutes'] ?? ' ') ?>">
                     <label>Duration <span class="exam-form__unit">min</span></label>
-                    <input type="number" name="duration_minutes" required min="1" max="300" placeholder="30" value="<?= e($form_data['duration_minutes'] ?? '30') ?>">
                 </div>
 
-                <div class="exam-form__field">
+                <div class="exam-form__field float-field">
+                    <input type="number" name="total_marks" required min="1" placeholder="50" value="<?= e($form_data['total_marks'] ?? ' ') ?>">
                     <label>Total marks</label>
-                    <input type="number" name="total_marks" required min="1" placeholder="50" value="<?= e($form_data['total_marks'] ?? '50') ?>">
                 </div>
 
-                <div class="exam-form__field">
+                <div class="exam-form__field float-field">
+                    <input type="number" name="total_questions_to_ask" required min="1" placeholder=" " value="<?= e($form_data['total_questions_to_ask'] ?? ' ') ?>">
                     <label>Total Questions</label>
-                    <input type="number" name="total_questions_to_ask" required min="1" placeholder="20" value="<?= e($form_data['total_questions_to_ask'] ?? '20') ?>">
                 </div>
 
-                <div class="exam-form__field">
+                <div class="exam-form__field float-field">
+                    <input type="number" step="0.05" min="0" max="50" name="negative_marks_per_question" placeholder="0.00" value="<?= e($form_data['negative_marks_per_question'] ?? ' ') ?>">
                     <label>Negative mark / wrong <span class="exam-form__unit">deduction</span></label>
-                    <input type="number" step="0.05" min="0" max="50" name="negative_marks_per_question" placeholder="0.00" value="<?= e($form_data['negative_marks_per_question'] ?? '0.00') ?>">
                 </div>
 
-                <div class="exam-form__field">
+                <div class="exam-form__field float-field">
+                    <input type="text" name="access_pin" maxlength="10" placeholder=" " value="<?= e($form_data['access_pin'] ?? '') ?>">
                     <label>Classroom PIN <span class="exam-form__unit">optional</span></label>
-                    <input type="text" name="access_pin" maxlength="10" placeholder="4821" value="<?= e($form_data['access_pin'] ?? '') ?>">
                 </div>
             </div>
 

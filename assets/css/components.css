@@ -988,6 +988,83 @@ input[type="radio"] {
   color: var(--color-text-secondary);
 }
 
+
+/* --- Floating Label Fields --- */
+.float-field {
+  position: relative;
+}
+
+.float-field input,
+.float-field select,
+.float-field textarea {
+  padding: 14px 12px;
+}
+
+.float-field label,
+.exam-form__field.float-field label {
+  position: absolute;
+  left: 10px;
+  top: 22px; /* vertically centered in a single-line input */
+  margin: 0;
+  padding: 0 4px;
+  display: inline-block;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-text-muted);
+  background: var(--color-surface); /* hides the border behind the label */
+  transform: translateY(-50%);
+  transform-origin: left center;
+  pointer-events: none;
+  transition:
+    top 0.18s ease,
+    font-size 0.18s ease,
+    color 0.18s ease;
+}
+
+/* Textareas: label starts near the top, not the middle */
+.float-field textarea ~ label {
+  top: 24px;
+}
+
+/* Floated state: focused, has text, or select/date types that always show a value */
+.float-field input:focus ~ label,
+.float-field input:not(:placeholder-shown) ~ label,
+.float-field textarea:focus ~ label,
+.float-field textarea:not(:placeholder-shown) ~ label,
+.float-field select ~ label,
+.float-field input[type="date"] ~ label,
+.float-field input[type="time"] ~ label,
+.float-field input[type="datetime-local"] ~ label,
+.float-field input[type="month"] ~ label,
+.float-field input[type="week"] ~ label {
+  top: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Label color on focus */
+.float-field input:focus ~ label,
+.float-field select:focus ~ label,
+.float-field textarea:focus ~ label {
+  color: var(--color-primary-light);
+}
+
+/* Optional: error state */
+.float-field input:invalid:not(:placeholder-shown):not(:focus) {
+  border-color: #d93025;
+}
+.float-field input:invalid:not(:placeholder-shown):not(:focus) ~ label {
+  color: #d93025;
+}
+
+/* Disabled */
+.float-field input:disabled ~ label,
+.float-field select:disabled ~ label,
+.float-field textarea:disabled ~ label {
+  background: transparent;
+}
+
 @media (max-width: 900px) {
   .exam-form-page {
     height: auto;

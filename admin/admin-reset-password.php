@@ -70,49 +70,46 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
 
         <?php include __DIR__ . '/../components/flash-messages.php'; ?>
-
         <div class="card" style="background: #fff; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); padding: 32px;">
-            <form method="POST" action="">
+            <form method="POST" action="" class="password-form">
                 <?= csrf_field() ?>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--color-dark);">Current Password</label>
-                    <div class="password-wrapper" style="position: relative;">
-                        <input type="password" name="current_password" required style="width: 100%; padding: 12px 40px 12px 16px; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.95rem;">
-                        <button type="button" class="password-toggle-btn" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-text-secondary);">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">visibility</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--color-dark);">New Password</label>
-                    <div class="password-wrapper" style="position: relative;">
-                        <input type="password" name="new_password" required minlength="8" style="width: 100%; padding: 12px 40px 12px 16px; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.95rem;">
-                        <button type="button" class="password-toggle-btn" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-text-secondary);">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">visibility</span>
-                        </button>
-                    </div>
-                    <small style="color: var(--color-text-secondary); font-size: 0.8rem; margin-top: 6px; display: block;">Must be at least 8 characters long.</small>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 32px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--color-dark);">Confirm New Password</label>
-                    <div class="password-wrapper" style="position: relative;">
-                        <input type="password" name="confirm_password" required minlength="8" style="width: 100%; padding: 12px 40px 12px 16px; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.95rem;">
-                        <button type="button" class="password-toggle-btn" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-text-secondary);">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">visibility</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 12px;">
-                    <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 12px;">
-                        <span class="material-symbols-outlined icon-sm">save</span> Update Password
+                <div class="form-group float-field">
+                <div class="password-wrapper">
+                    <input type="password" name="current_password" id="current_password" required placeholder=" ">
+                    <label for="current_password">Current Password</label>
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                    <span class="material-symbols-outlined">visibility</span>
                     </button>
-                    <a href="admin-dashboard.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; flex: 1; padding: 12px;">
-                        Cancel
-                    </a>
+                </div>
+                </div>
+
+                <div class="form-group float-field">
+                <div class="password-wrapper">
+                    <input type="password" name="new_password" id="new_password" required minlength="8" placeholder=" ">
+                    <label for="new_password">New Password</label>
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                    <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                </div>
+                <small class="field-hint">Must be at least 8 characters long.</small>
+                </div>
+
+                <div class="form-group float-field form-group--last">
+                <div class="password-wrapper">
+                    <input type="password" name="confirm_password" id="confirm_password" required minlength="8" placeholder=" ">
+                    <label for="confirm_password">Confirm New Password</label>
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                    <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                </div>
+                </div>
+
+                <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-symbols-outlined icon-sm">save</span> Update Password
+                </button>
+                <a href="admin-dashboard.php" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
         </div>

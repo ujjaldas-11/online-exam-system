@@ -330,9 +330,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?= csrf_field() ?>
 
             <div class="admin-modal-body">
-                <div class="form-group" style="margin-bottom: 14px;">
+                <div class="form-group float-field" style="margin-bottom: 14px;">
+                    <input type="text" name="name" id="create_sub_name" required placeholder=" " value="<?= e($_POST['name'] ?? '') ?>" class="form-control" style="width: 100%;">
                     <label for="create_sub_name" style="font-weight: 600; display: block; margin-bottom: 4px;">Subject Name</label>
-                    <input type="text" name="name" id="create_sub_name" required placeholder="e.g. Cloud Computing" value="<?= e($_POST['name'] ?? '') ?>" class="form-control" style="width: 100%;">
                 </div>
 
                 <div class="form-group">
@@ -376,14 +376,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <input type="hidden" name="subject_id" id="modal_sub_id" value="">
 
             <div class="admin-modal-body">
-                <div class="form-group" style="margin-bottom: 14px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Subject Name</label>
+                <div class="form-group float-field" style="margin-bottom: 14px;">
                     <input type="text" name="name" id="modal_sub_name" required class="form-control" style="width: 100%;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Subject Name</label>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 14px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Department</label>
+                <div class="form-group float-field" style="margin-bottom: 14px;">
                     <select name="department" id="modal_sub_dept" required class="form-control" style="width: 100%;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Department</label>
                         <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
                             <option value="<?= e($d) ?>"><?= e($d) ?></option>
                         <?php endforeach; ?>

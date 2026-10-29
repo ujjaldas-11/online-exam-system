@@ -836,24 +836,24 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?= csrf_field() ?>
             <div class="admin-modal-body">
                 <div class="auth-row-2">
-                    <div class="form-group">
+                    <div class="form-group float-field">
+                        <input type="text" name="name" required placeholder=" ">
                         <label>Full Name *</label>
-                        <input type="text" name="name" required placeholder="e.g. Rahul Sharma">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group float-field">
+                        <input type="email" name="email" required placeholder=" ">
                         <label>Student Email *</label>
-                        <input type="email" name="email" required placeholder="student@college.edu">
                     </div>
                 </div>
 
                 <div class="auth-row-2">
-                    <div class="form-group">
+                    <div class="form-group float-field">
+                        <input type="text" name="roll_number" required style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" placeholder=" ">
                         <label>Roll Number / ID *</label>
-                        <input type="text" name="roll_number" required style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" placeholder="e.g. B26BCA01">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group float-field">
+                        <input type="text" name="phone_number" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)" placeholder=" ">
                         <label>Phone Number</label>
-                        <input type="text" name="phone_number" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)" placeholder="10 digit number">
                     </div>
                 </div>
 
@@ -887,10 +887,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Initial Login Password * (Min 6 characters)</label>
+                <div class="form-group float-field">
                     <div class="password-wrapper">
-                        <input type="password" name="password" required minlength="6" placeholder="Initial password for student">
+                        <input type="password" name="password" required minlength="6" placeholder=" ">
+                        <label>Initial Login Password * (Min 6 characters)</label>
                         <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
                             <span class="material-symbols-outlined">visibility</span>
                         </button>
@@ -920,24 +920,24 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <div class="admin-modal-body">
                 <div class="auth-row-2">
-                    <div class="form-group">
-                        <label>Full Name *</label>
+                    <div class="form-group float-field">
                         <input type="text" name="name" id="edit_name" required>
+                        <label>Full Name *</label>
                     </div>
-                    <div class="form-group">
-                        <label>Student Email *</label>
+                    <div class="form-group float-field">
                         <input type="email" name="email" id="edit_email" required>
+                        <label>Student Email *</label>
                     </div>
                 </div>
 
                 <div class="auth-row-2">
-                    <div class="form-group">
-                        <label>Roll Number *</label>
+                    <div class="form-group float-field">
                         <input type="text" name="roll_number" id="edit_roll" required style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()">
+                        <label>Roll Number *</label>
                     </div>
-                    <div class="form-group">
-                        <label>Phone Number</label>
+                    <div class="form-group float-field">
                         <input type="text" name="phone_number" id="edit_phone" inputmode="numeric" pattern="[0-9]{10}" maxlength="10">
+                        <label>Phone Number</label>
                     </div>
                 </div>
 
@@ -1001,14 +1001,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <input type="hidden" name="student_id" id="reset_student_id">
 
             <div class="admin-modal-body">
-                <p style="font-size: 0.92rem; color: var(--color-text-secondary); margin-top: 0;">
+                <p style="font-size: 0.92rem; color: var(--color-text-secondary); margin-top: 0; margin-bottom: 10px;">
                     Resetting password for: <strong id="reset_student_label" style="color: var(--color-dark);"></strong>
                 </p>
 
-                <div class="form-group">
-                    <label>New Password * (Min 6 characters)</label>
+                <div class="form-group float-field">
                     <div class="password-wrapper">
-                        <input type="password" name="new_password" id="reset_new_password" required minlength="6" placeholder="Enter new password">
+                        <input type="password" name="new_password" id="reset_new_password" required minlength="6" placeholder=" ">
+                        <label>New Password * (Min 6 characters)</label>
                         <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
                             <span class="material-symbols-outlined">visibility</span>
                         </button>

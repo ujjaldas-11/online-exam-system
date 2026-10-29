@@ -388,14 +388,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <?= csrf_field() ?>
                 
                 <div class="admin-modal-body">
-                    <div class="form-group full-width">
+                    <div class="form-group full-width float-field">
+                        <input type="text" name="name" required placeholder=" " value="<?= e($_POST['name'] ?? '') ?>" style="width: 100%;">
                         <label>Teacher Full Name</label>
-                        <input type="text" name="name" required placeholder="e.g. Prof. Alan Turing" value="<?= e($_POST['name'] ?? '') ?>" style="width: 100%;">
                     </div>
                     
-                    <div class="form-group full-width">
+                    <div class="form-group float-field full-width">
+                        <input type="email" name="email" required placeholder=" " value="<?= e($_POST['email'] ?? '') ?>" style="width: 100%;">
                         <label>Teacher Email</label>
-                        <input type="email" name="email" required placeholder="teacher@college.edu" value="<?= e($_POST['email'] ?? '') ?>" style="width: 100%;">
                     </div>
                     
                     <div class="form-group">
@@ -427,14 +427,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         </select>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Initial Password</label>
-                        <div class="password-wrapper">
-                            <input type="password" name="password" required placeholder="Min 8 characters" minlength="8" style="width: 100%;">
-                            <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
-                                <span class="material-symbols-outlined icon-sm">visibility</span>
-                            </button>
-                        </div>
+                </div>
+                <div class="form-group float-field" style="padding: 15px;">
+                    <div class="password-wrapper">
+                        <input type="password" name="password" required placeholder=" " minlength="8" style="width: 100%;">
+                        <label>Initial Password(minimum 8 characters)</label>
+                        <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
+                            <span class="material-symbols-outlined icon-sm">visibility</span>
+                        </button>
                     </div>
                 </div>
                 
