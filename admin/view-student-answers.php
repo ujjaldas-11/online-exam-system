@@ -97,7 +97,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
         <div>
         <!-- The PDF Download Button -->
-        <a href="?attempt_id=<?= $attempt_id ?>&download=pdf" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <a href="?attempt_id=<?= $attempt_id ?>&download=pdf" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
             <span class="material-symbols-outlined icon-sm">picture_as_pdf</span> Download PDF
         </a>
     </div>

@@ -69,7 +69,7 @@ try {
         'submitted_at' => $data['submitted_at']
     ];
 
-    PdfService::generateStudentScorecardPdf($student, $exam, $attempt, $stats, 'I');
+    PdfService::generateStudentScorecardPdf($student, $exam, $attempt, $stats, 'P');
 } catch (PDOException $e) {
     log_error("Failed generating scorecard PDF for attempt $attempt_id", $e);
     die("Error generating PDF document.");
