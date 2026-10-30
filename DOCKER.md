@@ -39,30 +39,43 @@ Examify uses a **multi-stage Docker build** process to guarantee 100% offline ai
 
 ## 3. Quickstart with Docker Compose
 
-The simplest and recommended method to deploy Examify in production is using `docker-compose.yml`:
+### A. Development Mode (Database-Only in Docker)
+To use Docker purely for database provisioning while running `php -S localhost:8000` locally for live file changes:
 
 ```bash
-# 1. Clone or extract the repository
-git clone https://github.com/ujjaldas-11/online-exam-system.git
-cd online-exam-system
+# Launch only the MySQL 8.0 container (port 3306 mapped to localhost)
+docker compose up -d
 
-# 2. Review and adjust environment variables if needed
-cp .env.example .env
-
-# IMPORTANT: .env.example defaults to DB_USERNAME=root for local non-containerized environments.
-# The official MySQL Docker image rejects 'root' in MYSQL_USER. In .env, ensure:
-#   DB_USERNAME=examify_prod
-#   DB_PASSWORD=your_secure_password
-#   DB_ROOT_PASSWORD=your_secure_root_password
-
-# 3. Build and launch the complete stack in detached mode
-docker compose up -d --build
+# Start your local PHP development server
+php -S localhost:8000
 ```
 
-The stack automatically launches:
+The database is immediately reachable on host at `127.0.0.1:3306`. Ensure your `.env` has:
+```env
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=examify
+DB_USERNAME=examify_prod
+DB_PASSWORD=examify_secure_production_password_change_me
+```
+
+---
+
+### B. Full Production Stack (Web + WebSocket + MySQL)
+To build and launch the complete production environment:
+
+```bash
+# 1. Review and adjust environment variables if needed
+cp .env.example .env
+
+# 2. Build and launch all services with the 'full' profile
+docker compose --profile full up -d --build
+```
+
+The stack launches:
 - **`examify_web`**: Apache web server on `http://localhost:8080` and `https://localhost:8443`.
 - **`examify_websocket`**: WebSocket daemon on port `8085`.
-- **`examify_db`**: MySQL 8.0 server with automated health checks.
+- **`examify_db`**: MySQL 8.0 server with automated health checks on port `3306`.
 
 The entrypoint automatically waits for the database to become healthy and runs schema initialization (`php init-db.php --schema-only`).
 
