@@ -103,32 +103,32 @@ include __DIR__ . '/../components/header.php';
             <?= csrf_field() ?>
 
             <div class="form-group">
-                <label>Superadmin Full Name</label>
                 <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Dr. Administrator">
+                <label>Superadmin Full Name</label>
             </div>
 
             <div class="form-group">
-                <label>Master Email Address</label>
                 <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="admin@college.edu">
+                <label>Master Email Address</label>
             </div>
 
             <div class="form-group">
-                <label>Password (Min 8 characters)</label>
                 <div class="password-wrapper">
                     <input type="password" name="password" required minlength="8" placeholder="••••••••••••">
                     <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
                         <span class="material-symbols-outlined">visibility</span>
                     </button>
+                    <label>Password (Min 8 characters)</label>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Confirm Password</label>
                 <div class="password-wrapper">
                     <input type="password" name="confirm_password" required minlength="8" placeholder="••••••••••••">
                     <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
                         <span class="material-symbols-outlined">visibility</span>
                     </button>
+                    <label>Confirm Password</label>
                 </div>
             </div>
 
