@@ -85,24 +85,21 @@ try {
     die('Database Error. Please try again later.');
 }
 
+$body_class = 'dashboard-page';
 $page_title = 'Admin Dashboard • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<div class="container main-content" style="padding-top: 12px; margin-top: 3rem;">
+<main class="container main-content dashboard-content">
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <!-- Header Section -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+    <div class="dashboard-heading">
         <div>
-            <h1 style="font-size: 1.5rem; margin: 0 0 4px 0;"><?= $isAdminSuper ? 'Superadmin Dashboard' : 'Instructor Dashboard' ?></h1>
-            <p style="margin: 0; font-size: 0.88rem; color: var(--color-text-secondary);">
-                Welcome back, <strong><?= e($admin_name) ?></strong> 
-                <span class="badge <?= $isAdminSuper ? 'badge-active' : 'badge-active' ?>" style="margin-left: 4px; font-size: 0.7rem; padding: 2px 6px;">
-                    <?= $isAdminSuper ? 'Superadmin' : 'Teacher' ?>
-                </span>
-            </p>
+            <p class="dashboard-welcome">Welcome back, <?= e($admin_name) ?></p>
+            <h1><?= $isAdminSuper ? 'Superadmin Dashboard' : 'Instructor Dashboard' ?></h1>
+            <p class="dashboard-subtitle">Manage your institution’s exams, users and settings from one central hub.</p>
         </div>
         <div class="badge badge-active">
             <span class="material-symbols-outlined icon-sm">calendar_today</span> <?= date('D, d M Y • h:i A') ?>
@@ -110,7 +107,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 
     <!-- Top Row: Compact KPIs -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
+    <div class="dashboard-kpis">
         <div class="compact-kpi">
             <div class="num"><?= $total_students ?></div>
             <div class="label"><span class="material-symbols-outlined icon-sm">group</span> Active Students</div>
@@ -135,18 +132,22 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 
     <!-- Middle Row: Operational Action Queue -->
-<!-- Middle Row: Operational Action Queue -->
     <div class="dash-grid-main">
         
         <!-- 1. Live Exams -->
         <div class="card" style="margin-bottom: 0; border-left: 3px solid var(--color-success);">
             <div class="card-title" style="padding: 12px 16px; font-size: 0.95rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between;">
-                <span style="display: flex; align-items: center; gap: 6px; color: var(--color-success);"><span class="material-symbols-outlined icon-sm">sensors</span> Live & Ongoing</span>
+                <span style="display: flex; align-items: center; gap: 6px; color: var(--color-success);"><span class="material-symbols-outlined icon-sm">sensors</span> Live &amp; Ongoing Exams</span><a class="dashboard-view-all" href="control-exams.php">View All &rarr;</a>
             </div>
             <?php if (empty($live_exams)): ?>
-                <p style="padding: 16px; font-size: 0.85rem; color: var(--color-text-secondary); margin: 0; text-align: center;">No exams are currently active.</p>
+                <div class="dashboard-empty dashboard-empty-live">
+                    <span class="material-symbols-outlined dashboard-empty-icon" aria-hidden="true">sensors</span>
+                    <strong>No exams are currently active.</strong>
+                    <p>When an exam is live, it will appear here with real-time monitoring and quick actions.</p>
+                    <a href="manage-exam.php" class="btn btn-primary"><span class="material-symbols-outlined icon-sm">add_circle</span>Create New Exam</a>
+                </div>
             <?php else: ?>
-                <table class="compact-table">
+                <div class="table-wrap"><table class="compact-table">
                     <tbody>
                         <?php foreach ($live_exams as $le): ?>
                             <tr>
@@ -155,26 +156,31 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <span style="color: var(--color-text-secondary); font-size: 0.75rem;"><?= e($le['department']) ?>, Sem <?= e((string) $le['semester']) ?></span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <a href="proctor-exam.php?exam_id=<?= $le['id'] ?>" class="btn btn-success btn-sm">
+                                    <a href="proctor-exam.php?exam_id=<?= (int) $le['id'] ?>" class="btn btn-success btn-sm">
                                         <span class="material-symbols-outlined" style="font-size: 14px;">visibility</span> Proctor
                                     </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
-                </table>
+                </table></div>
             <?php endif; ?>
         </div>
 
         <!-- 2. Scheduled Exams -->
         <div class="card" style="margin-bottom: 0; border-left: 3px solid var(--color-primary);">
             <div class="card-title" style="padding: 12px 16px; font-size: 0.95rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between;">
-                <span style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">event</span> Upcoming Scheduled</span>
+                <span style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined icon-sm">event</span> Upcoming Scheduled Exams</span><a class="dashboard-view-all" href="control-exams.php">View All &rarr;</a>
             </div>
             <?php if (empty($scheduled_exams)): ?>
-                <p style="padding: 16px; font-size: 0.85rem; color: var(--color-text-secondary); margin: 0; text-align: center;">No upcoming exams scheduled.</p>
+                <div class="dashboard-empty dashboard-empty-scheduled">
+                    <span class="material-symbols-outlined dashboard-empty-icon" aria-hidden="true">calendar_month</span>
+                    <strong>No upcoming exams scheduled.</strong>
+                    <p>Scheduled exams will appear here with date, time and subject details.</p>
+                    <a href="manage-exam.php" class="btn btn-secondary"><span class="material-symbols-outlined icon-sm">event</span>Schedule Exam</a>
+                </div>
             <?php else: ?>
-                <table class="compact-table">
+                <div class="table-wrap"><table class="compact-table">
                     <tbody>
                         <?php
                         foreach ($scheduled_exams as $se):
@@ -191,20 +197,20 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <a href="manage-exam.php?edit=<?= $se['id'] ?>" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.75rem;">Edit</a>
+                                    <a href="manage-exam.php?edit=<?= (int) $se['id'] ?>" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.75rem;">Edit</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
-                </table>
+                </table></div>
             <?php endif; ?>
         </div>
 
         <!-- 3. Dense Quick Actions -->
         <div class="card" style="padding: 12px; margin-bottom: 0;">
-            <div class="card-title" style="font-size: 0.95rem; margin-bottom: 12px;">Quick Tasks</div>
+            <div class="card-title" style="font-size: 0.95rem; margin-bottom: 12px;"><span class="material-symbols-outlined">bolt</span> Quick Tasks</div><p class="dashboard-task-caption">Common actions for system management.</p>
             
-            <a href="control-exams.php" class="btn btn-primary quick-action-btn" style="background: #1e3a8a; border-color: #1e3a8a;">
+            <a href="control-exams.php" class="btn btn-primary quick-action-btn" >
                 <span class="material-symbols-outlined icon-md">tune</span>
                 <div><strong>Control & Proctor</strong><small>Start, stop, set PINs</small></div>
             </a>
@@ -236,21 +242,21 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <!-- Recent Submissions -->
         <div class="card">
             <div class="card-title" style="padding: 12px 16px; font-size: 0.95rem; border-bottom: 1px solid var(--color-border);">
-                <span class="material-symbols-outlined icon-sm">trophy</span> Top 5 Submissions of recent exam
+                <span class="material-symbols-outlined icon-sm">trophy</span> Top 5 Submissions of Recent Exams <a class="dashboard-view-all" href="results.php">View All &rarr;</a>
             </div>
             <?php if (empty($top_submissions)): ?>
                 <p style="padding: 16px; font-size: 0.85rem; color: var(--color-text-secondary); margin: 0; text-align: center;">No completed exam submissions found.</p>
             <?php else: ?>
-                <div style="overflow-x: auto;">
+                <div class="table-wrap">
                     <table class="compact-table">
                         <thead>
                             <tr>
-                                <!-- <th style="width: 40px;">#</th> -->
+                                <th scope="col">#</th>
                                 <th>Student</th>
-                                <th>department</th>
+                                <th>Department</th>
                                 <th>Exam</th>
                                 <th>Score</th>
-                                <th>Result</th>
+                                <th>Result</th><th>Submitted</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -260,7 +266,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 $pct = (float) $ts['percentage'];
                                 ?>
                                 <tr>
-                                    <!-- <td><strong>#<?= $pos++ ?></strong></td> -->
+                                    <td><?= $pos++ ?></td>
                                     <td>
                                         <strong><?= e($ts['student_name']) ?></strong><br>
                                         <small style="color: var(--color-text-secondary);"><?= e($ts['roll_number']) ?></small>
@@ -281,6 +287,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             <?= $pct ?>%
                                         </span>
                                     </td>
+                                    <td class="dashboard-submitted"><?= e(date('d M Y', strtotime($ts['submitted_at']))) ?><br><small><?= e(date('h:i A', strtotime($ts['submitted_at']))) ?></small></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -295,12 +302,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?php if (empty($recent_logs)): ?>
                 <p style="padding: 16px; font-size: 0.85rem; color: var(--color-text-secondary); margin: 0; text-align: center;">No recent activity.</p>
             <?php else: ?>
-                <ul style="list-style: none; padding: 0; margin: 0;">
+                <ul class="dashboard-activity">
                     <?php foreach ($recent_logs as $log): ?>
-                        <li style="padding: 10px 16px; border-bottom: 1px solid var(--color-border); font-size: 0.85rem;">
+                        <li><span class="material-symbols-outlined dashboard-activity-icon" aria-hidden="true">history</span><div>
                             <div style="color: var(--color-dark); margin-bottom: 2px;"><?= e($log['details']) ?></div>
                             <div style="color: var(--color-text-secondary); font-size: 0.75rem;"><span class="material-symbols-outlined" style="font-size: 11px; vertical-align: middle;">schedule</span> <?= date('d M Y, h:i A', strtotime($log['created_at'])) ?></div>
-                        </li>
+                        </div></li>
                     <?php endforeach; ?>
                 </ul>
             <?php endif; ?>
@@ -309,6 +316,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
         </div>
     </div>
-</div>
+</main>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
