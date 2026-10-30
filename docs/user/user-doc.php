@@ -830,6 +830,7 @@
                                 <li><a class="toc-link" href="#sec-2-9">2.9 Submission</a></li>
                                 <li><a class="toc-link" href="#sec-2-10">2.10 Results</a></li>
                                 <li><a class="toc-link" href="#sec-2-11">2.11 Student Profile</a></li>
+                                <li><a class="toc-link" href="#sec-2-12">2.12 Exam History</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -911,16 +912,17 @@
                         <div class="body">
                             <p>Follow these steps to register a new student account:</p>
                             <ol>
-                                <li>Navigate to the application address and click <strong>Student Portal</strong>.</li>
+                                <li>Navigate to the homepage and click <strong>Student Portal</strong>.</li>
                                 <li>Click the <strong>Register here</strong> link.</li>
-                                <li>Enter your Full Name and College Email.</li>
+                                <li>Type your Full Name and College Email.</li>
                                 <li>Type your student ID in the <strong>Roll Number</strong> field (auto-capitalized).</li>
-                                <li>Select your academic department (e.g., BCA, BBA) and semester.</li>
+                                <li>Select your academic Department and Semester.</li>
+                                <li>Select your Gender identity from the dropdown list.</li>
                                 <li>Create a secure password (minimum 6 characters).</li>
-                                <li>Click <strong>Register</strong>.</li>
+                                <li>Confirm your password and click <strong>Register</strong>.</li>
                             </ol>
                             <p>
-                                Your account enters a <code>pending</code> status upon creation. Your department instructor must approve it before you can participate in live examinations.
+                                Your account enters a <code>pending</code> status upon creation. A progress bar animates across 30 seconds and redirects to the homepage. Your instructor must approve your account before you take examinations.
                             </p>
                         </div>
                     </details>
@@ -958,8 +960,8 @@
                                 <li>Click the <strong>Login</strong> button.</li>
                             </ol>
                             <div class="admonition warning">
-                                <span class="adm-label">Singleton Login Policy</span>
-                                Examify allows only <strong>one active session per student</strong>. If you log into your account on a second device, your previous session terminates immediately to prevent unauthorized sharing and maintain exam integrity.
+                                <span class="adm-label">Singleton Login & Rate Limiting Policy</span>
+                                Examify allows only <strong>one active session per student</strong>. If you log into your account on a second device, your previous session terminates immediately to prevent unauthorized sharing. The system also locks login attempts for 5 minutes after 5 consecutive failed attempts to protect your account.
                             </div>
                         </div>
                     </details>
@@ -1123,6 +1125,21 @@
                                 <span class="adm-label">Pending Verification</span>
                                 Change requests require administrative approval before updates reflect across active test rosters.
                             </div>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-2-12">
+                        <summary>
+                            2.12 Examination History & Scorecards
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </summary>
+                        <div class="body">
+                            <ol>
+                                <li>Navigate to <code>student/exam-history.php</code> from the navigation menu.</li>
+                                <li>Review all past test attempts, assessment dates, course subjects, and achieved marks.</li>
+                                <li>Verify your qualification status (<strong style="color: var(--accent-green)">PASS</strong> or <strong style="color: #ef4444">FAIL</strong>).</li>
+                                <li>Click <strong>Download Scorecard PDF</strong> on published examinations to obtain your grade sheet.</li>
+                            </ol>
                         </div>
                     </details>
                 </section>

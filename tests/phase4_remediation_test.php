@@ -186,14 +186,11 @@ assert_test("admin-sidebar.php links to settings.php for superadmins", str_conta
 // --------------------------------------------------------------------------
 echo "\n--- 5. Testing Student Timer Synchronization (Task 4.5) ---\n";
 
-$timerPath = __DIR__ . '/../utils/timer.js';
+$timerPath = file_exists(__DIR__ . '/../assets/js/timer.js') ? __DIR__ . '/../assets/js/timer.js' : __DIR__ . '/../utils/timer.js';
 $timerJs = (string)file_get_contents($timerPath);
-if (str_starts_with(trim($timerJs), '../') && file_exists(dirname($timerPath) . '/' . trim($timerJs))) {
-    $timerJs = (string)file_get_contents(dirname($timerPath) . '/' . trim($timerJs));
-}
-assert_test("utils/timer.js exposes window.Timer object", str_contains($timerJs, 'window.Timer'));
-assert_test("utils/timer.js supports syncTimeLeft method", str_contains($timerJs, 'syncTimeLeft'));
-assert_test("utils/timer.js supports addMinutes method", str_contains($timerJs, 'addMinutes'));
+assert_test("assets/js/timer.js exposes window.Timer object", str_contains($timerJs, 'window.Timer'));
+assert_test("assets/js/timer.js supports syncTimeLeft method", str_contains($timerJs, 'syncTimeLeft'));
+assert_test("assets/js/timer.js supports addMinutes method", str_contains($timerJs, 'addMinutes'));
 
 $qPhp = file_get_contents(__DIR__ . '/../student/question.php');
 assert_test("question.php POST returns seconds_left in response", str_contains($qPhp, "'seconds_left' => \$res['seconds_left']"));

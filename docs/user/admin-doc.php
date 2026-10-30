@@ -611,12 +611,16 @@ $isSuper = is_superadmin();
                                 <li><a class="toc-link" href="#sec-3-1">3.1 Authentication</a></li>
                                 <li><a class="toc-link" href="#sec-3-2">3.2 Students</a></li>
                                 <li><a class="toc-link" href="#sec-3-3">3.3 Promotions</a></li>
-                                <li><a class="toc-link" href="#sec-3-4">3.4 Question Banks</a></li>
-                                <li><a class="toc-link" href="#sec-3-5">3.5 Exam Control</a></li>
-                                <li><a class="toc-link" href="#sec-3-6">3.6 Live Proctoring</a></li>
-                                <li><a class="toc-link" href="#sec-3-7">3.7 Results & PDFs</a></li>
-                                <li><a class="toc-link" href="#sec-3-8">3.8 Teacher Provisioning</a></li>
-                                <li><a class="toc-link" href="#sec-3-9">3.9 Audit Trail</a></li>
+                                <li><a class="toc-link" href="#sec-3-4">3.4 Subjects</a></li>
+                                <li><a class="toc-link" href="#sec-3-5">3.5 Question Banks</a></li>
+                                <li><a class="toc-link" href="#sec-3-6">3.6 Exam Scheduling</a></li>
+                                <li><a class="toc-link" href="#sec-3-7">3.7 Exam Controls</a></li>
+                                <li><a class="toc-link" href="#sec-3-8">3.8 Live Proctoring</a></li>
+                                <li><a class="toc-link" href="#sec-3-9">3.9 Requests</a></li>
+                                <li><a class="toc-link" href="#sec-3-10">3.10 Results & PDFs</a></li>
+                                <li><a class="toc-link" href="#sec-3-11">3.11 Teachers</a></li>
+                                <li><a class="toc-link" href="#sec-3-12">3.12 System & Backups</a></li>
+                                <li><a class="toc-link" href="#sec-3-13">3.13 Audit Trail</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -705,71 +709,192 @@ $isSuper = is_superadmin();
                     <details class="subsection" open id="sec-3-1">
                         <summary>3.1 Authentication & Singleton Sessions<span class="arrow">▸</span></summary>
                         <div class="body">
+                            <p>Follow these steps to log into the administrator portal:</p>
                             <ol>
-                                <li>Navigate to <code>admin/admin-login.php</code>.</li>
-                                <li>Provide your credential set. Active singleton enforcement ensures active tokens invalidate older sessions on duplicate login attempts.</li>
+                                <li>Navigate to <code>admin/admin-login.php</code> in your web browser.</li>
+                                <li>Type your registered institutional email address.</li>
+                                <li>Type your password. Click the <strong>Eye Icon</strong> to verify characters.</li>
+                                <li>Click the <strong>Login as Admin</strong> button.</li>
                             </ol>
+                            <div class="admonition warning">
+                                <span class="adm-label">Singleton Session Rule</span>
+                                Examify allows only one active session per administrator. If you log in on another workstation, the system terminates your previous session immediately.
+                            </div>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-2">
                         <summary>3.2 Student Management Panel & Directory Actions<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>Manage accounts seamlessly via filters (Department, Semester, Status). Reset credentials or suspend user access instantly.</p>
+                            <p>Manage student accounts in <code>admin/manage-students.php</code>:</p>
+                            <ul>
+                                <li><strong>Filter and Search:</strong> Filter records by Department, Semester, or Status (<code>active</code>, <code>pending</code>, <code>blocked</code>). Type names or roll numbers into the search bar.</li>
+                                <li><strong>Enroll Student:</strong> Click <strong>Add Student</strong>. Enter name, email, roll number, department, semester, gender, and temporary password.</li>
+                                <li><strong>Edit Student:</strong> Click <strong>Edit</strong> on any student row. Update academic details and click <strong>Save Changes</strong>.</li>
+                                <li><strong>Reset Password:</strong> Click <strong>Reset Password</strong> to assign a new password immediately.</li>
+                                <li><strong>Suspend Access:</strong> Click <strong>Block</strong> to disable student login. Click <strong>Unblock</strong> to restore access.</li>
+                                <li><strong>Batch CSV Enrollment:</strong> Click <strong>Import Students</strong> to upload student rosters in bulk via CSV.</li>
+                                <li><strong>Export Roster:</strong> Click <strong>Export CSV</strong> to download the filtered student directory.</li>
+                            </ul>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-3">
                         <summary>3.3 Bulk Student Promotion<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>Advance cohorts by +1 semester automatically, bounded safely at Semester 8 caps.</p>
-                        </div>
-                    </details>
-
-                    <details class="subsection" id="sec-3-4">
-                        <summary>3.4 Question Banks & Bulk CSV Upload<span class="arrow">▸</span></summary>
-                        <div class="body">
-                            <p>Bulk CSV Upload allows batch question import across 5 item types: <code>single</code>, <code>multiple</code>, <code>case_study</code>, <code>assertion_reason</code>, and <code>matching</code>.</p>
-                            <div class="code-block">
-                                <button class="copy-btn" data-copy>Copy</button>
-                                <pre style="margin:0; white-space:pre-wrap">Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Type
-"What is an OS?",1,"System software","Application","Hardware","Malicious",A,single</pre>
+                            <p>Advance student cohorts to the next semester seamlessly:</p>
+                            <ol>
+                                <li><strong>Cohort Promotion:</strong> Locate the <strong>Bulk Promote by Cohort</strong> panel. Select Department and current Semester. Click <strong>Promote Cohort (+1 Sem)</strong>.</li>
+                                <li><strong>Selection Promotion:</strong> Select individual checkboxes in the student table. A floating action bar appears at the bottom. Click <strong>Promote Selected (+1 Sem)</strong>.</li>
+                            </ol>
+                            <div class="admonition">
+                                <span class="adm-label">Semester 8 Boundary</span>
+                                The system caps student promotion at Semester 8. Students already enrolled in Semester 8 are safely retained and not advanced further.
                             </div>
                         </div>
                     </details>
 
-                    <details class="subsection" id="sec-3-5">
-                        <summary>3.5 Exam Control & Live Timers<span class="arrow">▸</span></summary>
+                    <details class="subsection" id="sec-3-4">
+                        <summary>3.4 Curriculum Subjects Management<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>Toggle exams between Scheduled, Live, and Ended states. Trigger instant emergency time extensions (+5m/+10m) on demand.</p>
+                            <p>Govern academic subjects in <code>admin/manage-subjects.php</code>:</p>
+                            <ul>
+                                <li><strong>Create Subject:</strong> Enter Subject Name, select Department, and choose Semester. Click <strong>Create Subject</strong>.</li>
+                                <li><strong>Edit Subject:</strong> Click <strong>Edit</strong> on any subject row. Modify details in the <code>#editSubjectModal</code> dialog and save.</li>
+                                <li><strong>Constraint-Gated Deletion:</strong> Click <strong>Delete</strong> to remove a subject. The system verifies whether linked questions or exams exist. If questions or exams exist, the system blocks deletion to preserve data integrity.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-3-5">
+                        <summary>3.5 Question Banks & Multi-Type MCQs<span class="arrow">▸</span></summary>
+                        <div class="body">
+                            <p>Examify supports five multiple-choice question archetypes:</p>
+                            <table>
+                                <tr><th>Archetype Code</th><th>Description</th><th>Accepted Correct Option</th></tr>
+                                <tr><td><code>single</code></td><td>Standard Single Choice (one correct option)</td><td><code>A</code>, <code>B</code>, <code>C</code>, or <code>D</code></td></tr>
+                                <tr><td><code>multiple</code></td><td>Multi-Select (one or more correct options)</td><td>Comma-separated tokens (e.g. <code>A,C</code>)</td></tr>
+                                <tr><td><code>case_study</code></td><td>Scenario-based narrative evaluation</td><td><code>A</code>, <code>B</code>, <code>C</code>, or <code>D</code></td></tr>
+                                <tr><td><code>assertion_reason</code></td><td>Assertion (A) and Reason (R) statements</td><td><code>A</code>, <code>B</code>, <code>C</code>, or <code>D</code></td></tr>
+                                <tr><td><code>matching</code></td><td>Column I and Column II paired relationships</td><td><code>A</code>, <code>B</code>, <code>C</code>, or <code>D</code></td></tr>
+                            </table>
+                            <h4>Question Upload & Management Workflows</h4>
+                            <ul>
+                                <li><strong>Dual Template Downloads:</strong> Download sample files in CSV format or native Microsoft Excel (<code>.xlsx</code>) format.</li>
+                                <li><strong>In-Browser Preview Modal:</strong> Click <strong>Preview Questions</strong> to inspect records in <code>#previewQuestionsModal</code> before uploading. The modal highlights validation errors in red.</li>
+                                <li><strong>Copy LLM Prompt:</strong> Click <strong>Copy LLM Prompt</strong> to copy a structured prompt for AI question generation.</li>
+                                <li><strong>Edit & Delete:</strong> Open <code>admin/view-questions.php</code> to edit questions in <code>#editQuestionModal</code>, delete single items, or export questions to CSV or Excel.</li>
+                            </ul>
+                            <div class="code-block">
+                                <button class="copy-btn" data-copy>Copy</button>
+                                <pre style="margin:0; white-space:pre-wrap">Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Question Type
+"What does HTTP stand for?",1,"HyperText Transfer Protocol","High Text Transfer Program","Hyperlink Text Transmission Protocol","Hosting Text Transfer Provider",A,single
+"Which protocols operate at transport layer?",2,"TCP","IP","UDP","ICMP","A,C",multiple</pre>
+                            </div>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-6">
-                        <summary>3.6 Live Classroom Proctoring Panel<span class="arrow">▸</span></summary>
+                        <summary>3.6 Examination Configuration & Scheduling<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>Monitor cheating telemetry (tab switches, window blurs). Candidates triggering 3 violations are automatically disqualified by the engine.</p>
+                            <p>Configure tests in <code>admin/manage-exam.php</code>:</p>
+                            <ol>
+                                <li>Enter Examination Title and select target Subject.</li>
+                                <li>Set Duration in minutes, Question Quota per candidate, and Total Marks.</li>
+                                <li>Set <strong>Negative Marks Per Question</strong> (e.g. <code>0.25</code> or <code>0.50</code> marks deducted per wrong answer).</li>
+                                <li>Set optional 4-digit <strong>Classroom PIN</strong> for test security.</li>
+                                <li>Configure <strong>Start Time</strong> and <strong>End Time</strong> using the date-time pickers. Scheduled exams transition to active status automatically when start time arrives.</li>
+                                <li>Select target syllabus units and click <strong>Create Examination</strong>.</li>
+                            </ol>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-7">
-                        <summary>3.7 Results & PDF Downloads<span class="arrow">▸</span></summary>
+                        <summary>3.7 Examination Controls Center & Live Timers<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>Generate clean, professional institutional grade reports complete with podium ranks and signature blocks via the native PDF generator.</p>
+                            <p>Govern active and past tests in <code>admin/control-exams.php</code>:</p>
+                            <ul>
+                                <li><strong>Start Exam:</strong> Activates a scheduled test for student dashboards immediately.</li>
+                                <li><strong>Emergency Time (+5m / +10m):</strong> Extends remaining duration dynamically for all active candidates. Student countdown timers synchronize automatically.</li>
+                                <li><strong>End Exam:</strong> Locks candidate submissions and concludes the test.</li>
+                                <li><strong>Reopen Exam:</strong> Reactivates an ended exam if students require additional time.</li>
+                                <li><strong>Publish / Unpublish Results:</strong> Toggles student score and answer key visibility.</li>
+                                <li><strong>Offline Question Paper:</strong> Generates printable question paper PDFs with answer keys for written assessments.</li>
+                            </ul>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-8">
-                        <summary>3.8 Teacher Accounts, Provisioning & Permanent Record Retention<span class="arrow">▸</span></summary>
+                        <summary>3.8 Live Classroom Proctoring Panel<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>Superadmins can provision staff accounts. When staff members retire, their historic exam and question records remain safely anchored as <code>[Retired]</code>.</p>
+                            <p>Monitor testing laboratory candidates in <code>admin/proctor-exam.php</code>:</p>
+                            <ul>
+                                <li><strong>Real-Time Monitoring:</strong> Connected via WebSocket on port 8085 with automatic 8-second HTTP polling fallback.</li>
+                                <li><strong>Broadcast Announcement:</strong> Click <strong>Broadcast Announcement</strong> to send instant alert messages to all connected student screens.</li>
+                                <li><strong>Hardware Crash Recovery:</strong> Click <strong>Unlock / Resume</strong> to restore an attempt if a student computer freezes.</li>
+                                <li><strong>Force Submit:</strong> Submit an attempt immediately if a candidate leaves the exam room.</li>
+                                <li><strong>Disqualify Candidate:</strong> Disqualify candidates caught violating integrity rules. Disqualified students cannot resume testing.</li>
+                            </ul>
                         </div>
                     </details>
 
                     <details class="subsection" id="sec-3-9">
-                        <summary>3.9 Institutional Audit Trail<span class="arrow">▸</span></summary>
+                        <summary>3.9 Student Requests Governance<span class="arrow">▸</span></summary>
                         <div class="body">
-                            <p>Superadmins can inspect immutable security audit logs tracking administrative actions, configuration changes, and system events.</p>
+                            <p>Review student submissions in <code>admin/manage-requests.php</code>:</p>
+                            <ul>
+                                <li><strong>Registration Requests:</strong> Review pending self-registered student accounts in <code>admin/registration-request.php</code>. Click <strong>Approve</strong> to activate or <strong>Reject</strong> to decline.</li>
+                                <li><strong>Profile Update Requests:</strong> Review requested changes to student names, roll numbers, departments, or semesters. Click <strong>Approve</strong> to apply updates to records.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-3-10">
+                        <summary>3.10 Results, Analytics & PDF Downloads<span class="arrow">▸</span></summary>
+                        <div class="body">
+                            <p>Inspect performance metrics in <code>admin/view-results.php</code>:</p>
+                            <ul>
+                                <li><strong>Podium Cards:</strong> Displays the top 3 highest-ranking students.</li>
+                                <li><strong>Ranked Leaderboard:</strong> View scores, percentages, violation counts, and completion times for all candidates.</li>
+                                <li><strong>Publish Results:</strong> Click <strong>Publish Results to Students</strong> to release scores.</li>
+                                <li><strong>Download Results PDF:</strong> Download official institutional grade reports complete with KPI cards, rankings, and signature lines.</li>
+                                <li><strong>Detailed Answer Sheets:</strong> Click candidate rows to inspect student answers against correct keys and download individual answer sheet PDFs.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-3-11">
+                        <summary>3.11 Teacher Accounts, Provisioning & Permanent Record Retention<span class="arrow">▸</span></summary>
+                        <div class="body">
+                            <p>Superadmins govern faculty accounts in <code>admin/manage-teachers.php</code>:</p>
+                            <ul>
+                                <li><strong>Provision Faculty:</strong> Enter full name, college email, department, and initial temporary password to create teacher accounts.</li>
+                                <li><strong>Reset Faculty Passwords:</strong> Assign temporary passwords to faculty members when required.</li>
+                                <li><strong>Master Password Reset:</strong> Superadmins can reset their own account password directly in this panel.</li>
+                                <li><strong>Permanent Record Retention:</strong> Click <strong>Retire Account</strong> to deactivate departing teachers. The system retains 100% of their authored questions, examinations, and grading logs with <code>[Retired]</code> attribution.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-3-12">
+                        <summary>3.12 System Settings & Database Backups<span class="arrow">▸</span></summary>
+                        <div class="body">
+                            <p>Superadmins govern database archives in <code>admin/settings.php</code>:</p>
+                            <ul>
+                                <li><strong>On-Demand Backup:</strong> Inspect the detected backup engine (<code>mariadb-dump</code>, <code>mysqldump</code>, or PHP streaming fallback). Click <strong>Download Database Backup</strong> to stream complete <code>.sql</code> or <code>.sql.gz</code> files directly.</li>
+                                <li><strong>Database Restoration:</strong> Upload backup files to restore system tables and records safely.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="subsection" id="sec-3-13">
+                        <summary>3.13 Institutional Audit Trail<span class="arrow">▸</span></summary>
+                        <div class="body">
+                            <p>Superadmins can inspect immutable security audit logs in <code>admin/audit-logs.php</code>:</p>
+                            <ul>
+                                <li>Filter logs by administrator, action type, or date range.</li>
+                                <li>Inspect exact action descriptions, entity types, entity IDs, target details, client IP addresses, and timestamps.</li>
+                            </ul>
                         </div>
                     </details>
                 </section>
