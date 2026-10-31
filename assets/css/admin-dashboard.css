@@ -413,7 +413,7 @@
   background: var(--color-primary-soft);
   color: var(--color-primary-light);
 }
-
+/* 
 .dashboard-page .admin-topbar {
   background: var(--color-surface);
   border-color: var(--color-border);
@@ -423,7 +423,7 @@
 .dashboard-page .admin-topbar .admin-name,
 .dashboard-page .profile-trigger {
   color: var(--color-text);
-}
+} */
 
 .dashboard-page .profile-trigger {
   border-color: transparent;
