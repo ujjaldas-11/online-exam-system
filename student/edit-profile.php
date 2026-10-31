@@ -135,28 +135,27 @@ include __DIR__ . '/../components/student-navbar.php';
                     placeholder=" ">
                     <label>Roll Number / Student ID</label>
             </div>
-            <div class="form-group">
-                <label>Gender</label>
+            <div class="form-group float-field float-field--select ">
                 <select name="gender" required <?= $has_pending_request ? 'disabled' : '' ?>>
                     <option value="">— Select Gender —</option>
                     <option value="male" <?= strtolower($student['gender'] ?? '') === 'male' ? 'selected' : '' ?>>Male</option>
                     <option value="female" <?= strtolower($student['gender'] ?? '') === 'female' ? 'selected' : '' ?>>Female</option>
                     <option value="other" <?= strtolower($student['gender'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
                 </select>
+                <label>Gender</label>
             </div>
 
             <div class="form-grid">
-                <div class="form-group">
-                    <label>Department</label>
+                <div class="form-group float-field float-field--select">
                     <select name="department" required <?= $has_pending_request ? 'disabled' : '' ?>>
                         <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
                             <option value="<?= e($d) ?>" <?= $student['department'] === $d ? 'selected' : '' ?>><?= e($d) ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <label>Department</label>
                 </div>
 
-                <div class="form-group">
-                    <label>Semester</label>
+                <div class="form-group float-field float-field--select">
                     <select name="semester" required <?= $has_pending_request ? 'disabled' : '' ?>>
                         <?php for ($i = 1; $i <= 8; $i++): ?>
                             <option value="<?= $i ?>" <?= (int)$student['semester'] === $i ? 'selected' : '' ?>>
@@ -164,6 +163,7 @@ include __DIR__ . '/../components/student-navbar.php';
                             </option>
                         <?php endfor; ?>
                     </select>
+                    <label>Semester</label>
                 </div>
             </div>
 

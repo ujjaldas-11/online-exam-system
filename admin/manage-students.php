@@ -858,32 +858,32 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
 
                 <div class="auth-row-3">
-                    <div class="form-group">
-                        <label>Department *</label>
+                    <div class="form-group float-field float-field--select">
                         <select name="department" required>
                             <option value="">Select Department</option>
                             <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
                                 <option value="<?= e($d) ?>"><?= e($d) ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <label>Department *</label>
                     </div>
-                    <div class="form-group">
-                        <label>Semester *</label>
+                    <div class="form-group float-field float-field--select">
                         <select name="semester" required>
                             <option value="">Select Semester</option>
                             <?php for ($i = 1; $i <= 8; $i++): ?>
                                 <option value="<?= $i ?>">Semester <?= $i ?></option>
                             <?php endfor; ?>
                         </select>
+                        <label>Semester *</label>
                     </div>
-                    <div class="form-group">
-                        <label>Gender</label>
+                    <div class="form-group float-field float--field--select">
                         <select name="gender">
-                            <option value="">Select Gender</option>
+                            <option value="" selected>Select Gender</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
                             <option value="others">Others</option>
                         </select>
+                        <label>Gender</label>
                     </div>
                 </div>
 
@@ -942,41 +942,41 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
 
                 <div class="auth-row-3">
-                    <div class="form-group">
-                        <label>Department *</label>
+                    <div class="form-group float-field float-field--select">
                         <select name="department" id="edit_department" required>
                             <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
                                 <option value="<?= e($d) ?>"><?= e($d) ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <label>Department *</label>
                     </div>
-                    <div class="form-group">
-                        <label>Semester *</label>
+                    <div class="form-group float-field float-field--select">
                         <select name="semester" id="edit_semester" required>
                             <?php for ($i = 1; $i <= 8; $i++): ?>
                                 <option value="<?= $i ?>">Semester <?= $i ?></option>
                             <?php endfor; ?>
                         </select>
+                        <label>Semester *</label>
                     </div>
-                    <div class="form-group">
-                        <label>Gender</label>
+                    <div class="form-group float-field float-field--select">
                         <select name="gender" id="edit_gender">
                             <option value="">N/A</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
                             <option value="others">Others</option>
                         </select>
+                        <label>Gender</label>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Account Status *</label>
+                <div class="form-group float-field float-field--select">
                     <select name="status" id="edit_status" required>
                         <option value="active">Active (Permitted to log in and take tests)</option>
                         <option value="blocked">Blocked (Login and exam access suspended)</option>
                         <option value="pending">Pending Verification</option>
                         <option value="rejected">Rejected</option>
                     </select>
+                    <label>Account Status *</label>
                 </div>
             </div>
             <div class="admin-modal-footer">

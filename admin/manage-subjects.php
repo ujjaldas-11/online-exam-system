@@ -330,29 +330,29 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?= csrf_field() ?>
 
             <div class="admin-modal-body">
-                <div class="form-group float-field" style="margin-bottom: 14px;">
+                <div class="form-group float-field float-field--select" style="margin-bottom: 14px;">
                     <input type="text" name="name" id="create_sub_name" required placeholder=" " value="<?= e($_POST['name'] ?? '') ?>" class="form-control" style="width: 100%;">
                     <label for="create_sub_name" style="font-weight: 600; display: block; margin-bottom: 4px;">Subject Name</label>
                 </div>
 
-                <div class="form-group">
-                    <label for="new_sub_dept">Department</label>
+                <div class="form-group float-field float-field--select">
                     <select id="new_sub_dept" name="department" required class="form-control" style="width: 100%; box-sizing: border-box;">
                         <option value="">Select Department</option>
                         <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
                             <option value="<?= e($d) ?>" <?= (($_POST['department'] ?? '') === $d) ? 'selected' : '' ?>><?= e($d) ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <label for="new_sub_dept">Department</label>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label for="create_sub_sem" style="font-weight: 600; display: block; margin-bottom: 4px;">Semester</label>
+                <div class="form-group float-field float-field--select" style="margin-bottom: 20px;">
                     <select name="semester" id="create_sub_sem" required class="form-control" style="width: 100%;">
                         <option value="">Select Semester</option>
                         <?php for ($i = 1; $i <= 8; $i++): ?>
                             <option value="<?= $i ?>" <?= (($_POST['semester'] ?? '') == $i) ? 'selected' : '' ?>>Semester <?= $i ?></option>
                         <?php endfor; ?>
                     </select>
+                    <label for="create_sub_sem" style="font-weight: 600; display: block; margin-bottom: 4px;">Semester</label>
                 </div>
             </div>
 
@@ -381,22 +381,22 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <label style="font-weight: 600; display: block; margin-bottom: 4px;">Subject Name</label>
                 </div>
 
-                <div class="form-group float-field" style="margin-bottom: 14px;">
+                <div class="form-group float-field float-field--select" style="margin-bottom: 14px;">
                     <select name="department" id="modal_sub_dept" required class="form-control" style="width: 100%;">
-                        <label style="font-weight: 600; display: block; margin-bottom: 4px;">Department</label>
                         <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
                             <option value="<?= e($d) ?>"><?= e($d) ?></option>
-                        <?php endforeach; ?>
+                            <?php endforeach; ?>
                     </select>
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Department</label>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Semester</label>
+                <div class="form-group float-field float-field--select" style="margin-bottom: 20px;">
                     <select name="semester" id="modal_sub_sem" required class="form-control" style="width: 100%;">
                         <?php for ($i = 1; $i <= 8; $i++): ?>
                             <option value="<?= $i ?>">Semester <?= $i ?></option>
                         <?php endfor; ?>
                     </select>
+                    <label style="font-weight: 600; display: block; margin-bottom: 4px;">Semester</label>
                 </div>
             </div>
 

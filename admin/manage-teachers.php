@@ -398,16 +398,15 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <label>Teacher Email</label>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Role</label>
+                    <div class="form-group float-field float-field--select">
                         <select name="role" required style="width: 100%;">
                             <option value="teacher" <?= (($_POST['role'] ?? '') === 'teacher') ? 'selected' : '' ?>>Teacher</option>
                             <option value="superadmin" <?= (($_POST['role'] ?? '') === 'superadmin') ? 'selected' : '' ?>>Superadmin</option>
                         </select>
+                        <label>Role</label>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Department</label>
+                    <div class="form-group float-field float-field--select">
                         <select name="department" required style="width: 100%;">
                             <option value="">— Select —</option>
                             <?php foreach (CurriculumService::getDepartments($pdo) as $d): ?>
@@ -415,16 +414,17 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             <?php endforeach; ?>
                             <option value="General" <?= (($_POST['department'] ?? '') === 'General') ? 'selected' : '' ?>>General</option>
                         </select>
+                        <label>Department</label>
                     </div>
 
-                    <div class="form-group">
-                        <label>Gender</label>
+                    <div class="form-group float-field float-field--select">
                         <select name="gender" required style="width: 100%;">
                             <option value="">— Select —</option>
                             <option value="male" <?= (($_POST['gender'] ?? '') === 'male') ? 'selected' : '' ?>>Male</option>
                             <option value="female" <?= (($_POST['gender'] ?? '') === 'female') ? 'selected' : '' ?>>Female</option>
                             <option value="other" <?= (($_POST['gender'] ?? '') === 'other') ? 'selected' : '' ?>>Other</option>
                         </select>
+                        <label>Gender</label>
                     </div>
                     
                 </div>

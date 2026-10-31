@@ -236,46 +236,47 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
             <div class="exam-form__section-label">Who it's for</div>
             <div class="exam-form__row exam-form__row--4">
-                <div class="exam-form__field">
-                    <label>Department</label>
+                <div class="exam-form__field float-field float-field--select">
                     <select name="department" id="dept_dropdown" required class="form-control">
-                        <option value="">Choose</option>
+                        <option value="" selected>-- Choose Department --</option>
                         <?php foreach ($departments as$dept): ?>
                             <option value="<?= e($dept) ?>" <?= (($form_data['department'] ?? '') ===$dept) ? 'selected' : '' ?>>
                                 <?= e($dept) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <label>Department</label>
                 </div>
 
-                <div class="exam-form__field">
-                    <label>Semester</label>
+                <div class="exam-form__field float-field float-field--select">
                     <select name="semester" id="sem_dropdown" required class="form-control" <?= empty($sticky_semesters) ? 'disabled' : '' ?>>
-                        <option value="">Choose</option>
+                        <option value="" disabled selected hidden></option>
                         <?php foreach ($sticky_semesters as$sem): ?>
                             <option value="<?= e((string) $sem) ?>" <?= (($form_data['semester'] ?? 0) ==$sem) ? 'selected' : '' ?>>
                                 Sem <?= e((string) $sem) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <label>Semester</label>
                 </div>
 
-                <div class="exam-form__field">
-                    <label>Subject</label>
-                    <select name="subject_id" id="subject_dropdown" required class="form-control" <?= empty($sticky_subjects) ? 'disabled' : '' ?>>
-                        <option value="">Choose</option>
-                        <?php foreach ($sticky_subjects as$sub): ?>
-                            <option value="<?= $sub['id'] ?>" <?= (($form_data['subject_id'] ?? 0) ==$sub['id']) ? 'selected' : '' ?>>
-                                <?= e($sub['name']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="exam-form__field float-field float-field--select">
+                <select name="subject_id" id="subject_dropdown" required class="form-control"
+                        <?= empty($sticky_subjects) ? 'disabled' : '' ?>>
+                    <option value="" disabled selected hidden></option>
+                    <?php foreach ($sticky_subjects as $sub): ?>
+                    <option value="<?= $sub['id'] ?>"
+                            <?= (($form_data['subject_id'] ?? 0) == $sub['id']) ? 'selected' : '' ?>>
+                        <?= e($sub['name']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+                <label for="subject_dropdown">Subject</label>
                 </div>
 
-                <div class="exam-form__field">
-                    <label>Target unit</label>
+                <div class="exam-form__field float-field float-field--select">
                     <select name="target_units" id="unit_dropdown" required class="form-control" <?= empty($sticky_units) ? 'disabled' : '' ?>>
-                        <option value="">Choose</option>
+                        <option value="" disabled selected hidden></option>
                         <?php if (!empty($sticky_units)): ?>
                             <option value="all" <?= (($form_data['target_units'] ?? '') === 'all') ? 'selected' : '' ?>>All units</option>
                             <?php foreach ($sticky_units as$unit): ?>
@@ -285,13 +286,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </select>
+                    <label>Target unit</label>
                 </div>
             </div>
 
             <div class="exam-form__section-label">How it runs</div>
             <div class="exam-form__row exam-form__row--4">
                 <div class="exam-form__field float-field">
-                    <input type="number" name="duration_minutes" required min="1" max="300" placeholder="30" value="<?= e($form_data['duration_minutes'] ?? ' ') ?>">
+                    <input type="number" name="duration_minutes" required min="1" max="300" placeholder="30" value="<?= e($form_data['duration_minutes'] ?? '30') ?>">
                     <label>Duration <span class="exam-form__unit">min</span></label>
                 </div>
 
@@ -306,8 +308,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
 
                 <div class="exam-form__field float-field">
-                    <input type="number" step="0.05" min="0" max="50" name="negative_marks_per_question" placeholder="0.00" value="<?= e($form_data['negative_marks_per_question'] ?? ' ') ?>">
-                    <label>Negative mark / wrong <span class="exam-form__unit">deduction</span></label>
+                    <input type="number" step="0.05" min="0" max="50" name="negative_marks_per_question" placeholder="0.00" value="<?= e($form_data['negative_marks_per_question'] ?? '0.00') ?>">
+                    <label>Negative mark /wrong <span class="exam-form__unit">deduction</span></label>
                 </div>
 
                 <div class="exam-form__field float-field">
