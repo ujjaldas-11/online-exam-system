@@ -20,6 +20,8 @@
   --transition: 0.25s ease;
 }
 
+
+
 /* ---------- Reset body (critical) ---------- */
 body {
   margin: 0;
@@ -454,6 +456,22 @@ body.sidebar-collapsed .main-content {
     transform var(--transition);
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+
+.admin-sidebar {
+ /* Hide scrollbar for Chrome, Safari, Opera, and newer Edge */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for Firefox */
+  scrollbar-width: none;
+
+  /* Hide scrollbar for IE and legacy Edge */
+  -ms-overflow-style: none;
+  
+  overflow: auto; 
 }
 
 /* Sidebar header / brand */

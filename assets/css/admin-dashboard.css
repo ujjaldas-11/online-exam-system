@@ -433,10 +433,10 @@
   box-shadow: none;
 }
 
-.dashboard-page .sidebar-links a.active {
+/* .dashboard-page .sidebar-links a.active {
   background: var(--color-primary-light);
   color: var(--color-surface);
-}
+} */
 
 @media (min-width: 993px) {
   .dashboard-page .admin-topbar .topbar-left {
@@ -451,10 +451,10 @@
     padding-left: 0;
   }
 
-  .dashboard-page .sidebar-links a {
+  /* .dashboard-page .sidebar-links a {
     padding-top: 13px;
     padding-bottom: 13px;
-  }
+  } */
 }
 
 @media (max-width: 1200px) {

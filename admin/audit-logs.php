@@ -291,7 +291,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <!-- Audit Logs Table -->
     <div class="card audit-card">
         <div class="card-header-row" style="display: flex; justify-content: space-between; align-items: center;">
-            <div class="card-title" style="margin-bottom: 0; font-size: 1.1rem;">Activity Logs (<?= count($logs) ?> entries)</div>
+            <div class="card-title" style="margin-bottom: 0; font-size: 1.1rem;">Activity Logs (<?= $total_logs_count ?> entries)</div>
             <span style="font-size: 0.78rem; color: var(--color-text-secondary); display: inline-flex; align-items: center; gap: 4px;">
                 <span class="material-symbols-outlined" style="font-size: 15px;">unfold_more</span> Scrollable log
             </span>
