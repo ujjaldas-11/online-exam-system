@@ -8,8 +8,6 @@ require_once '../services/CurriculumService.php';
 
 date_default_timezone_set('Asia/Kolkata');
 
-$message = '';
-$message_type = '';
 $departments = CurriculumService::getDepartments($pdo);
 
 // =================================================================================
@@ -216,12 +214,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
     </div>
 
-    <?php if ($message): ?>
-        <div class="alert alert-<?= $message_type === 'success' ? 'success' : 'error' ?> exam-form-page__alert">
-            <?= e($message) ?>
-        </div>
-    <?php endif; ?>
-
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <div class="card exam-card">
@@ -380,7 +372,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!dept) return;
         semDropdown.innerHTML = '<option value="">Loading semesters...</option>';
         semDropdown.disabled = false;
-        fetch(`api-get-semesters.php?department=${encodeURIComponent(dept)}`).then(res => res.json()).then(data => {
+        fetch(`api-curriculum.php?type=semesters&department=${encodeURIComponent(dept)}`).then(res => res.json()).then(data => {
             let html = '<option value="">-- Choose Semester --</option>';
             data.forEach(sem => { html += `<option value="${sem}">Semester ${sem}</option>`; });
             semDropdown.innerHTML = html;
@@ -394,7 +386,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!dept || !sem) return;
         subjectDropdown.innerHTML = '<option value="">Loading subjects...</option>';
         subjectDropdown.disabled = false;
-        fetch(`api-get-subjects.php?department=${encodeURIComponent(dept)}&semester=${encodeURIComponent(sem)}`).then(res => res.json()).then(data => {
+        fetch(`api-curriculum.php?type=subjects&department=${encodeURIComponent(dept)}&semester=${encodeURIComponent(sem)}`).then(res => res.json()).then(data => {
             let html = '<option value="">-- Choose Subject --</option>';
             data.forEach(sub => { html += `<option value="${sub.id}">${sub.name}</option>`; });
             subjectDropdown.innerHTML = html;
@@ -409,7 +401,7 @@ document.addEventListener("DOMContentLoaded", function() {
         unitDropdown.innerHTML = '<option value="">Loading units...</option>';
         unitDropdown.disabled = false;
         
-        fetch(`api-get-units.php?subject_id=${subId}`)
+        fetch(`api-curriculum.php?type=units&subject_id=${subId}`)
             .then(res => res.json())
             .then(data => {
                 let html = '<option value="">-- Select Target Unit --</option>';

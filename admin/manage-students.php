@@ -592,7 +592,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?php endif; ?>
         </div>
 
-        <div class="table-responsive" style="width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+        <div class="table-wrap" style="width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
             <table class="table" style="width: 100%; min-width: 820px; border-collapse: collapse;">
                 <thead>
                     <tr>

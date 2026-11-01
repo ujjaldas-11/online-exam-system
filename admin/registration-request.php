@@ -7,10 +7,6 @@ require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 require_once '../services/CurriculumService.php';
 
-
-$message = '';
-$error = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
@@ -117,9 +113,6 @@ $per_page = 20; // Number of exams per page
 $total_result_count = 0;
 
 try {
-
-    $totalCount = (int) $pdo->query("SELECT COUNT(*) FROM students WHERE status='pending'")->fetchColumn();
-
     // Total count for current filter
     $countSql = "SELECT COUNT(*) FROM students $whereClause";
     $countStmt = $pdo->prepare($countSql);
@@ -158,14 +151,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <p>Review and approve new student account requests for the examination portal.</p>
         </div>
     </div>
-
-    <?php if ($message): ?>
-        <div class="alert alert-success"><?= e($message) ?></div>
-    <?php endif; ?>
-
-    <?php if ($error): ?>
-        <div class="alert alert-error"><?= e($error) ?></div>
-    <?php endif; ?>
 
     <?php include __DIR__ . '/../components/flash-messages.php' ?>
 

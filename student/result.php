@@ -107,28 +107,6 @@ include __DIR__ . '/../components/student-navbar.php';
             </h1>
             <p style="color: var(--color-text-secondary); margin-bottom: 24px;">Examination Result & Performance Breakdown</p>
 
-            <!-- Final Score Display -->
-            <div style="background: var(--color-primary-soft); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px;">
-                <div style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;"><?= $student_name ?> - Your Total Score</div>
-                <div style="font-size: 3rem; font-weight: 800; color: var(--color-primary); line-height: 1.1; margin: 6px 0;">
-                    <?= sprintf('%.2f', $score) ?> <span style="font-size: 1.5rem; color: var(--color-text-secondary); font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
-                </div>
-                <div style="font-weight: 700; font-size: 1.1rem; color: <?= $percentage >= 50 ? 'var(--color-success)' : 'var(--color-error)' ?>;">
-                    Score Percentage: <?= $percentage ?>%
-                </div>
-                <br>
-                <?php if($attempt['status'] === 'desqualified'): ?>
-                    <div class="badge badge-danger" style="font-weight: 700; font-size: 1.1rem;">
-                        <?= $attempt['status'] ?>
-                    </div>
-                <?php else: ?>
-                    <div class="badge badge-success" style="font-weight: 700; font-size: 1.1rem;">
-                        <?= $attempt['status'] ?>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-
             <?php if (!$can_view_results): ?>
 
                     <!-- Confidential Status Display (Score hidden until published) -->
@@ -154,8 +132,28 @@ include __DIR__ . '/../components/student-navbar.php';
                             <span class="material-symbols-outlined icon-sm">lock</span> Download PDF (Locked)
                         </button>
                     </div>
-                </div>
             <?php else: ?>
+
+                <!-- Final Score Display -->
+                <div style="background: var(--color-primary-soft); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px;">
+                    <div style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;"><?= $student_name ?> - Your Total Score</div>
+                    <div style="font-size: 3rem; font-weight: 800; color: var(--color-primary); line-height: 1.1; margin: 6px 0;">
+                        <?= sprintf('%.2f', $score) ?> <span style="font-size: 1.5rem; color: var(--color-text-secondary); font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
+                    </div>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: <?= $percentage >= 50 ? 'var(--color-success)' : 'var(--color-error)' ?>;">
+                        Score Percentage: <?= $percentage ?>%
+                    </div>
+                    <br>
+                    <?php if($attempt['status'] === 'disqualified'): ?>
+                        <div class="badge badge-danger" style="font-weight: 700; font-size: 1.1rem;">
+                            <?= $attempt['status'] ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="badge badge-success" style="font-weight: 700; font-size: 1.1rem;">
+                            <?= $attempt['status'] ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
 
                 <!-- Metrics Grid -->
                 <div class="stats" style="margin-bottom: 32px;">

@@ -136,7 +136,7 @@ Before staging or proposing any changes, every agent **must** perform a structur
    - Inspect every deleted line (`-`). Ask: _Did this deletion remove a user-facing button, an input field, a modal dialog, an event listener, a database constraint check, or a POST handler?_
    - If the user did not explicitly request the removal of that feature, **restore it immediately**.
 2. **Verify Remediation & Regression Test Assertions**:
-   - Key system features are safeguarded by `tests/remediation_test.php` and `tests/phase4_remediation_test.php`.
+   - Key system features are safeguarded by `tests/environment_ssl_test.php` (legacy `remediation_test.php`) and `tests/exam_management_test.php` (legacy `phase4_remediation_test.php`).
    - Never modify a test to make it pass by deleting an assertion for a feature; always fix the implementation to preserve the feature.
 3. **Verify Portal Workflows**:
    - Confirm that related actions in the student exam workflow, teacher question management, and superadmin settings remain unbroken after changes.
@@ -167,22 +167,25 @@ Before proposing or committing any code, agents and contributors **must** execut
 find . -type f -name "*.php" -not -path "*/vendor/*" -exec php -l {} +
 
 # 2. Run the Full Automated Test Suite (All 17 Suites Must Pass)
+php tests/run_all.php
+
+# Alternatively run each suite individually:
 for t in tests/bulk_promote_test.php \
          tests/concurrency_test.php \
          tests/device_gating_test.php \
          tests/disqualified_student_test.php \
          tests/doc_access_test.php \
-         tests/e2e_automation.php \
+         tests/browser_e2e_test.php \
          tests/mcq_types_test.php \
          tests/offline_zero_cdn_test.php \
          tests/password_visibility_test.php \
-         tests/phase4_remediation_test.php \
+         tests/exam_management_test.php \
          tests/rate_limiter_test.php \
-         tests/remediation_test.php \
+         tests/environment_ssl_test.php \
          tests/scheduled_exam_test.php \
-         tests/security_and_unit_tests.php \
+         tests/security_unit_test.php \
          tests/singleton_login_test.php \
-         tests/websocket_test.php \
+         tests/websocket_unit_test.php \
          tests/websocket_e2e_test.php; do
     echo "Running $t..."
     php "$t" > /dev/null || { echo "TEST FAILED: $t"; exit 1; }

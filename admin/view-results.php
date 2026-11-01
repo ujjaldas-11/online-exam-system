@@ -13,51 +13,6 @@ if (empty($_GET['exam_id'])) {
 
 $exam_id = int_param($_GET['exam_id']);
 
-// Check if Admin requested to download a specific student's detailed answer sheet
-if (isset($_GET['download_student_answers']) && isset($_GET['attempt_id'])) {
-    require_once '../services/PdfService.php';
-    $dl_attempt_id = (int) $_GET['attempt_id'];
-
-    // 1. Fetch Student and Exam Meta via Attempt ID
-    // Notice: No "AND ea.student_id = ?" because Admins can view all attempts
-    $metaStmt = $pdo->prepare('
-        SELECT 
-            s.name, s.roll_number, e.title, 
-            sub.name AS subject_name, 
-            sub.department AS exam_department, 
-            sub.semester AS exam_semester
-        FROM exam_attempts ea
-        JOIN students s ON ea.student_id = s.id
-        JOIN exams e ON ea.exam_id = e.id
-        JOIN subjects sub ON e.subject_id = sub.id
-        WHERE ea.id = ?
-    ');
-    $metaStmt->execute([$dl_attempt_id]);
-    $metaData = $metaStmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($metaData) {
-        $pdfStudent = ['name' => $metaData['name'], 'roll_number' => $metaData['roll_number']];
-        $pdfExam = ['title' => $metaData['title'], 'subject' => $metaData['subject_name'], 'department' => $metaData['exam_department'] , 'semester' => $metaData['exam_semester']];
-
-        // 2. Fetch the detailed Question & Answer history
-        $qaStmt = $pdo->prepare('
-            SELECT q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option,
-                   sa.selected_option, sa.is_correct
-            FROM student_answers sa
-            JOIN questions q ON sa.question_id = q.id
-            WHERE sa.attempt_id = ?
-            ORDER BY sa.id ASC
-        ');
-        $qaStmt->execute([$dl_attempt_id]);
-        $qaData = $qaStmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // 3. Generate PDF and force download ('D')
-        PdfService::generateDetailedAnswerSheetPdf($pdfStudent, $pdfExam, $qaData, 'D');
-    } else {
-        die('Invalid attempt specified.');
-    }
-}
-
 try {
     // Fetch Exam Details
     $examStmt = $pdo->prepare('
@@ -83,6 +38,29 @@ try {
         if (time() < ($startTs + $durationSec)) {
             $is_ongoing = true;
         }
+    }
+
+    // Handle PDF Export
+    if (isset($_GET['download_pdf'])) {
+        if (!can_admin_manage_exam($pdo, $exam_id)) {
+            http_response_code(403);
+            die("Access Denied: You can only export results for exams you have authored.");
+        }
+        require_once '../services/PdfService.php';
+        $attemptsStmt = $pdo->prepare("
+            SELECT ea.id, ea.score, ea.total_questions, ea.submitted_at,
+                   s.name, s.roll_number, s.email, s.department, s.semester
+            FROM exam_attempts ea
+            JOIN students s ON ea.student_id = s.id
+            WHERE ea.exam_id = ? AND ea.status IN ('completed', 'disqualified')
+            ORDER BY ea.score DESC, ea.submitted_at ASC
+        ");
+        $attemptsStmt->execute([$exam_id]);
+        $pdfAttempts = $attemptsStmt->fetchAll();
+
+        log_admin_action($pdo, 'export_pdf_results', 'exam', $exam_id, "Exported PDF results report for exam #$exam_id ({$exam['title']})");
+        PdfService::generateExamResultsPdf($exam, $pdfAttempts, 'P');
+        exit;
     }
 
     // Handle Publish / Unpublish Actions
@@ -156,7 +134,7 @@ include __DIR__ . '/../components/header.php';
             </p>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;" class="no-print">
-            <a href="export-pdf.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <a href="view-results.php?exam_id=<?= $exam['id'] ?>&download_pdf=1" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">picture_as_pdf</span> Download Results PDF
             </a>
         </div>

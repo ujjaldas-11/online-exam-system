@@ -260,7 +260,9 @@ docker compose exec -T db mysql -u examify_prod -p examify < backup.sql
 - **Solution**:
   1. **Option 1 (Recommended)**: Run the automated tests inside the running web container where network services are directly resolvable:
      ```bash
-     docker compose exec web php tests/phase4_remediation_test.php
+     docker compose exec web php tests/exam_management_test.php
+     # or run the full test suite:
+     docker compose exec web php tests/run_all.php
      ```
   2. **Option 2 (Host Testing)**: If you need to run tests directly from your host, expose port `3306` in `docker-compose.yml` under `services.db.ports`:
      ```yaml

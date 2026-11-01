@@ -503,7 +503,7 @@ class ExamEngine
      */
     public static function isExamEnded(array $exam): bool
     {
-        $status = (string)($exam['status'] ?? $exam['exam_status'] ?? '');
+        $status = (string)($exam['exam_status'] ?? $exam['status'] ?? '');
         if ($status === 'ended' || $status === 'cancelled') {
             return true;
         }
@@ -663,70 +663,5 @@ class ExamEngine
 
         mt_srand(); // Restore standard PRNG state
         return $orderMap;
-    }
-
-    /**
-     * Retrieve the options permutation map for an attempt.
-     *
-     * @param PDO $pdo
-     * @param int $attemptId
-     * @return array<string, array<string>>
-     */
-    public static function getAttemptOptionsOrder(PDO $pdo, int $attemptId): array
-    {
-        if ($attemptId <= 0) {
-            return [];
-        }
-
-        try {
-            $stmt = $pdo->prepare("SELECT options_order FROM exam_attempts WHERE id = ?");
-            $stmt->execute([$attemptId]);
-            $raw = $stmt->fetchColumn();
-            if ($raw) {
-                $decoded = json_decode((string)$raw, true);
-                if (is_array($decoded)) {
-                    return $decoded;
-                }
-            }
-            return [];
-        } catch (PDOException $e) {
-            log_error("Failed fetching options_order for attempt $attemptId", $e);
-            return [];
-        }
-    }
-
-    /**
-     * Initialize or fetch an examination attempt with deterministic option permutation.
-     * Alias for getOrStartAttempt, automatically resolving student profile if omitted.
-     *
-     * @param PDO $pdo
-     * @param int $studentId
-     * @param int $examId
-     * @param int $studentSemester Optional semester override
-     * @param string $studentDepartment Optional department override
-     * @return array
-     */
-    public static function startExam(
-        PDO $pdo,
-        int $studentId,
-        int $examId,
-        int $studentSemester = 0,
-        string $studentDepartment = ''
-    ): array {
-        if ($studentSemester <= 0 || $studentDepartment === '') {
-            try {
-                $stmt = $pdo->prepare("SELECT semester, department FROM students WHERE id = ?");
-                $stmt->execute([$studentId]);
-                $stu = $stmt->fetch();
-                if ($stu) {
-                    $studentSemester = (int)$stu['semester'];
-                    $studentDepartment = (string)$stu['department'];
-                }
-            } catch (PDOException $e) {
-                log_error("Failed looking up student profile for startExam", $e);
-            }
-        }
-
-        return self::getOrStartAttempt($pdo, $studentId, $examId, $studentSemester, $studentDepartment);
     }
 }

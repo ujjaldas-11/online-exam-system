@@ -70,10 +70,10 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
             <div class="profile-widget">
                 <button class="profile-trigger" id="profileTrigger" aria-haspopup="true" aria-expanded="false">
                     <!-- Dynamic Topbar Avatar -->
-                    <img src="<?= htmlspecialchars($esc($nav_avatar_url), ENT_QUOTES, 'UTF-8') ?>" alt="Admin Profile" class="nav-profile-pic" loading="lazy">
+                    <img src="<?= e($nav_avatar_url) ?>" alt="Student Profile" class="nav-profile-pic" loading="lazy">
                     
                     <div class="profile-text">
-                        <span class="admin-name"><?= htmlspecialchars($esc($student_name), ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="admin-name"><?= e($student_name) ?></span>
                         <span class="admin-role" style="color: #edb055;">Student</span>
                     </div>
                     <span class="material-symbols-outlined chevron-icon" aria-hidden="true">expand_more</span>
@@ -84,11 +84,11 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
                 <div class="profile-dropdown" id="profileDropdown">
                     <div class="dropdown-header">
                         <!-- Dynamic Dropdown Avatar -->
-                        <img src="<?= htmlspecialchars($nav_avatar_url, ENT_QUOTES, 'UTF-8') ?>" alt="Admin Profile" class="nav-profile-pic lg" style="width: 90px; height: 90px;" loading="lazy">
+                        <img src="<?= e($nav_avatar_url) ?>" alt="Student Profile" class="nav-profile-pic lg" style="width: 90px; height: 90px;" loading="lazy">
                         <div>
-                            <p class="dropdown-name"><?= htmlspecialchars($student_name, ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="dropdown-name"><?= e($student_name) ?></p>
                             <p class="badge badge-active" style="background-color: #2c3343;">Student</p>
-                            <p style="color: var(--color-gold); text-align: center;"> Bengal Institue of Science & Technology
+                            <p style="color: var(--color-gold); text-align: center;">Bengal Institute of Science & Technology</p>
                         </div>
                     </div>
                     

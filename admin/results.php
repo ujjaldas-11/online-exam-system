@@ -59,9 +59,6 @@ $total_result_count = 0;
 
 
 try {
-
-    $totalCount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status='ended'")->fetchColumn();
-
     // Total count for current filter
     $countSql = "SELECT COUNT(*) FROM exams e 
                  JOIN subjects s ON e.subject_id = s.id 

@@ -7,9 +7,6 @@ require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
 require_once '../services/CurriculumService.php';
 
-$message = '';
-$message_type = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subject'])) {
     verify_csrf();
 
@@ -221,13 +218,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <span class="material-symbols-outlined icon-xs">add_circle</span> Create Subject
         </button>
     </div>
-
-
-    <!-- <?php if ($message): ?>
-        <div class="alert alert-<?= $message_type === 'success' ? 'success' : 'error' ?>">
-            <?= e($message) ?>
-        </div>
-    <?php endif; ?> -->
 
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
@@ -448,11 +438,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (createModal) {
         createModal.onclick = (e) => { if (e.target === createModal) hideCreateModal(); };
     }
-
-    // Reopen the create modal if the server re-rendered the page after a failed create
-    <?php if (!empty($_POST['create_subject']) && (($message_type ?? '') !== 'success')): ?>
-    showCreateModal();
-    <?php endif; ?>
 });
 </script>
 

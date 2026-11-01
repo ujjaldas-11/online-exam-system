@@ -38,51 +38,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cpass = $_POST['confirm_password'] ?? '';
         $sem = int_param($_POST['semester'] ?? 0);
 
-        if (!$name || !$email || !$pass || !$roll || !$sem || !$dept || !$phone || !$gender) {
+        $isValid = $name && $email && $pass && $roll && $sem && $dept && $phone && $gender
+            && strlen($name) <= 100
+            && strlen($email) <= 100 && filter_var($email, FILTER_VALIDATE_EMAIL)
+            && strlen($roll) <= 50
+            && CurriculumService::isValidDepartment($pdo, $dept)
+            && in_array($gender, ['male', 'female', 'others'], true)
+            && $pass === $cpass && strlen($pass) >= 6
+            && preg_match('/^[0-9]{10}$/', $phone)
+            && $sem >= 1 && $sem <= 8;
+
+        if (!$isValid) {
             $error = "Invalid Credentials";
             RateLimiter::hit($pdo, "register:ip:{$ip}", 900, 5);
-        } elseif (strlen($name) > 100) {
-            $error = "Invalid Credentials";
-        } elseif (strlen($email) > 100 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = "Invalid Credentials";
-        } elseif (strlen($roll) > 50) {
-            $error = "Invalid Credentials";
-        } elseif (!CurriculumService::isValidDepartment($pdo, $dept)) {
-            $error = "Invalid Credentials";
-        } elseif (!in_array($gender, ['male', 'female', 'others'], true)) {
-            $error = "Invalid Credentials";
-        } elseif ($pass !== $cpass) {
-            $error = "Invalid Credentials";
-        } elseif (strlen($pass) < 6) {
-            $error = "Invalid Credentials";
-        } elseif (!preg_match('/^[0-9]{10}$/', $phone)) {
-            $error = "Invalid Credentials";
-        } elseif ($sem < 1 || $sem > 8) {
-            $error = "Invalid Credentials";
         } else {
             try {
-                $stmt = $pdo->prepare("SELECT id, status FROM students WHERE email = ? LIMIT 1");
-                $stmt->execute([$email]);
-                $existingEmail = $stmt->fetch();
-
-                if ($existingEmail) {
+                $stmt = $pdo->prepare("SELECT id FROM students WHERE email = ? OR roll_number = ? LIMIT 1");
+                $stmt->execute([$email, $roll]);
+                if ($stmt->fetch()) {
                     $error = "Invalid Credentials";
                 } else {
-                    $stmt = $pdo->prepare("SELECT id, status FROM students WHERE roll_number = ? LIMIT 1");
-                    $stmt->execute([$roll]);
-                    $existingRoll = $stmt->fetch();
+                    $hashed = password_hash($pass, PASSWORD_DEFAULT);
 
-                    if ($existingRoll) {
-                        $error = "Invalid Credentials";
-                    } else {
-                        $hashed = password_hash($pass, PASSWORD_DEFAULT);
-
-                        $ins = $pdo->prepare("
-                            INSERT INTO students (name, email, password, roll_number, department, semester, phone_number, gender, status)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-                        ");
-                        $ins->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone, $gender]);
-                        $newStudentId = (int) $pdo->lastInsertId();
+                    $ins = $pdo->prepare("
+                        INSERT INTO students (name, email, password, roll_number, department, semester, phone_number, gender, status)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                    ");
+                    $ins->execute([$name, $email, $hashed, $roll, $dept, $sem, $phone, $gender]);
+                    $newStudentId = (int) $pdo->lastInsertId();
 
                         require_once __DIR__ . '/../utils/websocket-pusher.php';
                         WebSocketPusher::emit("admin:notifications", "new_registration", [
@@ -98,7 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $success = "Registration submitted successfully! Your account is pending instructor approval. Once approved, you can log in.";
                         $_POST = [];
                     }
-                }
             } catch (PDOException $e) {
                 $error = safe_db_error($e, "Invalid Credentials");
             }
@@ -142,7 +124,7 @@ include __DIR__ . '/../components/header.php';
 <?php else: ?>
     <div class="auth-card auth-card-wide">
         <div class="auth-header">
-            <a href="/examify/index.php">
+            <a href="../index.php">
                 <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
             </a>
             <div class="auth-header-text">

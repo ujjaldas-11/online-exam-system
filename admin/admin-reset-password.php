@@ -14,8 +14,6 @@ if (!is_admin_logged_in()) {
 }
 
 $admin_id = (int) $_SESSION['admin_id'];
-$error = '';
-$success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -50,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } catch (PDOException $e) {
             log_error("Password change failed for admin $admin_id", $e);
-            $error = "Failed to update password. Please try again later.";
+            set_flash('error', "Failed to update password. Please try again later.");
         }
     }
 }

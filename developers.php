@@ -90,7 +90,6 @@ $testedBy = [
     <link rel="apple-touch-icon" href="assets/images/examify_logo.png?v=<?= $assetVersion ?>">
 
     <link rel="stylesheet" href="assets/css/material-symbols.css?v=<?= $assetVersion ?>">
-    <link rel="stylesheet" href="assets/css/landing.css?v=<?= $assetVersion ?>">
 
     <style>
         :root {

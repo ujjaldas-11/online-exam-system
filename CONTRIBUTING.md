@@ -63,28 +63,9 @@ find . -type f -name "*.php" -exec php -l {} +
 npx mega-linter-runner --flavor php
 ```
 
-### 3. Run Automated Test Suite (All 16 Suites)
+### 3. Run Automated Test Suite (All 17 Suites)
 ```bash
-for t in tests/bulk_promote_test.php \
-         tests/concurrency_test.php \
-         tests/device_gating_test.php \
-         tests/doc_access_test.php \
-         tests/e2e_automation.php \
-         tests/mcq_types_test.php \
-         tests/offline_zero_cdn_test.php \
-         tests/password_visibility_test.php \
-         tests/phase4_remediation_test.php \
-         tests/rate_limiter_test.php \
-         tests/remediation_test.php \
-         tests/scheduled_exam_test.php \
-         tests/security_and_unit_tests.php \
-         tests/singleton_login_test.php \
-         tests/websocket_test.php \
-         tests/websocket_e2e_test.php; do
-    echo "Running $t..."
-    php "$t" > /dev/null || { echo "TEST FAILED: $t"; exit 1; }
-done
-echo "ALL TESTS PASSED!"
+php tests/run_all.php
 ```
 
 ---

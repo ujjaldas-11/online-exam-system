@@ -594,32 +594,42 @@ Examify maintains 17 automated test suites:
 3. `tests/device_gating_test.php`: Verifies mobile/tablet lockout and desktop permissions.
 4. `tests/disqualified_student_test.php`: Verifies server-side rejection of disqualified student attempts.
 5. `tests/doc_access_test.php`: Verifies public student documentation and protected admin documentation access.
-6. `tests/e2e_automation.php`: Browser automation verifying student and admin lifecycles.
+6. `tests/browser_e2e_test.php`: Browser automation verifying student and admin lifecycles.
 7. `tests/mcq_types_test.php`: Validates grading and formatting for all 5 question archetypes.
 8. `tests/offline_zero_cdn_test.php`: Verifies 100% self-hosted assets and zero CDN dependencies.
 9. `tests/password_visibility_test.php`: Verifies universal password visibility toggles.
-10. `tests/phase4_remediation_test.php`: Validates scheduling, question editing, subject deletion, and backup tools.
+10. `tests/exam_management_test.php`: Validates scheduling, question editing, subject deletion, and backup tools.
 11. `tests/rate_limiter_test.php`: Tests database rate-limiting and throttle cooldowns.
-12. `tests/remediation_test.php`: Tests environment security and HTTPS redirect rules.
+12. `tests/environment_ssl_test.php`: Tests environment security and HTTPS redirect rules.
 13. `tests/scheduled_exam_test.php`: Tests scheduled exam auto-activation and timezones.
-14. `tests/security_and_unit_tests.php`: Verifies database constraints, sanitization, and PDF generation.
+14. `tests/security_unit_test.php`: Verifies database constraints, sanitization, and PDF generation.
 15. `tests/singleton_login_test.php`: Tests single-device session enforcement across roles.
-16. `tests/websocket_test.php`: Unit tests for WebSocket framing, encoding, and IPC push bridge.
+16. `tests/websocket_unit_test.php`: Unit tests for WebSocket framing, encoding, and IPC push bridge.
 17. `tests/websocket_e2e_test.php`: End-to-end handshake, channel subscription, and broadcast tests.
 
+*(Note: Backward compatibility shims are maintained for legacy test names e2e_automation.php, phase4_remediation_test.php, remediation_test.php, security_and_unit_tests.php, and websocket_test.php)*
+
 ### 10.3 Verification Commands
+
+Run the full automated test suite with the unified test runner:
+
+```bash
+php tests/run_all.php
+```
+
+Or execute suites individually:
 
 ```powershell
 # Windows PowerShell: Verify syntax and run all test suites
 Get-ChildItem -Filter *.php -Recurse | Where-Object { $_.FullName -notmatch '\\vendor\\' } | ForEach-Object { php -l $_.FullName }
 
 $tests = @(
-    "bulk_promote_test.php", "concurrency_test.php", "device_gating_test.php",
-    "disqualified_student_test.php", "doc_access_test.php", "e2e_automation.php",
-    "mcq_types_test.php", "offline_zero_cdn_test.php", "password_visibility_test.php",
-    "phase4_remediation_test.php", "rate_limiter_test.php", "remediation_test.php",
-    "scheduled_exam_test.php", "security_and_unit_tests.php", "singleton_login_test.php",
-    "websocket_test.php", "websocket_e2e_test.php"
+    "browser_e2e_test.php", "bulk_promote_test.php", "concurrency_test.php",
+    "device_gating_test.php", "disqualified_student_test.php", "doc_access_test.php",
+    "environment_ssl_test.php", "exam_management_test.php", "mcq_types_test.php",
+    "offline_zero_cdn_test.php", "password_visibility_test.php", "rate_limiter_test.php",
+    "scheduled_exam_test.php", "security_unit_test.php", "singleton_login_test.php",
+    "websocket_unit_test.php", "websocket_e2e_test.php"
 )
 foreach ($t in $tests) { php "tests/$t" }
 ```
@@ -628,22 +638,22 @@ foreach ($t in $tests) { php "tests/$t" }
 # Linux / macOS Bash: Verify syntax and run all test suites
 find . -type f -name "*.php" -not -path "*/vendor/*" -exec php -l {} +
 
-for t in tests/bulk_promote_test.php \
+for t in tests/browser_e2e_test.php \
+         tests/bulk_promote_test.php \
          tests/concurrency_test.php \
          tests/device_gating_test.php \
          tests/disqualified_student_test.php \
          tests/doc_access_test.php \
-         tests/e2e_automation.php \
+         tests/environment_ssl_test.php \
+         tests/exam_management_test.php \
          tests/mcq_types_test.php \
          tests/offline_zero_cdn_test.php \
          tests/password_visibility_test.php \
-         tests/phase4_remediation_test.php \
          tests/rate_limiter_test.php \
-         tests/remediation_test.php \
          tests/scheduled_exam_test.php \
-         tests/security_and_unit_tests.php \
+         tests/security_unit_test.php \
          tests/singleton_login_test.php \
-         tests/websocket_test.php \
+         tests/websocket_unit_test.php \
          tests/websocket_e2e_test.php; do
     php "$t" || exit 1
 done
