@@ -7,9 +7,7 @@ require_once '../utils/sanitize.php';
 require_once '../components/status-badge.php';
 
 $admin_name = $_SESSION['admin_name'] ?? 'Admin';
-$admin_role = get_admin_role();
 $isAdminSuper = is_superadmin();
-$admin_id = (int) ($_SESSION['admin_id'] ?? 0);
 
 try {
     //  High-Level KPIs

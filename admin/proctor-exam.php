@@ -20,9 +20,6 @@ if (!can_admin_manage_exam($pdo, $exam_id)) {
     redirect('control-exams.php');
 }
 
-$message = '';
-$message_type = '';
-
 // Handle Emergency Teacher Controls
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -277,12 +274,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?php endif; ?>
         </div> -->
     </div>
-
-    <?php if ($message): ?>
-        <div class="alert alert-<?= $message_type === 'success' ? 'success' : 'error' ?>">
-            <?= e($message) ?>
-        </div>
-    <?php endif; ?>
 
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 

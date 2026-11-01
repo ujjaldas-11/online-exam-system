@@ -272,12 +272,6 @@ $total_exam_count = 0;
 
 
 try {
-    $totalCount = (int) $pdo->query("SELECT COUNT(*) FROM exams")->fetchColumn();
-    $activeCount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'active'")->fetchColumn();
-    $scheduledCount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'scheduled'")->fetchColumn();
-    $inactiveCount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'inactive'")->fetchColumn();
-    $endedount = (int) $pdo->query("SELECT COUNT(*) FROM exams WHERE status = 'ended'")->fetchColumn();
-
     // Total count for current filter
     $countSql = "SELECT COUNT(*) FROM exams e 
                  JOIN subjects s ON e.subject_id = s.id 
