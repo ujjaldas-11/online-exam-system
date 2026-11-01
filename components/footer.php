@@ -14,6 +14,11 @@ if (file_exists('assets/css/app.css')) {
 $assetVersion = asset_version();
 ?>
     
+    <?php if (isset($admin_nav)): ?>
+    </div><!-- /#adminAppViewport -->
+    <script src="<?= $assetsPath ?>/js/admin-spa-router.js?v=<?= $assetVersion ?>"></script>
+    <?php endif; ?>
+
     <!-- ===================== VISUAL FOOTER ===================== -->
     <footer class="app-footer">
         <p class="app-footer-text">
