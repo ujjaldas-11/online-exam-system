@@ -115,7 +115,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <div class="label"><span class="material-symbols-outlined icon-sm">school</span> Active Teachers</div>
         </div>
         <div class="compact-kpi">
-            <div class="num"><?= $total_exams ?> <span style="font-size: 0.9rem; font-weight: 500; color: var(--color-text-secondary);">/ <?= $active_exams_count ?> Live</span></div>
+            <div class="num"><?= $total_exams ?> <span class="text-md font-medium text-secondary">/ <?= $active_exams_count ?> Live</span></div>
             <div class="label"><span class="material-symbols-outlined icon-sm">assignment</span> Exams</div>
         </div>
         <div class="compact-kpi">
@@ -133,9 +133,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div class="dash-grid-main">
         
         <!-- 1. Live Exams -->
-        <div class="card" style="margin-bottom: 0; border-left: 3px solid var(--color-success);">
-            <div class="card-title" style="padding: 12px 16px; font-size: 0.95rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between;">
-                <span style="display: flex; align-items: center; gap: 6px; color: var(--color-success);"><span class="material-symbols-outlined icon-sm">sensors</span> Live &amp; Ongoing Exams</span><a class="dashboard-view-all" href="control-exams.php">View All &rarr;</a>
+        <div class="card mb-0" style="border-left: 3px solid var(--color-success);">
+            <div class="card-title text-base border-b d-flex justify-between" style="padding: 12px 16px;">
+                <span class="d-flex items-center gap-1-5 text-success"><span class="material-symbols-outlined icon-sm">sensors</span> Live &amp; Ongoing Exams</span><a class="dashboard-view-all" href="control-exams.php">View All &rarr;</a>
             </div>
             <?php if (empty($live_exams)): ?>
                 <div class="dashboard-empty dashboard-empty-live">
@@ -298,19 +298,19 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <div class="card">
             <div class="card-title" style="padding: 12px 16px; font-size: 0.95rem; border-bottom: 1px solid var(--color-border);"><span class="material-symbols-outlined icon-sm" style="vertical-align: middle; margin-right: 4px;">history</span> Recent Activity</div>
             <?php if (empty($recent_logs)): ?>
-                <p style="padding: 16px; font-size: 0.85rem; color: var(--color-text-secondary); margin: 0; text-align: center;">No recent activity.</p>
+                <p class="p-4 text-sm text-secondary m-0 text-center">No recent activity.</p>
             <?php else: ?>
                 <ul class="dashboard-activity">
                     <?php foreach ($recent_logs as $log): ?>
                         <li><span class="material-symbols-outlined dashboard-activity-icon" aria-hidden="true">history</span><div>
-                            <div style="color: var(--color-dark); margin-bottom: 2px;"><?= e($log['details']) ?></div>
-                            <div style="color: var(--color-text-secondary); font-size: 0.75rem;"><span class="material-symbols-outlined" style="font-size: 11px; vertical-align: middle;">schedule</span> <?= date('d M Y, h:i A', strtotime($log['created_at'])) ?></div>
+                            <div class="text-dark" style="margin-bottom: 2px;"><?= e($log['details']) ?></div>
+                            <div class="text-secondary text-xs"><span class="material-symbols-outlined" style="font-size: 11px; vertical-align: middle;">schedule</span> <?= date('d M Y, h:i A', strtotime($log['created_at'])) ?></div>
                         </div></li>
                     <?php endforeach; ?>
                 </ul>
             <?php endif; ?>
-            <div style="padding: 8px 16px; text-align: right; border-top: 1px solid var(--color-border); background: #f8fafc;">
-                <a href="audit-logs.php" style="font-size: 0.8rem; font-weight: 600; color: var(--color-primary); text-decoration: none;">View Full Audit Trail &rarr;</a>
+            <div class="text-right border-t" style="padding: 8px 16px; background: #f8fafc;">
+                <a href="audit-logs.php" class="font-semibold text-primary" style="font-size: 0.8rem; text-decoration: none;">View Full Audit Trail &rarr;</a>
             </div>
         </div>
     </div>
