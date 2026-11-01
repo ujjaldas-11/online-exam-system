@@ -154,8 +154,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('rankModal');
     const openBtn = document.getElementById('btn-view-all-ranks');
     const closeBtn = document.getElementById('rankModalClose');
-    const searchInput = document.getElementById('rankSearchInput');
-    const rows = document.querySelectorAll('#fullRankTable tbody tr');
     if (!modal) return;
 
     const open = () => { modal.classList.add('active');};

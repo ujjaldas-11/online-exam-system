@@ -54,10 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             set_flash('success',"Student attempt has been unlocked and set to In Progress.");
-            redirect('proctor-exam.php');
+            redirect("proctor-exam.php?exam_id={$exam_id}");
         } catch (PDOException $e) {
             set_flash('error', safe_db_error($e, "Failed to reset student attempt."));
-            redirect('proctor-exam.php');
+            redirect("proctor-exam.php?exam_id={$exam_id}");
         }
     } elseif (isset($_POST['force_submit_attempt'])) {
         $attempt_id = int_param($_POST['attempt_id'] ?? 0);
@@ -97,14 +97,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 set_flash('success', "Attempt #$attempt_id has been successfully auto-graded and marked completed (Score: " . sprintf('%.2f', $finalScore) . ").");
-                redirect('proctor-exam.php');
+                redirect("proctor-exam.php?exam_id={$exam_id}");
             } else {
                 set_flash('error', "Failed to force submit attempt: " . ($result['error'] ?? 'Unknown error'));
-                redirect('proctor-exam.php');
+                redirect("proctor-exam.php?exam_id={$exam_id}");
             }
         } catch (PDOException $e) {
             set_flash('error', safe_db_error($e, "Failed to submit attempt."));
-            redirect('proctor-exam.php');
+            redirect("proctor-exam.php?exam_id={$exam_id}");
         }
     } elseif (isset($_POST['disqualify_student_attempt'])) {
         $attempt_id = int_param($_POST['attempt_id'] ?? 0);
@@ -141,10 +141,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             set_flash('warning', "Student attempt #$attempt_id has been disqualified.");
-            redirect('proctor-exam.php');
+            redirect("proctor-exam.php?exam_id={$exam_id}");
         } catch (PDOException $e) {
             set_flash('error', safe_db_error($e, "Failed to disqualify attempt."));
-            redirect('proctor-exam.php');
+            redirect("proctor-exam.php?exam_id={$exam_id}");
         }
     }
 }

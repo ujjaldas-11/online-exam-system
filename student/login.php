@@ -90,7 +90,7 @@ include __DIR__ . '/../components/header.php';
 <main class="auth-main-container">
     <div class="auth-card">
         <div class="auth-header">
-            <a href="/examify/index.php">
+            <a href="../index.php">
                 <img src="../assets/images/examify_logo.png" alt="Examify Logo" class="auth-logo">
             </a>
             <div class="auth-header-text">
