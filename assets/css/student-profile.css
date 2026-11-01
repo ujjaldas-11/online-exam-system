@@ -19,25 +19,6 @@
     height: calc(100dvh - var(--profile-nav-h));
   }
 }
-.profile-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-shrink: 0;
-}
-.profile-header .page-title {
-  margin: 0;
-}
-.profile-header .page-subtitle {
-  margin: 4px 0 0;
-}
-.pf-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
 
 .profile-layout {
   /* flex: 1; min-height: 0; */
@@ -505,9 +486,6 @@
   gap: 10px;
   padding: 4px 0;
 }
-.pf-ach-chip__icon {
-  font-size: 1.2rem;
-}
 .pf-ach-chip {
   display: inline-flex;
   align-items: start;
@@ -561,9 +539,5 @@
 @media (max-width: 560px) {
   .profile-page {
     padding: 16px;
-  }
-  .profile-header {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
