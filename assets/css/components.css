@@ -16,84 +16,6 @@
   }
 }
 
-/* --- Search Bar --- */
-.search-container {
-  margin: 16px 0 24px;
-}
-
-.search-box {
-  position: relative;
-  width: 100%;
-}
-
-/* .search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-muted);
-  pointer-events: none;
-} */
-
-.search-box input {
-  width: 100%;
-  padding: 12px 40px 12px 42px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: 0.95rem;
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-sm);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.search-box input::placeholder {
-  color: var(--color-text-muted);
-}
-
-.search-box input:hover {
-  border-color: var(--color-text-muted);
-}
-
-.search-box input:focus {
-  outline: none;
-  border-color: var(--color-primary-light);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-light) 16%, transparent);
-}
-
-.clear-search {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-full);
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  line-height: 1;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  display: none;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.clear-search:hover {
-  background: var(--color-gray-100);
-  color: var(--color-text);
-}
-
-.search-results-info {
-  margin-top: 10px;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-}
-
 /* --- Cards --- */
 .card {
   background: var(--color-surface);
@@ -703,14 +625,6 @@ input[type="password"]::-ms-clear,
   }
 }
 
-.action-menu-content.dropup {
-  top: auto;
-  bottom: 100%;
-  margin-top: 0;
-  margin-bottom: 4px;
-  box-shadow: var(--shadow-lg);
-}
-
 /* Individual Action Items */
 .action-menu-item {
   display: flex;
@@ -912,10 +826,6 @@ input[type="radio"] {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 0.92rem;
-}
-
-.exam-form-page__alert {
-  margin-bottom: 14px;
 }
 
 .exam-card {
@@ -1157,8 +1067,7 @@ font-weight: 600;
 }
 
 /* --- Tables --- */
-.table-wrap,
-.table-responsive {
+.table-wrap {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
@@ -1247,11 +1156,6 @@ tr:hover td {
 .badge-pending {
   background: var(--color-info-bg);
   color: var(--color-info);
-}
-
-.badge-approved {
-  background: var(--color-success-bg);
-  color: var(--color-success);
 }
 
 .badge-rejected,
@@ -1400,9 +1304,6 @@ tr:hover td {
 }
 .icon-lg {
   font-size: 24px;
-}
-.icon-xl {
-  font-size: 32px;
 }
 .icon-2xl {
   font-size: 40px;
@@ -1604,82 +1505,4 @@ tr:hover td {
 .badge-ace:hover {
     box-shadow:
         0 0 12px rgba(125, 211, 252, 0.35);
-}
-
-
-/* =========================================
-   ACCESSIBILITY
-========================================= */
-
-@media (prefers-reduced-motion: reduce) {
-    .examify-badge {
-        transition: none;
-    }
-
-    .examify-badge:hover {
-        transform: none;
-    }
-}
-
-
-/* =========================================
-   MOBILE
-========================================= */
-
-@media (max-width: 600px) {
-    .examify-badge {
-        padding: 4px 8px;
-        gap: 4px;
-        font-size: 9px;
-        border-radius: 6px;
-    }
-
-    .examify-badge .badge-icon {
-        font-size: 13px;
-    }
-}
-/* =========================================
-   AUTH PAGE MOTION ANIMATIONS
-========================================= */
-@keyframes slideUpFade {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 1. Main Card Load In */
-.auth-card {
-  animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* 2. Header Animation */
-.auth-header {
-  opacity: 0;
-  animation: slideUpFade 0.5s ease forwards;
-  animation-delay: 0.1s;
-}
-
-/* 3. Form Elements Waterfall Effect */
-.auth-card form > * {
-  opacity: 0;
-  animation: slideUpFade 0.5s ease forwards;
-}
-
-/* Staggered delays for each row */
-.auth-card form > *:nth-child(1) { animation-delay: 0.2s; }
-.auth-card form > *:nth-child(2) { animation-delay: 0.3s; }
-.auth-card form > *:nth-child(3) { animation-delay: 0.4s; }
-.auth-card form > *:nth-child(4) { animation-delay: 0.5s; }
-.auth-card form > *:nth-child(5) { animation-delay: 0.6s; }
-
-/* 4. Footer link animation */
-.auth-card .footer {
-  opacity: 0;
-  animation: slideUpFade 0.5s ease forwards;
-  animation-delay: 0.7s;
 }

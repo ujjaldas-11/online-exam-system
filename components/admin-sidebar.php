@@ -252,3 +252,5 @@ if ($isAdminSuper) {
 })();
 
 </script>
+
+<div id="adminAppViewport" class="admin-app-viewport">

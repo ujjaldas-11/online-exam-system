@@ -550,57 +550,7 @@
   }
 }
 
-.dashboard-search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 auto 0 28px;
-  padding: 0 12px;
-  width: min(35vw, 410px);
-  height: 38px;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  background: var(--color-bg);
-  color: var(--color-text-secondary);
-  box-sizing: border-box;
-}
-
-.dashboard-search input {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  font: inherit;
-  font-size: .8rem;
-  color: var(--color-text);
-}
-
-.dashboard-search:focus-within {
-  outline: 2px solid var(--color-primary-light);
-  outline-offset: 2px;
-}
-
-.dashboard-search input:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-@media (max-width: 768px) {
-  .dashboard-search {
-    margin-left: 12px;
-    width: min(36vw, 300px);
-  }
-}
-
 @media (max-width: 480px) {
-  .dashboard-search {
-    width: 100%;
-    margin-left: 8px;
-    margin-right: 8px;
-  }
-
   .dashboard-page .topbar-left {
     flex-shrink: 0;
   }

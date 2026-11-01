@@ -75,13 +75,6 @@ body.sidebar-collapsed .main-content {
   gap: 12px;
 }
 
-.topbar-title {
-  font-weight: 600;
-  font-size: 1.05rem;
-  color: #f1f5f9;
-  letter-spacing: 0.2px;
-}
-
 .topbar-right {
   display: flex;
   align-items: center;
@@ -266,11 +259,6 @@ body.sidebar-collapsed .main-content {
   font-weight: 700;
   font-size: 0.95rem;
 }
-.dropdown-role {
-  margin: 0;
-  font-size: 0.75rem;
-  color: #edb055;
-}
 
 .dropdown-admin-details {
   padding: 12px 16px;
@@ -329,63 +317,6 @@ body.sidebar-collapsed .main-content {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* ---------- 3. Reset Password Modal (Light Theme) ---------- */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: grid;
-  place-items: center;
-  padding: 16px;
-  box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(3px);
-  opacity: 0;
-  visibility: hidden;
-  transition: 0.25s ease;
-}
-.modal-overlay.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.modal-box {
-  width: 100%;
-  max-width: 400px;
-  background: #fff;
-  color: #111;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  transform: scale(0.95);
-  transition: 0.25s ease;
-}
-.modal-overlay.show .modal-box {
-  transform: scale(1);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.25rem;
-}
-.close-modal-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  transition: 0.2s;
-}
-.close-modal-btn:hover {
-  color: #111;
-}
-
 .form-group {
   margin-bottom: 16px;
 }
@@ -411,14 +342,8 @@ body.sidebar-collapsed .main-content {
   border-color: #0d6efd;
   box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
 }
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-}
 
-/* ---------- 4. Responsive Rules ---------- */
+/* ---------- Responsive Rules ---------- */
 @media (max-width: 576px) {
   .profile-text,
   .chevron-icon {
@@ -430,8 +355,6 @@ body.sidebar-collapsed .main-content {
 }
 @media (prefers-reduced-motion: reduce) {
   .chevron-icon,
-  .modal-overlay,
-  .modal-box,
   .profile-dropdown {
     transition: none;
   }
@@ -484,23 +407,6 @@ body.sidebar-collapsed .main-content {
   padding: 0 4px;
 }
 
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: #f1f5f9;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.brand-icon {
-  flex-shrink: 0;
-  font-size: 26px;
-  color: var(--sidebar-gold);
-}
-
 .sidebar-close {
   display: none;
 }
@@ -513,8 +419,7 @@ body.sidebar-collapsed .main-content {
   flex: 1;
 }
 
-.sidebar-links a,
-.sidebar-logout {
+.sidebar-links a {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -531,8 +436,7 @@ body.sidebar-collapsed .main-content {
   position: relative;
 }
 
-.sidebar-links a .material-symbols-outlined,
-.sidebar-logout .material-symbols-outlined {
+.sidebar-links a .material-symbols-outlined {
   flex-shrink: 0;
   width: 24px;
   min-width: 24px;
@@ -548,8 +452,7 @@ body.sidebar-collapsed .main-content {
     "opsz" 24;
 }
 
-.sidebar-links a .link-label,
-.sidebar-logout .link-label {
+.sidebar-links a .link-label {
   white-space: nowrap;
   opacity: 1;
   transition: opacity 0.15s ease;
@@ -572,24 +475,6 @@ body.sidebar-collapsed .main-content {
     "wght" 500,
     "GRAD" 0,
     "opsz" 24;
-}
-
-/* Logout button */
-.sidebar-logout {
-  margin-top: 12px;
-  background: #dc2626;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  font: inherit;
-  color: #fff;
-  justify-content: flex-start;
-  flex-shrink: 0;
-}
-
-.sidebar-logout:hover {
-  background: #ef4444;
-  color: #fff;
 }
 
 /* Overlay for mobile */
@@ -615,7 +500,6 @@ body.sidebar-collapsed .main-content {
     overflow: visible;
   }
 
-  body.sidebar-collapsed .brand-text,
   body.sidebar-collapsed .link-label {
     opacity: 0;
     width: 0;
@@ -625,14 +509,12 @@ body.sidebar-collapsed .main-content {
     transition: opacity 0.15s ease;
   }
 
-  body.sidebar-collapsed .sidebar-links a,
-  body.sidebar-collapsed .sidebar-logout {
+  body.sidebar-collapsed .sidebar-links a {
     padding: 11px 15px;
   }
 
   /* Tooltip flyout when collapsed */
-  body.sidebar-collapsed .sidebar-links a::after,
-  body.sidebar-collapsed .sidebar-logout::after {
+  body.sidebar-collapsed .sidebar-links a::after {
     content: attr(data-tooltip);
     position: absolute;
     left: calc(100% + 12px);
@@ -654,8 +536,7 @@ body.sidebar-collapsed .main-content {
     z-index: 100;
   }
 
-  body.sidebar-collapsed .sidebar-links a:hover::after,
-  body.sidebar-collapsed .sidebar-logout:hover::after {
+  body.sidebar-collapsed .sidebar-links a:hover::after {
     opacity: 1;
     transform: translateY(-50%) translateX(0);
   }
@@ -718,8 +599,7 @@ body.sidebar-collapsed .main-content {
     background: rgba(255, 255, 255, 0.18);
   }
 
-  .link-label,
-  .brand-text {
+  .link-label {
     opacity: 1 !important;
     position: static !important;
     width: auto !important;
@@ -756,5 +636,51 @@ body.sidebar-collapsed .main-content {
     padding: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+  }
+}
+
+/* ---------- Instant SPA Viewport & Loader ---------- */
+#admin-spa-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--sidebar-gold, #edb055));
+  z-index: 99999;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  pointer-events: none;
+}
+
+#admin-spa-loader.loading {
+  opacity: 1;
+  transform: scaleX(0.75);
+}
+
+#admin-spa-loader.done {
+  opacity: 1;
+  transform: scaleX(1);
+  transition: transform 0.1s ease, opacity 0.3s ease 0.1s;
+}
+
+.admin-app-viewport {
+  display: block;
+  width: 100%;
+  min-height: calc(100vh - var(--topbar-h));
+}
+
+.admin-app-viewport.spa-transition-fade {
+  animation: adminSpaFade 0.12s ease-out;
+}
+
+@keyframes adminSpaFade {
+  from {
+    opacity: 0.88;
+  }
+  to {
+    opacity: 1;
   }
 }

@@ -208,13 +208,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
 
 <div class="container main-content">
-    <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+    <div class="page-header d-flex justify-between items-start gap-4 flex-wrap">
         <div>
             <h1>Manage Curriculum Subjects</h1>
             <p>Add department subjects and configure question banks</p>
         </div>
         <!-- CHANGED: now a button that opens the Create Subject modal -->
-        <button type="button" id="openCreateSubjectBtn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <button type="button" id="openCreateSubjectBtn" class="btn btn-primary d-inline-flex items-center gap-1-5">
             <span class="material-symbols-outlined icon-xs">add_circle</span> Create Subject
         </button>
     </div>
@@ -230,8 +230,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <div class="card">
             <div class="card-header-bar">
                 
-                <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
-                    <span class="material-symbols-outlined icon-sm" style="color: var(--color-primary);">menu_book</span>
+                <div class="card-title mb-0 d-flex items-center gap-2">
+                    <span class="material-symbols-outlined icon-sm text-primary">menu_book</span>
                     <span>Curriculum Subjects (<?= $total_subject_count ?>)</span>
                 </div>
                 

@@ -356,11 +356,6 @@
     text-decoration: none;
 }
 
-.footer-sep {
-    color: var(--landing-border-soft, rgba(240, 246, 252, 0.2));
-    font-size: 0.75rem;
-}
-
 @media (max-width: 950px) {
     .landing-main {
         flex-direction: column;

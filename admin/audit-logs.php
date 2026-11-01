@@ -237,7 +237,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <p><?= $isAdminSuper ? 'Comprehensive institutional tracking of all teacher actions, exam controls, and question banks' : 'Your administrative activity log and record history' ?></p>
         </div>
         <?php if ($isAdminSuper): ?>
-            <a href="manage-teachers.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 0.85rem;">
+            <a href="manage-teachers.php" class="btn btn-secondary d-inline-flex items-center gap-1-5 text-sm" style="padding: 6px 14px;">
                 <span class="material-symbols-outlined icon-sm">group</span> Manage Teachers
             </a>
         <?php endif; ?>
@@ -245,11 +245,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
     <!-- Filter Card -->
     <div class="card filter-card">
-        <form method="GET" action="" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+        <form method="GET" action="" class="d-flex flex-wrap items-end" style="gap: 10px;">
             <?php if ($isAdminSuper): ?>
-                <div class="form-group" style="margin-bottom: 0; min-width: 140px; flex: 1.2;">
-                    <label style="font-size: 0.8rem; margin-bottom: 3px; display: block; font-weight: 500;">Filter by Instructor</label>
-                    <select name="admin_id" onchange="this.form.submit()" style="padding: 6px 10px; font-size: 0.85rem; height: 34px;">
+                <div class="form-group mb-0" style="min-width: 140px; flex: 1.2;">
+                    <label class="d-block font-medium mb-1" style="font-size: 0.8rem;">Filter by Instructor</label>
+                    <select name="admin_id" onchange="this.form.submit()" class="text-sm" style="padding: 6px 10px; height: 34px;">
                         <option value="0">-- All Instructors &amp; Admins --</option>
                         <?php foreach ($allAdmins as $adm): ?>
                             <option value="<?= $adm['id'] ?>" <?= $filterAdminId === (int)$adm['id'] ? 'selected' : '' ?>>
@@ -260,9 +260,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
             <?php endif; ?>
 
-            <div class="form-group" style="margin-bottom: 0; min-width: 130px; flex: 1;">
-                <label style="font-size: 0.8rem; margin-bottom: 3px; display: block; font-weight: 500;">Filter by Action</label>
-                <select name="action" onchange="this.form.submit()" style="padding: 6px 10px; font-size: 0.85rem; height: 34px;">
+            <div class="form-group mb-0" style="min-width: 130px; flex: 1;">
+                <label class="d-block font-medium mb-1" style="font-size: 0.8rem;">Filter by Action</label>
+                <select name="action" onchange="this.form.submit()" class="text-sm" style="padding: 6px 10px; height: 34px;">
                     <option value="">-- All Actions --</option>
                     <?php foreach ($allActions as $act): ?>
                         <option value="<?= e($act) ?>" <?= $filterAction === $act ? 'selected' : '' ?>>
@@ -272,16 +272,16 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </select>
             </div>
 
-            <div class="form-group" style="margin-bottom: 0; min-width: 160px; flex: 1.5;">
-                <label style="font-size: 0.8rem; margin-bottom: 3px; display: block; font-weight: 500;">Search Details or IP</label>
-                <input type="text" name="q" placeholder="Keywords, entity, IP..." value="<?= e($searchQuery) ?>" style="padding: 6px 10px; font-size: 0.85rem; height: 34px;">
+            <div class="form-group mb-0" style="min-width: 160px; flex: 1.5;">
+                <label class="d-block font-medium mb-1" style="font-size: 0.8rem;">Search Details or IP</label>
+                <input type="text" name="q" placeholder="Keywords, entity, IP..." value="<?= e($searchQuery) ?>" class="text-sm" style="padding: 6px 10px; height: 34px;">
             </div>
 
-            <div style="display: flex; gap: 8px;">
-                <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 4px; padding: 0 14px; height: 34px; font-size: 0.85rem;">
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary d-inline-flex items-center gap-1 text-sm" style="padding: 0 14px; height: 34px;">
                     <span class="material-symbols-outlined icon-sm">search</span> Filter
                 </button>
-                <a href="audit-logs.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 4px; padding: 0 14px; height: 34px; font-size: 0.85rem;">
+                <a href="audit-logs.php" class="btn btn-secondary d-inline-flex items-center gap-1 text-sm" style="padding: 0 14px; height: 34px;">
                     Reset
                 </a>
             </div>
@@ -290,9 +290,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
     <!-- Audit Logs Table -->
     <div class="card audit-card">
-        <div class="card-header-row" style="display: flex; justify-content: space-between; align-items: center;">
-            <div class="card-title" style="margin-bottom: 0; font-size: 1.1rem;">Activity Logs (<?= $total_logs_count ?> entries)</div>
-            <span style="font-size: 0.78rem; color: var(--color-text-secondary); display: inline-flex; align-items: center; gap: 4px;">
+        <div class="card-header-row d-flex justify-between items-center">
+            <div class="card-title mb-0 text-lg">Activity Logs (<?= $total_logs_count ?> entries)</div>
+            <span class="text-xs text-secondary d-inline-flex items-center gap-1">
                 <span class="material-symbols-outlined" style="font-size: 15px;">unfold_more</span> Scrollable log
             </span>
         </div>

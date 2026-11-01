@@ -44,34 +44,6 @@
   color: var(--color-gold);
 }
 
-.student-greeting-mobile-hidden {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto;
-  margin-right: 8px;
-}
-
-.avatar-badge {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--color-gold);
-  color: var(--nav-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.8rem;
-  flex-shrink: 0;
-}
-
-.avatar-badge.lg {
-  width: 42px;
-  height: 42px;
-  font-size: 1rem;
-}
-
 .student-greeting {
   font-weight: 600;
   font-size: 0.95rem;
@@ -257,11 +229,6 @@
   font-weight: 700;
   font-size: 0.95rem;
 }
-.dropdown-role {
-  margin: 0;
-  font-size: 0.75rem;
-  color: #edb055;
-}
 
 .dropdown-admin-details {
   padding: 12px 16px;
@@ -322,9 +289,6 @@
 
 /* ---------- Mobile ---------- */
 @media (max-width: 768px) {
-  .student-greeting-mobile-hidden {
-    display: none;
-  }
   .menu-btn {
     display: flex;
   }
@@ -416,11 +380,6 @@
   margin-bottom: 8px;
 }
 
-.student-navbar .student-greeting-mobile-hidden {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 .student-navbar .student-greeting {
   white-space: nowrap;
 }
@@ -435,9 +394,6 @@
 }
 
 @media (max-width: 768px) {
-  .student-navbar .student-greeting-mobile-hidden {
-    display: none;
-  }
   .student-navbar .drawer-profile {
     display: flex;
     flex-direction: column;

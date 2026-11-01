@@ -1,0 +1,137 @@
+/* =========================================================
+   EXAMIFY MICRO-UTILITIES (Vanilla Tailwind-Inspired Primitives)
+   Zero external dependencies • Strictly bound to variables.css
+   ========================================================= */
+
+/* ---------- Display & Layout ---------- */
+.d-none          { display: none !important; }
+.d-block         { display: block !important; }
+.d-inline        { display: inline !important; }
+.d-inline-block  { display: inline-block !important; }
+.d-flex          { display: flex !important; }
+.d-inline-flex   { display: inline-flex !important; }
+
+/* ---------- Flex Direction, Wrap & Alignment ---------- */
+.flex-row        { flex-direction: row !important; }
+.flex-col        { flex-direction: column !important; }
+.flex-wrap       { flex-wrap: wrap !important; }
+.flex-nowrap     { flex-wrap: nowrap !important; }
+.flex-1          { flex: 1 1 0% !important; }
+.flex-shrink-0   { flex-shrink: 0 !important; }
+
+.items-start     { align-items: flex-start !important; }
+.items-center    { align-items: center !important; }
+.items-end       { align-items: flex-end !important; }
+.items-baseline  { align-items: baseline !important; }
+.items-stretch   { align-items: stretch !important; }
+
+.justify-start   { justify-content: flex-start !important; }
+.justify-center  { justify-content: center !important; }
+.justify-end     { justify-content: flex-end !important; }
+.justify-between { justify-content: space-between !important; }
+.justify-around  { justify-content: space-around !important; }
+
+/* ---------- Gap Spacing ---------- */
+.gap-0           { gap: 0 !important; }
+.gap-1           { gap: 4px !important; }
+.gap-1-5         { gap: 6px !important; }
+.gap-2           { gap: 8px !important; }
+.gap-3           { gap: 12px !important; }
+.gap-4           { gap: 16px !important; }
+.gap-5           { gap: 20px !important; }
+.gap-6           { gap: 24px !important; }
+
+/* ---------- Margins ---------- */
+.m-0             { margin: 0 !important; }
+.mx-auto         { margin-left: auto !important; margin-right: auto !important; }
+.ml-auto         { margin-left: auto !important; }
+.mr-auto         { margin-right: auto !important; }
+.mt-auto         { margin-top: auto !important; }
+
+.mt-0            { margin-top: 0 !important; }
+.mt-1            { margin-top: 4px !important; }
+.mt-2            { margin-top: 8px !important; }
+.mt-3            { margin-top: 12px !important; }
+.mt-4            { margin-top: 16px !important; }
+.mt-5            { margin-top: 20px !important; }
+
+.mb-0            { margin-bottom: 0 !important; }
+.mb-1            { margin-bottom: 4px !important; }
+.mb-1-5          { margin-bottom: 6px !important; }
+.mb-2            { margin-bottom: 8px !important; }
+.mb-3            { margin-bottom: 12px !important; }
+.mb-4            { margin-bottom: 16px !important; }
+.mb-5            { margin-bottom: 20px !important; }
+.mb-6            { margin-bottom: 24px !important; }
+
+/* ---------- Padding ---------- */
+.p-0             { padding: 0 !important; }
+.p-1             { padding: 4px !important; }
+.p-2             { padding: 8px !important; }
+.p-3             { padding: 12px !important; }
+.p-4             { padding: 16px !important; }
+.p-5             { padding: 20px !important; }
+.p-6             { padding: 24px !important; }
+
+.px-2            { padding-left: 8px !important; padding-right: 8px !important; }
+.px-3            { padding-left: 12px !important; padding-right: 12px !important; }
+.px-4            { padding-left: 16px !important; padding-right: 16px !important; }
+
+.py-1            { padding-top: 4px !important; padding-bottom: 4px !important; }
+.py-2            { padding-top: 8px !important; padding-bottom: 8px !important; }
+.py-3            { padding-top: 12px !important; padding-bottom: 12px !important; }
+.py-4            { padding-top: 16px !important; padding-bottom: 16px !important; }
+
+/* ---------- Typography ---------- */
+.text-xs         { font-size: 0.75rem !important; }
+.text-sm         { font-size: 0.85rem !important; }
+.text-md         { font-size: 0.9rem !important; }
+.text-base       { font-size: 0.95rem !important; }
+.text-lg         { font-size: 1.1rem !important; }
+.text-xl         { font-size: 1.25rem !important; }
+.text-2xl        { font-size: 1.5rem !important; }
+
+.font-normal     { font-weight: 400 !important; }
+.font-medium     { font-weight: 500 !important; }
+.font-semibold   { font-weight: 600 !important; }
+.font-bold       { font-weight: 700 !important; }
+.font-extrabold  { font-weight: 800 !important; }
+
+.text-left       { text-align: left !important; }
+.text-center     { text-align: center !important; }
+.text-right      { text-align: right !important; }
+
+.uppercase       { text-transform: uppercase !important; }
+.lowercase       { text-transform: lowercase !important; }
+.capitalize      { text-transform: capitalize !important; }
+
+/* ---------- Text Colors (Design System Tokens) ---------- */
+.text-primary    { color: var(--color-primary) !important; }
+.text-secondary  { color: var(--color-text-secondary) !important; }
+.text-muted      { color: var(--color-text-muted) !important; }
+.text-dark       { color: var(--color-dark) !important; }
+.text-success    { color: var(--color-success) !important; }
+.text-warning    { color: var(--color-warning) !important; }
+.text-error      { color: var(--color-error) !important; }
+.text-gold       { color: var(--color-gold) !important; }
+
+/* ---------- Sizing & Overflow ---------- */
+.w-full          { width: 100% !important; }
+.w-auto          { width: auto !important; }
+.h-full          { height: 100% !important; }
+
+.nowrap          { white-space: nowrap !important; }
+.text-truncate   {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* ---------- Borders & Radii ---------- */
+.rounded-sm      { border-radius: var(--radius-sm, 6px) !important; }
+.rounded         { border-radius: var(--radius-md, 8px) !important; }
+.rounded-lg      { border-radius: var(--radius-lg, 12px) !important; }
+.rounded-full    { border-radius: var(--radius-full, 9999px) !important; }
+
+.border-t        { border-top: 1px solid var(--color-border) !important; }
+.border-b        { border-bottom: 1px solid var(--color-border) !important; }
