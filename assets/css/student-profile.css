@@ -534,7 +534,7 @@
 }
 
 /* ---------- Tablet / mobile ---------- */
-@media (max-width: 1040px), (max-height: 639px) {
+@media (max-width: 1020px), (max-height: 639px) {
   .profile-page {
     height: auto;
   }
