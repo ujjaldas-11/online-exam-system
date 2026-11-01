@@ -149,12 +149,17 @@ online-exam-system/
 
 ## Automated Test Suite
 
-Examify includes 15 automated test suites covering security, authorization, anti-cheat gating, concurrency, and air-gapped compliance.
+Examify includes 17 automated test suites covering security, authorization, anti-cheat gating, concurrency, and air-gapped compliance.
 
-Run individual test suites:
+Run the complete test suite:
+```bash
+php tests/run_all.php
+```
+
+Or run individual test suites:
 ```bash
 # Security, CSRF, and unit validation
-php tests/security_and_unit_tests.php
+php tests/security_unit_test.php
 
 # Zero-CDN and air-gapped asset compliance
 php tests/offline_zero_cdn_test.php
@@ -168,11 +173,6 @@ php tests/device_gating_test.php
 # Singleton session enforcement test
 php tests/singleton_login_test.php
 ```
-
-Run the complete test suite:
-```bash
-for t in tests/*.php; do
-    [ -f "$t" ] && php "$t" > /dev/null || { echo "Failed: $t"; exit 1; }
 done
 echo "All test suites passed successfully."
 ```

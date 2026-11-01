@@ -100,6 +100,7 @@ class BackupService
                 $candidates[] = "$drive/xampp/mysql/bin/mariadb-dump.exe";
                 $candidates[] = "$drive/xampp/mysql/bin/mysqldump.exe";
                 $candidates[] = "$drive/laragon/bin/mysql/current/bin/mysqldump.exe";
+                $candidates[] = "$drive/tools/mysql/current/bin/mysqldump.exe";
             }
         } else {
             $candidates = [

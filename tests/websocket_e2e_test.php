@@ -18,7 +18,7 @@ echo "========================================\n";
 $wsPort = 8095;
 $ipcPort = 8096;
 
-$cmd = "php tests/run_test_server.php {$wsPort} {$ipcPort}";
+$cmd = "php bin/websocket-server.php {$wsPort} {$ipcPort}";
 $descriptors = [
     0 => ['pipe', 'r'],
     1 => ['pipe', 'w'],

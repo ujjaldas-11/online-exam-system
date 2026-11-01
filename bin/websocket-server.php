@@ -25,9 +25,9 @@ require_once __DIR__ . '/../lib/websocket/Server.php';
 use Examify\WebSocket\Server;
 
 $host = (string) get_env('WS_HOST', '0.0.0.0');
-$wsPort = (int) get_env('WS_PORT', 8085);
+$wsPort = isset($argv[1]) ? (int)$argv[1] : (int) get_env('WS_PORT', 8085);
 $ipcHost = (string) get_env('WS_IPC_HOST', '127.0.0.1');
-$ipcPort = (int) get_env('WS_IPC_PORT', 8086);
+$ipcPort = isset($argv[2]) ? (int)$argv[2] : (int) get_env('WS_IPC_PORT', 8086);
 
 echo "====================================================\n";
 echo "   EXAMIFY REAL-TIME WEBSOCKET & IPC DAEMON         \n";
