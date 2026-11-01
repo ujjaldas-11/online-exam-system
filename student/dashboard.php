@@ -245,6 +245,10 @@ foreach ($processed_exams as $exam) {
 $total_items = count($filtered_exams);
 $paginated_exams = array_slice($filtered_exams, ($current_page - 1) * $per_page, $per_page);
 
+$quotesJson = @file_get_contents(__DIR__ . '/../utils/quotes_dashboard.json');
+$quotesArr = $quotesJson ? (json_decode($quotesJson, true)['quotes'] ?? []) : [];
+$randomQuote = !empty($quotesArr) ? $quotesArr[array_rand($quotesArr)]['quote'] : "Success is the sum of small efforts, repeated day in and day out.";
+
 $page_title = 'Student Dashboard • Examify';
 include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/student-navbar.php';
@@ -259,7 +263,7 @@ include __DIR__ . '/../components/student-navbar.php';
             <!-- Quote banner -->
             <div class="quote-slim-banner" aria-live="polite">
                 <span class="material-symbols-outlined">lightbulb</span>
-                <span id="funny-quote" class="quote-text">"Success is the sum of small efforts, repeated day in and day out."</span>
+                <span id="funny-quote" class="quote-text">"<?= e($randomQuote) ?>"</span>
                 <span class="quote-author">&mdash; Examify</span>
             </div>
 
@@ -360,22 +364,6 @@ include __DIR__ . '/../components/student-navbar.php';
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', async function () {
-        // Load a random quote
-        try {
-            const response = await fetch('../assets/data/quotes_dashboard.json?v=<?= asset_version() ?>');
-            if (response.ok) {
-                const data = await response.json();
-                if (data.quotes && data.quotes.length > 0) {
-                    const randomQuote = data.quotes[Math.floor(Math.random() * data.quotes.length)];
-                    if (randomQuote.quote) {
-                        document.getElementById('funny-quote').textContent = '"' + randomQuote.quote + '"';
-                    }
-                }
-            }
-        } catch (e) {}
-    });
-
     // Auto-refresh: reload when a new exam goes live
     let currentExamCount = <?= (int) $active_count ?>;
     setInterval(async function () {

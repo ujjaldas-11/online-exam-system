@@ -96,7 +96,7 @@ $studentQuestionCode = file_get_contents(__DIR__ . '/../student/question.php');
 assert_test("student/question.php rejects mobile/tablet devices with 403", str_contains($studentQuestionCode, 'is_mobile_or_tablet()'));
 
 // 3.6 Anti-Cheat Touchscreen and Touchpad Suppression
-$antiCheatPath = __DIR__ . '/../utils/anti-cheat.js';
+$antiCheatPath = file_exists(__DIR__ . '/../assets/js/anti-cheat.js') ? __DIR__ . '/../assets/js/anti-cheat.js' : __DIR__ . '/../utils/anti-cheat.js';
 $antiCheatJs = (string)file_get_contents($antiCheatPath);
 if (str_starts_with(trim($antiCheatJs), '../') && file_exists(dirname($antiCheatPath) . '/' . trim($antiCheatJs))) {
     $antiCheatJs = (string)file_get_contents(dirname($antiCheatPath) . '/' . trim($antiCheatJs));
