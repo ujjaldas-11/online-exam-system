@@ -59,6 +59,10 @@ try {
             'score' => $score,
         ]);
     } else {
+        if ($attempt['status'] === 'disqualified') {
+            set_flash('error', "You have been disqualified from this examination due to integrity violations.");
+            redirect('dashboard.php');
+        }
         if ($attempt['status'] !== 'completed') {
             redirect("exam.php?id=$exam_id");
         }
