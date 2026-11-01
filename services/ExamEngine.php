@@ -503,7 +503,7 @@ class ExamEngine
      */
     public static function isExamEnded(array $exam): bool
     {
-        $status = (string)($exam['status'] ?? $exam['exam_status'] ?? '');
+        $status = (string)($exam['exam_status'] ?? $exam['status'] ?? '');
         if ($status === 'ended' || $status === 'cancelled') {
             return true;
         }

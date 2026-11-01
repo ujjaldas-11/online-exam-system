@@ -1,6 +1,9 @@
 <?php
 
 $rb_total = count($class_leaderboard ?? []);
+$my_rank = $current_student_rank_data['rank'] ?? null;
+$my_avg = isset($current_student_rank_data['average']) ? (float)$current_student_rank_data['average'] : null;
+$top_leaders = $top_10 ?? [];
 ?>
 
 <aside class="rank-board card" aria-label="Class leaderboard">
@@ -47,7 +50,7 @@ $rb_total = count($class_leaderboard ?? []);
                     <span class="rank-name" title="<?= e($r['name']) ?>">
                         <?= e($r['name']) ?><?= $is_me ? ' (You)' : '' ?>
                     </span>
-                    <span class="rank-avg"><?= number_format((float)$r['avg_score'], 1) ?>%</span>
+                    <span class="rank-avg"><?= number_format((float)($r['average'] ?? $r['avg_score'] ?? 0), 1) ?>%</span>
                 </li>
             <?php endforeach; ?>
         <?php endif; ?>
@@ -91,10 +94,10 @@ $rb_total = count($class_leaderboard ?? []);
                             <?php $is_me = ($r['id'] === $student_id); ?>
                             <tr class="<?= $is_me ? 'rank-modal-row--me' : '' ?>">
                                 <td><strong><?= $i + 1 ?></strong></td>
-                                <td><?= e($r['roll_number']) ?></td>
+                                <td><?= e($r['roll'] ?? $r['roll_number'] ?? '') ?></td>
                                 <td><?= e($r['name']) ?><?= $is_me ? ' <span class="badge badge-primary">You</span>' : '' ?></td>
-                                <td style="text-align: right;"><strong><?= number_format((float)$r['avg_score'], 1) ?>%</strong></td>
-                                <td style="text-align: right;"><?= (int)$r['exams_taken'] ?></td>
+                                <td style="text-align: right;"><strong><?= number_format((float)($r['average'] ?? $r['avg_score'] ?? 0), 1) ?>%</strong></td>
+                                <td style="text-align: right;"><?= (int)($r['local_exams_taken'] ?? $r['exams_taken'] ?? 0) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

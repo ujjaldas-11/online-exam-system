@@ -81,7 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $success = "Registration submitted successfully! Your account is pending instructor approval. Once approved, you can log in.";
                         $_POST = [];
                     }
-                }
             } catch (PDOException $e) {
                 $error = safe_db_error($e, "Invalid Credentials");
             }
