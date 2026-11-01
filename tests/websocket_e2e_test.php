@@ -18,14 +18,15 @@ echo "========================================\n";
 $wsPort = 8095;
 $ipcPort = 8096;
 
-$cmd = "php bin/websocket-server.php {$wsPort} {$ipcPort}";
+$cmd = PHP_BINARY . " bin/websocket-server.php {$wsPort} {$ipcPort}";
+$logFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'ws_e2e_server.log';
 $descriptors = [
     0 => ['pipe', 'r'],
-    1 => ['pipe', 'w'],
-    2 => ['pipe', 'w']
+    1 => ['file', $logFile, 'w'],
+    2 => ['file', $logFile, 'w']
 ];
 
-$proc = proc_open($cmd, $descriptors, $pipes, __DIR__ . '/..');
+$proc = proc_open($cmd, $descriptors, $pipes, __DIR__ . '/..', null, ['bypass_shell' => true]);
 if (!is_resource($proc)) {
     die("Failed to start background test server process\n");
 }
@@ -138,9 +139,20 @@ try {
     fclose($wsClient);
 } finally {
     // Terminate background process
-    fclose($pipes[0]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
-    proc_terminate($proc);
-    proc_close($proc);
+    if (isset($pipes[0]) && is_resource($pipes[0])) {
+        fclose($pipes[0]);
+    }
+    if (is_resource($proc)) {
+        $status = proc_get_status($proc);
+        if (!empty($status['pid'])) {
+            if (PHP_OS_FAMILY === 'Windows') {
+                @exec("taskkill /F /T /PID " . (int)$status['pid'] . " 2>&1");
+            } else {
+                @proc_terminate($proc);
+            }
+        } else {
+            @proc_terminate($proc);
+        }
+        @proc_close($proc);
+    }
 }
