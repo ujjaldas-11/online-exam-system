@@ -249,6 +249,47 @@
   justify-content: center;
 }
 
+/* ---------- Live Exam In-Place Alert ---------- */
+.live-exam-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  border: 1px solid var(--color-primary-light);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  animation: fadeInDown 0.3s ease-out;
+}
+.live-exam-banner__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.live-exam-pulse-icon {
+  font-size: 24px;
+  color: var(--color-primary);
+  animation: live-blink 1.2s ease-in-out infinite;
+}
+.live-exam-banner__sub {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+.live-exam-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ---------- Quote banner ---------- */
 .quote-slim-banner {
   display: flex;
@@ -316,80 +357,6 @@
   }
 }
 
-/* =========================================================
-   Hall of Fame Component Styles
-========================================================= */
-.hof {
-  --hof-max-h: 225px;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #e2e8f0);
-  border-radius: var(--radius-lg, 14px);
-  padding: 14px;
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, .08));
-}
-.hof__head {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  margin-bottom: 10px; padding-bottom: 8px;
-  border-bottom: 1px solid #dbe7f7;
-}
-.hof__title {
-  display: flex; align-items: center; gap: 6px; margin: 0;
-  font-size: 0.95rem; font-weight: 800; color: var(--color-dark, #0b1b3a);
-}
-.hof__title .material-symbols-outlined { font-size: 1.3rem; color: #f5a623; }
-.hof__total {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 0.78rem; font-weight: 600; color: var(--color-text-secondary);
-}
-.hof__total .material-symbols-outlined { font-size: 1rem; color: #f5a623; }
-.hof__total b { color: var(--color-dark); font-size: 0.88rem; }
-.hof-row {
-  position: relative;
-  border-radius: 9px;
-  border: 1px solid transparent;
-  padding: 7px 10px 7px 9px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
-}
-.hof-row--goat {
-  background: linear-gradient(100deg, #1a162b 0%, #2a2044 55%, #1f1836 100%);
-  border-color: #4a3575;
-  --streak: linear-gradient(90deg, rgba(245,197,66,.15), rgba(245,197,66,.7));
-  --deco: #ffd54f; --glow: rgba(255,213,79,.35);
-  --title: #ffd54f;
-  --pill-bg: #ffd54f; --pill-text: #1a162b; --pill-border: #ffd54f;
-  --holder: #ffffff; --meta: #c4b5fd;
-  --you-bg: #ffd54f; --you-text: #1a162b;
-}
-.hof-row--legend {
-  background: linear-gradient(100deg, #1e130c 0%, #362013 55%, #24160d 100%);
-  border-color: #6d3a1e;
-  --streak: linear-gradient(90deg, rgba(251,146,60,.15), rgba(251,146,60,.7));
-  --deco: #fb923c; --glow: rgba(251,146,60,.35);
-  --title: #fdba74;
-  --pill-bg: #fdba74; --pill-text: #24160d; --pill-border: #fdba74;
-  --holder: #ffffff; --meta: #fed7aa;
-  --you-bg: #fdba74; --you-text: #24160d;
-}
-.hof-row--knight {
-  background: linear-gradient(100deg, #e8f3fa 0%, #d4eaf7 60%, #e2f0f9 100%);
-  border-color: #8ec5e9;
-  --streak: linear-gradient(90deg, rgba(14,116,144,.12), rgba(14,116,144,.55));
-  --deco: #0891b2; --glow: rgba(8,145,178,.35);
-  --title: #0e4f7a;
-  --pill-bg: #a7e4f7; --pill-text: #0b3b5a; --pill-border: #a7e4f7;
-  --holder: #0b2e4a; --meta: #4a7390;
-  --you-bg: #0b3b5a; --you-text: #fff;
-}
-.hof-row--ace {
-  background: linear-gradient(100deg, #2b2f35 0%, #3a3f46 55%, #2f343a 100%);
-  border-color: #565d66;
-  --streak: linear-gradient(90deg, rgba(170,178,188,.1), rgba(170,178,188,.5));
-  --deco: #9aa3ad; --glow: rgba(190,198,208,.35);
-  --title: #f1f3f5;
-  --pill-bg: #4a5058; --pill-text: #f1f3f5; --pill-border: #5c636c;
-  --holder: #ffffff; --meta: #a3acb6;
-  --you-bg: #f1f3f5; --you-text: #1f2328;
-}
 
 /* =========================================================
    Class Rank Board Styles
@@ -436,7 +403,7 @@
 
 /* ---------- Hall of Fame Component ---------- */
 .hof {
-    --hof-max-h: 225px;
+    --hof-max-h: 350px;
     background: var(--color-surface, #fff);
     border: 1px solid var(--color-border, #e2e8f0);
     border-radius: var(--radius-lg, 14px);

@@ -218,6 +218,12 @@ try {
     $studentsToSeed = [
         ['Alex Johnson', 'student@college.edu', $studentPass, 'BCA2401', 'BCA', 4, '9876543210', 'male', 'active', $superadminId],
         ['Priya Sharma', 'priya@college.edu', $studentPass, 'BCA2402', 'BCA', 4, '9876543211', 'female', 'active', $superadminId],
+        ['Rohan Das', 'rohan@college.edu', $studentPass, 'BCA2403', 'BCA', 4, '9876543215', 'male', 'active', $superadminId],
+        ['Ananya Sen', 'ananya@college.edu', $studentPass, 'BCA2404', 'BCA', 4, '9876543216', 'female', 'active', $superadminId],
+        ['Amit Roy', 'amit@college.edu', $studentPass, 'BCA2406', 'BCA', 4, '9876543217', 'male', 'active', $superadminId],
+        ['Sneha Mukherjee', 'sneha@college.edu', $studentPass, 'BCA2407', 'BCA', 4, '9876543218', 'female', 'active', $superadminId],
+        ['Vikram Patel', 'vikram@college.edu', $studentPass, 'BCA2408', 'BCA', 4, '9876543219', 'male', 'active', $superadminId],
+        ['Pooja Banerjee', 'pooja@college.edu', $studentPass, 'BCA2409', 'BCA', 4, '9876543220', 'female', 'active', $superadminId],
         ['Rahul Verma', 'rahul@college.edu', $studentPass, 'BBA2401', 'BBA', 2, '9876543212', 'male', 'active', $superadminId],
         ['Test Student', 'student@example.com', password_hash('password123', PASSWORD_DEFAULT), 'STU12345', 'BCA', 1, '9876543213', 'male', 'active', $superadminId],
         ['Neha Gupta', 'neha@college.edu', $studentPass, 'BCA2405', 'BCA', 4, '9876543214', 'female', 'pending', null] // Pending student request
@@ -431,32 +437,44 @@ try {
             }
         }
 
-        // Seed an attempt for Priya Sharma so leaderboards, analytics and PDF export have immediate data
-        $priyaId = (int) $pdo->query("SELECT id FROM students WHERE email = 'priya@college.edu'")->fetchColumn();
-        if ($priyaId > 0 && $examId > 0) {
-            $chkAttempt = $pdo->prepare("SELECT id FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
-            $chkAttempt->execute([$priyaId, $examId]);
-            $attemptId = $chkAttempt->fetchColumn();
+        // Seed attempts for class members so leaderboards, analytics and PDF export have immediate data
+        $classSeedAttempts = [
+            ['email' => 'priya@college.edu',  'score' => 10.00],
+            ['email' => 'pooja@college.edu',  'score' => 10.00],
+            ['email' => 'rohan@college.edu',  'score' => 9.50],
+            ['email' => 'ananya@college.edu', 'score' => 9.00],
+            ['email' => 'amit@college.edu',   'score' => 8.00],
+            ['email' => 'sneha@college.edu',  'score' => 7.00],
+            ['email' => 'vikram@college.edu', 'score' => 6.00],
+        ];
 
-            if (!$attemptId) {
-                $insAtt = $pdo->prepare("
-                    INSERT INTO exam_attempts (student_id, exam_id, total_questions, score, status, started_at, submitted_at)
-                    VALUES (?, ?, 10, 10.00, 'completed', NOW() - INTERVAL 25 MINUTE, NOW() - INTERVAL 5 MINUTE)
-                ");
-                $insAtt->execute([$priyaId, $examId]);
-                $attemptId = (int) $pdo->lastInsertId();
+        foreach ($classSeedAttempts as $cAtt) {
+            $cStuId = (int) $pdo->query("SELECT id FROM students WHERE email = '{$cAtt['email']}'")->fetchColumn();
+            if ($cStuId > 0 && $examId > 0) {
+                $chkAttempt = $pdo->prepare("SELECT id FROM exam_attempts WHERE student_id = ? AND exam_id = ?");
+                $chkAttempt->execute([$cStuId, $examId]);
+                $attemptId = $chkAttempt->fetchColumn();
 
-                $qs = $pdo->query("SELECT id, correct_option FROM questions WHERE subject_id = $osSubId LIMIT 10")->fetchAll();
-                $insAns = $pdo->prepare("
-                    INSERT INTO student_answers (attempt_id, question_id, selected_option, is_correct)
-                    VALUES (?, ?, ?, 1)
-                ");
-                foreach ($qs as $qRow) {
-                    $insAns->execute([$attemptId, $qRow['id'], $qRow['correct_option']]);
+                if (!$attemptId) {
+                    $insAtt = $pdo->prepare("
+                        INSERT INTO exam_attempts (student_id, exam_id, total_questions, score, status, started_at, submitted_at)
+                        VALUES (?, ?, 10, ?, 'completed', NOW() - INTERVAL 25 MINUTE, NOW() - INTERVAL 5 MINUTE)
+                    ");
+                    $insAtt->execute([$cStuId, $examId, $cAtt['score']]);
+                    $attemptId = (int) $pdo->lastInsertId();
+
+                    $qs = $pdo->query("SELECT id, correct_option FROM questions WHERE subject_id = $osSubId LIMIT 10")->fetchAll();
+                    $insAns = $pdo->prepare("
+                        INSERT INTO student_answers (attempt_id, question_id, selected_option, is_correct)
+                        VALUES (?, ?, ?, 1)
+                    ");
+                    foreach ($qs as $qRow) {
+                        $insAns->execute([$attemptId, $qRow['id'], $qRow['correct_option']]);
+                    }
                 }
-                out("Seeded completed attempt for Priya Sharma (Score: 10.00 / 10).", $isCli, 'success');
             }
         }
+        out("Seeded completed attempts for Priya Sharma and class cohort.", $isCli, 'success');
     }
 
     // 4.5 Record Initial Audit Log
