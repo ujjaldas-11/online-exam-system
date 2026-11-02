@@ -853,12 +853,12 @@ class PdfService
     }
 
     /**
-     * Draws a pure Black & White circular OMR bubble in FPDF.
+     * Draws a standard, easy-to-fill Black & White circular OMR bubble in FPDF.
      */
-    private static function drawOmrBubble($pdf, float $cx, float $cy, float $r, string $label = ''): void
+    private static function drawOmrBubble($pdf, float $cx, float $cy, float $r, string $label = '', float $fontSize = 7.5): void
     {
         $pdf->SetDrawColor(0, 0, 0);
-        $steps = 20;
+        $steps = 28;
         $prevX = $cx + $r;
         $prevY = $cy;
         for ($i = 1; $i <= $steps; $i++) {
@@ -870,15 +870,15 @@ class PdfService
             $prevY = $ny;
         }
         if ($label !== '') {
-            $pdf->SetFont('Helvetica', 'B', 5.5);
+            $pdf->SetFont('Helvetica', 'B', $fontSize);
             $pdf->SetTextColor(0, 0, 0);
-            $pdf->SetXY($cx - $r, $cy - ($r * 0.65));
-            $pdf->Cell($r * 2, $r * 1.3, $label, 0, 0, 'C');
+            $pdf->SetXY($cx - $r, $cy - ($r * 0.68));
+            $pdf->Cell($r * 2, $r * 1.36, $label, 0, 0, 'C');
         }
     }
 
     /**
-     * Renders the BIST Purulia OMR Sheet on a dedicated PDF page in pure Black & White.
+     * Renders the standard full-page BIST Purulia OMR Sheet (Fixed 50 Questions, Blank Part-A, Left Logo).
      */
     private static function renderOmrSheetPage($pdf, array $exam, int $totalQuestions, string $setNo): void
     {
@@ -891,160 +891,134 @@ class PdfService
         $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFillColor(255, 255, 255);
-        $pdf->SetLineWidth(0.25);
+        $pdf->SetLineWidth(0.3);
 
-        // ---------------- OMR INSTITUTION HEADER ----------------
-        $pdf->SetY(10);
-        $pdf->SetFont('Helvetica', 'B', 8.5);
+        // ---------------- OMR INSTITUTION HEADER WITH LEFT LOGO ----------------
+        $logoCandidates = [
+            __DIR__ . '/../../assets/images/college_logo_.png',
+            __DIR__ . '/../assets/images/college_logo_.png',
+            __DIR__ . '/college_logo_.png',
+            ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/assets/images/college_logo_.png',
+        ];
+        foreach ($logoCandidates as $logoPath) {
+            if (is_file($logoPath)) {
+                // Draw logo on the left side of the heading (X=11mm, Y=8mm, Width=19mm)
+                $pdf->Image($logoPath, 11, 8, 19, 19);
+                break;
+            }
+        }
+
+        // Paper Set indicator on the top right
+        $pdf->SetY(9);
+        $pdf->SetFont('Helvetica', 'B', 9.5);
+        $pdf->SetX(165);
+        $pdf->Cell(35, 5, 'SET: ' . $setNo, 0, 0, 'R');
+
+        // Main Heading shifted slightly right to balance the left logo
+        $pdf->SetY(9.5);
+        $pdf->SetFont('Times', 'B', 14);
+        $pdf->SetX(30);
+        $pdf->Cell(150, 6, 'BENGAL INSTITUTE OF SCIENCE AND TECHNOLOGY', 0, 1, 'C');
+
+        $pdf->SetFont('Times', '', 10.5);
+        $pdf->SetX(30);
+        $pdf->Cell(150, 5, '(Affiliated to Sidho-Kanho-Birsha University, Purulia)', 0, 1, 'C');
+
+        $pdf->SetFont('Times', 'B', 12);
+        $pdf->SetX(30);
+        $pdf->Cell(150, 6, 'OMR ANSWER SHEET', 0, 1, 'C');
+
+        // ---------------- PART-A (ALL FIELDS BLANK FOR HANDWRITING) ----------------
+        $pdf->SetY(28.5);
+        $pdf->SetFont('Helvetica', 'B', 10);
         $pdf->SetX(10);
-        $pdf->Cell(35, 5, 'SET: ' . $setNo, 0, 0, 'L');
-
-        $pdf->SetFont('Times', 'B', 13);
-        $pdf->SetX(10);
-        $pdf->Cell(190, 5, 'BENGAL INSTITUTE OF SCIENCE AND TECHNOLOGY', 0, 1, 'C');
-
-        $pdf->SetFont('Times', '', 9.5);
-        $pdf->Cell(190, 4.5, '(Affiliated to Sidho-Kanho-Birsha University, Purulia)', 0, 1, 'C');
-
-        $pdf->SetFont('Times', 'B', 10.5);
-        $pdf->Cell(190, 5.5, 'OMR ANSWER SHEET', 0, 1, 'C');
-        $pdf->Ln(1);
-
-        // ---------------- PART-A ----------------
-        $pdf->SetFont('Helvetica', 'B', 8.5);
-        $pdf->Cell(190, 4.5, 'PART-A', 0, 1, 'L');
+        $pdf->Cell(190, 5, 'PART-A', 0, 1, 'L');
 
         $partAY = $pdf->GetY();
-        $pdf->SetLineWidth(0.4);
-        $pdf->Rect(10, $partAY, 190, 33);
-        $pdf->SetLineWidth(0.2);
+        $partAH = 42.0; // Generous height for comfortable student handwriting
+        $pdf->SetLineWidth(0.45);
+        $pdf->Rect(10, $partAY, 190, $partAH);
+        $pdf->SetLineWidth(0.25);
 
-        $title   = self::safe((string) ($exam['title'] ?? ''));
-        $subject = self::safe((string) ($exam['subject_name'] ?? $exam['subject'] ?? ''));
-        $dept    = self::safe((string) ($exam['department'] ?? ''));
-        $sem     = self::safe((string) ($exam['semester'] ?? ''));
-        $ts      = !empty($exam['exam_date']) ? strtotime((string) $exam['exam_date']) : time();
-        $dateStr = date('d / m / Y', $ts);
-        $yearStr = date('Y', $ts);
+        // Helper for drawing a label with a crisp dotted writing line
+        $drawBlankField = function (float $x, float $y, string $label, float $labelW, float $lineW) use ($pdf) {
+            $pdf->SetXY($x, $y);
+            $pdf->SetFont('Times', 'B', 10.5);
+            $pdf->Cell($labelW, 6, $label, 0, 0, 'L');
 
-        // Row 1: Name of the Examination & Year
-        $pdf->SetXY(13, $partAY + 2.5);
-        $pdf->SetFont('Times', '', 9.5);
-        $pdf->Cell(38, 5, 'Name of the Examination', 0, 0, 'L');
-        $pdf->SetFont('Times', 'B', 9.5);
-        $pdf->Cell(95, 5, '  ' . $title, 0, 0, 'L');
-        $pdf->SetFont('Times', '', 8);
-        $pdf->SetXY(51, $partAY + 4);
-        $pdf->Cell(95, 5, str_repeat('.', 78), 0, 0, 'L');
+            $dotsCount = max(5, (int) floor($lineW / 1.55));
+            $pdf->SetFont('Times', '', 9.5);
+            $pdf->SetXY($x + $labelW, $y + 1.2);
+            $pdf->Cell($lineW, 5, str_repeat('.', $dotsCount), 0, 0, 'L');
+        };
 
-        $pdf->SetXY(148, $partAY + 2.5);
-        $pdf->SetFont('Times', '', 9.5);
-        $pdf->Cell(10, 5, 'Year', 0, 0, 'L');
-        $pdf->SetFont('Times', 'B', 9.5);
-        $pdf->Cell(38, 5, '  ' . $yearStr, 0, 0, 'L');
-        $pdf->SetFont('Times', '', 8);
-        $pdf->SetXY(158, $partAY + 4);
-        $pdf->Cell(38, 5, str_repeat('.', 30), 0, 0, 'L');
+        // Row 1: Name of the Examination (Blank) & Year (Blank)
+        $drawBlankField(13, $partAY + 2.5, 'Name of the Examination', 43, 92);
+        $drawBlankField(148, $partAY + 2.5, 'Year', 11, 38);
 
         // Row 2: Name of the Student (Blank)
-        $pdf->SetXY(13, $partAY + 8.5);
-        $pdf->SetFont('Times', '', 9.5);
-        $pdf->Cell(32, 5, 'Name of the Student', 0, 0, 'L');
-        $pdf->SetFont('Times', '', 8);
-        $pdf->SetXY(45, $partAY + 10);
-        $pdf->Cell(150, 5, str_repeat('.', 126), 0, 0, 'L');
+        $drawBlankField(13, $partAY + 10.5, 'Name of the Student', 36, 148);
 
-        // Row 3: Roll (Blank), Stream, Semester
-        $pdf->SetXY(13, $partAY + 14.5);
-        $pdf->SetFont('Times', '', 9.5);
-        $pdf->Cell(9, 5, 'Roll', 0, 0, 'L');
-        $pdf->SetFont('Times', '', 8);
-        $pdf->SetXY(22, $partAY + 16);
-        $pdf->Cell(50, 5, str_repeat('.', 42), 0, 0, 'L');
+        // Row 3: Roll (Blank), Stream (Blank), Semester (Blank)
+        $drawBlankField(13, $partAY + 18.5, 'Roll', 10, 50);
+        $drawBlankField(76, $partAY + 18.5, 'Stream', 15, 42);
+        $drawBlankField(136, $partAY + 18.5, 'Semester', 18, 43);
 
-        $pdf->SetXY(74, $partAY + 14.5);
-        $pdf->SetFont('Times', '', 9.5);
-        $pdf->Cell(13, 5, 'Stream', 0, 0, 'L');
-        $pdf->SetFont('Times', 'B', 9.5);
-        $pdf->Cell(42, 5, '  ' . $dept, 0, 0, 'L');
-        $pdf->SetFont('Times', '', 8);
-        $pdf->SetXY(87, $partAY + 16);
-        $pdf->Cell(42, 5, str_repeat('.', 35), 0, 0, 'L');
+        // Row 4: Subject (Blank)
+        $drawBlankField(13, $partAY + 26.5, 'Subject', 16, 168);
 
-        $pdf->SetXY(131, $partAY + 14.5);
-        $pdf->SetFont('Times', '', 9.5);
-        $pdf->Cell(16, 5, 'Semester', 0, 0, 'L');
-        $pdf->SetFont('Times', 'B', 9.5);
-        $pdf->Cell(48, 5, '  ' . $sem, 0, 0, 'L');
-        $pdf->SetFont('Times', '', 8);
-        $pdf->SetXY(147, $partAY + 16);
-        $pdf->Cell(48, 5, str_repeat('.', 40), 0, 0, 'L');
+        // Row 5: Date of Examination (Blank)
+        $drawBlankField(13, $partAY + 34.5, 'Date of Examination', 37, 147);
 
-        // Row 4: Subject
-        $pdf->SetXY(13, $partAY + 20.5);
-        $pdf->SetFont('Times', '', 9.5);
-        $pdf->Cell(14, 5, 'Subject', 0, 0, 'L');
-        $pdf->SetFont('Times', 'B', 9.5);
-        $pdf->Cell(168, 5, '  ' . $subject, 0, 0, 'L');
-        $pdf->SetFont('Times', '', 8);
-        $pdf->SetXY(27, $partAY + 22);
-        $pdf->Cell(168, 5, str_repeat('.', 140), 0, 0, 'L');
-
-        // Row 5: Date of Examination
-        $pdf->SetXY(13, $partAY + 26.5);
-        $pdf->SetFont('Times', '', 9.5);
-        $pdf->Cell(32, 5, 'Date of Examination', 0, 0, 'L');
-        $pdf->SetFont('Times', 'B', 9.5);
-        $pdf->Cell(150, 5, '  ' . $dateStr, 0, 0, 'L');
-        $pdf->SetFont('Times', '', 8);
-        $pdf->SetXY(45, $partAY + 28);
-        $pdf->Cell(150, 5, str_repeat('.', 126), 0, 0, 'L');
-
-        // ---------------- PART-B ----------------
-        $pdf->SetY($partAY + 35);
-        $pdf->SetFont('Helvetica', 'B', 8.5);
-        $pdf->Cell(190, 4.5, 'PART-B', 0, 1, 'L');
+        // ---------------- PART-B (LARGER READABLE BUBBLES & LABELS) ----------------
+        $pdf->SetY($partAY + $partAH + 2.5);
+        $pdf->SetFont('Helvetica', 'B', 10);
+        $pdf->SetX(10);
+        $pdf->Cell(190, 5, 'PART-B', 0, 1, 'L');
 
         $partBY = $pdf->GetY();
-        $boxH = 56.0;
+        $boxH = 66.0; // Expanded height for larger bubbles
 
         $drawDigitBlock = function (float $x, float $y, float $w, string $heading, int $cols, bool $hyphen = false) use ($pdf, $boxH) {
-            $pdf->SetLineWidth(0.4);
+            $pdf->SetLineWidth(0.45);
             $pdf->Rect($x, $y, $w, $boxH);
-            $pdf->SetLineWidth(0.2);
+            $pdf->SetLineWidth(0.25);
 
-            $pdf->SetFont('Helvetica', 'B', 6.5);
+            // Header
+            $pdf->SetFont('Helvetica', 'B', 8);
             $pdf->SetXY($x, $y);
-            $pdf->Cell($w, 4.2, $heading, 'B', 0, 'C');
+            $pdf->Cell($w, 5.0, $heading, 'B', 0, 'C');
 
             $totalCols = $hyphen ? $cols + 1 : $cols;
             $half = intdiv($cols, 2);
             $cw = $w / $totalCols;
 
-            $boxRowY = $y + 4.2;
-            $boxRowH = 5.2;
+            // Write-in square boxes row
+            $boxRowY = $y + 5.0;
+            $boxRowH = 6.2;
             for ($c = 0; $c < $totalCols; $c++) {
                 $cx = $x + ($c * $cw);
                 $pdf->Rect($cx, $boxRowY, $cw, $boxRowH);
                 if ($hyphen && $c === $half) {
-                    $pdf->SetFont('Helvetica', 'B', 7);
+                    $pdf->SetFont('Helvetica', 'B', 8.5);
                     $pdf->SetXY($cx, $boxRowY);
                     $pdf->Cell($cw, $boxRowH, '-', 0, 0, 'C');
                 }
             }
 
-            $startBubbleY = $boxRowY + $boxRowH + 2.4;
-            $rowStep = 4.5;
+            // 0 to 9 Bubble Rows (Larger radius 2.0mm, Font 7pt)
+            $startBubbleY = $boxRowY + $boxRowH + 3.0;
+            $rowStep = 5.35;
             for ($d = 0; $d <= 9; $d++) {
                 $cy = $startBubbleY + ($d * $rowStep);
                 for ($c = 0; $c < $totalCols; $c++) {
                     $cx = $x + ($c * $cw) + ($cw / 2);
                     if ($hyphen && $c === $half) {
-                        $pdf->SetFont('Helvetica', 'B', 6.5);
+                        $pdf->SetFont('Helvetica', 'B', 8);
                         $pdf->SetXY($cx - 2, $cy - 1.5);
                         $pdf->Cell(4, 3, '-', 0, 0, 'C');
                     } else {
-                        self::drawOmrBubble($pdf, $cx, $cy, 1.65, (string) $d);
+                        self::drawOmrBubble($pdf, $cx, $cy, 2.0, (string) $d, 7.0);
                     }
                 }
             }
@@ -1054,92 +1028,105 @@ class PdfService
         $drawDigitBlock(10, $partBY, 14, 'ROLL', 2, false);
 
         // 2. REG. NO. (6 cols)
-        $drawDigitBlock(26, $partBY, 39, 'REG. NO.', 6, false);
+        $drawDigitBlock(25.5, $partBY, 39, 'REG. NO.', 6, false);
 
         // 3. YEAR (8 cols + hyphen)
-        $drawDigitBlock(67, $partBY, 56, 'YEAR', 8, true);
+        $drawDigitBlock(66, $partBY, 55, 'YEAR', 8, true);
 
-        // 4. UG SEM & STREAM Block (Split Semesters into 2 columns)
-        $ugX = 125;
-        $ugW = 22;
-        $pdf->SetLineWidth(0.4);
+        // 4. UG SEM (8 sems in 2 cols) & STREAM Block
+        $ugX = 122.5;
+        $ugW = 26.5;
+        $pdf->SetLineWidth(0.45);
         $pdf->Rect($ugX, $partBY, $ugW, $boxH);
-        $pdf->SetLineWidth(0.2);
+        $pdf->SetLineWidth(0.25);
 
-        $pdf->SetFont('Helvetica', 'B', 6.5);
+        $pdf->SetFont('Helvetica', 'B', 8);
         $pdf->SetXY($ugX, $partBY);
-        $pdf->Cell($ugW, 4.2, 'UG SEM', 'B', 0, 'C');
+        $pdf->Cell($ugW, 5.0, 'UG SEM', 'B', 0, 'C');
 
-        // 8 Semesters arranged in 2 columns (4 rows each)
         $semItems = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
         foreach ($semItems as $idx => $sLabel) {
-            $colIdx = intdiv($idx, 4); // 0 for left col, 1 for right col
-            $rowIdx = $idx % 4;        // 0 to 3
-            
-            $rx = $ugX + 1.5 + ($colIdx * 10.5);
-            $ry = $partBY + 7.0 + ($rowIdx * 4.2);
+            $colIdx = intdiv($idx, 4);
+            $rowIdx = $idx % 4;
 
-            $pdf->SetFont('Times', 'B', 6.5);
+            $rx = $ugX + 1.2 + ($colIdx * 12.8);
+            $ry = $partBY + 8.0 + ($rowIdx * 5.0);
+
+            $pdf->SetFont('Times', 'B', 7.5);
             $pdf->SetXY($rx, $ry - 1.5);
-            $pdf->Cell(7, 3, $sLabel . '-', 0, 0, 'L');
-            self::drawOmrBubble($pdf, $rx + 7.5, $ry, 1.35, '');
+            $pdf->Cell(7.5, 3, $sLabel, 0, 0, 'L');
+            self::drawOmrBubble($pdf, $rx + 9.2, $ry, 1.75, '', 6.5);
         }
 
         // STREAM Section below semesters
-        $streamHeaderY = $partBY + 25.0;
-        $pdf->SetFont('Helvetica', 'B', 6.5);
+        $streamHeaderY = $partBY + 27.5;
+        $pdf->SetFont('Helvetica', 'B', 8);
         $pdf->SetXY($ugX, $streamHeaderY);
-        $pdf->Cell($ugW, 4.2, 'STREAM', 'TB', 0, 'C');
+        $pdf->Cell($ugW, 4.8, 'STREAM', 'TB', 0, 'C');
 
-        $streams = ['BBA', 'BCA', 'AEC', 'SEC', 'MDC', 'VAC'];
+        // Main Streams (BBA, BCA)
+        $main_streams = ['BBA', 'BCA'];
+        foreach ($main_streams as $idx => $stLabel) {
+            $ry = $streamHeaderY + 7.2 + ($idx * 5.0);
+            $pdf->SetFont('Times', 'B', 7.5);
+            $pdf->SetXY($ugX + 2.5, $ry - 1.5);
+            $pdf->Cell(14, 3, $stLabel . '  -', 0, 0, 'L');
+            self::drawOmrBubble($pdf, $ugX + $ugW - 5.0, $ry, 1.85, '', 6.5);
+        }
+
+        $lineY = $streamHeaderY + 15.2;
+        $pdf->Line($ugX, $lineY, $ugX + $ugW, $lineY);
+
+        $streams = ['AEC', 'SEC', 'MDC', 'VAC'];
         foreach ($streams as $idx => $stLabel) {
-            $ry = $streamHeaderY + 6.5 + ($idx * 3.7);
-            $pdf->SetFont('Times', '', 6);
-            $pdf->SetXY($ugX + 1.5, $ry - 1.5);
-            $pdf->Cell(12, 3, $stLabel . ' -', 0, 0, 'L');
-            self::drawOmrBubble($pdf, $ugX + $ugW - 4.0, $ry, 1.4, '');
+            $ry = $lineY + 3.5 + ($idx * 5.0);
+            $pdf->SetFont('Times', 'B', 7.5);
+            $pdf->SetXY($ugX + 2.5, $ry - 1.5);
+            $pdf->Cell(14, 3, $stLabel . '  -', 0, 0, 'L');
+            self::drawOmrBubble($pdf, $ugX + $ugW - 5.0, $ry, 1.85, '', 6.5);
         }
 
         // 5. EXAM YEAR (4 cols)
-        $drawDigitBlock(149, $partBY, 27, 'EXAM YEAR', 4, false);
+        $drawDigitBlock(150.5, $partBY, 27, 'EXAM YEAR', 4, false);
 
         // 6. Pure Black Timing Track Bars on Right Edge
         $pdf->SetFillColor(0, 0, 0);
         for ($b = 0; $b < 29; $b++) {
-            $by = $partBY + ($b * 1.95);
-            $pdf->Rect(181, $by, 9, 1.0, 'F');
+            $by = $partBY + ($b * 2.31);
+            $pdf->Rect(181, $by, 9, 1.15, 'F');
         }
         $pdf->SetFillColor(255, 255, 255);
 
-        // ---------------- PART-C (DYNAMIC QUESTION GRID) ----------------
-        $pdf->SetY($partBY + $boxH + 3);
-        $pdf->SetFont('Helvetica', 'B', 8.5);
-        $pdf->Cell(190, 4.5, 'PART-C', 0, 1, 'L');
+        // ---------------- PART-C (FIXED 50 QUESTIONS, STANDARD LARGE BUBBLES) ----------------
+        $pdf->SetY($partBY + $boxH + 2.5);
+        $pdf->SetFont('Helvetica', 'B', 10);
+        $pdf->SetX(10);
+        $pdf->Cell(190, 5, 'PART-C', 0, 1, 'L');
 
         $partCY = $pdf->GetY();
+        $fixedQuestions = 50; // Strictly fixed at 50 questions for every exam
         $cols = 5;
-        $perCol = max(5, (int) ceil($totalQuestions / $cols));
+        $perCol = 10;         // 10 rows per column (1-10, 11-20, 21-30, 31-40, 41-50)
 
-        $maxGridH = 100.0;
-        $rowH = min(5.4, max(3.8, $maxGridH / $perCol));
-        $gridH = $perCol * $rowH;
-        $colW = 190.0 / $cols;
+        $rowH = 9.0;          // Tall 9mm row height for effortless student shading
+        $gridH = $perCol * $rowH; // 90mm total height
+        $colW = 190.0 / $cols;    // 38mm per column
 
-        $pdf->SetLineWidth(0.4);
+        $pdf->SetLineWidth(0.45);
         $pdf->Rect(10, $partCY, 190, $gridH);
-        $pdf->SetLineWidth(0.2);
+        $pdf->SetLineWidth(0.25);
 
-        $bubbleRadius = min(1.65, ($rowH * 0.35));
+        $bubbleRadius = 2.5; // Standard 5.0mm diameter OMR answer bubble
 
         for ($c = 0; $c < $cols; $c++) {
             $cx = 10 + ($c * $colW);
             if ($c > 0) {
-                $pdf->SetLineWidth(0.4);
+                $pdf->SetLineWidth(0.45);
                 $pdf->Line($cx, $partCY, $cx, $partCY + $gridH);
-                $pdf->SetLineWidth(0.2);
+                $pdf->SetLineWidth(0.25);
             }
 
-            $numBoxW = 7.5;
+            $numBoxW = 8.5;
             $pdf->Line($cx + $numBoxW, $partCY, $cx + $numBoxW, $partCY + $gridH);
 
             for ($r = 0; $r < $perCol; $r++) {
@@ -1149,8 +1136,8 @@ class PdfService
                 }
 
                 $qNum = ($c * $perCol) + $r + 1;
-                if ($qNum <= $totalQuestions) {
-                    $pdf->SetFont('Times', 'B', 8);
+                if ($qNum <= $fixedQuestions) {
+                    $pdf->SetFont('Times', 'B', 10.5);
                     $pdf->SetTextColor(0, 0, 0);
                     $pdf->SetXY($cx, $ry);
                     $pdf->Cell($numBoxW, $rowH, (string) $qNum, 0, 0, 'C');
@@ -1160,35 +1147,32 @@ class PdfService
                     foreach ($opts as $oIdx => $letter) {
                         $bx = $cx + $numBoxW + ($oIdx * $optSpace) + ($optSpace / 2);
                         $by = $ry + ($rowH / 2);
-                        self::drawOmrBubble($pdf, $bx, $by, $bubbleRadius, $letter);
+                        self::drawOmrBubble($pdf, $bx, $by, $bubbleRadius, $letter, 8.0);
                     }
                 }
             }
         }
 
         // ---------------- BOTTOM SIGNATURE BOXES ----------------
-        $sigY = max($partCY + $gridH + 5, 262);
-        if ($sigY + 18 > 285) {
-            $sigY = 268;
-        }
+        $sigY = $partCY + $gridH + 3.5;
+        $sigH = 15.0;
 
-        $pdf->SetLineWidth(0.35);
-        $pdf->Rect(10, $sigY, 88, 16);
-        $pdf->Rect(112, $sigY, 88, 16);
-        $pdf->SetLineWidth(0.2);
+        $pdf->SetLineWidth(0.4);
+        $pdf->Rect(10, $sigY, 88, $sigH);
+        $pdf->Rect(112, $sigY, 88, $sigH);
+        $pdf->SetLineWidth(0.25);
 
-        $pdf->SetFont('Times', '', 7.5);
-        $pdf->SetXY(10, $sigY + 11.5);
+        $pdf->SetFont('Times', 'B', 8.5);
+        $pdf->SetXY(10, $sigY + $sigH - 4.5);
         $pdf->Cell(88, 4, 'FULL SIGNATURE OF THE CANDIDATE', 0, 0, 'C');
 
-        $pdf->SetXY(112, $sigY + 11.5);
+        $pdf->SetXY(112, $sigY + $sigH - 4.5);
         $pdf->Cell(88, 4, 'SIGNATURE OF THE INVIGILATOR WITH DATE', 0, 0, 'C');
 
         // Restore header state for Part 2 (Master Answer Key)
         $pdf->hideHeader = $prevHideHeader;
     }
-    /*
-     * =================================================================
+    /* =================================================================
      * 3. Student Detailed Answer Sheet (Student Review Page)
      * =================================================================
      */
