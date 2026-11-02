@@ -80,6 +80,13 @@ foreach ($available_exams as $exam) {
     $processed_exams[] = $exam;
 }
 
+$actionable_active_ids = [];
+foreach ($processed_exams as $pe) {
+    if (($pe['category'] ?? '') === 'active' && ($pe['attempt_status'] ?? '') !== 'completed' && ($pe['attempt_status'] ?? '') !== 'disqualified') {
+        $actionable_active_ids[] = (int) $pe['id'];
+    }
+}
+
 // --- 2. LEADERBOARD & BADGE CALCULATION LOGIC ---
 try {
     // Fetch TOTAL exams conducted per Dept & Semester (For GOAT logic)
@@ -267,6 +274,25 @@ include __DIR__ . '/../components/student-navbar.php';
                 <span class="quote-author">&mdash; Examify</span>
             </div>
 
+            <!-- Live Exam Alert Banner -->
+            <div id="liveExamAlert" class="live-exam-banner" style="display: none;" role="alert" aria-live="assertive">
+                <div class="live-exam-banner__left">
+                    <span class="material-symbols-outlined live-exam-pulse-icon">sensors</span>
+                    <div>
+                        <strong id="liveExamAlertTitle">New Exam Live</strong>
+                        <span class="live-exam-banner__sub">A new examination is now available for your class.</span>
+                    </div>
+                </div>
+                <div class="live-exam-banner__actions">
+                    <button type="button" class="btn btn-sm btn-primary" id="btnLiveExamRefresh">
+                        <span class="material-symbols-outlined">refresh</span> Update Exams
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline" id="btnLiveExamDismiss" aria-label="Dismiss">
+                        Dismiss
+                    </button>
+                </div>
+            </div>
+
             <!-- Filter Bar -->
             <div style="display: flex; justify-content: space-between; gap: 2px;">
                 <div style="width: 95%;">
@@ -364,17 +390,77 @@ include __DIR__ . '/../components/student-navbar.php';
 </div>
 
 <script>
-    // Auto-refresh: reload when a new exam goes live
-    let currentExamCount = <?= (int) $active_count ?>;
-    setInterval(async function () {
+    // Live exam synchronization without constant full-page reloads
+    let knownActiveIds = <?= json_encode($actionable_active_ids) ?>;
+
+    async function refreshExamGridSilently() {
         try {
+            const res = await fetch(window.location.href);
+            const html = await res.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const newGrid = doc.querySelector('.exam-grid') || doc.querySelector('.dash-empty');
+            const currentContainer = document.querySelector('.exam-grid') || document.querySelector('.dash-empty');
+            if (newGrid && currentContainer) {
+                currentContainer.replaceWith(newGrid);
+            }
+
+            const newPagination = doc.querySelector('.pagination-wrap');
+            const currentPagination = document.querySelector('.pagination-wrap');
+            if (newPagination && currentPagination) {
+                currentPagination.replaceWith(newPagination);
+            }
+        } catch (e) {
+            window.location.reload();
+        }
+    }
+
+    let isCheckingExams = false;
+    setInterval(async function () {
+        if (isCheckingExams || document.hidden) return;
+        try {
+            isCheckingExams = true;
             const response = await fetch('check-exams.php');
             const data = await response.json();
-            if (data.active_exams > currentExamCount) {
-                window.location.reload();
+
+            if (Array.isArray(data.active_ids)) {
+                const newExams = data.active_ids.filter(id => !knownActiveIds.includes(id));
+                if (newExams.length > 0) {
+                    knownActiveIds = data.active_ids;
+
+                    const isModalOpen = document.querySelector('.admin-modal-overlay.active, .modal-overlay.active') !== null;
+                    const isTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+
+                    if (isModalOpen || isTyping) {
+                        const alertEl = document.getElementById('liveExamAlert');
+                        if (alertEl) {
+                            const titleEl = document.getElementById('liveExamAlertTitle');
+                            if (titleEl && Array.isArray(data.titles) && data.titles.length > 0) {
+                                titleEl.textContent = 'Live: ' + data.titles[0];
+                            }
+                            alertEl.style.display = 'flex';
+                        }
+                    } else {
+                        await refreshExamGridSilently();
+                    }
+                }
             }
-        } catch (error) {}
-    }, 10000);
+        } catch (error) {
+        } finally {
+            isCheckingExams = false;
+        }
+    }, 15000);
+
+    document.getElementById('btnLiveExamRefresh')?.addEventListener('click', async () => {
+        const alertEl = document.getElementById('liveExamAlert');
+        if (alertEl) alertEl.style.display = 'none';
+        await refreshExamGridSilently();
+    });
+    document.getElementById('btnLiveExamDismiss')?.addEventListener('click', () => {
+        const alertEl = document.getElementById('liveExamAlert');
+        if (alertEl) alertEl.style.display = 'none';
+    });
 </script>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>
