@@ -33,6 +33,7 @@ $assetVersion = asset_version();
         }
 
         const debouncedFilter = debounce(filterTableRows, 300);
+        searchInput.addEventListener('input', debouncedFilter);
         searchInput.addEventListener('keyup', debouncedFilter);
     });
 </script>

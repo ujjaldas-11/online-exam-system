@@ -76,7 +76,10 @@ $top_leaders = $top_10 ?? [];
         </div>
 
         <div style="margin: 0; padding: 0 1rem;">
-            <?php include __DIR__ . '/../components/searchbar.php'; ?>
+            <?php
+            $search_placeholder = 'Search classmate by name or roll...';
+            include __DIR__ . '/../components/searchbar.php';
+            ?>
         </div>
 
         <div class="rank-modal-scroll">
