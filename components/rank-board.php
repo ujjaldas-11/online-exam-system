@@ -66,11 +66,13 @@ $top_leaders = $top_10 ?? [];
 </aside>
 
 <!-- Full rank modal -->
-<div class="modal-overlay" id="rankModal" role="dialog" aria-modal="true" aria-labelledby="rankModalTitle">
-    <div class="modal modal-lg">
-        <div class="modal-header">
-            <h3 class="modal-title" id="rankModalTitle">Class Leaderboard</h3>
-            <button class="modal-close" id="rankModalClose" type="button" aria-label="Close modal">&times;</button>
+<div class="admin-modal-overlay modal-overlay" id="rankModal" role="dialog" aria-modal="true" aria-labelledby="rankModalTitle">
+    <div class="admin-modal-card admin-modal-card-wide modal modal-lg">
+        <div class="admin-modal-header modal-header">
+            <h3 class="modal-title" id="rankModalTitle"><span class="material-symbols-outlined">leaderboard</span> Class Leaderboard</h3>
+            <button class="admin-modal-close modal-close" id="rankModalClose" type="button" aria-label="Close modal">
+                <span class="material-symbols-outlined">close</span>
+            </button>
         </div>
 
         <div style="margin: 0; padding: 0 1rem;">

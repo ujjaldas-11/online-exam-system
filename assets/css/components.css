@@ -276,8 +276,9 @@ input[type="password"]::-ms-clear,
   line-height: 1;
 }
 
-/* Admin In-DOM Modal System */
-.admin-modal-overlay {
+/* Admin & Global In-DOM Modal System */
+.admin-modal-overlay,
+.modal-overlay {
   position: fixed;
   inset: 0;
   background: color-mix(in srgb, var(--color-dark) 60%, transparent);
@@ -291,11 +292,13 @@ input[type="password"]::-ms-clear,
   overflow-y: auto;
 }
 
-.admin-modal-overlay.active {
+.admin-modal-overlay.active,
+.modal-overlay.active {
   display: flex;
 }
 
-.admin-modal-card {
+.admin-modal-card,
+.modal {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   width: 100%;
@@ -306,7 +309,9 @@ input[type="password"]::-ms-clear,
   animation: modalFadeIn 0.2s ease-out;
 }
 
-.admin-modal-card-wide {
+.admin-modal-card-wide,
+.modal.modal-lg,
+.modal-lg {
   max-width: 680px;
 }
 
@@ -321,7 +326,8 @@ input[type="password"]::-ms-clear,
   }
 }
 
-.admin-modal-header {
+.admin-modal-header,
+.modal-header {
   padding: 16px 22px;
   border-bottom: 1px solid var(--color-border);
   display: flex;
@@ -330,7 +336,9 @@ input[type="password"]::-ms-clear,
   background: var(--color-bg);
 }
 
-.admin-modal-header h3 {
+.admin-modal-header h3,
+.modal-header h3,
+.modal-title {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
@@ -341,7 +349,8 @@ input[type="password"]::-ms-clear,
   gap: 8px;
 }
 
-.admin-modal-close {
+.admin-modal-close,
+.modal-close {
   background: transparent;
   border: none;
   font-size: 1.25rem;
@@ -357,16 +366,19 @@ input[type="password"]::-ms-clear,
     color 0.15s ease;
 }
 
-.admin-modal-close:hover {
+.admin-modal-close:hover,
+.modal-close:hover {
   background: var(--color-gray-100);
   color: var(--color-dark);
 }
 
-.admin-modal-body {
+.admin-modal-body,
+.modal-body {
   padding: 22px;
 }
 
-.admin-modal-footer {
+.admin-modal-footer,
+.modal-footer {
   padding: 14px 22px;
   border-top: 1px solid var(--color-border);
   background: var(--color-bg);
