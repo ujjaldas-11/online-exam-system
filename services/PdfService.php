@@ -622,177 +622,216 @@ class PdfService
 
     public static function generateOfflineExamPaperPdf(array $exam, array $questions, string $mode = 'P'): string
     {
+        global $pdo;
         $pdf = new ExamifyPdf('P', 'mm', 'A4');
-        $pdf->hideHeader = false;
+        $pdf->hideHeader = true;  // Use custom compact top-centered header
         $pdf->examTitle = (string) ($exam['title'] ?? 'Examination Paper');
         $pdf->footerSubtext = 'Official Offline Question Paper';
 
-        if (isset($exam['set_no']) && is_numeric($exam['set_no'])) {
-            $setNo = sprintf('%03d', (int) $exam['set_no']);
-        } else {
+        $examId = (int) ($exam['id'] ?? 0);
+        $setNo = '001'; // Default fallback
+
+        if ($examId > 0 && $pdo) {
+            // Ensure session is started for the debounce timer
             if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
                 session_start();
             }
-            $examKey = 'exam_' . md5((string) ($exam['id'] ?? $exam['title'] ?? 'default'));
 
-            if (!isset($_SESSION['pdf_set_counter'][$examKey])) {
-                $_SESSION['pdf_set_counter'][$examKey] = 1;
+            $sessionKey = 'last_printed_exam_' . $examId;
+            $now = time();
+
+            // FPDF Double-Request Fix: If requested again within 5 seconds, DO NOT increment.
+            if (isset($_SESSION[$sessionKey]) && ($now - $_SESSION[$sessionKey]) < 5) {
+                
+                // Just fetch the last generated set number
+                $stmt = $pdo->prepare("SELECT MAX(set_number) FROM exam_set_logs WHERE exam_id = ?");
+                $stmt->execute([$examId]);
+                $lastSet = (int) $stmt->fetchColumn();
+                $setNo = sprintf('%03d', max(1, $lastSet));
+                
             } else {
-                $_SESSION['pdf_set_counter'][$examKey]++;
+                
+                // Genuine new print request - Increment and save
+                $stmt = $pdo->prepare("SELECT MAX(set_number) FROM exam_set_logs WHERE exam_id = ?");
+                $stmt->execute([$examId]);
+                $lastSet = (int) $stmt->fetchColumn();
+                
+                $nextSetNo = $lastSet + 1;
+                $insert = $pdo->prepare("INSERT INTO exam_set_logs (exam_id, set_number) VALUES (?, ?)");
+                $insert->execute([$examId, $nextSetNo]);
+                
+                // Start the 5-second cooldown
+                $_SESSION[$sessionKey] = $now; 
+                $setNo = sprintf('%03d', $nextSetNo);
+                
             }
-
-            $setNo = sprintf('%03d', $_SESSION['pdf_set_counter'][$examKey]);
         }
-        $pdf->paperCode = ExamifyBasePdf::INSTITUTE_CODE . '@' . date('d-m-Y') . 'MCQ#set-' . $setNo;
+        $pdf->paperCode = ExamifyBasePdf::INSTITUTE_CODE . '@' . date('d-m-Y') . '_MCQ#set-' . $setNo;
 
         $titleSlug = trim(preg_replace('/_+/', '_', self::safe((string) ($exam['title'] ?? 'Exam_Paper'))), '_');
-        $fileName  = ($titleSlug !== '' ? $titleSlug : 'Exam_Paper') . '-set-' . $setNo . '.pdf';
+        $fileName = ($titleSlug !== '' ? $titleSlug : 'Exam_Paper') . '-set-' . $setNo . '.pdf';
         $pdf->AliasNbPages();
         $pdf->SetMargins(10, 10, 10);
+        $pdf->SetAutoPageBreak(false);
         $pdf->AddPage();
-        $pdf->SetAutoPageBreak(true, 15);
 
-        $pageBottom = 297 - 15;
+        // ---------------- Full-Width Top Centered Header (Page 1) ----------------
+        $totalQ = count($questions);
+        $totalMarks = (int) ($exam['total_marks'] ?? $totalQ);
+        $perQMarks = ($totalQ > 0) ? round($totalMarks / $totalQ, 2) : 1;
+        $subjectStr = self::safe((string) ($exam['subject_name'] ?? $exam['subject'] ?? $exam['title'] ?? 'Examination Paper'));
 
-        // ---------------- Header Info Box (compact) ----------------
-        $pdf->SetFillColor(245, 245, 245);
+        $pdf->SetTextColor(0, 0, 0);
         $pdf->SetDrawColor(0, 0, 0);
+        $pdf->SetY(10);
+
+        $pdf->SetFont('Times', 'B', 12);
+        $pdf->Cell(190, 4.8, 'Bengal Institute of Science and Technology', 0, 1, 'C');
+
+        $pdf->SetFont('Times', 'B', 10.5);
+        $pdf->Cell(190, 4.2, $subjectStr, 0, 1, 'C');
+
+        $pdf->SetFont('Times', 'B', 9.5);
+        $pdf->Cell(190, 4.2, 'Full Marks ' . $totalMarks . ' | Set: ' . $setNo, 0, 1, 'C');
+
+        $pdf->SetFont('Times', 'B', 9.5);
+        $pdf->Cell(190, 4.2, 'A. Attempt all the MCQs ' . $perQMarks . 'x' . $totalQ . '=' . $totalMarks, 0, 1, 'C');
+
+        // Horizontal divider line under top header
+        $headerBottomY = $pdf->GetY() + 1.2;
         $pdf->SetLineWidth(0.3);
-        $pdf->Rect(10, $pdf->GetY(), 190, 17, 'DF');
+        $pdf->Line(10, $headerBottomY, 200, $headerBottomY);
         $pdf->SetLineWidth(0.2);
 
-        $pdf->SetY($pdf->GetY() + 2);
-        $pdf->SetFont('Helvetica', 'B', 8.5);
+        // ---------------- 2-Column Layout Geometry ----------------
+        $colStartY = $headerBottomY + 2.0;  // Starts right below the header on Page 1
+        $pageBottom = 272.0;  // Strict 25mm bottom clearance so questions NEVER overlap the footer
+        $colW = 91.0;  // 91mm width per column
+        $colX = [10.0, 109.0];  // Left Col X = 10mm, Right Col X = 109mm
+        $dividerX = 105.0;  // Center vertical divider line X = 105mm
 
-        $dept = ($exam['department'] ?? 'General') . ' (Sem ' . ($exam['semester'] ?? 'All') . ')';
-        $units = (string) ($exam['target_units'] ?? 'All');
-        $instructor = (string) ($exam['creator_name'] ?? 'Faculty');
+        // Draw center vertical divider line on Page 1 (stops cleanly above footer)
+        $pdf->Line($dividerX, $colStartY - 2.0, $dividerX, $pageBottom);
 
-        $pdf->muted();
-        $pdf->IconCell(25, 5, ExamifyBasePdf::I_BOX, 'Department:', 0, 0, 'L');
-        $pdf->ink();
-        $pdf->Cell(70, 5, $dept, 0, 0, 'L');
-
-        $pdf->muted();
-        $pdf->IconCell(25, 5, ExamifyBasePdf::I_BOX2, 'Unit(s):', 0, 0, 'L');
-        $pdf->ink();
-        $pdf->Cell(70, 5, $units, 0, 1, 'L');
-
-        $pdf->muted();
-        $pdf->IconCell(25, 5, ExamifyBasePdf::I_PENCIL, 'Instructor:', 0, 0, 'L');
-        $pdf->ink();
-        $pdf->Cell(70, 5, $instructor, 0, 0, 'L');
-
-        $pdf->muted();
-        $pdf->IconCell(25, 5, ExamifyBasePdf::I_DIAMOND, 'Parameters:', 0, 0, 'L');
-        $pdf->ink();
-        $pdf->Cell(70, 5, ($exam['duration_minutes'] ?? 0) . ' Mins | Max Marks: ' . ($exam['total_marks'] ?? 0), 0, 1, 'L');
-
-        $pdf->Ln(5);
-        $pdf->SetFont('Helvetica', 'B', 11);
-        $pdf->ink();
-        $pdf->Ln(5);
+        $currentCol = 0;  // 0 = Left Column, 1 = Right Column
+        $curY = $colStartY;
 
         // ---------------------------------------------------------
-        // PART 1: Student Question Paper
+        // PART 1: Two-Column Student Question Paper (Unbroken Blocks)
         // ---------------------------------------------------------
-        $qLineH = 4.4;
-        $oLineH = 4.2;
-        $gap = 2.2;
+        $qFontSize = 8.5;  // Compact 8.5pt font to fit 15+ questions per page
+        $oFontSize = 8.5;
+        $lineH = 3.6;  // Tight line height
+        $qGap = 1.4;  // Gap between questions
+
+        $advanceColumnOrPage = function () use ($pdf, &$currentCol, &$curY, &$colStartY, $pageBottom, $dividerX) {
+            if ($currentCol === 0) {
+                // Move from Left Column to Right Column on the same page
+                $currentCol = 1;
+                $curY = $colStartY;
+            } else {
+                // Move to Left Column of a brand new page
+                $pdf->AddPage();
+                $colStartY = 12.0;  // Start higher up on Page 2+
+                $pdf->SetDrawColor(0, 0, 0);
+                $pdf->SetLineWidth(0.2);
+                $pdf->Line($dividerX, $colStartY, $dividerX, $pageBottom);
+                $currentCol = 0;
+                $curY = $colStartY;
+            }
+        };
 
         $qNum = 1;
         foreach ($questions as $q) {
-            $qText = $qNum . '. ' . str_replace("\r", '', (string) ($q['question_text'] ?? ''));
+            // Collapse any internal line breaks or leading spaces
+            $rawQ = (string) ($q['question_text'] ?? '');
+            $cleanQ = preg_replace('/\s+/u', ' ', trim(self::safe($rawQ)));
 
             $opts = [];
             foreach (['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d'] as $letter => $key) {
-                $t = trim(str_replace("\r", '', (string) ($q[$key] ?? '')));
-                if ($t !== '') {
-                    $opts[] = "($letter)  " . $t;
+                $rawOpt = (string) ($q[$key] ?? '');
+                $cleanOpt = preg_replace('/\s+/u', ' ', trim(self::safe($rawOpt)));
+                if ($cleanOpt !== '') {
+                    $opts[] = ['letter' => $letter, 'text' => $cleanOpt];
                 }
             }
 
-            $pdf->SetFont('Helvetica', 'B', 9);
-            $qLines = self::countWrappedLines($pdf, $qText, 190);
+            // 1. Measure Height Accurately (Number prefix '1.' + Question Text)
+            $pdf->SetFont('Times', 'B', $qFontSize);
+            $numPrefix = $qNum . '.';
+            $numW = $pdf->GetStringWidth($numPrefix) + 3.0;  // Fixed width for number prefix (~6-8mm)
+            $textW = $colW - $numW;
 
-            $pdf->SetFont('Helvetica', '', 8.5);
-            $n = count($opts);
-            $layout = 'stack';
-            if ($n > 0) {
-                $fitsRow = true;
-                $fitsGrid = true;
-                foreach ($opts as $o) {
-                    $ow = $pdf->GetStringWidth($o) + 2;
-                    if ($ow > (182 / $n)) {
-                        $fitsRow = false;
-                    }
-                    if ($ow > 91) {
-                        $fitsGrid = false;
-                    }
-                }
-                if ($fitsRow) {
-                    $layout = 'row';
-                } elseif ($fitsGrid) {
-                    $layout = 'grid';
+            $qLines = max(1, self::countWrappedLines($pdf, $cleanQ, $textW));
+            $qH = $qLines * $lineH;
+
+            // 2. Accurately Measure Options Height
+            $pdf->SetFont('Times', '', $oFontSize);
+            $nOpts = count($opts);
+            $canFitTwoCols = ($nOpts > 0);
+            $halfColW = $colW / 2.0;
+
+            foreach ($opts as $opt) {
+                $optStr = $opt['letter'] . ') ' . $opt['text'];
+                if (($pdf->GetStringWidth($optStr) + 3.0) > $halfColW) {
+                    $canFitTwoCols = false;
+                    break;
                 }
             }
 
-            if ($layout === 'row') {
-                $optH = $n ? $oLineH : 0;
-            } elseif ($layout === 'grid') {
-                $optH = ceil($n / 2) * $oLineH;
+            if ($canFitTwoCols) {
+                $optTotalH = ceil($nOpts / 2) * $lineH;
             } else {
-                $optH = 0;
-                foreach ($opts as $o) {
-                    $optH += self::countWrappedLines($pdf, $o, 182) * $oLineH;
+                $optTotalH = 0;
+                foreach ($opts as $opt) {
+                    $optStr = $opt['letter'] . ') ' . $opt['text'];
+                    $optLines = max(1, self::countWrappedLines($pdf, $optStr, $colW - 4.0));
+                    $optTotalH += $optLines * $lineH;
                 }
             }
 
-            $blockH = ($qLines * $qLineH) + $optH + $gap;
+            // Total unbroken height of Question + ALL its Options
+            $fullBlockH = $qH + $optTotalH + 0.5;
 
-            if ($pdf->GetY() + $blockH > $pageBottom) {
-                $pdf->AddPage();
+            // 3. Keep Question & Options Together Above Footer
+            if (($curY + $fullBlockH > $pageBottom) && ($curY > $colStartY)) {
+                $advanceColumnOrPage();
             }
 
-            // Question
-            $pdf->SetFont('Helvetica', 'B', 9);
+            // 4. Render Question Stem: Number and Text locked on the exact same line
+            $pdf->SetFont('Times', 'B', $qFontSize);
             $pdf->SetTextColor(0, 0, 0);
-            $pdf->SetX(10);
-            $pdf->MultiCell(190, $qLineH, $qText, 0, 'L');
 
-            // Options
-            $pdf->SetFont('Helvetica', '', 8.5);
-            $pdf->SetTextColor(20, 20, 20);
+            // Print the number prefix on the left
+            $pdf->SetXY($colX[$currentCol], $curY);
+            $pdf->Cell($numW, $lineH, $numPrefix, 0, 0, 'L');
 
-            if ($layout === 'row') {
-                $pdf->SetX(18);
-                $cw = 182 / $n;
-                foreach ($opts as $i => $o) {
-                    $pdf->Cell($cw, $oLineH, $o, 0, ($i === $n - 1) ? 1 : 0, 'L');
-                }
-            } elseif ($layout === 'grid') {
-                for ($i = 0; $i < $n; $i += 2) {
-                    $pdf->SetX(18);
-                    $pdf->Cell(91, $oLineH, $opts[$i], 0, isset($opts[$i + 1]) ? 0 : 1, 'L');
+            // Print the question text right beside it (multiline if it wraps, aligning perfectly)
+            $pdf->SetXY($colX[$currentCol] + $numW, $curY);
+            $pdf->MultiCell($textW, $lineH, $cleanQ, 0, 'L');
+            $curY = $pdf->GetY();
+
+            // 5. Render All Options Together right below the Question (Letter + Text locked together)
+            $pdf->SetFont('Times', '', $oFontSize);
+            if ($canFitTwoCols) {
+                for ($i = 0; $i < $nOpts; $i += 2) {
+                    $pdf->SetXY($colX[$currentCol], $curY);
+                    $pdf->Cell($halfColW, $lineH, $opts[$i]['letter'] . ') ' . $opts[$i]['text'], 0, 0, 'L');
                     if (isset($opts[$i + 1])) {
-                        $pdf->Cell(91, $oLineH, $opts[$i + 1], 0, 1, 'L');
+                        $pdf->Cell($halfColW, $lineH, $opts[$i + 1]['letter'] . ') ' . $opts[$i + 1]['text'], 0, 0, 'L');
                     }
+                    $curY += $lineH;
                 }
             } else {
-                foreach ($opts as $o) {
-                    $pdf->SetX(18);
-                    $pdf->MultiCell(182, $oLineH, $o, 0, 'L');
+                foreach ($opts as $opt) {
+                    $optStr = $opt['letter'] . ') ' . $opt['text'];
+                    $pdf->SetXY($colX[$currentCol], $curY);
+                    $pdf->MultiCell($colW, $lineH, $optStr, 0, 'L');
+                    $curY = $pdf->GetY();
                 }
             }
 
-            // Hairline separator in the middle of the gap
-            $sepY = $pdf->GetY() + $gap / 2;
-            $pdf->SetDrawColor(200, 200, 200);
-            $pdf->SetLineWidth(0.1);
-            $pdf->Line(10, $sepY, 200, $sepY);
-            $pdf->SetLineWidth(0.2);
-
-            $pdf->Ln($gap);
+            $curY += $qGap;
             $qNum++;
         }
 
@@ -807,6 +846,7 @@ class PdfService
         // ---------------------------------------------------------
         // PART 2: Master Answer Key - ALL answers on ONE page
         // ---------------------------------------------------------
+        $pdf->hideHeader = false;
         $pdf->SetAutoPageBreak(false);
         $pdf->AddPage();
 
@@ -846,7 +886,7 @@ class PdfService
 
             $pdf->SetFont('Helvetica', 'B', 10);
             $pdf->SetTextColor(0, 0, 0);
-            $pdf->Cell($cellW * 0.55, $rowH, $ans, 'B', 0, 0, 'L');
+            $pdf->Cell($cellW * 0.55, $rowH, $ans, 'B', 0, 'L');
         }
 
         return self::deliver($pdf, $mode, $fileName);
@@ -935,7 +975,7 @@ class PdfService
         $pdf->Cell(190, 5, 'PART-A', 0, 1, 'L');
 
         $partAY = $pdf->GetY();
-        $partAH = 42.0; // Generous height for comfortable student handwriting
+        $partAH = 42.0;  // Generous height for comfortable student handwriting
         $pdf->SetLineWidth(0.45);
         $pdf->Rect(10, $partAY, 190, $partAH);
         $pdf->SetLineWidth(0.25);
@@ -977,7 +1017,7 @@ class PdfService
         $pdf->Cell(190, 5, 'PART-B', 0, 1, 'L');
 
         $partBY = $pdf->GetY();
-        $boxH = 66.0; // Expanded height for larger bubbles
+        $boxH = 66.0;  // Expanded height for larger bubbles
 
         $drawDigitBlock = function (float $x, float $y, float $w, string $heading, int $cols, bool $hyphen = false) use ($pdf, $boxH) {
             $pdf->SetLineWidth(0.45);
@@ -1104,19 +1144,19 @@ class PdfService
         $pdf->Cell(190, 5, 'PART-C', 0, 1, 'L');
 
         $partCY = $pdf->GetY();
-        $fixedQuestions = 50; // Strictly fixed at 50 questions for every exam
+        $fixedQuestions = 50;  // Strictly fixed at 50 questions for every exam
         $cols = 5;
-        $perCol = 10;         // 10 rows per column (1-10, 11-20, 21-30, 31-40, 41-50)
+        $perCol = 10;  // 10 rows per column (1-10, 11-20, 21-30, 31-40, 41-50)
 
-        $rowH = 9.0;          // Tall 9mm row height for effortless student shading
-        $gridH = $perCol * $rowH; // 90mm total height
-        $colW = 190.0 / $cols;    // 38mm per column
+        $rowH = 9.0;  // Tall 9mm row height for effortless student shading
+        $gridH = $perCol * $rowH;  // 90mm total height
+        $colW = 190.0 / $cols;  // 38mm per column
 
         $pdf->SetLineWidth(0.45);
         $pdf->Rect(10, $partCY, 190, $gridH);
         $pdf->SetLineWidth(0.25);
 
-        $bubbleRadius = 2.5; // Standard 5.0mm diameter OMR answer bubble
+        $bubbleRadius = 2.5;  // Standard 5.0mm diameter OMR answer bubble
 
         for ($c = 0; $c < $cols; $c++) {
             $cx = 10 + ($c * $colW);
@@ -1172,7 +1212,9 @@ class PdfService
         // Restore header state for Part 2 (Master Answer Key)
         $pdf->hideHeader = $prevHideHeader;
     }
-    /* =================================================================
+
+    /*
+     * =================================================================
      * 3. Student Detailed Answer Sheet (Student Review Page)
      * =================================================================
      */
