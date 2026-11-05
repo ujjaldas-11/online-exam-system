@@ -1096,18 +1096,33 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
             }
         };
 
+        // ---- Block layout: spread evenly across the full 190mm width (x = 10 → 200) ----
+        $wRoll = 15.0;
+        $wReg  = 42.0;
+        $wYear = 56.0;
+        $wUg   = 27.0;
+        $wExam = 28.0;
+
+        $gap = (190.0 - ($wRoll + $wReg + $wYear + $wUg + $wExam)) / 4;  // equal spacing = 5.5mm
+
+        $xRoll = 10.0;
+        $xReg  = $xRoll + $wRoll + $gap;
+        $xYear = $xReg  + $wReg  + $gap;
+        $xUg   = $xYear + $wYear + $gap;
+        $xExam = $xUg   + $wUg   + $gap;
+
         // 1. ROLL (2 cols)
-        $drawDigitBlock(10, $partBY, 14, 'ROLL', 2, false);
+        $drawDigitBlock($xRoll, $partBY, $wRoll, 'ROLL', 2, false);
 
         // 2. REG. NO. (6 cols)
-        $drawDigitBlock(25.5, $partBY, 39, 'REG. NO.', 6, false);
+        $drawDigitBlock($xReg, $partBY, $wReg, 'REG. NO.', 6, false);
 
         // 3. YEAR (8 cols + hyphen)
-        $drawDigitBlock(66, $partBY, 55, 'YEAR', 8, true);
+        $drawDigitBlock($xYear, $partBY, $wYear, 'YEAR', 8, true);
 
         // 4. UG SEM (8 sems in 2 cols) & STREAM Block
-        $ugX = 122.5;
-        $ugW = 26.5;
+        $ugX = $xUg;
+        $ugW = $wUg;
         $pdf->SetLineWidth(0.45);
         $pdf->Rect($ugX, $partBY, $ugW, $boxH);
         $pdf->SetLineWidth(0.25);
@@ -1116,12 +1131,13 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
         $pdf->SetXY($ugX, $partBY);
         $pdf->Cell($ugW, 5.0, 'UG SEM', 'B', 0, 'C');
 
+        $semColW = $ugW / 2;
         $semItems = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
         foreach ($semItems as $idx => $sLabel) {
             $colIdx = intdiv($idx, 4);
             $rowIdx = $idx % 4;
 
-            $rx = $ugX + 1.2 + ($colIdx * 12.8);
+            $rx = $ugX + 1.2 + ($colIdx * $semColW);
             $ry = $partBY + 8.0 + ($rowIdx * 5.0);
 
             $pdf->SetFont('Times', 'B', 7.5);
@@ -1159,16 +1175,11 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
         }
 
         // 5. EXAM YEAR (4 cols)
-        $drawDigitBlock(150.5, $partBY, 27, 'EXAM YEAR', 4, false);
+        $drawDigitBlock($xExam, $partBY, $wExam, 'EXAM YEAR', 4, false);
 
-        // 6. Pure Black Timing Track Bars on Right Edge
-        $pdf->SetFillColor(0, 0, 0);
-        for ($b = 0; $b < 29; $b++) {
-            $by = $partBY + ($b * 2.31);
-            $pdf->Rect(181, $by, 9, 1.15, 'F');
-        }
+        // (Black timing bars on the right edge removed)
         $pdf->SetFillColor(255, 255, 255);
-
+        
         // ---------------- PART-C (FIXED 50 QUESTIONS, STANDARD LARGE BUBBLES) ----------------
         $pdf->SetY($partBY + $boxH + 2.5);
         $pdf->SetFont('Helvetica', 'B', 10);
