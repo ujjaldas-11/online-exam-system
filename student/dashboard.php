@@ -303,82 +303,84 @@ include __DIR__ . '/../components/student-navbar.php';
                 History</a>
             </div>
                 
+            <div id="live-results">
 
-            <?php if (empty($paginated_exams)): ?>
-                <div class="dash-empty">
-                    <span class="material-symbols-outlined">event_available</span>
-                    <h3>No exams found</h3>
-                    <p>Check back later or adjust your filters.</p>
-                </div>
-            <?php else: ?>
-                <div class="exam-grid">
-                    <?php foreach ($paginated_exams as $exam): ?>
-                        <?php
-                        $is_completed = ($exam['category'] === 'completed');
-                        $is_disqualified = ($exam['category'] === 'disqualified' || ($exam['attempt_status'] ?? '') === 'disqualified');
-                        $is_active = ($exam['category'] === 'active');
-                        $is_ongoing = (($exam['attempt_status'] ?? '') === 'in_progress');
-                        $is_published = !empty($exam['results_published']);
-                        $is_ended = ($exam['category'] === 'ended' || ($exam['status'] === 'ended'));
-                        $can_view_results = $is_ended && $is_published;
+                <?php if (empty($paginated_exams)): ?>
+                    <div class="dash-empty">
+                        <span class="material-symbols-outlined">event_available</span>
+                        <h3>No exams found</h3>
+                        <p>Check back later or adjust your filters.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="exam-grid">
+                        <?php foreach ($paginated_exams as $exam): ?>
+                            <?php
+                            $is_completed = ($exam['category'] === 'completed');
+                            $is_disqualified = ($exam['category'] === 'disqualified' || ($exam['attempt_status'] ?? '') === 'disqualified');
+                            $is_active = ($exam['category'] === 'active');
+                            $is_ongoing = (($exam['attempt_status'] ?? '') === 'in_progress');
+                            $is_published = !empty($exam['results_published']);
+                            $is_ended = ($exam['category'] === 'ended' || ($exam['status'] === 'ended'));
+                            $can_view_results = $is_ended && $is_published;
 
-                        $card_classes = 'ex-card ex-card--' . e($exam['category']);
-                        if ($is_active && !$is_completed && !$is_disqualified) {
-                            $card_classes .= ' ex-card--live';
-                        }
-                        ?>
-                        <article class="<?= $card_classes ?>">
-                            <div class="ex-card__body">
-                                <div class="ex-card__top">
-                                    <div>
-                                        <?php if (strpos($card_classes, 'ex-card--live') !== false): ?>
-                                            <span class="ex-live-tag"><span class="ex-live-dot"></span>Live now</span><br>
-                                        <?php endif; ?>
-                                        <span class="ex-subject"><?= e($exam['subject_name']) ?></span>
-                                        <h3 class="ex-title"><?= e($exam['title']) ?></h3>
-                                    </div>
-                                    <?= render_status_badge($is_disqualified ? 'disqualified' : $exam['status'], 'student') ?>
-                                </div>
-                                <?php if (!empty($exam['description'])): ?>
-                                    <p class="ex-desc"><?= e($exam['description']) ?></p>
-                                <?php endif; ?>
-                                <div class="ex-meta">
-                                    <span class="ex-meta__item"><span class="material-symbols-outlined">timer</span><?= e((string) $exam['duration_minutes']) ?> min</span>
-                                    <span class="ex-meta__item"><span class="material-symbols-outlined">quiz</span><?= e((string) $exam['total_questions_to_ask']) ?> questions</span>
-                                    <span class="ex-meta__item"><span class="material-symbols-outlined">grade</span><?= e((string) $exam['total_marks']) ?> marks</span>
-                                </div>
-                            </div>
-
-                            <div class="ex-card__footer">
-                                <?php if ($is_disqualified): ?>
-                                    <div class="ex-note ex-note--error"><strong>Disqualified (integrity violation)</strong></div>
-                                <?php elseif ($is_completed): ?>
-                                    <?php if ($can_view_results): ?>
-                                        <div class="ex-note ex-note--success">
-                                            <span>Score: <strong><?= sprintf('%.2f', (float) $exam['score']) ?> / <?= e((string) $exam['total_marks']) ?></strong></span>
-                                            <div class="ex-note__actions">
-                                                <a href="result.php?exam_id=<?= (int) $exam['id'] ?>" class="btn btn-secondary btn-sm">Score</a>
-                                                <a href="review-exam.php?attempt_id=<?= (int) $exam['attempt_id'] ?>" class="btn btn-outline btn-sm">Review</a>
-                                            </div>
+                            $card_classes = 'ex-card ex-card--' . e($exam['category']);
+                            if ($is_active && !$is_completed && !$is_disqualified) {
+                                $card_classes .= ' ex-card--live';
+                            }
+                            ?>
+                            <article class="<?= $card_classes ?>">
+                                <div class="ex-card__body">
+                                    <div class="ex-card__top">
+                                        <div>
+                                            <?php if (strpos($card_classes, 'ex-card--live') !== false): ?>
+                                                <span class="ex-live-tag"><span class="ex-live-dot"></span>Live now</span><br>
+                                            <?php endif; ?>
+                                            <span class="ex-subject"><?= e($exam['subject_name']) ?></span>
+                                            <h3 class="ex-title"><?= e($exam['title']) ?></h3>
                                         </div>
-                                    <?php else: ?>
-                                        <div class="ex-note ex-note--warning"><strong>Submitted</strong> <span class="badge badge-warning">Results pending</span></div>
+                                        <?= render_status_badge($is_disqualified ? 'disqualified' : $exam['status'], 'student') ?>
+                                    </div>
+                                    <?php if (!empty($exam['description'])): ?>
+                                        <p class="ex-desc"><?= e($exam['description']) ?></p>
                                     <?php endif; ?>
-                                <?php elseif ($exam['category'] === 'scheduled'): ?>
-                                    <div class="ex-note ex-note--warning">Starts: <strong><?= date('d M Y, h:i A', strtotime($exam['start_time'])) ?></strong></div>
-                                <?php elseif ($exam['category'] === 'ended'): ?>
-                                    <div class="ex-note">Examination closed</div>
-                                <?php elseif ($is_ongoing): ?>
-                                    <a href="exam.php?id=<?= (int) $exam['id'] ?>" class="btn btn-warning btn-block">Resume exam</a>
-                                <?php else: ?>
-                                    <a href="exam.php?id=<?= (int) $exam['id'] ?>" class="btn btn-block">Start exam</a>
-                                <?php endif; ?>
-                            </div>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
-                <?php include __DIR__ . '/../components/pagination.php'; ?>
-            <?php endif; ?>
+                                    <div class="ex-meta">
+                                        <span class="ex-meta__item"><span class="material-symbols-outlined">timer</span><?= e((string) $exam['duration_minutes']) ?> min</span>
+                                        <span class="ex-meta__item"><span class="material-symbols-outlined">quiz</span><?= e((string) $exam['total_questions_to_ask']) ?> questions</span>
+                                        <span class="ex-meta__item"><span class="material-symbols-outlined">grade</span><?= e((string) $exam['total_marks']) ?> marks</span>
+                                    </div>
+                                </div>
+
+                                <div class="ex-card__footer">
+                                    <?php if ($is_disqualified): ?>
+                                        <div class="ex-note ex-note--error"><strong>Disqualified (integrity violation)</strong></div>
+                                    <?php elseif ($is_completed): ?>
+                                        <?php if ($can_view_results): ?>
+                                            <div class="ex-note ex-note--success">
+                                                <span>Score: <strong><?= sprintf('%.2f', (float) $exam['score']) ?> / <?= e((string) $exam['total_marks']) ?></strong></span>
+                                                <div class="ex-note__actions">
+                                                    <a href="result.php?exam_id=<?= (int) $exam['id'] ?>" class="btn btn-secondary btn-sm">Score</a>
+                                                    <a href="review-exam.php?attempt_id=<?= (int) $exam['attempt_id'] ?>" class="btn btn-outline btn-sm">Review</a>
+                                                </div>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="ex-note ex-note--warning"><strong>Submitted</strong> <span class="badge badge-warning">Results pending</span></div>
+                                        <?php endif; ?>
+                                    <?php elseif ($exam['category'] === 'scheduled'): ?>
+                                        <div class="ex-note ex-note--warning">Starts: <strong><?= date('d M Y, h:i A', strtotime($exam['start_time'])) ?></strong></div>
+                                    <?php elseif ($exam['category'] === 'ended'): ?>
+                                        <div class="ex-note">Examination closed</div>
+                                    <?php elseif ($is_ongoing): ?>
+                                        <a href="exam.php?id=<?= (int) $exam['id'] ?>" class="btn btn-warning btn-block">Resume exam</a>
+                                    <?php else: ?>
+                                        <a href="exam.php?id=<?= (int) $exam['id'] ?>" class="btn btn-block">Start exam</a>
+                                    <?php endif; ?>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php include __DIR__ . '/../components/pagination.php'; ?>
+                <?php endif; ?>
+            </div>
         </div>
 
         <!-- Right: Class rank board (component) -->

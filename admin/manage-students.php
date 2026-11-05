@@ -578,7 +578,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
     <!-- Student Roster Table -->
-    <div class="card" style="overflow: hidden; max-width: 100%;">
+    <div class="card" id="live-results" style="overflow: hidden; max-width: 100%;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
             <div class="card-title" style="margin-bottom: 0;">
                 Enrolled Students (<?= $total_students_count ?>)

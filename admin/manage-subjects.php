@@ -237,74 +237,75 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 
             </div>
 
-
-            <div class="table-wrap">
-                <table class="subjects-table">
-                    <thead>
-                        <tr>
-                            <th>Subject</th>
-                            <th>Department</th>
-                            <th>Semester</th>
-                            <th>Questions</th>
-                            <th style="text-align: right;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($subjects)): ?>
+            <div id="live-results">
+                <div class="table-wrap">
+                    <table class="subjects-table">
+                        <thead>
                             <tr>
-                                <td colspan="5" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">No subjects created yet.</td>
+                                <th>Subject</th>
+                                <th>Department</th>
+                                <th>Semester</th>
+                                <th>Questions</th>
+                                <th style="text-align: right;">Action</th>
                             </tr>
-                        <?php else: ?>
-                            <?php foreach ($subjects as $sub): ?>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($subjects)): ?>
                                 <tr>
-                                    <td>
-                                        <strong><?= e($sub['name']) ?></strong>
-                                        <div style="font-size: 0.74rem; color: var(--color-text-secondary); margin-top: 2px;">
-                                            By: <strong><?= e($sub['creator_name'] ?? 'System') ?></strong>
-                                            <?php if (($sub['creator_status'] ?? '') === 'retired'): ?>
-                                                <span class="badge badge-warning" style="font-size: 0.62rem; padding: 1px 3px;">Retired</span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-inactive"><?= e($sub['department']) ?></span></td>
-                                    <td>Sem <?= e((string) $sub['semester']) ?></td>
-                                    <td>
-                                        <span class="badge badge-active"><?= (int) $sub['question_count'] ?> Qs</span>
-                                    </td>
-                                    <td style="text-align: right; white-space: nowrap;">
-                                        <div class="subject-actions">
-                                            <a href="view-questions.php?subject_id=<?= (int) $sub['id'] ?>" class="btn btn-secondary btn-sm" title="View Questions" style="display: inline-flex; align-items: center; gap: 4px;">
-                                                <span class="material-symbols-outlined icon-xs">visibility</span> <span class="action-btn-label">View Qs</span>
-                                            </a>
-                                            <button type="button" class="btn btn-outline btn-sm btn-edit-subject"
-                                                data-id="<?= (int) $sub['id'] ?>"
-                                                data-name="<?= e($sub['name']) ?>"
-                                                data-department="<?= e($sub['department']) ?>"
-                                                data-semester="<?= (int) $sub['semester'] ?>"
-                                                title="Edit Subject"
-                                                style="display: inline-flex; align-items: center; gap: 4px;">
-                                                <span class="material-symbols-outlined icon-xs">edit</span> <span class="action-btn-label">Edit</span>
-                                            </button>
-                                            <!-- <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete subject '<?= e($sub['name']) ?>' and all associated questions?" data-confirm-title="Delete Subject" data-confirm-btn="Delete Subject">
-                                                <?= csrf_field() ?>
-                                                <input type="hidden" name="subject_id" value="<?= (int) $sub['id'] ?>">
-                                                <button type="submit" name="delete_subject" class="btn btn-danger btn-sm" title="Delete Subject" style="display: inline-flex; align-items: center;">
-                                                    <span class="material-symbols-outlined icon-xs">delete</span>
-                                                </button>
-                                            </form> -->
-                                        </div>
-                                    </td>
+                                    <td colspan="5" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">No subjects created yet.</td>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                            <?php else: ?>
+                                <?php foreach ($subjects as $sub): ?>
+                                    <tr>
+                                        <td>
+                                            <strong><?= e($sub['name']) ?></strong>
+                                            <div style="font-size: 0.74rem; color: var(--color-text-secondary); margin-top: 2px;">
+                                                By: <strong><?= e($sub['creator_name'] ?? 'System') ?></strong>
+                                                <?php if (($sub['creator_status'] ?? '') === 'retired'): ?>
+                                                    <span class="badge badge-warning" style="font-size: 0.62rem; padding: 1px 3px;">Retired</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge badge-inactive"><?= e($sub['department']) ?></span></td>
+                                        <td>Sem <?= e((string) $sub['semester']) ?></td>
+                                        <td>
+                                            <span class="badge badge-active"><?= (int) $sub['question_count'] ?> Qs</span>
+                                        </td>
+                                        <td style="text-align: right; white-space: nowrap;">
+                                            <div class="subject-actions">
+                                                <a href="view-questions.php?subject_id=<?= (int) $sub['id'] ?>" class="btn btn-secondary btn-sm" title="View Questions" style="display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span class="material-symbols-outlined icon-xs">visibility</span> <span class="action-btn-label">View Qs</span>
+                                                </a>
+                                                <button type="button" class="btn btn-outline btn-sm btn-edit-subject"
+                                                    data-id="<?= (int) $sub['id'] ?>"
+                                                    data-name="<?= e($sub['name']) ?>"
+                                                    data-department="<?= e($sub['department']) ?>"
+                                                    data-semester="<?= (int) $sub['semester'] ?>"
+                                                    title="Edit Subject"
+                                                    style="display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span class="material-symbols-outlined icon-xs">edit</span> <span class="action-btn-label">Edit</span>
+                                                </button>
+                                                <!-- <form method="POST" style="display: inline;" data-confirm="Are you sure you want to delete subject '<?= e($sub['name']) ?>' and all associated questions?" data-confirm-title="Delete Subject" data-confirm-btn="Delete Subject">
+                                                    <?= csrf_field() ?>
+                                                    <input type="hidden" name="subject_id" value="<?= (int) $sub['id'] ?>">
+                                                    <button type="submit" name="delete_subject" class="btn btn-danger btn-sm" title="Delete Subject" style="display: inline-flex; align-items: center;">
+                                                        <span class="material-symbols-outlined icon-xs">delete</span>
+                                                    </button>
+                                                </form> -->
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php
+                // Include the pagination UI component
+                $total_items = $total_subject_count;
+                include __DIR__ . '/../components/pagination.php';
+                ?>
             </div>
-            <?php
-            // Include the pagination UI component
-            $total_items = $total_subject_count;
-            include __DIR__ . '/../components/pagination.php';
-            ?>
         </div>
     </div>
 </div>

@@ -98,7 +98,7 @@ include __DIR__ . '/../components/student-navbar.php';
     <!-- Global Filter Bar -->
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
-    <div class="card">
+    <div class="card" id="live-results">
         <div class="card-body" style="padding: 0;">
             <?php if (empty($past_results)): ?>
                 <div class="empty-state">

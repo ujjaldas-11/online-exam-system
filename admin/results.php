@@ -103,7 +103,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 
     <?php include __DIR__ . '/../components/filter-bar.php' ?>
-    <div class="card">
+    <div class="card" id="live-results">
 
         <div class="card-title">Total Results(<?= $total_result_count ?>)</div>
 

@@ -18,7 +18,7 @@ $message = '';
 $message_type = '';
 
 if (isset($_GET['download_offline']) && isset($_GET['exam_id'])) {
-    $dl_exam_id = (int)$_GET['exam_id'];
+    $dl_exam_id = (int) $_GET['exam_id'];
 
     if (!can_admin_manage_exam($pdo, $dl_exam_id)) {
         http_response_code(403);
@@ -28,13 +28,13 @@ if (isset($_GET['download_offline']) && isset($_GET['exam_id'])) {
     require_once '../services/PdfService.php';
 
     // 1. Fetch Exam Meta
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         SELECT e.*, a.name as creator_name, s.department, s.semester 
         FROM exams e 
         LEFT JOIN admins a ON e.created_by = a.id
         LEFT JOIN subjects s ON e.subject_id = s.id 
         WHERE e.id = ?
-    ");
+    ');
     $stmt->execute([$dl_exam_id]);
     $examMeta = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -62,39 +62,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isOwnerOrSuper = can_admin_manage_exam($pdo, $exam_id);
 
     if (!$isOwnerOrSuper) {
-        set_flash('warning',"Access Denied: You can only control exams you have authored.");
+        set_flash('warning', 'Access Denied: You can only control exams you have authored.');
         redirect('control-exams.php');
     } elseif (isset($_POST['start_exam'])) {
         try {
-            $stmt = $pdo->prepare("SELECT status FROM exams WHERE id = ?");
+            $stmt = $pdo->prepare('SELECT status FROM exams WHERE id = ?');
             $stmt->execute([$exam_id]);
             $status = $stmt->fetchColumn();
 
             if (!$status) {
-                $message = "Exam not found.";
+                $message = 'Exam not found.';
                 $message_type = 'error';
             } elseif (in_array($status, ['inactive', 'scheduled'], true)) {
                 $pdo->prepare("UPDATE exams SET status = 'active', start_time = NOW() WHERE id = ?")->execute([$exam_id]);
                 log_admin_action($pdo, 'start_exam', 'exam', $exam_id, "Launched/Started exam #$exam_id");
-                set_flash('success', "Exam has been started successfully. Students can now access and join.");
+                set_flash('success', 'Exam has been started successfully. Students can now access and join.');
                 redirect('control-exams.php');
             } else {
-                set_flash('error',"Exam cannot be started in its current status: $status.");
+                set_flash('error', "Exam cannot be started in its current status: $status.");
                 redirect('control-exams.php');
             }
         } catch (PDOException $e) {
-            set_flash('error', safe_db_error($e, "Failed to start exam."));
+            set_flash('error', safe_db_error($e, 'Failed to start exam.'));
             redirect('control-exams.php');
         }
     } elseif (isset($_POST['delete_exam'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         try {
-            $pdo->prepare("DELETE FROM exams WHERE id = ?")->execute([$exam_id]);
+            $pdo->prepare('DELETE FROM exams WHERE id = ?')->execute([$exam_id]);
             log_admin_action($pdo, 'delete_exam', 'exam', $exam_id, "Deleted exam #$exam_id");
-            set_flash('warning', "Exam deleted successfully.");
+            set_flash('warning', 'Exam deleted successfully.');
             redirect('control-exams.php');
         } catch (PDOException $e) {
-            set_flash('error', "Cannot delete exam: Student attempts are linked to it.");
+            set_flash('error', 'Cannot delete exam: Student attempts are linked to it.');
             redirect('control-exams.php');
         }
     } elseif (isset($_POST['add_time'])) {
@@ -102,22 +102,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $extra_minutes = int_param($_POST['extra_minutes'] ?? 5);
 
         if ($extra_minutes < 1 || $extra_minutes > 120) {
-            set_flash('warning',"Time extension must be between 1 and 120 minutes.");
+            set_flash('warning', 'Time extension must be between 1 and 120 minutes.');
             redirect('control-exams.php');
         } else {
             try {
-                $upStmt = $pdo->prepare("UPDATE exams SET duration_minutes = duration_minutes + ? WHERE id = ?");
+                $upStmt = $pdo->prepare('UPDATE exams SET duration_minutes = duration_minutes + ? WHERE id = ?');
                 $upStmt->execute([$extra_minutes, $exam_id]);
                 log_admin_action($pdo, 'extend_exam_time', 'exam', $exam_id, "Added +$extra_minutes mins to exam #$exam_id duration");
 
                 require_once __DIR__ . '/../utils/websocket-pusher.php';
-                WebSocketPusher::emit("exam:{$exam_id}", "time_extended", [
+                WebSocketPusher::emit("exam:{$exam_id}", 'time_extended', [
                     'extra_minutes' => $extra_minutes,
                 ]);
                 set_flash('info', "Added +$extra_minutes minutes to exam duration.");
                 redirect('control-exams.php');
             } catch (PDOException $e) {
-                set_flash('error', safe_db_error($e, "Failed to extend exam time."));
+                set_flash('error', safe_db_error($e, 'Failed to extend exam time.'));
                 redirect('control-exams.php');
             }
         }
@@ -128,27 +128,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             log_admin_action($pdo, 'end_exam', 'exam', $exam_id, "Ended exam #$exam_id for all students");
 
             require_once __DIR__ . '/../utils/websocket-pusher.php';
-            WebSocketPusher::emit("exam:{$exam_id}", "exam_ended", [
+            WebSocketPusher::emit("exam:{$exam_id}", 'exam_ended', [
                 'exam_id' => $exam_id,
             ]);
 
-            set_flash('info', "Exam has been ended for all students.");
+            set_flash('info', 'Exam has been ended for all students.');
             redirect('control-exams.php');
         } catch (PDOException $e) {
-            set_flash('error', safe_db_error($e, "Failed to end exam."));
+            set_flash('error', safe_db_error($e, 'Failed to end exam.'));
             redirect('control-exams.php');
         }
     } elseif (isset($_POST['publish_results'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         try {
-            $chkStmt = $pdo->prepare("SELECT status, start_time, duration_minutes FROM exams WHERE id = ?");
+            $chkStmt = $pdo->prepare('SELECT status, start_time, duration_minutes FROM exams WHERE id = ?');
             $chkStmt->execute([$exam_id]);
             $targetExam = $chkStmt->fetch();
 
             $examOngoing = false;
             if ($targetExam && $targetExam['status'] === 'active') {
                 $startTs = !empty($targetExam['start_time']) ? strtotime($targetExam['start_time']) : time();
-                $durationSec = ((int)$targetExam['duration_minutes']) * 60;
+                $durationSec = ((int) $targetExam['duration_minutes']) * 60;
                 if (time() < ($startTs + $durationSec)) {
                     $examOngoing = true;
                 }
@@ -158,51 +158,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 set_flash('warning', "Cannot publish results: Exam #$exam_id is still ongoing.");
                 redirect('control-exams.php');
             } else {
-                $pdo->prepare("UPDATE exams SET results_published = 1 WHERE id = ?")->execute([$exam_id]);
+                $pdo->prepare('UPDATE exams SET results_published = 1 WHERE id = ?')->execute([$exam_id]);
                 log_admin_action($pdo, 'publish_results', 'exam', $exam_id, "Published results for exam #$exam_id to students");
                 set_flash('info', "Results for exam #$exam_id have been published to students.");
                 redirect('control-exams.php');
             }
         } catch (PDOException $e) {
-            set_flash('error', safe_db_error($e, "Failed to publish results."));
+            set_flash('error', safe_db_error($e, 'Failed to publish results.'));
             redirect('control-exams.php');
         }
     } elseif (isset($_POST['unpublish_results'])) {
         $exam_id = int_param($_POST['exam_id'] ?? 0);
         try {
-            $pdo->prepare("UPDATE exams SET results_published = 0 WHERE id = ?")->execute([$exam_id]);
+            $pdo->prepare('UPDATE exams SET results_published = 0 WHERE id = ?')->execute([$exam_id]);
             log_admin_action($pdo, 'unpublish_results', 'exam', $exam_id, "Unpublished results for exam #$exam_id");
-            set_flash('warning',"Results for exam #$exam_id are now hidden from students.");
+            set_flash('warning', "Results for exam #$exam_id are now hidden from students.");
             redirect('control-exams.php');
         } catch (PDOException $e) {
-            set_flash('error', safe_db_error($e, "Failed to unpublish results."));
+            set_flash('error', safe_db_error($e, 'Failed to unpublish results.'));
             redirect('control-exams.php');
         }
     }
-
-    // Restart exam 
+    // Restart exam
     elseif (isset($_POST['reopen_exam'])) {
         verify_csrf();
         $exam_to_reopen = (int) $_POST['exam_id'];
-        
+
         // Change status back to inactive, and clear the scheduled end_time
         try {
             $stmt = $pdo->prepare("UPDATE exams SET status = 'inactive', end_time = NULL WHERE id = ?");
             $stmt->execute([$exam_to_reopen]);
-            
+
             if (function_exists('log_admin_action')) {
-                log_admin_action($pdo, 'reopen_exam', 'exam', $exam_to_reopen, "Reopened exam for next batch.");
+                log_admin_action($pdo, 'reopen_exam', 'exam', $exam_to_reopen, 'Reopened exam for next batch.');
             }
-            
-            set_flash('info', "Exam reopened for the next batch! Please Edit the exam to generate a NEW Access PIN before starting it.");
+
+            set_flash('info', 'Exam reopened for the next batch! Please Edit the exam to generate a NEW Access PIN before starting it.');
             redirect('control-exams.php');
         } catch (PDOException $e) {
-            set_flash('error', "Database error while reopening exam.");
+            set_flash('error', 'Database error while reopening exam.');
             redirect('control-exams.php');
         }
     }
 }
-
 
 // --- Data Fetching & Filter Query ---
 $form_action = 'control-exams.php';
@@ -210,66 +208,62 @@ $show_dept = true;
 $show_sem = true;
 $show_status = true;
 $show_author = true;
-$search_placeholder = "Search by exam name";
-
+$search_placeholder = 'Search by exam name';
 
 $departments = CurriculumService::getDepartments($pdo);
 
 $status_list = [
-    'active'   => 'Active',
+    'active' => 'Active',
     'inactive' => 'Not Started',
-    'ended'    => 'Ended',
+    'ended' => 'Ended',
     'scheduled' => 'Scheduled',
     // 'draft'    => 'Draft'
 ];
 
 try {
-    $authors_list = $pdo->query("SELECT id, name FROM admins ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $authors_list = $pdo->query('SELECT id, name FROM admins ORDER BY name ASC')->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $authors_list = [];
 }
 
-
 $filterQ = clean_input($_GET['q'] ?? '');
 $filterDept = clean_input($_GET['department'] ?? '');
-$filterSem = isset($_GET['semester']) ? (int)$_GET['semester'] : 0;
+$filterSem = isset($_GET['semester']) ? (int) $_GET['semester'] : 0;
 $filterStatus = clean_input($_GET['status'] ?? '');
-$filterAuthor = isset($_GET['author']) ? (int)$_GET['author'] : 0;
+$filterAuthor = isset($_GET['author']) ? (int) $_GET['author'] : 0;
 
 $queryWhere = [];
 $queryParams = [];
 
 if ($filterQ !== '') {
-    $queryWhere[] = "(e.title LIKE ?)"; 
+    $queryWhere[] = '(e.title LIKE ?)';
     $queryParams[] = "%$filterQ%";
 }
 if ($filterDept !== '') {
-    $queryWhere[] = "s.department = ?";
+    $queryWhere[] = 's.department = ?';
     $queryParams[] = $filterDept;
 }
 if ($filterSem > 0 && $filterSem <= 8) {
-    $queryWhere[] = "s.semester = ?";
+    $queryWhere[] = 's.semester = ?';
     $queryParams[] = $filterSem;
 }
 
 if ($filterAuthor > 0) {
-    $queryWhere[] = "e.created_by = ?";
+    $queryWhere[] = 'e.created_by = ?';
     $queryParams[] = $filterAuthor;
 }
 
-
 if ($filterStatus !== '' && array_key_exists($filterStatus, $status_list)) {
-    $queryWhere[] = "e.status = ?";
+    $queryWhere[] = 'e.status = ?';
     $queryParams[] = $filterStatus;
 }
 
-$whereClause = !empty($queryWhere) ? "WHERE " . implode(" AND ", $queryWhere) : "";
+$whereClause = !empty($queryWhere) ? 'WHERE ' . implode(' AND ', $queryWhere) : '';
 
 // pagiantion parameters
-$current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$per_page = 10; // Number of exams per page
+$current_page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+$per_page = 10;  // Number of exams per page
 $total_exam_count = 0;
-
 
 try {
     // Total count for current filter
@@ -305,9 +299,8 @@ try {
 
     $stmt->execute($queryParams);
     $exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 } catch (PDOException $e) {
-    log_error("Failed to fetch exams in control-exams", $e);
+    log_error('Failed to fetch exams in control-exams', $e);
     $exams = [];
 }
 
@@ -338,7 +331,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <!-- filter bar -->
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
-    <div class="card">
+    <div class="card" id="live-results">
         <div class="card-title">All Examinations (<?= $total_exam_count ?>)</div>
                 
         <div class="table-wrap">
@@ -394,11 +387,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             $is_ongoing = ($display_status === 'RUNNING');
                             ?>
                             <tr>
-                                <td>E<?= e((string)$exam['id']) ?></td>
+                                <td>E<?= e((string) $exam['id']) ?></td>
                                 <td>
                                     <strong><?= e($exam['title']) ?></strong><br>
                                     <small style="color: var(--color-text-secondary);">
-                                        <?= e($exam['subject_name']) ?> (<?= e($exam['department']) ?>, Sem <?= e((string)$exam['semester']) ?>)
+                                        <?= e($exam['subject_name']) ?> (<?= e($exam['department']) ?>, Sem <?= e((string) $exam['semester']) ?>)
                                     </small>
                                     <div style="font-size: 0.76rem; color: var(--color-text-secondary); margin-top: 2px;">
                                         By: <strong><?= e($exam['creator_name'] ?? 'System') ?></strong>
@@ -408,7 +401,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     </div>
                                 </td>
                                 <td>
-                                    <div><?= e((string)$exam['total_questions_to_ask']) ?> Qs • <?= e((string)$exam['duration_minutes']) ?> mins</div>
+                                    <div><?= e((string) $exam['total_questions_to_ask']) ?> Qs • <?= e((string) $exam['duration_minutes']) ?> mins</div>
                                     <?php if ($exam['status'] === 'scheduled' && !empty($exam['start_time'])): ?>
                                         <small style="color: var(--color-text-secondary); display: block;">Starts: <?= date('M d, h:i A', strtotime($exam['start_time'])) ?></small>
                                     <?php elseif (!empty($exam['start_time'])): ?>
@@ -444,7 +437,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <strong><?= e((string)$exam['total_attempts']) ?></strong>
+                                    <strong><?= e((string) $exam['total_attempts']) ?></strong>
                                 </td>
                                 <td style="text-align: right;">
                                      <!-- Start Exam -->
@@ -472,7 +465,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             </button>
                                         </form>
                                     </div>                                        
-                                    <?php endif;?>
+                                    <?php endif; ?>
 
                                 </td>
                                 
@@ -511,7 +504,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             <?php if ($display_status === 'ENDED'): ?>
                                                 <form method="POST" style="margin: 0;" onsubmit="return confirm('Reopen this exam for the next batch? Previous submissions will be saved safely. Remember to change the PIN!');">
                                                     <?= csrf_field() ?>
-                                                    <input type="hidden" name="exam_id" value="<?= (int)$exam['id'] ?>">
+                                                    <input type="hidden" name="exam_id" value="<?= (int) $exam['id'] ?>">
                                                     <button type="submit" name="reopen_exam" class="action-menu-item text-warning">
                                                         <span class="material-symbols-outlined icon-sm">refresh</span> Reopen (Next Batch)
                                                     </button>
@@ -519,7 +512,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             <?php endif; ?> 
 
                                             <!-- Results & Publishing -->
-                                            <?php if ($display_status === 'ENDED' || (int)$exam['total_attempts'] > 0): ?>
+                                            <?php if ($display_status === 'ENDED' || (int) $exam['total_attempts'] > 0): ?>
                                                 <div class="action-menu-divider"></div>
                                                 <a href="view-results.php?exam_id=<?= $exam['id'] ?>" class="action-menu-item">
                                                     <span class="material-symbols-outlined icon-sm">leaderboard</span> View Results
@@ -557,12 +550,12 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <?php endforeach; ?>
                     </tbody>
                     <?php endif; ?>
-                </table>
-            </div>
+            </table>
+        </div>
                 <?php
-                    // Include the pagination UI component
-                    $total_items = $total_exam_count;
-                    include __DIR__ . '/../components/pagination.php';
+                // Include the pagination UI component
+                $total_items = $total_exam_count;
+                include __DIR__ . '/../components/pagination.php';
                 ?>
         
     </div>

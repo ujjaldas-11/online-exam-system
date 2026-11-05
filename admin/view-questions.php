@@ -293,7 +293,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php endif; ?>
 
     <?php include __DIR__ . '/../components/filter-bar.php' ?>
-    <div class="card">
+    <div class="card" id="live-results">
         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
             <div class="card-title">Question Bank (<?= $total_questions_count ?> Questions)</div>
             <div style="width: 40%;">

@@ -158,7 +158,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php include __DIR__ . '/../components/filter-bar.php' ?>
 
     <!-- Pending Registration Requests -->
-    <div class="card">
+    <div class="card" id="live-results">
         <div class="card-title">Pending Account Approvals (<?= $total_request_count ?>)</div>
 
         <?php if (empty($requests)): ?>

@@ -199,7 +199,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
     <!-- Pending Profile Requests -->
-    <div class="card">
+    <div class="card" id="live-results">
         <div class="card-title">Pending Profile Modification Requests (<?= count($requests) ?>)</div>
         <?php if (empty($requests)): ?>
             <p style="color: var(--color-text-secondary); padding: 16px 0;">No pending profile requests at this time.</p>

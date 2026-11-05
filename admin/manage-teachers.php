@@ -452,7 +452,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
     <!-- Instructors Directory Table -->
-    <div class="card">
+    <div class="card" id="live-results">
         <div class="card-title">Instructors &amp; Staff Directory (<?= $total_teacher_count ?>)</div>
 
         <div class="table-wrap">

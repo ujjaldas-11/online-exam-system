@@ -308,7 +308,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?php include __DIR__ . '/../components/filter-bar.php'?>
         </div>
 
-        <div class="table-wrap">
+        <div class="table-wrap" id="live-results">
             <table>
                 <thead>
                     <tr>
