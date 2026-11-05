@@ -71,7 +71,7 @@ try {
 
     $sql = "SELECT e.id, e.title, e.total_marks, e.results_published, s.department, s.semester,
             a.name as creator_name, a.status as creator_status,
-            (SELECT COUNT(*) FROM exam_attempts WHERE exam_id = e.id AND status = 'completed') AS total_attempts
+            (SELECT COUNT(*) FROM exam_attempts WHERE exam_id = e.id AND status IN ('completed', 'disqualified')) AS total_attempts
             FROM exams e
             JOIN subjects s ON e.subject_id = s.id
             LEFT JOIN admins a ON e.created_by = a.id 
@@ -171,7 +171,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </tbody>
             </table>
         </div>
-        
+
         <?php
         // Include the pagination UI component
         $total_items = $total_result_count;

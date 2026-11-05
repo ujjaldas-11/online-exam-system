@@ -4,7 +4,6 @@ require_once 'admin-guard.php';
 require_once '../config/database.php';
 require_once '../utils/sanitize.php';
 require_once '../utils/logger.php';
-
 require_once '../utils/csrf.php';
 
 if (empty($_GET['exam_id'])) {
@@ -32,13 +31,40 @@ try {
     }
 
     $is_ongoing = false;
-    if ($exam['status'] === 'active') {
-        $startTs = !empty($exam['start_time']) ? strtotime($exam['start_time']) : time();
+    if ($exam['status'] === 'active' && !empty($exam['start_time'])) {
+        $startTs = strtotime($exam['start_time']);
         $durationSec = ((int) $exam['duration_minutes']) * 60;
         if (time() < ($startTs + $durationSec)) {
             $is_ongoing = true;
         }
     }
+
+    // Shared query: Only join 'completed' and 'disqualified' attempts; everything else becomes 'not_attempted'
+    $rosterSql = "
+        SELECT s.id AS student_id, s.name, s.roll_number, s.email, s.department, s.semester,
+               ea.id AS attempt_id,
+               COALESCE(ea.score, 0) AS score,
+               COALESCE(ea.total_questions, 0) AS total_questions,
+               ea.submitted_at,
+               COALESCE(ea.status, 'not_attempted') AS attempt_status
+        FROM students s
+        LEFT JOIN exam_attempts ea 
+               ON ea.student_id = s.id 
+              AND ea.exam_id = :exam_id 
+              AND ea.status IN ('completed', 'disqualified')
+        WHERE s.status = 'active'
+          AND s.department = :department
+          AND s.semester = :semester
+        ORDER BY 
+            CASE COALESCE(ea.status, 'not_attempted')
+                WHEN 'completed' THEN 1
+                WHEN 'disqualified' THEN 2
+                ELSE 3
+            END ASC,
+            ea.score DESC,
+            ea.submitted_at ASC,
+            s.roll_number ASC
+    ";
 
     // Handle PDF Export
     if (isset($_GET['download_pdf'])) {
@@ -47,19 +73,20 @@ try {
             die("Access Denied: You can only export results for exams you have authored.");
         }
         require_once '../services/PdfService.php';
-        $attemptsStmt = $pdo->prepare("
-            SELECT ea.id, ea.score, ea.total_questions, ea.submitted_at,
-                   s.name, s.roll_number, s.email, s.department, s.semester
-            FROM exam_attempts ea
-            JOIN students s ON ea.student_id = s.id
-            WHERE ea.exam_id = ? AND ea.status IN ('completed', 'disqualified')
-            ORDER BY ea.score DESC, ea.submitted_at ASC
-        ");
-        $attemptsStmt->execute([$exam_id]);
+        $attemptsStmt = $pdo->prepare($rosterSql);
+        $attemptsStmt->execute([
+            ':exam_id'    => $exam_id,
+            ':department' => $exam['department'],
+            ':semester'   => $exam['semester']
+        ]);
         $pdfAttempts = $attemptsStmt->fetchAll();
 
         log_admin_action($pdo, 'export_pdf_results', 'exam', $exam_id, "Exported PDF results report for exam #$exam_id ({$exam['title']})");
-        PdfService::generateExamResultsPdf($exam, $pdfAttempts, 'P');
+
+        if (ob_get_length()) {
+            ob_end_clean();
+        }
+        PdfService::generateExamResultsPdf($exam, $pdfAttempts, 'D');
         exit;
     }
 
@@ -89,18 +116,33 @@ try {
         }
     }
 
-    // Fetch All Completed Attempts (Ordered by Score)
-    $resultsSql = "SELECT s.name, s.roll_number, s.department, s.semester, ea.id AS attempt_id, ea.score, ea.total_questions, ea.submitted_at, ea.status AS attempt_status
-        FROM exam_attempts ea
-        JOIN students s ON ea.student_id = s.id
-        WHERE ea.exam_id = :exam_id AND ea.status IN ('completed', 'disqualified')
-        ORDER BY ea.score DESC, ea.submitted_at ASC";
-    $resultsStmt = $pdo->prepare($resultsSql);
-    $resultsStmt->execute([':exam_id' => $exam_id]);
+    // Fetch All Eligible Students & Attempts
+    $resultsStmt = $pdo->prepare($rosterSql);
+    $resultsStmt->execute([
+        ':exam_id'    => $exam_id,
+        ':department' => $exam['department'],
+        ':semester'   => $exam['semester']
+    ]);
     $all_results = $resultsStmt->fetchAll();
 
-    // Top 3 Scorers
-    $top_scorers = array_slice($all_results, 0, 3);
+    // Status Breakdown Counts (Only 3 states)
+    $counts = [
+        'completed'     => 0,
+        'disqualified'  => 0,
+        'not_attempted' => 0,
+    ];
+    foreach ($all_results as $r) {
+        $st = $r['attempt_status'] ?? 'not_attempted';
+        if (isset($counts[$st])) {
+            $counts[$st]++;
+        }
+    }
+
+    // Top 3 Scorers (Strictly from 'completed' attempts)
+    $completed_only = array_values(array_filter($all_results, static function ($r) {
+        return ($r['attempt_status'] ?? '') === 'completed';
+    }));
+    $top_scorers = array_slice($completed_only, 0, 3);
 } catch (PDOException $e) {
     log_error("Failed to fetch exam result list for exam $exam_id", $e);
     die('Database Error.');
@@ -108,11 +150,8 @@ try {
 
 $page_title = 'Results: ' . ($exam['title'] ?? 'Exam') . ' • Examify';
 include __DIR__ . '/../components/header.php';
+include __DIR__ . '/../components/admin-sidebar.php';
 ?>
-
-<div class="no-print">
-    <?php include __DIR__ . '/../components/admin-sidebar.php'; ?>
-</div>
 
 <div class="container main-content">
     <div style="margin-bottom: 16px;" class="no-print">
@@ -125,8 +164,11 @@ include __DIR__ . '/../components/header.php';
         <div>
             <h1><?= e($exam['title']) ?></h1>
             <p>
-                Total Examination Marks: <strong><?= e((string) $exam['total_marks']) ?></strong> •
-                Total Submissions: <strong><?= count($all_results) ?></strong> •
+                Total Marks: <strong><?= e((string) $exam['total_marks']) ?></strong> •
+                Eligible Students: <strong><?= count($all_results) ?></strong>
+                (Completed: <strong><?= $counts['completed'] ?></strong>,
+                Disqualified: <strong><?= $counts['disqualified'] ?></strong>,
+                Not Attempted: <strong><?= $counts['not_attempted'] ?></strong>) •
                 Author: <strong><?= e($exam['creator_name'] ?? 'System') ?></strong>
                 <?php if (($exam['creator_status'] ?? '') === 'retired'): ?>
                     <span class="badge badge-warning" style="font-size: 0.65rem; padding: 1px 4px; vertical-align: middle;">Retired</span>
@@ -190,43 +232,45 @@ include __DIR__ . '/../components/header.php';
     <?php if (empty($all_results)): ?>
         <div class="card">
             <p style="color: var(--color-text-secondary); text-align: center; padding: 32px 0;">
-                No students have completed this exam yet.
+                No active students found in <?= e($exam['department']) ?> (Semester <?= e((string) $exam['semester']) ?>).
             </p>
         </div>
     <?php else: ?>
         <!-- Top Performers Podium -->
-        <div class="card">
-            <div class="card-title" style="display: flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-md" style="color: var(--color-primary);">military_tech</span> Top Performers
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                <?php
-                $medals = [
-                    '<span class="material-symbols-outlined icon-sm" style="color: #ca8a04;">workspace_premium</span> 1st Place',
-                    '<span class="material-symbols-outlined icon-sm" style="color: #64748b;">workspace_premium</span> 2nd Place',
-                    '<span class="material-symbols-outlined icon-sm" style="color: #b45309;">workspace_premium</span> 3rd Place'
-                ];
-                $bgColors = ['#fef08a', '#f1f5f9', '#ffedd5'];
-                foreach ($top_scorers as $index => $student):
-                    ?>
-                    <div style="background: <?= $bgColors[$index] ?>; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; text-align: center;">
-                        <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"><?= $medals[$index] ?></div>
-                        <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-dark); margin-bottom: 2px;"><?= e($student['name']) ?></h3>
-                        <div style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 8px;">Roll: <?= e($student['roll_number']) ?></div>
-                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-primary);">
-                            <?= sprintf('%.2f', (float) $student['score']) ?> <span style="font-size: 0.9rem; color: var(--color-text-secondary);">/ <?= e((string) $exam['total_marks']) ?></span>
+        <?php if (!empty($top_scorers)): ?>
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-title" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined icon-md" style="color: var(--color-primary);">military_tech</span> Top Performers
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <?php
+                    $medals = [
+                        '<span class="material-symbols-outlined icon-sm" style="color: #ca8a04;">workspace_premium</span> 1st Place',
+                        '<span class="material-symbols-outlined icon-sm" style="color: #64748b;">workspace_premium</span> 2nd Place',
+                        '<span class="material-symbols-outlined icon-sm" style="color: #b45309;">workspace_premium</span> 3rd Place'
+                    ];
+                    $bgColors = ['#fef08a', '#f1f5f9', '#ffedd5'];
+                    foreach ($top_scorers as $index => $student):
+                        ?>
+                        <div style="background: <?= $bgColors[$index] ?>; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; text-align: center;">
+                            <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"><?= $medals[$index] ?></div>
+                            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-dark); margin-bottom: 2px;"><?= e($student['name']) ?></h3>
+                            <div style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 8px;">Roll: <?= e($student['roll_number']) ?></div>
+                            <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-primary);">
+                                <?= sprintf('%.2f', (float) $student['score']) ?> <span style="font-size: 0.9rem; color: var(--color-text-secondary);">/ <?= e((string) $exam['total_marks']) ?></span>
+                            </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        </div>
+        <?php endif; ?>
 
-        <!-- All Submissions -->
+        <!-- All Students Roster & Submissions -->
         <div class="card">
-            <div style="display: flex; flex-direction: row; justify-content: space-between; padding: 10px;">
-                <div class="card-title">All Student Submissions (<?= count($all_results) ?>)</div>
-                <div style="width: 50%;">
-                    <?php include '../components/searchbar.php' ?>
+            <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 10px; flex-wrap: wrap; gap: 12px;">
+                <div class="card-title" style="margin: 0;">Class Roster & Submissions (<?= count($all_results) ?>)</div>
+                <div style="width: 50%; min-width: 240px;">
+                    <?php include __DIR__ . '/../components/searchbar.php'; ?>
                 </div>
             </div>
 
@@ -247,39 +291,66 @@ include __DIR__ . '/../components/header.php';
                         <?php
                         $rank = 1;
                         foreach ($all_results as $row):
-                            $percentage = (float) $exam['total_marks'] > 0 ? round(((float) $row['score'] / (float) $exam['total_marks']) * 100) : 0;
+                            $status = $row['attempt_status'] ?? 'not_attempted';
+                            $hasAttempt = ($status !== 'not_attempted' && !empty($row['attempt_id']));
+                            $percentage = ($hasAttempt && (float) $exam['total_marks'] > 0)
+                                ? round(((float) $row['score'] / (float) $exam['total_marks']) * 100)
+                                : 0;
+
+                            $submittedDisplay = !empty($row['submitted_at'])
+                                ? date('d M Y, h:i A', strtotime($row['submitted_at']))
+                                : '—';
                             ?>
                             <tr>
-                                <td><strong>#<?= $rank++ ?></strong></td>
+                                <td>
+                                    <strong><?= $status === 'completed' ? '#' . $rank++ : '—' ?></strong>
+                                </td>
                                 <td>
                                     <strong><?= e($row['name']) ?></strong><br>
                                     <small style="color: var(--color-text-secondary);">
-                                        <?= e($row['roll_number']) ?> • <?= e($row['department']) ?>, Sem <?= e((string) $exam['semester']) ?>
+                                        <?= e($row['roll_number']) ?> • <?= e($row['department']) ?>, Sem <?= e((string) $row['semester']) ?>
                                     </small>
                                 </td>
                                 <td>
-                                    <strong><?= sprintf('%.2f', (float) $row['score']) ?></strong> / <?= e((string) $exam['total_marks']) ?>
-                                </td>
-                                <td>
-                                    <span class="badge <?= $percentage >= 50 ? 'badge-active' : 'badge-rejected' ?>">
-                                        <?= $percentage ?>%
-                                    </span>
-                                </td>
-                                <td><?= date('d M Y, h:i A', strtotime($row['submitted_at'])) ?></td>
-                                <td>
-                                    <?php if($row['attempt_status'] === 'disqualified'): ?>
-                                        <p class="badge badge-danger"><?= $row['attempt_status'] ?></p>
+                                    <?php if ($hasAttempt): ?>
+                                        <strong><?= sprintf('%.2f', (float) $row['score']) ?></strong> / <?= e((string) $exam['total_marks']) ?>
                                     <?php else: ?>
-                                        <p class="badge badge-success"><?= $row['attempt_status'] ?></p>
+                                        <span style="color: var(--color-text-secondary);">—</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <a href="view-student-answers.php?attempt_id=<?= $row['attempt_id'] ?>" 
-                                    class="btn btn-secondary btn-sm" 
-                                    title="View Detailed Answer Sheet"
-                                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;">
-                                        <span class="material-symbols-outlined icon-sm">visibility</span> View Answers
-                                    </a>
+                                    <?php if ($hasAttempt): ?>
+                                        <span class="badge <?= $percentage >= 50 ? 'badge-active' : 'badge-rejected' ?>">
+                                            <?= $percentage ?>%
+                                        </span>
+                                    <?php else: ?>
+                                        <span style="color: var(--color-text-secondary);">—</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?= e($submittedDisplay) ?></td>
+                                <td>
+                                    <?php if ($status === 'completed'): ?>
+                                        <span class="badge badge-success">Completed</span>
+                                    <?php elseif ($status === 'disqualified'): ?>
+                                        <span class="badge badge-danger">Disqualified</span>
+                                    <?php else: ?>
+                                        <span class="badge" style="background: #f1f5f9; color: #475569;">Not Attempted</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($hasAttempt): ?>
+                                        <a href="view-student-answers.php?attempt_id=<?= (int) $row['attempt_id'] ?>" 
+                                           class="btn btn-secondary btn-sm" 
+                                           title="View Detailed Answer Sheet"
+                                           style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;">
+                                            <span class="material-symbols-outlined icon-sm">visibility</span> View Answers
+                                        </a>
+                                    <?php else: ?>
+                                        <button type="button" class="btn btn-secondary btn-sm" disabled
+                                                style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; opacity: 0.5; cursor: not-allowed;">
+                                            <span class="material-symbols-outlined icon-sm">block</span> No Attempt
+                                        </button>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
