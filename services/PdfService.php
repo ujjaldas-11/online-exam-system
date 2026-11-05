@@ -450,13 +450,16 @@ class PdfService
         $pdf->Cell($w['time'], 8, 'Submitted', 1, 1, 'C', true);
     }
 
-    public static function generateExamResultsPdf(array $exam, array $allResults, string $mode = 'P'): string
+public static function generateExamResultsPdf(array $exam, array $allResults, string $mode = 'P'): string
     {
         $pdf = new ExamifyPdf('P', 'mm', 'A4');
         $pdf->AliasNbPages();
         $pdf->SetAutoPageBreak(true, 20);
 
         $pdf->examTitle = (string) ($exam['title'] ?? 'Examination Results');
+        $pdf->footerSubtext = 'Official Examination Results Report';
+        $pdf->paperCode = ExamifyBasePdf::INSTITUTE_CODE . '@' . date('d-m-Y') . '_RESULTS';
+
         $dept = (string) ($exam['department'] ?? 'General');
         $sem = (string) ($exam['semester'] ?? 'All');
         $author = (string) ($exam['creator_name'] ?? 'College Faculty');
@@ -470,23 +473,34 @@ class PdfService
         $failedCount = 0;
         $highestScore = 0.0;
         $totalScoreSum = 0.0;
+        $attemptedCount = 0;
 
         foreach ($allResults as $res) {
+            $status = strtolower((string) ($res['attempt_status'] ?? $res['status'] ?? 'completed'));
+            if ($status === 'not_attempted') {
+                continue;
+            }
+
+            $attemptedCount++;
             $s = (float) ($res['score'] ?? 0);
             $totalScoreSum += $s;
-            if ($s > $highestScore) {
+
+            if ($status === 'completed' && $s > $highestScore) {
                 $highestScore = $s;
             }
-            $pct = ($maxMarks > 0) ? ($s / $maxMarks) * 100 : 0;
-            if ($pct >= 50.0) {
-                $passedCount++;
-            } else {
+
+            $pct = ($maxMarks > 0) ? round(($s / $maxMarks) * 100) : 0;
+
+            // Disqualified or score <= 40% counts as failed; completed with > 40% counts as passed
+            if ($status === 'disqualified' || $pct <= 40) {
                 $failedCount++;
+            } else {
+                $passedCount++;
             }
         }
 
-        $avgScore = ($totalSubmissions > 0) ? round($totalScoreSum / $totalSubmissions, 2) : 0.0;
-        $passRate = ($totalSubmissions > 0) ? round(($passedCount / $totalSubmissions) * 100, 1) : 0;
+        $avgScore = ($attemptedCount > 0) ? round($totalScoreSum / $attemptedCount, 2) : 0.0;
+        $passRate = ($attemptedCount > 0) ? round(($passedCount / $attemptedCount) * 100, 1) : 0;
 
         // ---- KPI strip ----
         $kpiStartY = $pdf->GetY();
@@ -507,8 +521,8 @@ class PdfService
         $pdf->muted();
         $pdf->SetXY(10, $kpiY);
         $pdf->IconCell($colW, 4, ExamifyBasePdf::I_SQUARE, 'CANDIDATES', 0, 0, 'C');
-        $pdf->IconCell($colW, 4, ExamifyBasePdf::I_TICK, 'PASSED (>=50%)', 0, 0, 'C');
-        $pdf->IconCell($colW, 4, ExamifyBasePdf::I_CROSS, 'FAILED (<50%)', 0, 0, 'C');
+        $pdf->IconCell($colW, 4, ExamifyBasePdf::I_TICK, 'PASSED (>40%)', 0, 0, 'C');
+        $pdf->IconCell($colW, 4, ExamifyBasePdf::I_CROSS, 'FAILED (<=40%)', 0, 0, 'C');
         $pdf->IconCell($colW, 4, ExamifyBasePdf::I_STAR, 'HIGHEST SCORE', 0, 0, 'C');
         $pdf->IconCell($colW, 4, ExamifyBasePdf::I_TRI, 'CLASS AVERAGE', 0, 1, 'C');
 
@@ -528,6 +542,7 @@ class PdfService
 
         $pdf->SetFont('Helvetica', '', 9);
         $rank = 1;
+        $rowIndex = 0;
 
         if (empty($allResults)) {
             $pdf->muted();
@@ -541,20 +556,25 @@ class PdfService
                     $pdf->SetFont('Helvetica', '', 9);
                 }
 
-                $fill = ($rank % 2 === 0);
+                $rowIndex++;
+                $fill = ($rowIndex % 2 === 0);
                 $pdf->SetFillColor(242, 242, 242);
                 $pdf->SetDrawColor(60, 60, 60);
                 $pdf->ink();
-                $score = (float) ($row['score'] ?? 0);
-                $pct = ($maxMarks > 0) ? round(($score / $maxMarks) * 100) : 0;
-                $isPass = ($pct >= 50);
 
-                $pdf->Cell($w['rank'], 7, '#' . $rank++, 1, 0, 'C', $fill);
+                $status = strtolower((string) ($row['attempt_status'] ?? $row['status'] ?? 'completed'));
+                $score = (float) ($row['score'] ?? 0);
+                $pct = ($maxMarks > 0 && $status !== 'not_attempted') ? round(($score / $maxMarks) * 100) : 0;
+                $isPass = ($status === 'completed' && $pct > 40);
+
+                // Only assign rank numbers to completed attempts
+                $rankLabel = ($status === 'completed') ? '#' . $rank++ : '-';
+                $pdf->Cell($w['rank'], 7, $rankLabel, 1, 0, 'C', $fill);
                 $pdf->Cell($w['roll'], 7, (string) ($row['roll_number'] ?? ''), 1, 0, 'C', $fill);
 
                 $orig = (string) ($row['name'] ?? '');
                 $nameStr = $orig;
-                while ($pdf->GetStringWidth($nameStr) > ($w['name'] - 4) && mb_strlen($nameStr) > 4) {
+                while ($pdf->GetStringWidth($nameStr . '..') > ($w['name'] - 2) && mb_strlen($nameStr) > 4) {
                     $nameStr = mb_substr($nameStr, 0, -1);
                 }
                 if ($nameStr !== $orig) {
@@ -562,18 +582,30 @@ class PdfService
                 }
 
                 $pdf->Cell($w['name'], 7, $nameStr, 1, 0, 'L', $fill);
-                $pdf->Cell($w['score'], 7, sprintf('%.2f', $score) . " / $maxMarks", 1, 0, 'C', $fill);
-                $pdf->Cell($w['pct'], 7, "$pct%", 1, 0, 'C', $fill);
 
-                $pdf->SetFont('Helvetica', 'B', 9);
-                if ($isPass) {
+                $scoreLabel = ($status === 'not_attempted') ? '-' : sprintf('%.2f', $score) . " / $maxMarks";
+                $pctLabel   = ($status === 'not_attempted') ? '-' : "$pct%";
+
+                $pdf->Cell($w['score'], 7, $scoreLabel, 1, 0, 'C', $fill);
+                $pdf->Cell($w['pct'], 7, $pctLabel, 1, 0, 'C', $fill);
+
+                // Render exact status: DISQ, ABSENT, PASS (>40%), or FAIL (<=40%)
+                $pdf->SetFont('Helvetica', 'B', 8.5);
+                if ($status === 'disqualified') {
+                    $pdf->IconCell($w['status'], 7, ExamifyBasePdf::I_CROSS, 'DISQ', 1, 0, 'C', $fill);
+                } elseif ($status === 'not_attempted') {
+                    $pdf->Cell($w['status'], 7, 'ABSENT', 1, 0, 'C', $fill);
+                } elseif ($isPass) {
                     $pdf->IconCell($w['status'], 7, ExamifyBasePdf::I_TICK, 'PASS', 1, 0, 'C', $fill);
                 } else {
                     $pdf->IconCell($w['status'], 7, ExamifyBasePdf::I_CROSS, 'FAIL', 1, 0, 'C', $fill);
                 }
 
                 $pdf->SetFont('Helvetica', '', 8);
-                $pdf->Cell($w['time'], 7, !empty($row['submitted_at']) ? date('d M, h:i A', strtotime($row['submitted_at'])) : '-', 1, 1, 'C', $fill);
+                $timeStr = (!empty($row['submitted_at']) && $row['submitted_at'] !== '0000-00-00 00:00:00')
+                    ? date('d M, h:i A', strtotime($row['submitted_at']))
+                    : '-';
+                $pdf->Cell($w['time'], 7, $timeStr, 1, 1, 'C', $fill);
                 $pdf->SetFont('Helvetica', '', 9);
             }
         }

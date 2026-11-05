@@ -39,26 +39,34 @@ try {
         }
     }
 
-    // Shared query: Only join 'completed' and 'disqualified' attempts; everything else becomes 'not_attempted'
+    // Fetch all eligible students + any student who attempted this exam
+    // Strictly 3 statuses: 'completed', 'disqualified', 'not_attempted'
     $rosterSql = "
-        SELECT s.id AS student_id, s.name, s.roll_number, s.email, s.department, s.semester,
+        SELECT s.id AS student_id,
+               s.name,
+               s.roll_number,
+               s.email,
+               s.department,
+               s.semester,
                ea.id AS attempt_id,
                COALESCE(ea.score, 0) AS score,
                COALESCE(ea.total_questions, 0) AS total_questions,
                ea.submitted_at,
-               COALESCE(ea.status, 'not_attempted') AS attempt_status
+               CASE
+                   WHEN ea.status IN ('completed', 'disqualified') THEN ea.status
+                   ELSE 'not_attempted'
+               END AS attempt_status
         FROM students s
-        LEFT JOIN exam_attempts ea 
-               ON ea.student_id = s.id 
-              AND ea.exam_id = :exam_id 
+        LEFT JOIN exam_attempts ea
+               ON ea.student_id = s.id
+              AND ea.exam_id = ?
               AND ea.status IN ('completed', 'disqualified')
-        WHERE s.status = 'active'
-          AND s.department = :department
-          AND s.semester = :semester
-        ORDER BY 
-            CASE COALESCE(ea.status, 'not_attempted')
-                WHEN 'completed' THEN 1
-                WHEN 'disqualified' THEN 2
+        WHERE (s.status = 'active' AND s.department = ? AND s.semester = ?)
+           OR ea.id IS NOT NULL
+        ORDER BY
+            CASE
+                WHEN ea.status = 'completed' THEN 1
+                WHEN ea.status = 'disqualified' THEN 2
                 ELSE 3
             END ASC,
             ea.score DESC,
@@ -74,11 +82,7 @@ try {
         }
         require_once '../services/PdfService.php';
         $attemptsStmt = $pdo->prepare($rosterSql);
-        $attemptsStmt->execute([
-            ':exam_id'    => $exam_id,
-            ':department' => $exam['department'],
-            ':semester'   => $exam['semester']
-        ]);
+        $attemptsStmt->execute([$exam_id, $exam['department'], $exam['semester']]);
         $pdfAttempts = $attemptsStmt->fetchAll();
 
         log_admin_action($pdo, 'export_pdf_results', 'exam', $exam_id, "Exported PDF results report for exam #$exam_id ({$exam['title']})");
@@ -116,16 +120,12 @@ try {
         }
     }
 
-    // Fetch All Eligible Students & Attempts
+    // Fetch All Results & Eligible Roster
     $resultsStmt = $pdo->prepare($rosterSql);
-    $resultsStmt->execute([
-        ':exam_id'    => $exam_id,
-        ':department' => $exam['department'],
-        ':semester'   => $exam['semester']
-    ]);
+    $resultsStmt->execute([$exam_id, $exam['department'], $exam['semester']]);
     $all_results = $resultsStmt->fetchAll();
 
-    // Status Breakdown Counts (Only 3 states)
+    // Status Breakdown Counts
     $counts = [
         'completed'     => 0,
         'disqualified'  => 0,
@@ -154,20 +154,15 @@ include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
 <div class="container main-content">
-    <div style="margin-bottom: 16px;" class="no-print">
-        <a href="results.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-            <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to All Exams
-        </a>
-    </div>
 
     <div class="page-header">
         <div>
             <h1><?= e($exam['title']) ?></h1>
             <p>
-                Total Marks: <strong><?= e((string) $exam['total_marks']) ?></strong> •
-                Eligible Students: <strong><?= count($all_results) ?></strong>
+                Total Examination Marks: <strong><?= e((string) $exam['total_marks']) ?></strong> •
+                Total Submissions: <strong><?= $counts['completed'] + $counts['disqualified'] ?></strong>
                 (Completed: <strong><?= $counts['completed'] ?></strong>,
-                Disqualified: <strong><?= $counts['disqualified'] ?></strong>,
+                Disqualified: <strong><?= $counts['disqualified'] ?></strong>, <br>
                 Not Attempted: <strong><?= $counts['not_attempted'] ?></strong>) •
                 Author: <strong><?= e($exam['creator_name'] ?? 'System') ?></strong>
                 <?php if (($exam['creator_status'] ?? '') === 'retired'): ?>
@@ -176,8 +171,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </p>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;" class="no-print">
+                    <a href="results.php" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to All Exams
+                    </a>
             <a href="view-results.php?exam_id=<?= $exam['id'] ?>&download_pdf=1" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">picture_as_pdf</span> Download Results PDF
+                <span class="material-symbols-outlined icon-sm">picture_as_pdf</span> Download  PDF
             </a>
         </div>
     </div>
@@ -232,7 +230,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php if (empty($all_results)): ?>
         <div class="card">
             <p style="color: var(--color-text-secondary); text-align: center; padding: 32px 0;">
-                No active students found in <?= e($exam['department']) ?> (Semester <?= e((string) $exam['semester']) ?>).
+                No students have completed this exam yet.
             </p>
         </div>
     <?php else: ?>
@@ -265,10 +263,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
         <?php endif; ?>
 
-        <!-- All Students Roster & Submissions -->
+        <!-- All Student Submissions -->
         <div class="card">
             <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 10px; flex-wrap: wrap; gap: 12px;">
-                <div class="card-title" style="margin: 0;">Class Roster & Submissions (<?= count($all_results) ?>)</div>
+                <div class="card-title" style="margin: 0;">All Student Submissions (<?= count($all_results) ?>)</div>
                 <div style="width: 50%; min-width: 240px;">
                     <?php include __DIR__ . '/../components/searchbar.php'; ?>
                 </div>
@@ -330,11 +328,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td><?= e($submittedDisplay) ?></td>
                                 <td>
                                     <?php if ($status === 'completed'): ?>
-                                        <span class="badge badge-success">Completed</span>
+                                        <span class="badge badge-success">completed</span>
                                     <?php elseif ($status === 'disqualified'): ?>
-                                        <span class="badge badge-danger">Disqualified</span>
+                                        <span class="badge badge-danger">disqualified</span>
                                     <?php else: ?>
-                                        <span class="badge" style="background: #f1f5f9; color: #475569;">Not Attempted</span>
+                                        <span class="badge" style="background: #f1f5f9; color: #475569;">not_attempted</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
