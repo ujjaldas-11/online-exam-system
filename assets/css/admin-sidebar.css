@@ -1,63 +1,125 @@
 /* =========================================================
-                          ADMIN SIDEBAR 
+   ADMIN SHELL — GLASS TOPBAR + FLOATING SIDEBAR
+   Uses only design tokens from the Examify variables file.
    ========================================================= */
 
 :root {
-  --sidebar-w: 240px;
-  --sidebar-w-collapsed: 78px;
-  --topbar-h: 56px;
-
-  --sidebar-bg: #0f172a;
-  --sidebar-bg-hover: #1e293b;
-  --sidebar-active-bg: #1e3a8a;
-  --sidebar-text: #e2e8f0;
-  --sidebar-text-dim: #e2e8f0;
-  --sidebar-gold: #edb055;
-  --sidebar-gold-hover: #d9a451;
-
-  --topbar-bg: #0f172a;
-  --radius: 8px;
+  /* ---- Layout ---- */
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 76px;
+  --topbar-h: 60px;
+  --shell-gap: 12px;
   --transition: 0.25s ease;
+
+  /* ---- Light Mode (Default) Theme Tokens ---- */
+  --color-on-header: var(--color-text);
+  --color-on-header-dim: var(--color-text-secondary);
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --sidebar-active-text: var(--color-primary-light);
+  --sidebar-hover-text: var(--color-primary-light);
+  --sidebar-role-color: var(--color-warning);
+  --sidebar-active-bar: var(--color-gold);
+
+  /* ---- Glass recipe: Light frosted glass ---- */
+  --glass-blur: blur(16px) saturate(180%);
+  --glass-bg: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  --glass-bg-solid: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  --glass-border: var(--color-border);
+  --glass-hover: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-active: color-mix(in srgb, var(--color-primary-light) 10%, transparent);
+  --glass-shadow: 0 8px 30px -4px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --tooltip-bg: var(--color-dark);
+  --tooltip-text: #ffffff;
 }
 
+[data-theme="dark"] {
+  --color-on-header: var(--color-text);
+  --color-on-header-dim: var(--color-text-secondary);
+  --sidebar-active-text: var(--color-gold-hover);
+  --sidebar-hover-text: var(--color-gold-hover);
+  --sidebar-role-color: var(--color-gold-hover);
+  --sidebar-active-bar: var(--color-gold-hover);
 
+  /* ---- Glass recipe: Dark sleek glass ---- */
+  --glass-blur: blur(18px) saturate(160%);
+  --glass-bg: color-mix(in srgb, var(--color-surface) 78%, transparent);
+  --glass-bg-solid: color-mix(in srgb, var(--color-surface) 95%, transparent);
+  --glass-border: var(--color-border);
+  --glass-hover: rgba(255, 255, 255, 0.06);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+  --glass-active: color-mix(in srgb, var(--color-gold) 16%, transparent);
+  --glass-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  --tooltip-bg: var(--color-surface);
+  --tooltip-text: var(--color-text);
+}
 
-/* ---------- Reset body (critical) ---------- */
+/* Fallback when backdrop-filter is unsupported */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-bg: var(--color-surface);
+  }
+  [data-theme="dark"] {
+    --glass-bg: var(--color-surface);
+  }
+}
+
+/* ---------- Base ---------- */
 body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
 }
 
+/* Subtle ambient colour behind the page so the glass has something to refract */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40rem 28rem at 8% -6%, rgba(59, 130, 246, 0.04), transparent 70%),
+    radial-gradient(34rem 24rem at 100% 0%, rgba(216, 164, 87, 0.03), transparent 70%);
+}
+
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(40rem 28rem at 8% -6%, rgba(59, 130, 246, 0.12), transparent 70%),
+    radial-gradient(34rem 24rem at 100% 0%, rgba(229, 179, 102, 0.08), transparent 70%);
+}
+
 /* ---------- Main content area ---------- */
 .main-content {
-  margin-left: var(--sidebar-w);
+  margin-left: calc(var(--sidebar-w) + var(--shell-gap) * 2);
+  max-width: calc(100% - var(--sidebar-w) - var(--shell-gap) * 2);
   padding: calc(var(--topbar-h) + 24px) 28px 40px;
-  max-width: calc(100% - var(--sidebar-w));
   box-sizing: border-box;
-  transition:
-    margin-left var(--transition),
-    max-width var(--transition);
   min-height: 100vh;
+  transition: margin-left var(--transition), max-width var(--transition);
 }
 
 body.sidebar-collapsed .main-content {
-  margin-left: var(--sidebar-w-collapsed);
-  max-width: calc(100% - var(--sidebar-w-collapsed));
+  margin-left: calc(var(--sidebar-w-collapsed) + var(--shell-gap) * 2);
+  max-width: calc(100% - var(--sidebar-w-collapsed) - var(--shell-gap) * 2);
 }
 
-/* ---------- Topbar ---------- */
+/* =========================================================
+   TOPBAR
+   ========================================================= */
 .admin-topbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: var(--topbar-h);
-  background: var(--topbar-bg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 80;
-  display: flex;
-  align-items: center;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: inset 0 -1px 0 var(--glass-highlight), var(--glass-shadow);
 }
 
 .topbar-inner {
@@ -66,30 +128,83 @@ body.sidebar-collapsed .main-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 0 20px;
+  box-sizing: border-box;
 }
 
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
+.topbar-left,
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+}
+.topbar-left { gap: 12px; }
+.topbar-right { gap: 6px; }
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  margin-left: -0.7rem;
+  color: var(--color-on-header);
+}
+.topbar-brand .auth-logo {
+  height: 34px;
+  width: auto;
+  background-color: transparent;
+  box-shadow: none;
+}
+.brand-wordmark {
+  margin-left: -20px;
+  margin-top: 7.5px;
+  font-size: 1.4rem;
+  color: var(--color-on-header);
+  font-weight: 700;
 }
 
-.topbar-shortcut {
+.topbar-sep {
+  width: 1px;
+  height: 24px;
+  margin: 0 8px;
+  background: var(--glass-border);
+}
+
+/* ---------- Icon buttons ---------- */
+.icon-btn {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-on-header);
   text-decoration: none;
-  color: #e2e8f0;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.icon-btn:hover {
+  background: var(--glass-hover);
+  border-color: var(--glass-border);
+  color: var(--sidebar-hover-text);
+}
+.icon-btn:focus-visible,
+.profile-trigger:focus-visible,
+.sidebar-links a:focus-visible,
+.sidebar-collapse-btn:focus-visible,
+.sidebar-close:focus-visible,
+.dropdown-item:focus-visible {
+  outline: 2px solid var(--sidebar-active-text);
+  outline-offset: 2px;
 }
 
 .topbar-shortcut.active {
-  background: var(--sidebar-active-bg);
-  color: var(--sidebar-gold);
+  background: var(--glass-active);
+  border-color: var(--glass-border);
+  color: var(--sidebar-active-text);
 }
 
 .topbar-badge {
@@ -99,72 +214,20 @@ body.sidebar-collapsed .main-content {
   min-width: 20px;
   height: 20px;
   padding: 0 5px;
-  border-radius: 999px;
-  background: #ef4444;
-  color: white;
+  box-sizing: border-box;
+  border-radius: var(--radius-full);
+  background: var(--color-error);
+  color: var(--color-white);
   font-size: 0.7rem;
   font-weight: 700;
-  line-height: 18px;
+  line-height: 16px;
   text-align: center;
-  border: 2px solid var(--topbar-bg);
+  border: 2px solid var(--glass-bg-solid);
 }
 
-.admin-name {
-  font-weight: 500;
-  font-size: 0.9rem;
-  color: #e2e8f0;
-}
+.mobile-menu-btn { display: none; }
 
-.profile-icon {
-  font-size: 28px;
-  color: #94a3b8;
-}
-
-.icon-btn {
-  background: transparent;
-  border: none;
-  color: #e2e8f0;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.icon-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--sidebar-gold);
-}
-
-.mobile-menu-btn {
-  display: none;
-}
-
-/* =====================================================================
-   admin-navbar.css
-   Modern, minimal CSS for Profile Widget, Dropdown & Modal
-   ===================================================================== */
-
-/* ---------- 1. Profile Avatar & Trigger ---------- */
-.nav-profile-pic {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  background: #fff;
-}
-.nav-profile-pic.lg {
-  width: 56px;
-  height: 56px;
-}
-
+/* ---------- Profile trigger ---------- */
 .profile-widget {
   position: relative;
   display: flex;
@@ -175,21 +238,33 @@ body.sidebar-collapsed .main-content {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 12px 4px 4px;
-  border-radius: 50px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
+  padding: 4px 10px 4px 4px;
+  border-radius: var(--radius-full);
+  background: var(--glass-hover);
+  border: 1px solid var(--glass-border);
+  color: var(--color-on-header);
+  font: inherit;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: background 0.2s ease;
 }
 .profile-trigger:hover,
 .profile-trigger[aria-expanded="true"] {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--glass-active);
 }
-.profile-trigger:focus-visible {
-  outline: 2px solid #edb055;
-  outline-offset: 2px;
+
+.nav-profile-pic {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--glass-border);
+  background: var(--color-surface);
+}
+.nav-profile-pic.lg {
+  width: 88px;
+  height: 88px;
+  border-width: 3px;
 }
 
 .profile-text {
@@ -199,19 +274,19 @@ body.sidebar-collapsed .main-content {
   line-height: 1.2;
 }
 .admin-name {
-  font-size: 0.85rem;
-  font-weight: 600;
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-on-header);
 }
 .admin-role {
   font-size: 0.68rem;
   font-weight: 600;
-  color: #edb055;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
+  color: var(--sidebar-role-color);
 }
 
 .chevron-icon {
@@ -222,277 +297,305 @@ body.sidebar-collapsed .main-content {
   transform: rotate(180deg);
 }
 
-/* ---------- 2. Dropdown Menu (Dark Theme) ---------- */
+/* ---------- Dropdown ---------- */
 .profile-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   right: 0;
   z-index: 1000;
-  width: 280px;
+  width: 290px;
   max-width: calc(100vw - 24px);
-  background: var(--sidebar-bg);
-  color: var(--sidebar-text);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  background: var(--glass-bg-solid);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  color: var(--color-on-header);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: 0.2s ease;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
 }
 .profile-dropdown.open {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: none;
 }
 
 .dropdown-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
   gap: 12px;
-  padding: 16px;
+  padding: 20px 16px 16px;
+  text-align: center;
+}
+.dropdown-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 .dropdown-name {
-  margin: 0 0 4px;
+  margin: 0;
+  font-size: 1rem;
   font-weight: 700;
-  font-size: 0.95rem;
+  color: var(--color-on-header);
+}
+.role-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: var(--radius-full);
+  background: var(--glass-active);
+  border: 1px solid var(--glass-border);
+  color: var(--sidebar-role-color);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.dropdown-college {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--color-on-header-dim);
 }
 
 .dropdown-admin-details {
-  padding: 12px 16px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 10px 16px;
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-hover);
   font-size: 0.85rem;
-  color: #e2e8f0;
-  line-height: 1.5;
+  color: var(--color-on-header);
 }
 .dropdown-admin-details p {
-  margin: 4px 0;
-  overflow-wrap: anywhere;
-  font-weight: bolder;
-}
-.dropdown-admin-details strong {
-  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
   font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.dropdown-admin-details .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--color-on-header-dim);
 }
 
-.dropdown-reset-btn-item,
-.logout-btn {
+.dropdown-actions { padding: 6px; }
+
+.dropdown-item {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 16px;
-  background: transparent;
-  border: none;
-  color: var(--sidebar-text);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: 0.2s ease;
-  text-decoration: none;
-  box-sizing: border-box;
-}
-.dropdown-reset-btn-item:hover {
-  background: var(--sidebar-bg-hover);
-  color: #fff;
-}
-
-.logout-btn {
-  color: #fca5a5;
-}
-.logout-btn:hover {
-  background: rgba(220, 38, 38, 0.15);
-  color: #f87171;
-}
-.logout-btn .material-symbols-outlined {
-  font-size: 20px;
-}
-
-.dropdown-divider {
-  margin: 0;
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-.form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
-}
-.form-group input {
-  width: 100%;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font: inherit;
-  font-size: 0.95rem;
   box-sizing: border-box;
-  transition: 0.2s ease;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-on-header);
+  font-size: 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.form-group input:focus {
-  outline: none;
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+.dropdown-item .material-symbols-outlined { font-size: 20px; }
+.dropdown-item-label { flex: 1; }
+.dropdown-item-arrow { color: var(--color-on-header-dim); }
+.dropdown-item:hover {
+  background: var(--glass-hover);
+  color: var(--sidebar-hover-text);
+}
+.dropdown-item.logout-btn { color: var(--color-error); }
+.dropdown-item.logout-btn .dropdown-item-arrow { color: inherit; }
+.dropdown-item.logout-btn:hover {
+  background: var(--color-error-bg);
+  color: var(--color-error);
 }
 
-/* ---------- Responsive Rules ---------- */
-@media (max-width: 576px) {
-  .profile-text,
-  .chevron-icon {
-    display: none;
-  }
-  .profile-trigger {
-    padding: 2px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .chevron-icon,
-  .profile-dropdown {
-    transition: none;
-  }
-}
-/* ---------- Sidebar ---------- */
+/* =========================================================
+   SIDEBAR (floating glass panel)
+   ========================================================= */
 .admin-sidebar {
   position: fixed;
-  top: 30px;
-  left: 0;
-  bottom: 0;
+  top: calc(var(--topbar-h) + var(--shell-gap));
+  left: var(--shell-gap);
+  bottom: var(--shell-gap);
+  z-index: 70;
   width: var(--sidebar-w);
-  background: var(--sidebar-bg);
-  color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
-  padding: 16px 12px 20px;
-  z-index: 70;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
-  transition:
-    width var(--transition),
-    transform var(--transition);
+  padding: 12px;
+  box-sizing: border-box;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  color: var(--color-on-header);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
   overflow-x: hidden;
   overflow-y: auto;
-}
-
-
-.admin-sidebar {
- /* Hide scrollbar for Chrome, Safari, Opera, and newer Edge */
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Hide scrollbar for Firefox */
   scrollbar-width: none;
-
-  /* Hide scrollbar for IE and legacy Edge */
   -ms-overflow-style: none;
-  
-  overflow: auto; 
+  transition: width var(--transition), transform var(--transition);
 }
+.admin-sidebar::-webkit-scrollbar { display: none; }
 
-/* Sidebar header / brand */
+/* Header is only needed for the mobile drawer */
 .sidebar-header {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
-  flex-shrink: 0;
+  margin-bottom: 12px;
   padding: 0 4px;
+  flex-shrink: 0;
 }
-
+.sidebar-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--color-on-header-dim);
+}
 .sidebar-close {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--glass-hover);
+  color: var(--color-on-header);
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
+.sidebar-close:hover { background: var(--glass-active); }
 
-/* Navigation links */
+/* ---------- Links ---------- */
 .sidebar-links {
   display: flex;
   flex-direction: column;
-  gap: 3px;
   flex: 1;
+  gap: 4px;
 }
 
-.sidebar-links a {
+.sidebar-links a,
+.sidebar-collapse-btn {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;
-  color: var(--sidebar-text-dim);
-  text-decoration: none;
-  padding: 11px 15px;
-  border-radius: var(--radius);
+  width: 100%;
+  padding: 11px 14px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-on-header-dim);
+  font: inherit;
   font-size: 0.92rem;
   font-weight: 500;
+  text-align: left;
+  text-decoration: none;
   white-space: nowrap;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-  position: relative;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.sidebar-links a .material-symbols-outlined {
+.sidebar-links .material-symbols-outlined {
   flex-shrink: 0;
   width: 24px;
-  min-width: 24px;
   height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 400,
-    "GRAD" 0,
-    "opsz" 24;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
-.sidebar-links a .link-label {
-  white-space: nowrap;
+.link-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   opacity: 1;
   transition: opacity 0.15s ease;
 }
 
-.sidebar-links a:hover {
-  background: var(--sidebar-bg-hover);
-  color: var(--sidebar-gold);
+.sidebar-links a:hover,
+.sidebar-collapse-btn:hover {
+  background: var(--glass-hover);
+  color: var(--sidebar-hover-text);
 }
 
 .sidebar-links a.active {
-  background: var(--sidebar-active-bg);
-  color: var(--sidebar-gold-hover);
+  background: var(--glass-active);
+  color: var(--sidebar-active-text);
   font-weight: 600;
 }
-
 .sidebar-links a.active .material-symbols-outlined {
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 500,
-    "GRAD" 0,
-    "opsz" 24;
+  font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
+}
+/* Active indicator bar */
+.sidebar-links a::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--sidebar-active-bar);
+  opacity: 0;
+  transform: scaleY(0.4);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.sidebar-links a.active::before {
+  opacity: 1;
+  transform: scaleY(1);
 }
 
-/* Overlay for mobile */
+/* Count badge inside a link */
+.link-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: var(--radius-full);
+  background: var(--color-error);
+  color: var(--color-white);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* Collapse button pinned to the bottom */
+.sidebar-collapse-btn {
+  margin-top: auto;
+  border-top: 1px solid var(--glass-border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  padding-top: 14px;
+}
+.sidebar-collapse-btn .material-symbols-outlined { transition: transform 0.25s ease; }
+
+/* ---------- Overlay (mobile) ---------- */
 .sidebar-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
   z-index: 65;
-  backdrop-filter: blur(2px);
+  background: color-mix(in srgb, var(--color-black) 50%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
 }
-
-.sidebar-overlay.show {
-  display: block;
-}
+.sidebar-overlay.show { display: block; }
 
 /* =========================================================
-   COLLAPSED STATE (Desktop only)
+   COLLAPSED STATE (desktop)
    ========================================================= */
 @media (min-width: 993px) {
   body.sidebar-collapsed .admin-sidebar {
@@ -501,135 +604,125 @@ body.sidebar-collapsed .main-content {
   }
 
   body.sidebar-collapsed .link-label {
-    opacity: 0;
-    width: 0;
-    overflow: hidden;
     position: absolute;
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
     pointer-events: none;
-    transition: opacity 0.15s ease;
   }
 
-  body.sidebar-collapsed .sidebar-links a {
-    padding: 11px 15px;
+  /* Badge becomes a dot on the icon */
+  body.sidebar-collapsed .link-badge {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    min-width: 10px;
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    font-size: 0;
+    border: 2px solid var(--glass-bg-solid);
+    box-sizing: content-box;
   }
 
-  /* Tooltip flyout when collapsed */
-  body.sidebar-collapsed .sidebar-links a::after {
+  body.sidebar-collapsed .sidebar-collapse-btn .material-symbols-outlined {
+    transform: rotate(180deg);
+  }
+
+  /* Tooltip flyout */
+  .admin-sidebar [data-tooltip]::after {
     content: attr(data-tooltip);
     position: absolute;
-    left: calc(100% + 12px);
+    left: calc(100% + 16px);
     top: 50%;
-    transform: translateY(-50%) translateX(-8px);
-    background: var(--sidebar-bg);
-    color: #fff;
+    z-index: 100;
     padding: 7px 12px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
+    background: var(--tooltip-bg);
+    color: var(--tooltip-text);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
     font-size: 0.82rem;
     font-weight: 500;
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     opacity: 0;
     pointer-events: none;
-    transition:
-      opacity 0.15s ease,
-      transform 0.15s ease;
-    z-index: 100;
+    transform: translateY(-50%) translateX(-6px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
   }
-
-  body.sidebar-collapsed .sidebar-links a:hover::after {
+  body:not(.sidebar-collapsed) .admin-sidebar [data-tooltip]::after { display: none; }
+  body.sidebar-collapsed .admin-sidebar [data-tooltip]:hover::after,
+  body.sidebar-collapsed .admin-sidebar [data-tooltip]:focus-visible::after {
     opacity: 1;
     transform: translateY(-50%) translateX(0);
-  }
-
-  /* Rotate collapse icon */
-  .desktop-collapse-btn .material-symbols-outlined {
-    transition: transform 0.25s ease;
-  }
-
-  body.sidebar-collapsed .desktop-collapse-btn .material-symbols-outlined {
-    transform: rotate(180deg);
-  }
-}
-
-@media (max-width: 992px) {
-  .desktop-collapse-btn {
-    display: none !important;
   }
 }
 
 /* =========================================================
-   MOBILE
+   TABLET / MOBILE
    ========================================================= */
 @media (max-width: 992px) {
+  .desktop-collapse-btn { display: none !important; }
+
   .main-content {
     margin-left: 0 !important;
     max-width: 100% !important;
     padding: calc(var(--topbar-h) + 16px) 16px 32px;
   }
 
-  .mobile-menu-btn {
-    display: flex;
-  }
+  .mobile-menu-btn { display: inline-flex; }
 
+  /* Full-height drawer */
   .admin-sidebar {
-    transform: translateX(-100%);
-    width: var(--sidebar-w);
+    top: 0;
+    left: 0;
+    bottom: 0;
     z-index: 100;
+    width: min(var(--sidebar-w), 86vw);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    background: var(--glass-bg-solid);
+    transform: translateX(-105%);
   }
+  .admin-sidebar.show { transform: none; }
 
-  .admin-sidebar.show {
-    transform: translateX(0);
-  }
-
-  .sidebar-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-    border: none;
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-
-  .sidebar-close:hover {
-    background: rgba(255, 255, 255, 0.18);
-  }
-
-  .link-label {
-    opacity: 1 !important;
-    position: static !important;
-    width: auto !important;
-  }
-
-  .sidebar-overlay.show {
-    z-index: 90;
-  }
+  .sidebar-header { display: flex; }
+  .sidebar-links a::before { left: -12px; }
+  .sidebar-overlay.show { z-index: 90; }
 }
 
-/* Reduced motion */
+@media (max-width: 576px) {
+  .topbar-inner { padding: 0 12px; }
+  .profile-text,
+  .chevron-icon { display: none; }
+  .profile-trigger { padding: 2px; }
+  .topbar-sep { display: none; }
+  .topbar-right { gap: 2px; }
+}
+
+/* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   .admin-sidebar,
   .main-content,
   .icon-btn,
-  .desktop-collapse-btn .material-symbols-outlined {
+  .chevron-icon,
+  .profile-dropdown,
+  .sidebar-links a,
+  .sidebar-links a::before,
+  .sidebar-collapse-btn .material-symbols-outlined {
     transition: none !important;
   }
 }
 
-/* Print Styles */
+/* ---------- Print ---------- */
 @media print {
   .admin-topbar,
   .admin-sidebar,
   .sidebar-overlay,
   .desktop-collapse-btn,
   .mobile-menu-btn,
-  .no-print {
-    display: none !important;
-  }
+  .no-print { display: none !important; }
+
+  body::before { display: none; }
 
   .main-content {
     margin-left: 0 !important;
@@ -639,27 +732,24 @@ body.sidebar-collapsed .main-content {
   }
 }
 
-/* ---------- Instant SPA Viewport & Loader ---------- */
+/* =========================================================
+   SPA VIEWPORT & LOADER
+   ========================================================= */
 #admin-spa-loader {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 3px;
-  background: linear-gradient(90deg, var(--color-primary), var(--sidebar-gold, #edb055));
   z-index: 99999;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-gold-hover));
   opacity: 0;
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
   pointer-events: none;
 }
-
-#admin-spa-loader.loading {
-  opacity: 1;
-  transform: scaleX(0.75);
-}
-
+#admin-spa-loader.loading { opacity: 1; transform: scaleX(0.75); }
 #admin-spa-loader.done {
   opacity: 1;
   transform: scaleX(1);
@@ -671,16 +761,9 @@ body.sidebar-collapsed .main-content {
   width: 100%;
   min-height: calc(100vh - var(--topbar-h));
 }
-
-.admin-app-viewport.spa-transition-fade {
-  animation: adminSpaFade 0.12s ease-out;
-}
+.admin-app-viewport.spa-transition-fade { animation: adminSpaFade 0.12s ease-out; }
 
 @keyframes adminSpaFade {
-  from {
-    opacity: 0.88;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0.88; }
+  to   { opacity: 1; }
 }

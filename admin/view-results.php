@@ -183,9 +183,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <!-- Publication Status Banner -->
-    <div class="card no-print" style="margin-bottom: 24px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: <?= !empty($exam['results_published']) ? '#f0fdf4' : ($is_ongoing ? '#fefce8' : '#fffbeb') ?>; border-color: <?= !empty($exam['results_published']) ? '#bbf7d0' : ($is_ongoing ? '#fef08a' : '#fde68a') ?>;">
+    <div class="card no-print" style="margin-bottom: 24px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: <?= !empty($exam['results_published']) ? 'var(--color-success-bg)' : 'var(--color-warning-bg)' ?>; border-color: <?= !empty($exam['results_published']) ? 'var(--color-success)' : 'var(--color-warning)' ?>;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 50%; background: <?= !empty($exam['results_published']) ? '#dcfce7' : ($is_ongoing ? '#fef9c3' : '#fef3c7') ?>; color: <?= !empty($exam['results_published']) ? '#16a34a' : ($is_ongoing ? '#ca8a04' : '#d97706') ?>; display: inline-flex; align-items: center; justify-content: center;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--color-surface); color: <?= !empty($exam['results_published']) ? 'var(--color-success)' : 'var(--color-warning)' ?>; display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
                 <span class="material-symbols-outlined" style="font-size: 24px;"><?= !empty($exam['results_published']) ? 'visibility' : ($is_ongoing ? 'pending_actions' : 'visibility_off') ?></span>
             </div>
             <div>
@@ -247,7 +247,9 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         '<span class="material-symbols-outlined icon-sm" style="color: #64748b;">workspace_premium</span> 2nd Place',
                         '<span class="material-symbols-outlined icon-sm" style="color: #b45309;">workspace_premium</span> 3rd Place'
                     ];
-                    $bgColors = ['#fef08a', '#f1f5f9', '#ffedd5'];
+                    $bgColors = ['var(--color-warning-bg)', 
+                    'var(--color-gray-100)', 
+                    'var(--color-error-bg)'];
                     foreach ($top_scorers as $index => $student):
                         ?>
                         <div style="background: <?= $bgColors[$index] ?>; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; text-align: center;">

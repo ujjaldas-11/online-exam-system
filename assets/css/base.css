@@ -11,7 +11,7 @@
 html {
   scroll-behavior: smooth;
   scrollbar-width: thin;         
-  scrollbar-color: #a0aec0 #edf2f7;
+  scrollbar-color: var(--color-border) var(--color-bg);
 }
 
 ::-webkit-scrollbar {
@@ -21,19 +21,19 @@ html {
 
 /* The background track */
 ::-webkit-scrollbar-track {
-  background: #edf2f7;
+  background: var(--color-bg);
   border-radius: 100vw;
   margin-block: 0.5rem;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #a0aec0;
+  background: var(--color-border);
   border-radius: 100vw;
-  border: 2px solid #edf2f7;
+  border: 2px solid var(--color-bg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #718096;
+  background: var(--color-text-secondary);
 }
 
 
@@ -70,7 +70,7 @@ img {
 }
 
 .auth-body {
-  background: var(--color-primary);
+  background: var(--color-header);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,8 +108,8 @@ img {
   margin-top: auto;
   padding: 24px 20px;
   text-align: center;
-  border-top: 1px solid var(--color-gold, #edb055);
-  color: var(--color-text-secondary, #64748b);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   font-size: 0.85rem;
   background: transparent;
 }
@@ -126,7 +126,7 @@ img {
   transition: color 0.2s ease;
 }
 .app-footer-links a:hover {
-  color: var(--color-primary, #2d5a27);
+  color: var(--color-primary-light);
 }
 .app-footer .divider {
   margin: 0 8px;

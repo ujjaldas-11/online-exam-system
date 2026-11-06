@@ -127,10 +127,10 @@ $total_marks = (float) ($examOverview['total_marks'] ?? 0);
         </a>
     </div>
     <!-- Exam Summary Header -->
-    <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div style="background: var(--color-bg); border-radius: 12px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
-            <h1 style="margin: 0 0 8px 0; color: #1e293b; font-size: 24px;"><?= e($examOverview['title']) ?></h1>
-            <p style="margin: 0; color: #64748b;">Submitted on: <?= date('d M Y, h:i A', strtotime($examOverview['submitted_at'])) ?></p>
+            <h1 style="margin: 0 0 8px 0; color: var(--color-text); font-size: 24px;"><?= e($examOverview['title']) ?></h1>
+            <p style="margin: 0; color: var(--color-text) ;">Submitted on: <?= date('d M Y, h:i A', strtotime($examOverview['submitted_at'])) ?></p>
             <strong>Subject: <?= e($examOverview['subject_name']) ?></strong>
             <p style="margin: 4px 0;">Name: <strong><?= e($student_name) ?></strong> (Roll: <?= e($roll) ?>)</p>
             <p style="margin: 4px 0;">Department: <strong><?= e($examOverview['exam_department']) ?> </strong>, <strong>Sem <?=  e($examOverview['exam_semester']) ?></strong></p>
@@ -141,9 +141,9 @@ $total_marks = (float) ($examOverview['total_marks'] ?? 0);
             <?php endif; ?>
         </div>
         <div style="text-align: right;">
-            <div style="display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 110px; height: 110px; border: 3px solid #6366f1; border-radius: 50%; background: #eef2ff;">
-                <span style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;"><?= sprintf('%.2f', (float)$examOverview['score']) ?></span>
-                <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
+            <div style="display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 110px; height: 110px; border: 3px solid #6366f1; border-radius: 50%; background: var(--color-bg);">
+                <span style="font-size: 1.5rem; font-weight: 800; color: var(--color-text);"><?= sprintf('%.2f', (float)$examOverview['score']) ?></span>
+                <span style="font-size: 0.75rem; color: var(--color-text); font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
             </div>
             <div style="margin-top: 8px;">
                 <a href="?download_answers=true&attempt_id=<?= $attempt_id ?>" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
@@ -160,12 +160,12 @@ $total_marks = (float) ($examOverview['total_marks'] ?? 0);
     
     foreach ($questions as $q):
         ?>
-        <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px;">
+        <div style="background: var(--color-bg); border-radius: 12px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px;">
             <div style="display: flex; gap: 15px; margin-bottom: 16px;">
-                <div style="background: #f1f5f9; color: #475569; font-weight: bold; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <div style="background: var(--color-bg); color: var(--color-text); font-weight: bold; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     <?= $qNumber++ ?>
                 </div>
-                <h3 style="margin: 0; padding-top: 6px; color: #1e293b; font-size: 16px; line-height: 1.5;">
+                <h3 style="margin: 0; padding-top: 6px; color: var(--color-text); font-size: 16px; line-height: 1.5;">
                     <?= nl2br(e($q['question_text'])) ?>
                     <?php if (($q['question_type'] ?? 'single') === 'multiple'): ?>
                         <span class="badge badge-warning" style="font-size: 0.72rem; margin-left: 8px; vertical-align: middle;">Multiple Answer</span>
@@ -208,9 +208,9 @@ $total_marks = (float) ($examOverview['total_marks'] ?? 0);
                         continue;
                     }
 
-                    $bgColor = '#f8fafc';
+                    $bgColor = 'var(--color-bg)';
                     $borderColor = '#e2e8f0';
-                    $textColor = '#475569';
+                    $textColor = 'var(--color-text)';
                     $badgeText = '';
 
                     $isTargetCorrect = in_array($letter, $correctTokens, true);

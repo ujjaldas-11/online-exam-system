@@ -35,7 +35,7 @@
   background: var(--color-error-bg);
   padding: 6px 14px;
   border-radius: var(--radius-md);
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-error);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -173,18 +173,19 @@
 
 .grid-btn.answered {
   background: var(--color-success-bg);
-  border-color: #86efac;
+  border-color: var(--color-success);
   color: var(--color-success);
 }
 
 .grid-btn.review {
   border: 2px solid var(--color-warning);
   background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .grid-btn.active {
   background: var(--color-primary);
-  color: white;
+  color: #ffffff;
   border-color: var(--color-primary);
 }
 
@@ -209,8 +210,8 @@
 }
 
 .dot-answered { background: var(--color-success); }
-.dot-review { border: 2px solid var(--color-warning); }
-.dot-unanswered { background: white; border: 1px solid var(--color-border); }
+.dot-review { border: 2px solid var(--color-warning); background: var(--color-warning-bg); }
+.dot-unanswered { background: var(--color-surface); border: 1px solid var(--color-border); }
 
 /* Fullscreen Start Overlay */
 .fullscreen-overlay {
@@ -249,7 +250,7 @@
 /* Violation Warning Modal */
 .violation-banner {
   background: var(--color-error-bg);
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-error);
   color: var(--color-error);
   padding: 10px 16px;
   border-radius: var(--radius-md);
@@ -288,7 +289,7 @@
     width: 18px;
     height: 18px;
     margin: 2px 0 0;
-    accent-color: var(--primary, #4f46e5);
+    accent-color: var(--color-primary);
 }
 .option-item .option-label {
     flex: 1;
@@ -315,14 +316,14 @@
 #btn-review.is-marked {
   background: var(--color-warning);
   color: #ffffff !important;
-  border-color: #b45309;
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.25);
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-warning) 25%, transparent);
 }
 
 #btn-review.is-marked:hover {
-  background: #b45309;
+  background: color-mix(in srgb, var(--color-warning) 85%, var(--color-dark));
   color: #ffffff !important;
-  border-color: #92400e;
+  border-color: color-mix(in srgb, var(--color-warning) 65%, var(--color-dark));
 }
 
 /* Palette Filters & Mobile Drawer */
@@ -346,7 +347,8 @@
 }
 
 .palette-filter-btn:hover {
-  background: #e2e8f0;
+  background: var(--color-gray-100);
+  color: var(--color-text);
 }
 
 .palette-filter-btn.active {

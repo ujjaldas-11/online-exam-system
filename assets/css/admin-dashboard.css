@@ -113,7 +113,7 @@
 
 /* Reference dashboard: scoped to preserve the other administrative screens. */
 .dashboard-page {
-  background: var(--color-primary-soft);
+  background: var(--color-bg);
 }
 
 .dashboard-page .dashboard-content {
@@ -319,12 +319,20 @@
   min-height: 49px;
   gap: 14px;
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .dashboard-page .quick-action-btn:first-of-type {
-  background: var(--color-primary-light);
-  color: var(--color-surface);
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.dashboard-page .quick-action-btn:first-of-type:hover {
+  background: var(--color-primary-hover);
+  color: #ffffff;
+  border-color: var(--color-primary-hover);
 }
 
 .dashboard-page .quick-action-btn>.material-symbols-outlined {
@@ -376,7 +384,8 @@
 .dashboard-page .compact-table th {
   font-size: .69rem;
   font-weight: 500;
-  background: var(--color-primary-soft);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
 }
 
 .dashboard-submitted {
@@ -425,37 +434,7 @@
   color: var(--color-text);
 } */
 
-.dashboard-page .profile-trigger {
-  border-color: transparent;
-}
 
-.dashboard-page .admin-sidebar {
-  box-shadow: none;
-}
-
-/* .dashboard-page .sidebar-links a.active {
-  background: var(--color-primary-light);
-  color: var(--color-surface);
-} */
-
-@media (min-width: 993px) {
-  .dashboard-page .admin-topbar .topbar-left {
-    background: var(--sidebar-bg);
-    width: var(--sidebar-w);
-    height: var(--topbar-h);
-    padding-left: 20px;
-    box-sizing: border-box;
-  }
-
-  .dashboard-page .topbar-inner {
-    padding-left: 0;
-  }
-
-  /* .dashboard-page .sidebar-links a {
-    padding-top: 13px;
-    padding-bottom: 13px;
-  } */
-}
 
 @media (max-width: 1200px) {
   .dashboard-page .compact-kpi {
@@ -562,7 +541,7 @@
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
   margin-top: 12px;
-  background: var(--color-bg);
+  background: var(--color-surface);
   padding: 16px;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -572,7 +551,7 @@
 }
 .csv-guide-item strong {
   display: block;
-  color: var(--color-dark);
+  color: var(--color-text);
   margin-bottom: 2px;
 }
 .csv-guide-item span {
@@ -582,8 +561,8 @@
 .error-box {
   max-height: 150px;
   overflow-y: auto;
-  background: var(--color-bg);
-  border: 1px solid #fca5a5;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
   border-radius: var(--radius-md);
   padding: 12px;
   margin-bottom: 20px;

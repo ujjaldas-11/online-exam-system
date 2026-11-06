@@ -1,8 +1,5 @@
 <?php
-/**
- * Shared Header Layout Partial
- */
-
+/** Shared Header Layout Partial */
 require_once __DIR__ . '/../utils/env.php';
 require_once __DIR__ . '/../utils/sanitize.php';
 
@@ -38,5 +35,14 @@ $bodyClass = $body_class ?? '';
             <link rel="stylesheet" href="<?= htmlspecialchars($cssSrc, ENT_QUOTES, 'UTF-8') ?>?v=<?= $assetVersion ?>">
         <?php endforeach; ?>
     <?php endif; ?>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('examify_theme');
+            const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'dark' || (!saved && sysDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 </head>
 <body class="<?= htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8') ?>">

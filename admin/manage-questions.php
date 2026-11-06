@@ -265,7 +265,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div style="display: flex; gap: 10px;">
                     <input type="text" id="subject_display_name" class="form-control"
                         placeholder="-- Click Browse to Select --" readonly
-                        style="flex: 1; background: #f8fafc; cursor: pointer;" onclick="openSubjectModal()">
+                        style="flex: 1; background: var(--color-bg); cursor: pointer;" onclick="openSubjectModal()">
                     <button type="button" class="btn btn-secondary" onclick="openSubjectModal()">Browse</button>
                 </div>
 
@@ -371,20 +371,20 @@ include __DIR__ . '/../components/admin-sidebar.php';
     </div>
 </div>
 
-<!-- hideen MODAL HTML -->
+<!-- hidden MODAL HTML -->
 <div id="standaloneSubjectModal"
-    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; justify-content: center; align-items: center;">
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 99999; justify-content: center; align-items: center;">
 
-    <!-- The White Popup Card -->
+    <!-- The Modal Card -->
     <div
-        style="background: #fff; width: 100%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 90vh;">
+        style="background: var(--color-surface); color: var(--color-text); width: 100%; max-width: 500px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; max-height: 90vh;">
 
         <!-- Header -->
         <div
-            style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            style="padding: 15px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; font-size: 1.2rem;">Choose Subject</h3>
             <button type="button" onclick="closeSubjectModal()"
-                style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--color-text-secondary);">&times;</button>
         </div>
 
         <!-- Body -->
@@ -396,14 +396,14 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
 
             <!-- The Clickable List -->
-            <div style="border: 1px solid #eee; border-radius: 6px;">
+            <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
                 <?php foreach ($subjects as $sub): ?>
                     <div class="standalone-list-item"
                         onclick="pickSubject(<?= $sub['id'] ?>, '<?= e(addslashes($sub['name'])) ?>')"
-                        style="padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;"
-                        onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
-                        <strong style="color: #0f172a;"><?= e($sub['name']) ?></strong>
-                        <span style="font-size: 0.85rem; color: #64748b; margin-left: 5px;">(<?= e($sub['department']) ?>,
+                        style="padding: 12px 15px; border-bottom: 1px solid var(--color-border); cursor: pointer; transition: background 0.2s;"
+                        onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="this.style.background='transparent'">
+                        <strong style="color: var(--color-text);"><?= e($sub['name']) ?></strong>
+                        <span style="font-size: 0.85rem; color: var(--color-text-secondary); margin-left: 5px;">(<?= e($sub['department']) ?>,
                             Sem <?= e((string) $sub['semester']) ?>)</span>
                     </div>
                 <?php endforeach; ?>

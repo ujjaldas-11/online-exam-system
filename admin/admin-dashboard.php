@@ -309,7 +309,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     <?php endforeach; ?>
                 </ul>
             <?php endif; ?>
-            <div class="text-right border-t" style="padding: 8px 16px; background: #f8fafc;">
+            <div class="text-right border-t" style="padding: 8px 16px; background: var(--color-bg);">
                 <a href="audit-logs.php" class="font-semibold text-primary" style="font-size: 0.8rem; text-decoration: none;">View Full Audit Trail &rarr;</a>
             </div>
         </div>

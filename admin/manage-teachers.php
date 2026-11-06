@@ -294,7 +294,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 .compact-modal {
     width: 100%; max-width: 500px; /* Reduced width */
     max-height: 85vh; /* Prevents overflowing off screen */
-    background: #fff; border-radius: 12px;
+    background: var(--color-surface); border-radius: 12px;
     display: flex; flex-direction: column;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
@@ -377,7 +377,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <div id="createStaffModal" class="admin-modal-overlay">
         <div class="admin-modal-card compact-modal">
 
-            <div class="admin-modal-header" style="border-bottom: 1px solid #eee; padding: 20px;">
+            <div class="admin-modal-header" style="padding: 20px;">
                 <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
                     <span class="material-symbols-outlined">add_circle</span> Provision New Teacher
                 </h3>
@@ -438,7 +438,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </div>
                 </div>
                 
-                <div class="admin-modal-footer" style="border-top: 1px solid #eee; padding: 16px 20px; display: flex; justify-content: flex-end; gap: 12px; background: #fafafa;">
+                <div class="admin-modal-footer" style="padding: 16px 20px; display: flex; justify-content: flex-end; gap: 12px;">
                     <button type="button" id="cancelCreateStaffBtn" class="btn btn-secondary">Cancel</button>
                     <button type="submit" name="create_teacher" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
                         <span class="material-symbols-outlined icon-sm">person_add</span> Create Account

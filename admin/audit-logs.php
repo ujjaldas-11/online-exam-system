@@ -92,7 +92,7 @@ include __DIR__ . '/../components/header.php';
 include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
-<style>
+<!-- <style>
 /* Audit Logs Scrollable Container & Viewport Fit */
 @media (min-width: 769px) and (min-height: 550px) {
     html, body.audit-logs-page {
@@ -192,7 +192,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     position: sticky;
     top: 0;
     z-index: 10;
-    background: #f8fafc;
+    /* background: var(--color); */
     border-bottom: 1px solid var(--color-border);
     padding: 10px 14px;
     font-size: 0.82rem;
@@ -228,7 +228,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 #f1f5f9;
 }
-</style>
+</style> -->
 
 <div class="container main-content audit-page-container">
     <div class="page-header audit-page-header">
@@ -248,7 +248,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
         <form method="GET" action="" class="d-flex flex-wrap items-end" style="gap: 10px;">
             <?php if ($isAdminSuper): ?>
                 <div class="form-group mb-0" style="min-width: 140px; flex: 1.2;">
-                    <label class="d-block font-medium mb-1" style="font-size: 0.8rem;">Filter by Instructor</label>
+                    <!-- <label class="d-block font-medium mb-1" style="font-size: 0.8rem;">Filter by Instructor</label> -->
                     <select name="admin_id" onchange="this.form.submit()" class="text-sm" style="padding: 6px 10px; height: 34px;">
                         <option value="0">-- All Instructors &amp; Admins --</option>
                         <?php foreach ($allAdmins as $adm): ?>
@@ -261,7 +261,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <?php endif; ?>
 
             <div class="form-group mb-0" style="min-width: 130px; flex: 1;">
-                <label class="d-block font-medium mb-1" style="font-size: 0.8rem;">Filter by Action</label>
+                <!-- <label class="d-block font-medium mb-1" style="font-size: 0.8rem;">Filter by Action</label> -->
                 <select name="action" onchange="this.form.submit()" class="text-sm" style="padding: 6px 10px; height: 34px;">
                     <option value="">-- All Actions --</option>
                     <?php foreach ($allActions as $act): ?>
@@ -273,7 +273,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
 
             <div class="form-group mb-0" style="min-width: 160px; flex: 1.5;">
-                <label class="d-block font-medium mb-1" style="font-size: 0.8rem;">Search Details or IP</label>
+                <!-- <label class="d-block font-medium mb-1" style="font-size: 0.8rem;">Search Details or IP</label> -->
                 <input type="text" name="q" placeholder="Keywords, entity, IP..." value="<?= e($searchQuery) ?>" class="text-sm" style="padding: 6px 10px; height: 34px;">
             </div>
 

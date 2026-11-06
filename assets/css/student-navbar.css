@@ -1,26 +1,45 @@
 :root {
   --nav-h: 54px;
-  --nav-deep: #0f172a;
-  --nav-tint: #1e293b;
-  --nav-hover: #1e3a8a;
-  --nav-text: #f8fafc;
-  --nav-active-text: #bfdbfe;
-  --color-gold: #d8a457;
-  --color-gold-hover: #edb055;
+  --nav-bg: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  --nav-bg-solid: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  --nav-border: var(--color-border);
+  --nav-text: var(--color-text);
+  --nav-text-dim: var(--color-text-secondary);
+  --nav-hover-bg: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  --nav-hover-color: var(--color-primary-light);
+  --nav-active-bg: color-mix(in srgb, var(--color-primary-light) 10%, transparent);
+  --nav-active-color: var(--color-primary-light);
+  --nav-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  --nav-role-color: var(--color-warning);
+}
+
+[data-theme="dark"] {
+  --nav-bg: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  --nav-bg-solid: color-mix(in srgb, var(--color-surface) 95%, transparent);
+  --nav-border: var(--color-border);
+  --nav-text: var(--color-text);
+  --nav-text-dim: var(--color-text-secondary);
+  --nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --nav-hover-color: var(--color-gold-hover);
+  --nav-active-bg: color-mix(in srgb, var(--color-gold) 16%, transparent);
+  --nav-active-color: var(--color-gold-hover);
+  --nav-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --nav-role-color: var(--color-gold-hover);
 }
 
 .student-navbar {
-  background: var(--nav-deep);
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
   color: var(--nav-text);
   position: sticky;
   top: 0;
   z-index: 50;
-  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0, 0, 0, 0.15));
+  border-bottom: 1px solid var(--nav-border);
+  box-shadow: var(--nav-shadow);
 }
 
 .student-nav-inner {
-  /* max-width: 1100px; */
-  /* margin: 0 auto; */
   padding: 0 20px;
   height: var(--nav-h);
   display: flex;
@@ -40,14 +59,26 @@
   flex-shrink: 0;
 }
 
-.student-brand :hover {
-  color: var(--color-gold);
+.student-brand .auth-logo {
+  height: 34px;
+  width: auto;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.student-brand:hover {
+  color: var(--nav-hover-color);
+}
+
+.student-brand .nav-logo {
+  color: var(--nav-text);
 }
 
 .student-greeting {
   font-weight: 600;
   font-size: 0.95rem;
   white-space: nowrap;
+  color: var(--nav-text);
 }
 
 .drawer-profile {
@@ -64,7 +95,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--nav-text);
+  color: var(--nav-text-dim);
   text-decoration: none;
   padding: 8px 12px;
   border-radius: var(--radius-sm, 6px);
@@ -79,17 +110,22 @@
   font-size: 20px;
 }
 
-.student-nav-links a:hover,
+.student-nav-links a:hover {
+  background: var(--nav-hover-bg);
+  color: var(--nav-hover-color);
+}
+
 .student-nav-links a.active {
-  background: var(--nav-hover);
-  color: var(--color-gold);
+  background: var(--nav-active-bg);
+  color: var(--nav-active-color);
+  font-weight: 600;
 }
 
 .menu-btn {
   display: none;
   background: none;
   border: none;
-  color: white;
+  color: var(--nav-text);
   font-size: 1.5rem;
   cursor: pointer;
   width: 40px;
@@ -102,7 +138,7 @@
 }
 
 .menu-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--nav-hover-bg);
 }
 
 .student-nav-overlay {
@@ -127,8 +163,8 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  background: #fff;
+  border: 2px solid var(--nav-border);
+  background: var(--color-surface);
 }
 .nav-profile-pic.lg {
   width: 56px;
@@ -147,18 +183,19 @@
   gap: 10px;
   padding: 4px 12px 4px 4px;
   border-radius: 50px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--nav-hover-bg);
+  border: 1px solid var(--nav-border);
+  color: var(--nav-text);
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 .profile-trigger:hover,
 .profile-trigger[aria-expanded="true"] {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--nav-active-bg);
+  border-color: var(--nav-border);
 }
 .profile-trigger:focus-visible {
-  outline: 2px solid #edb055;
+  outline: 2px solid var(--nav-active-color);
   outline-offset: 2px;
 }
 
@@ -175,24 +212,26 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--nav-text);
 }
 .admin-role {
   font-size: 0.68rem;
   font-weight: 600;
-  color: #edb055;
+  color: var(--nav-role-color);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .chevron-icon {
   font-size: 20px;
+  color: var(--nav-text-dim);
   transition: transform 0.2s ease;
 }
 .profile-trigger[aria-expanded="true"] .chevron-icon {
   transform: rotate(180deg);
 }
 
-/* ---------- 2. Dropdown Menu (Dark Theme) ---------- */
+/* ---------- 2. Dropdown Menu (Theme-Aware Glass) ---------- */
 .profile-dropdown {
   position: absolute;
   top: calc(100% + 10px);
@@ -200,11 +239,13 @@
   z-index: 1000;
   width: 280px;
   max-width: calc(100vw - 24px);
-  background: var(--sidebar-bg);
-  color: var(--sidebar-text);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--nav-bg-solid);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  color: var(--nav-text);
+  border: 1px solid var(--nav-border);
   border-radius: 12px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--nav-shadow);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
@@ -228,24 +269,35 @@
   margin: 0 0 4px;
   font-weight: 700;
   font-size: 0.95rem;
+  color: var(--nav-text);
+}
+.profile-dropdown .badge,
+.profile-dropdown .badge-active {
+  background-color: var(--nav-active-bg) !important;
+  color: var(--nav-role-color) !important;
+  border: 1px solid var(--nav-border);
+  font-weight: 600;
+}
+.profile-dropdown .dropdown-header p {
+  color: var(--nav-role-color);
 }
 
 .dropdown-admin-details {
   padding: 12px 16px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--nav-hover-bg);
+  border-top: 1px solid var(--nav-border);
+  border-bottom: 1px solid var(--nav-border);
   font-size: 0.85rem;
-  color: #e2e8f0;
+  color: var(--nav-text-dim);
   line-height: 1.5;
 }
 .dropdown-admin-details p {
   margin: 4px 0;
   overflow-wrap: anywhere;
-  font-weight: bolder;
+  font-weight: 500;
 }
 .dropdown-admin-details strong {
-  color: #fff;
+  color: var(--nav-text);
   font-weight: 600;
 }
 
@@ -258,7 +310,7 @@
   padding: 12px 16px;
   background: transparent;
   border: none;
-  color: var(--sidebar-text);
+  color: var(--nav-text);
   font-size: 0.9rem;
   cursor: pointer;
   transition: 0.2s ease;
@@ -266,16 +318,16 @@
   box-sizing: border-box;
 }
 .dropdown-reset-btn-item:hover {
-  background: var(--sidebar-bg-hover);
-  color: #fff;
+  background: var(--nav-hover-bg);
+  color: var(--nav-hover-color);
 }
 
 .logout-btn {
-  color: #fca5a5;
+  color: var(--color-error);
 }
 .logout-btn:hover {
-  background: rgba(220, 38, 38, 0.15);
-  color: #f87171;
+  background: var(--color-error-bg);
+  color: var(--color-error);
 }
 .logout-btn .material-symbols-outlined {
   font-size: 20px;
@@ -284,7 +336,7 @@
 .dropdown-divider {
   margin: 0;
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--nav-border);
 }
 
 /* ---------- Mobile ---------- */
@@ -300,7 +352,10 @@
     height: 100vh;
     width: 78%;
     max-width: 300px;
-    background: var(--nav-deep);
+    background: var(--nav-bg-solid);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border-left: 1px solid var(--nav-border);
     flex-direction: column;
     align-items: stretch;
     padding: 24px 18px;
@@ -308,7 +363,7 @@
     z-index: 95;
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
     display: flex;
   }
 
@@ -321,7 +376,7 @@
     align-items: center;
     gap: 12px;
     padding: 10px 12px 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 1px solid var(--nav-border);
     margin-bottom: 10px;
   }
 
@@ -371,8 +426,8 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--color-border, #e5e7eb);
-  background-color: #fff;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-surface);
 }
 .nav-profile-pic.lg {
   width: 64px;

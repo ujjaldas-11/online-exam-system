@@ -1,5 +1,46 @@
-/* EXAMIFY REUSABLE COMPONENT PRIMITIVES
-   All colors come from variables.css. No hardcoded color values. */
+/* EXAMIFY REUSABLE COMPONENT PRIMITIVES — GLASS EDITION
+   All colors come from variables.css (via var() / color-mix()).
+   No hardcoded color values outside the token block below. */
+
+/* =========================================================
+   GLASS TOKENS
+   (--color-white / --color-black: move these into variables.css)
+========================================================= */
+:root {
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --gl-blur: blur(14px) saturate(150%);
+  --gl-surface: color-mix(in srgb, var(--color-surface) 64%, transparent);
+  --gl-surface-strong: color-mix(in srgb, var(--color-surface) 84%, transparent);
+  --gl-field: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  --gl-subtle: color-mix(in srgb, var(--color-bg) 55%, transparent);
+  --gl-border: color-mix(in srgb, var(--color-text) 11%, transparent);
+  --gl-edge: color-mix(in srgb, var(--color-white) 55%, transparent);
+  --gl-hover: color-mix(in srgb, var(--color-primary-light) 8%, transparent);
+  --gl-dark: color-mix(in srgb, var(--color-header) 78%, transparent);
+  --gl-dark-border: color-mix(in srgb, var(--color-white) 14%, transparent);
+  --gl-scrim: color-mix(in srgb, var(--color-black) 45%, transparent);
+  /* Floating-label patch: transparent above the border line, field colour below */
+  --gl-label-bg: linear-gradient(to bottom, transparent 50%, var(--gl-field) 50%);
+  --gl-shadow-sm: var(--shadow-sm), inset 0 1px 0 var(--gl-edge);
+  --gl-shadow-md: var(--shadow-md), inset 0 1px 0 var(--gl-edge);
+  --gl-shadow-lg: var(--shadow-lg), inset 0 1px 0 var(--gl-edge);
+}
+
+[data-theme="dark"] {
+  --gl-edge: color-mix(in srgb, var(--color-white) 9%, transparent);
+}
+
+/* No backdrop-filter support → fall back to near-opaque surfaces */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --gl-surface: color-mix(in srgb, var(--color-surface) 96%, transparent);
+    --gl-surface-strong: var(--color-surface);
+    --gl-field: var(--color-surface);
+    --gl-dark: var(--color-header);
+  }
+}
 
 /* --- Shared interaction polish --- */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
@@ -16,21 +57,24 @@
   }
 }
 
-/* --- Cards --- */
+/* =========================================================
+   CARDS
+========================================================= */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--gl-surface);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  border: 1px solid var(--gl-border);
   border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--gl-shadow-sm);
   margin-bottom: 24px;
-  transition:
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
+  background: var(--gl-surface-strong);
+  box-shadow: var(--gl-shadow-md);
 }
 
 .card-title {
@@ -41,7 +85,9 @@
   color: var(--color-dark);
 }
 
-/* --- Auth Page Layout with Bottom Footer --- */
+/* =========================================================
+   AUTH PAGE LAYOUT
+========================================================= */
 body.auth-page-wrapper {
   display: flex;
   flex-direction: column;
@@ -51,12 +97,10 @@ body.auth-page-wrapper {
   padding: 0;
   box-sizing: border-box;
   background:
-    radial-gradient(
-      60% 50% at 50% 0%,
-      color-mix(in srgb, var(--color-gold) 14%, transparent),
-      transparent 70%
-    ),
-    var(--color-primary);
+    radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--color-gold) 16%, transparent), transparent 70%),
+    radial-gradient(50% 45% at 100% 100%, color-mix(in srgb, var(--color-primary-light) 22%, transparent), transparent 70%),
+    radial-gradient(45% 40% at 0% 100%, color-mix(in srgb, var(--color-primary-light) 14%, transparent), transparent 70%),
+    var(--color-header);
 }
 
 .auth-main-container {
@@ -77,14 +121,16 @@ body.auth-page-wrapper .app-footer {
 }
 
 .auth-card {
-  background: var(--color-surface);
+  background: var(--gl-surface-strong);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
   width: 100%;
   max-width: 400px;
-  border: 1px solid var(--color-border);
-  border-top: 4px solid var(--color-gold-hover);
+  border: 1px solid var(--gl-border);
+  border-top: 3px solid var(--color-gold-hover);
   border-radius: var(--radius-lg);
   padding: 24px 26px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--gl-shadow-lg);
 }
 
 .auth-card-wide {
@@ -103,7 +149,7 @@ body.auth-page-wrapper .app-footer {
   width: 50px;
   height: 50px;
   object-fit: contain;
-  background-color: var(--color-primary);
+  background-color: var(--color-header);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   flex-shrink: 0;
@@ -136,7 +182,7 @@ body.auth-page-wrapper .app-footer {
   margin-bottom: 24px;
 }
 
-/* --- Floating Label Auth Styles --- */
+/* --- Floating label auth fields --- */
 .auth-card .form-group {
   position: relative;
   margin-bottom: 24px;
@@ -146,23 +192,22 @@ body.auth-page-wrapper .app-footer {
 .auth-card select {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid var(--color-border);
+  height: 48px;
+  border: 1px solid var(--gl-border);
   border-radius: var(--radius-md);
   font-size: 0.95rem;
-  height: 48px;
   font-family: inherit;
   color: var(--color-text);
-  background: var(--color-surface);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background: var(--gl-field);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-/* Floating Label Default State */
 .auth-card label {
   position: absolute;
   top: 50%;
   left: 12px;
   transform: translateY(-50%);
-  background-color: var(--color-surface);
+  background: transparent;
   padding: 0 4px;
   color: var(--color-text-muted);
   font-size: 0.95rem;
@@ -173,18 +218,17 @@ body.auth-page-wrapper .app-footer {
   transition: top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
 }
 
-/* Floating Label Active State (Focus or Has Data) */
 .auth-card input:focus ~ label,
 .auth-card input:not(:placeholder-shown) ~ label,
 .auth-card select:focus ~ label,
 .auth-card select:valid ~ label {
   top: 0;
+  background: var(--gl-label-bg);
   font-size: 0.8rem;
   color: var(--color-primary-light);
   font-weight: 700;
 }
 
-/* Retain floated position but revert color when unfocused */
 .auth-card input:not(:focus):not(:placeholder-shown) ~ label,
 .auth-card select:not(:focus):valid ~ label {
   color: var(--color-text-secondary);
@@ -200,8 +244,6 @@ body.auth-page-wrapper .app-footer {
   width: 100%;
   margin-top: 8px;
 }
-
-/* ---------------------------------- */
 
 .auth-card .alert {
   padding: 8px 12px;
@@ -220,7 +262,7 @@ body.auth-page-wrapper .app-footer {
   color: var(--color-text-secondary);
 }
 
-/* Password Visibility Toggle */
+/* --- Password visibility toggle --- */
 .password-wrapper {
   position: relative;
   display: flex;
@@ -233,7 +275,6 @@ body.auth-page-wrapper .app-footer {
   width: 100%;
 }
 
-/* Suppress browser native password reveal/clear buttons (e.g. Edge/IE ::-ms-reveal) */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear,
 .password-wrapper input::-ms-reveal,
@@ -258,17 +299,15 @@ input[type="password"]::-ms-clear,
   justify-content: center;
   line-height: 1;
   border-radius: var(--radius-sm);
-  transition:
-    color 0.15s ease,
-    background-color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease;
   -webkit-user-select: none;
   user-select: none;
   z-index: 2;
 }
 
 .password-toggle-btn:hover {
-  color: var(--color-dark);
-  background-color: var(--color-gray-100);
+  color: var(--color-text);
+  background-color: var(--gl-hover);
 }
 
 .password-toggle-btn .material-symbols-outlined {
@@ -276,14 +315,16 @@ input[type="password"]::-ms-clear,
   line-height: 1;
 }
 
-/* Admin & Global In-DOM Modal System */
+/* =========================================================
+   MODALS
+========================================================= */
 .admin-modal-overlay,
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: color-mix(in srgb, var(--color-dark) 60%, transparent);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: var(--gl-scrim);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  backdrop-filter: blur(8px) saturate(120%);
   display: none;
   align-items: center;
   justify-content: center;
@@ -299,12 +340,14 @@ input[type="password"]::-ms-clear,
 
 .admin-modal-card,
 .modal {
-  background: var(--color-surface);
+  background: var(--gl-surface-strong);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 540px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
+  box-shadow: var(--gl-shadow-lg);
+  border: 1px solid var(--gl-border);
   overflow: hidden;
   animation: modalFadeIn 0.2s ease-out;
 }
@@ -316,24 +359,18 @@ input[type="password"]::-ms-clear,
 }
 
 @keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .admin-modal-header,
 .modal-header {
   padding: 16px 22px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--gl-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--color-bg);
+  background: var(--gl-subtle);
 }
 
 .admin-modal-header h3,
@@ -343,7 +380,7 @@ input[type="password"]::-ms-clear,
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: var(--color-dark);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -361,15 +398,13 @@ input[type="password"]::-ms-clear,
   justify-content: center;
   padding: 6px;
   border-radius: var(--radius-sm);
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .admin-modal-close:hover,
 .modal-close:hover {
-  background: var(--color-gray-100);
-  color: var(--color-dark);
+  background: var(--gl-hover);
+  color: var(--color-text);
 }
 
 .admin-modal-body,
@@ -380,42 +415,40 @@ input[type="password"]::-ms-clear,
 .admin-modal-footer,
 .modal-footer {
   padding: 14px 22px;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-bg);
+  border-top: 1px solid var(--gl-border);
+  background: var(--gl-subtle);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
 }
 
-/* Floating Batch Action Bar */
+/* =========================================================
+   FLOATING BATCH ACTION BAR (dark glass pill)
+========================================================= */
 .batch-action-bar {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--color-dark);
-  color: var(--color-bg);
+  background: var(--gl-dark);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  color: var(--color-white);
   padding: 10px 14px 10px 20px;
   border-radius: var(--radius-full);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 var(--gl-dark-border);
   z-index: 9999;
   display: flex;
   align-items: center;
   gap: 16px;
   animation: batchSlideUp 0.2s ease-out;
-  border: 1px solid var(--color-header-hover);
+  border: 1px solid var(--gl-dark-border);
 }
 
 @keyframes batchSlideUp {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 15px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
+  from { opacity: 0; transform: translate(-50%, 15px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
 .batch-bar-count {
@@ -428,7 +461,7 @@ input[type="password"]::-ms-clear,
 
 .batch-bar-count span {
   background: var(--color-primary-light);
-  color: var(--color-surface);
+  color: var(--color-white);
   padding: 2px 10px;
   border-radius: var(--radius-full);
   font-size: 0.78rem;
@@ -472,7 +505,9 @@ input[type="password"]::-ms-clear,
   }
 }
 
-/* --- Buttons --- */
+/* =========================================================
+   BUTTONS
+========================================================= */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -483,24 +518,25 @@ input[type="password"]::-ms-clear,
   font-weight: 600;
   line-height: 1.2;
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-white) 18%, var(--color-primary));
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
-  background: var(--color-primary);
-  color: var(--color-surface);
+  /* soft top-light sheen gives the primary button a glassy body */
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-white) 16%, transparent), transparent 60%),
+    var(--color-primary);
+  color: var(--color-white);
   text-decoration: none;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), inset 0 1px 0 color-mix(in srgb, var(--color-white) 28%, transparent);
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .btn:hover {
-  background: var(--color-primary-hover);
-  color: var(--color-surface);
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-white) 16%, transparent), transparent 60%),
+    var(--color-primary-hover);
+  color: var(--color-white);
   border-color: var(--color-primary-hover);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 color-mix(in srgb, var(--color-white) 28%, transparent);
   transform: translateY(-1px);
 }
 
@@ -517,68 +553,77 @@ input[type="password"]::-ms-clear,
   transform: none;
 }
 
+/* Glass secondary */
 .btn-secondary {
-  background: var(--color-surface);
-  color: var(--color-primary);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+  background: var(--gl-surface);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  color: var(--color-text);
+  border: 1px solid var(--gl-border);
+  box-shadow: var(--gl-shadow-sm);
 }
 
 .btn-secondary:hover {
-  background: var(--color-primary-soft);
+  background: color-mix(in srgb, var(--color-primary-light) 14%, var(--gl-surface-strong));
   color: var(--color-primary-light);
-  border-color: var(--color-primary-light);
-  box-shadow: var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--color-primary-light) 45%, transparent);
+  box-shadow: var(--gl-shadow-sm);
 }
 
 .btn-danger {
-  background: var(--color-error);
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-white) 16%, transparent), transparent 60%),
+    var(--color-error);
   border-color: var(--color-error);
-  color: var(--color-surface);
+  color: var(--color-white);
 }
 
 .btn-danger:hover {
   background: color-mix(in srgb, var(--color-error) 85%, var(--color-dark));
   border-color: color-mix(in srgb, var(--color-error) 85%, var(--color-dark));
-  color: var(--color-surface);
+  color: var(--color-white);
 }
 
 .btn-success {
-  background: var(--color-success);
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-white) 16%, transparent), transparent 60%),
+    var(--color-success);
   border-color: var(--color-success);
-  color: var(--color-surface);
+  color: var(--color-white);
 }
 
 .btn-success:hover {
   background: color-mix(in srgb, var(--color-success) 85%, var(--color-dark));
   border-color: color-mix(in srgb, var(--color-success) 85%, var(--color-dark));
-  color: var(--color-surface);
+  color: var(--color-white);
 }
 
 .btn-warning {
-  background: var(--color-warning-bg);
-  color: color-mix(in srgb, var(--color-warning) 70%, var(--color-dark));
-  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, var(--color-warning-bg));
-  box-shadow: var(--shadow-sm);
+  background: color-mix(in srgb, var(--color-warning-bg) 80%, transparent);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+  box-shadow: var(--gl-shadow-sm);
 }
 
 .btn-warning:hover {
   background: color-mix(in srgb, var(--color-warning) 22%, var(--color-warning-bg));
-  color: color-mix(in srgb, var(--color-warning) 55%, var(--color-dark));
+  color: var(--color-warning);
   border-color: var(--color-warning);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--gl-shadow-sm);
 }
 
 .btn-warning.is-marked {
   background: var(--color-warning);
-  color: var(--color-surface) !important;
+  color: var(--color-white) !important;
   border-color: color-mix(in srgb, var(--color-warning) 80%, var(--color-dark));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-warning) 25%, transparent);
 }
 
 .btn-warning.is-marked:hover {
   background: color-mix(in srgb, var(--color-warning) 85%, var(--color-dark));
-  color: var(--color-surface) !important;
+  color: var(--color-white) !important;
   border-color: color-mix(in srgb, var(--color-warning) 65%, var(--color-dark));
 }
 
@@ -594,28 +639,34 @@ input[type="password"]::-ms-clear,
 
 .btn-outline {
   background: transparent;
-  border: 1px solid var(--color-border);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: 1px solid var(--gl-border);
   color: var(--color-text);
   box-shadow: none;
 }
 
 .btn-outline:hover {
-  background: var(--color-bg);
-  border-color: var(--color-text-secondary);
+  background: var(--gl-hover);
+  border-color: var(--color-primary-light);
   color: var(--color-text);
   box-shadow: none;
 }
 
-/* Dropdown Container */
+/* =========================================================
+   ACTION MENU (glass popover)
+========================================================= */
 .action-menu-content {
   display: none;
   position: fixed;
   z-index: 99999;
   min-width: 190px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--gl-surface-strong);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--gl-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--gl-shadow-lg);
   padding: 6px;
   flex-direction: column;
   gap: 2px;
@@ -627,17 +678,10 @@ input[type="password"]::-ms-clear,
 }
 
 @keyframes menuPop {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Individual Action Items */
 .action-menu-item {
   display: flex;
   align-items: center;
@@ -654,9 +698,7 @@ input[type="password"]::-ms-clear,
   cursor: pointer;
   text-decoration: none;
   font-family: inherit;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .action-menu-item:disabled {
@@ -664,63 +706,56 @@ input[type="password"]::-ms-clear,
   cursor: not-allowed;
 }
 
-/* Default Hover State */
 .action-menu-item:hover:not(:disabled) {
-  background: var(--color-primary-soft);
-  color: var(--color-primary-hover);
-}
-
-/* Separator Line */
-.action-menu-divider {
-  height: 1px;
-  background: var(--color-border);
-  margin: 4px 2px;
-}
-
-/* Theme-Aware Color Helpers */
-.action-menu-item.text-primary {
+  background: color-mix(in srgb, var(--color-primary-light) 14%, transparent);
   color: var(--color-primary-light);
 }
 
-.action-menu-item.text-success {
-  color: var(--color-success);
+.action-menu-divider {
+  height: 1px;
+  background: var(--gl-border);
+  margin: 4px 2px;
 }
+
+.action-menu-item.text-primary { color: var(--color-primary-light); }
+
+.action-menu-item.text-success { color: var(--color-success); }
 .action-menu-item.text-success:hover:not(:disabled) {
   background: var(--color-success-bg);
   color: var(--color-success);
 }
 
-.action-menu-item.text-warning {
-  color: var(--color-warning);
-}
+.action-menu-item.text-warning { color: var(--color-warning); }
 .action-menu-item.text-warning:hover:not(:disabled) {
   background: var(--color-warning-bg);
   color: var(--color-warning);
 }
 
-.action-menu-item.text-danger {
-  color: var(--color-error);
-}
+.action-menu-item.text-danger { color: var(--color-error); }
 .action-menu-item.text-danger:hover:not(:disabled) {
   background: var(--color-error-bg);
   color: var(--color-error);
 }
 
-/* Make the parent element relative so the tooltip positions correctly */
+/* =========================================================
+   TOOLTIP (dark glass)
+========================================================= */
 [global-data-tooltip] {
   position: relative;
   cursor: pointer;
 }
 
-/* The actual tooltip box */
 [global-data-tooltip]::after {
   content: attr(global-data-tooltip);
   position: absolute;
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%) translateY(0);
-  background: var(--color-primary);
-  color: var(--color-surface);
+  background: var(--gl-dark);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
+  color: var(--color-white);
+  border: 1px solid var(--gl-dark-border);
   padding: 6px 12px;
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
@@ -728,22 +763,21 @@ input[type="password"]::-ms-clear,
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
   z-index: 99999;
-  pointer-events: none; /* Prevents the tooltip from blocking clicks */
+  pointer-events: none;
   box-shadow: var(--shadow-md);
 }
 
-/* Show the tooltip on hover */
 [global-data-tooltip]:hover::after {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(-8px);
 }
 
-/* --- Form Elements --- */
+/* =========================================================
+   FORM ELEMENTS
+========================================================= */
 .form-group {
   margin-bottom: 18px;
 }
@@ -761,16 +795,16 @@ select,
 textarea {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--gl-border);
   border-radius: var(--radius-md);
   font-size: 0.95rem;
   font-family: inherit;
   color: var(--color-text);
-  background: var(--color-surface);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    background-color 0.15s ease;
+  background: var(--gl-field);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--color-black) 5%, transparent);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
 input::placeholder,
@@ -788,6 +822,7 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
+  background: var(--gl-surface-strong);
   border-color: var(--color-primary-light);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-light) 16%, transparent);
 }
@@ -795,16 +830,18 @@ textarea:focus {
 input:disabled,
 select:disabled,
 textarea:disabled {
-  background: var(--color-gray-100);
+  background: color-mix(in srgb, var(--color-gray-100) 70%, transparent);
   color: var(--color-text-secondary);
   cursor: not-allowed;
 }
 
-/* Checkboxes and radios should not stretch full width */
 input[type="checkbox"],
 input[type="radio"] {
   width: auto;
   accent-color: var(--color-primary-light);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
 }
 
 .form-grid {
@@ -813,7 +850,9 @@ input[type="radio"] {
   gap: 16px;
 }
 
-/* --- Create Exam Page --- */
+/* =========================================================
+   CREATE EXAM PAGE
+========================================================= */
 .exam-form-page {
   margin-top: 5px;
   max-width: 900px;
@@ -823,9 +862,7 @@ input[type="radio"] {
   gap: 0;
 }
 
-.exam-form-page__header {
-  margin-bottom: 18px;
-}
+.exam-form-page__header { margin-bottom: 18px; }
 
 .exam-form-page__header h1 {
   margin: 0 0 4px;
@@ -842,7 +879,7 @@ input[type="radio"] {
 
 .exam-card {
   padding: 28px 32px;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--gl-shadow-md);
 }
 
 .exam-form {
@@ -875,13 +912,12 @@ input[type="radio"] {
 
 .exam-form__section-label {
   font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--color-text);
   font-weight: bolder;
+  color: var(--color-text);
   padding-top: 10px;
-  padding-left: 5px;
-  border-left: 4px solid var(--color-primary);
-  border-radius: 6px;
+  padding-left: 8px;
+  border-left: 4px solid var(--color-gold);
+  border-radius: var(--radius-sm);
 }
 
 .exam-form__row {
@@ -889,13 +925,9 @@ input[type="radio"] {
   gap: 16px;
 }
 
-.exam-form__row--2{
-  display: flex;
-}
+.exam-form__row--2 { display: flex; }
 
-.exam-form__row--4 {
-  grid-template-columns: repeat(4, 1fr);
-}
+.exam-form__row--4 { grid-template-columns: repeat(4, 1fr); }
 
 .exam-form__actions {
   display: flex;
@@ -917,11 +949,8 @@ input[type="radio"] {
   color: var(--color-text-secondary);
 }
 
-
-/* --- Floating Label Fields --- */
-.float-field {
-  position: relative;
-}
+/* --- Floating label fields --- */
+.float-field { position: relative; }
 
 .float-field input,
 .float-field select,
@@ -933,7 +962,7 @@ input[type="radio"] {
 .exam-form__field.float-field label {
   position: absolute;
   left: 10px;
-  top: 22px; /* vertically centered in a single-line input */
+  top: 22px;
   margin: 0;
   padding: 0 4px;
   display: inline-block;
@@ -941,22 +970,16 @@ input[type="radio"] {
   font-weight: 500;
   line-height: 1;
   color: var(--color-text);
-  background: var(--color-surface); /* hides the border behind the label */
+  background: transparent;
   transform: translateY(-50%);
   transform-origin: left center;
   pointer-events: none;
-  transition:
-    top 0.18s ease,
-    font-size 0.18s ease,
-    color 0.18s ease;
+  transition: top 0.18s ease, font-size 0.18s ease, color 0.18s ease;
 }
 
-/* Textareas: label starts near the top, not the middle */
-.float-field textarea ~ label {
-  top: 24px;
-}
+.float-field textarea ~ label { top: 24px; }
 
-/* Floated state: focused, has text, or select/date types that always show a value */
+/* Floated state: focus, has text, or inputs that always show a value */
 .float-field input:focus ~ label,
 .float-field input:not(:placeholder-shown) ~ label,
 .float-field textarea:focus ~ label,
@@ -968,78 +991,61 @@ input[type="radio"] {
 .float-field input[type="month"] ~ label,
 .float-field input[type="week"] ~ label {
   top: 0;
+  background: var(--gl-label-bg);
   font-size: 0.75rem;
   font-weight: 600;
 }
 
-/* Label color on focus */
 .float-field input:focus ~ label,
 .float-field select:focus ~ label,
 .float-field textarea:focus ~ label {
   color: var(--color-primary-light);
 }
 
-/* Optional: error state */
 .float-field input:invalid:not(:placeholder-shown):not(:focus) {
-  border-color: #d93025;
+  border-color: var(--color-error);
 }
 .float-field input:invalid:not(:placeholder-shown):not(:focus) ~ label {
-  color: #d93025;
+  color: var(--color-error);
 }
 
-/* Disabled */
 .float-field input:disabled ~ label,
 .float-field select:disabled ~ label,
 .float-field textarea:disabled ~ label {
   background: transparent;
 }
 
-/* Select: label is ALWAYS on the top border */
-.float-field--select select ~ label {
-top: 0;
-font-size: 0.75rem;
-font-weight: 600;
-color: var(--color-text-secondary);
-}
-
-/* Highlight on focus */
-.float-field--select select:focus ~ label {
-color: var(--color-primary-light);
-}
-
-/* Disabled (no subjects available) */
-.float-field--select select:disabled ~ label {
-background: transparent;
-}
-/* .float-field--select select:invalid {
-  color: var(--color-text-muted);
-} */
-
+/* Select: label always sits on the top border */
+.float-field--select select ~ label,
 .float-field.float-field--select select ~ label {
-top: 0;
-font-size: 0.75rem;
-font-weight: 600;
+  top: 0;
+  background: var(--gl-label-bg);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.float-field--select select:focus ~ label {
+  color: var(--color-primary-light);
+}
+
+.float-field--select select:disabled ~ label {
+  background: transparent;
 }
 
 @media (max-width: 900px) {
-  .exam-form-page {
-    height: auto;
-  }
-  .exam-form__row--4 {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .exam-form-page { height: auto; }
+  .exam-form__row--4 { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 520px) {
-  .exam-card {
-    padding: 20px 18px;
-  }
-  .exam-form__row--4 {
-    grid-template-columns: 1fr;
-  }
+  .exam-card { padding: 20px 18px; }
+  .exam-form__row--4 { grid-template-columns: 1fr; }
 }
 
-/* --- Alerts --- */
+/* =========================================================
+   ALERTS (tinted glass)
+========================================================= */
 .alert {
   padding: 12px 16px;
   border-radius: var(--radius-md);
@@ -1047,51 +1053,54 @@ font-weight: 600;
   font-size: 0.9rem;
   font-weight: 500;
   text-align: center;
-  box-shadow: var(--shadow-sm);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  box-shadow: var(--gl-shadow-sm);
 }
 
 .alert-error,
 .alert.error {
-  background: var(--color-error-bg);
+  background: color-mix(in srgb, var(--color-error-bg) 78%, transparent);
   color: var(--color-error);
-  border: 1px solid color-mix(in srgb, var(--color-error) 25%, var(--color-error-bg));
+  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
 }
 
 .alert-success,
 .alert.success {
-  background: var(--color-success-bg);
+  background: color-mix(in srgb, var(--color-success-bg) 78%, transparent);
   color: var(--color-success);
-  border: 1px solid color-mix(in srgb, var(--color-success) 25%, var(--color-success-bg));
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
 }
 
 .alert-warning,
 .alert.warning {
-  background: var(--color-warning-bg);
+  background: color-mix(in srgb, var(--color-warning-bg) 78%, transparent);
   color: var(--color-warning);
-  border: 1px solid color-mix(in srgb, var(--color-warning) 25%, var(--color-warning-bg));
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
 }
 
 .alert-info,
 .alert.info {
-  background: var(--color-info-bg);
+  background: color-mix(in srgb, var(--color-info-bg) 78%, transparent);
   color: var(--color-info);
-  border: 1px solid color-mix(in srgb, var(--color-info) 25%, var(--color-info-bg));
+  border: 1px solid color-mix(in srgb, var(--color-info) 30%, transparent);
 }
 
-/* --- Tables --- */
+/* =========================================================
+   TABLES
+========================================================= */
 .table-wrap {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   display: block;
-}
-
-.table-wrap {
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gl-border);
+  background: var(--gl-surface);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  box-shadow: var(--gl-shadow-sm);
 }
 
 table,
@@ -1103,7 +1112,7 @@ table,
 }
 
 th {
-  background: var(--color-bg);
+  background: var(--gl-subtle);
   padding: 12px 16px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -1115,24 +1124,20 @@ th {
 
 td {
   padding: 14px 16px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--gl-border);
   color: var(--color-text);
   vertical-align: middle;
 }
 
-tr:last-child td {
-  border-bottom: none;
-}
+tr:last-child td { border-bottom: none; }
 
-tr td {
-  transition: background-color 0.15s ease;
-}
+tr td { transition: background-color 0.15s ease; }
 
-tr:hover td {
-  background: var(--color-bg);
-}
+tr:hover td { background: var(--gl-hover); }
 
-/* --- Badges --- */
+/* =========================================================
+   BADGES
+========================================================= */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -1145,54 +1150,55 @@ tr:hover td {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
+  border: 1px solid transparent;
 }
 
 .badge-active,
 .badge-running {
   background: var(--color-primary);
-  color: var(--color-gold-hover);
+  color: var(--color-white);
+  border-color: color-mix(in srgb, var(--color-white) 20%, transparent);
 }
 
 .badge-scheduled,
-.badge-notstarted {
-  background: var(--color-warning-bg);
+.badge-notstarted,
+.badge-warning {
+  background: color-mix(in srgb, var(--color-warning-bg) 85%, transparent);
   color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 28%, transparent);
 }
 
 .badge-ended,
 .badge-inactive {
-  background: var(--color-gray-100);
+  background: color-mix(in srgb, var(--color-gray-100) 85%, transparent);
   color: var(--color-text-secondary);
+  border-color: var(--gl-border);
 }
 
-.badge-pending {
-  background: var(--color-info-bg);
+.badge-pending,
+.badge-info {
+  background: color-mix(in srgb, var(--color-info-bg) 85%, transparent);
   color: var(--color-info);
+  border-color: color-mix(in srgb, var(--color-info) 28%, transparent);
 }
 
 .badge-rejected,
 .badge-error,
 .badge-danger {
-  background: var(--color-error-bg);
+  background: color-mix(in srgb, var(--color-error-bg) 85%, transparent);
   color: var(--color-error);
-}
-
-.badge-warning {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-error) 28%, transparent);
 }
 
 .badge-success {
-  background: var(--color-success-bg);
+  background: color-mix(in srgb, var(--color-success-bg) 85%, transparent);
   color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 28%, transparent);
 }
 
-.badge-info {
-  background: var(--color-info-bg);
-  color: var(--color-info);
-}
-
-/* --- Stats Grid --- */
+/* =========================================================
+   STATS
+========================================================= */
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1201,19 +1207,20 @@ tr:hover td {
 }
 
 .stat-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--gl-surface);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  border: 1px solid var(--gl-border);
   border-left: 3px solid var(--color-gold);
   border-radius: var(--radius-lg);
   padding: 16px 18px;
-  box-shadow: var(--shadow-sm);
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+  box-shadow: var(--gl-shadow-sm);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
 }
 
 .stat-card:hover {
-  box-shadow: var(--shadow-md);
+  background: var(--gl-surface-strong);
+  box-shadow: var(--gl-shadow-md);
   transform: translateY(-2px);
 }
 
@@ -1221,7 +1228,7 @@ tr:hover td {
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--color-primary);
+  color: var(--color-primary-light);
   line-height: 1.2;
 }
 
@@ -1234,7 +1241,9 @@ tr:hover td {
   letter-spacing: 0.5px;
 }
 
-/* --- Filter Buttons --- */
+/* =========================================================
+   FILTER PILLS
+========================================================= */
 .filters {
   display: flex;
   gap: 8px;
@@ -1247,25 +1256,25 @@ tr:hover td {
   border-radius: var(--radius-full);
   font-size: 0.85rem;
   font-weight: 600;
-  background: var(--color-gray-100);
+  background: var(--gl-surface);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
   color: var(--color-text-secondary);
-  border: 1px solid transparent;
+  border: 1px solid var(--gl-border);
   text-decoration: none;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .filter:hover {
-  background: var(--color-surface);
-  border-color: var(--color-border);
+  background: var(--gl-surface-strong);
+  border-color: color-mix(in srgb, var(--color-primary-light) 40%, transparent);
   color: var(--color-text);
 }
 
 .filter.active {
   background: var(--color-primary);
-  color: var(--color-gold);
+  color: var(--color-white);
+  border-color: color-mix(in srgb, var(--color-white) 20%, transparent);
   box-shadow: var(--shadow-sm);
 }
 
@@ -1277,7 +1286,9 @@ tr:hover td {
   color: var(--color-text-secondary);
 }
 
-/* --- Material Symbols & Icon Helpers --- */
+/* =========================================================
+   MATERIAL SYMBOLS & ICON HELPERS
+========================================================= */
 .material-symbols-outlined {
   font-family: "Material Symbols Outlined", sans-serif;
   font-weight: normal;
@@ -1298,38 +1309,22 @@ tr:hover td {
   -webkit-font-smoothing: antialiased;
   -webkit-user-select: none;
   user-select: none;
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 400,
-    "GRAD" 0,
-    "opsz" 24;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
-.icon-xs {
-  font-size: 14px;
-}
-.icon-sm {
-  font-size: 16px;
-}
-.icon-md {
-  font-size: 20px;
-}
-.icon-lg {
-  font-size: 24px;
-}
-.icon-2xl {
-  font-size: 40px;
-}
+.icon-xs  { font-size: 14px; }
+.icon-sm  { font-size: 16px; }
+.icon-md  { font-size: 20px; }
+.icon-lg  { font-size: 24px; }
+.icon-2xl { font-size: 40px; }
 
 .icon-filled {
-  font-variation-settings:
-    "FILL" 1,
-    "wght" 400,
-    "GRAD" 0,
-    "opsz" 24;
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
-/* --- Pagination Component --- */
+/* =========================================================
+   PAGINATION
+========================================================= */
 .pagination-container {
   display: flex;
   align-items: center;
@@ -1338,7 +1333,7 @@ tr:hover td {
   gap: 12px;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--gl-border);
 }
 
 .pagination-info {
@@ -1360,29 +1355,28 @@ tr:hover td {
   height: 34px;
   padding: 0 10px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border: 1px solid var(--gl-border);
+  background: var(--gl-surface);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
   color: var(--color-text);
   font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
-  box-shadow: var(--shadow-sm);
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+  box-shadow: var(--gl-shadow-sm);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .pagination-btn:hover:not(.disabled):not(.active) {
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary-light);
+  background: color-mix(in srgb, var(--color-primary-light) 14%, var(--gl-surface-strong));
+  border-color: color-mix(in srgb, var(--color-primary-light) 45%, transparent);
   color: var(--color-primary-light);
 }
 
 .pagination-btn.active {
   background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-surface);
+  border-color: color-mix(in srgb, var(--color-white) 20%, var(--color-primary));
+  color: var(--color-white);
   font-weight: 700;
 }
 
@@ -1392,129 +1386,49 @@ tr:hover td {
   pointer-events: none;
 }
 
-
-/* =========================================
-   1. GOAT — LEGENDARY
-   Black + Royal Gold
-========================================= */
-
-.badge-goat {
-    color: #FFE8A3;
-
-    background: linear-gradient(
-        135deg,
-        #171717 0%,
-        #49340D 48%,
-        #171717 100%
-    );
-
-    border: 1px solid #E8BD58;
-
-    box-shadow:
-        inset 0 1px 0 rgba(255, 231, 163, 0.16),
-        0 2px 8px rgba(194, 145, 35, 0.18);
-}
-
-.badge-goat .badge-icon {
-    color: #FFD66B;
-}
-
-.badge-goat:hover {
-    box-shadow:
-        0 0 12px rgba(255, 197, 66, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-
-/* =========================================
-   2. legend — EPIC
-   Royal Purple + Violet
-========================================= */
-
-.badge-legend {
-    /* color: #fffdfd; */
-    color: var(--color-primary);
-
-    background: linear-gradient(100deg, #7fb4ff 10%, #7dd3fc 40%, #0d52dd 100%);
-
-    border: 1px solid #A78BFA;
-
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 2px 8px rgba(124, 58, 237, 0.18);
-}
-
-.badge-legend .badge-icon {
-    font-size: 16px;
-    font-weight: 900;
-}
-
-.badge-legend:hover {
-    box-shadow:
-        0 0 12px rgba(139, 92, 246, 0.4);
-}
-
-
-/* =========================================
-   3. knight
-========================================= */
-
-.badge-knight {
-    color: #0b2e4a;
-
-    background: linear-gradient(
-        135deg,
-        #57bfe0 0%,
-        #a7e4f7 50%,
-        #0b2e4a 100%
-    );
-
-    border: 1px solid #a7e4f7;
-
-    box-shadow:
-        inset 0 1px 0 rgba(171, 212, 216, 0.16),
-        0 2px 8px rgba(148, 171, 210, 0.2);
-}
-
-.badge-knight .badge-icon {
-    color: #F7D58A;
-    font-size: 16px;
-}
-
-.badge-knight:hover {
-    box-shadow:
-        0 0 12px rgba(217, 173, 98, 0.35);
-}
-
-
-/* =========================================
-   4. Ace 
-   Silver + Ice Blue
-========================================= */
-
+/* =========================================================
+   RANK BADGES (tinted glass, built from tokens)
+   goat = gold · legend = blue · knight = sky · ace = slate
+   Text is mixed toward --color-text so it stays readable in both themes.
+========================================================= */
+.badge-goat,
+.badge-legend,
+.badge-knight,
 .badge-ace {
-    color: #E5F3FF;
-
-    background: linear-gradient(
-        135deg,
-        #334155 0%,
-        #475569 45%,
-        #1E3A5F 100%
-    );
-
-    border: 1px solid #94C5E8;
-
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.16),
-        0 2px 8px rgba(71, 85, 105, 0.18);
+  --rank: var(--color-gold);
+  color: color-mix(in srgb, var(--rank) 70%, var(--color-text));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--rank) 30%, transparent), color-mix(in srgb, var(--rank) 8%, transparent)),
+    var(--gl-surface);
+  -webkit-backdrop-filter: var(--gl-blur);
+  backdrop-filter: var(--gl-blur);
+  border: 1px solid color-mix(in srgb, var(--rank) 55%, transparent);
+  box-shadow:
+    inset 0 1px 0 var(--gl-edge),
+    0 2px 8px color-mix(in srgb, var(--rank) 22%, transparent);
+  transition: box-shadow 0.2s ease;
 }
 
+.badge-goat   { --rank: var(--color-gold-hover); }
+.badge-legend { --rank: var(--color-primary-light); }
+.badge-knight { --rank: var(--color-info); }
+.badge-ace    { --rank: var(--color-text-secondary); }
+
+.badge-goat .badge-icon,
+.badge-legend .badge-icon,
+.badge-knight .badge-icon,
 .badge-ace .badge-icon {
-    color: #BFE6FF;
-    font-size: 16px;
+  color: var(--rank);
+  font-size: 16px;
 }
 
+.badge-legend .badge-icon { font-weight: 900; }
+
+.badge-goat:hover,
+.badge-legend:hover,
+.badge-knight:hover,
 .badge-ace:hover {
-    box-shadow:
-        0 0 12px rgba(125, 211, 252, 0.35);
+  box-shadow:
+    inset 0 1px 0 var(--gl-edge),
+    0 0 14px color-mix(in srgb, var(--rank) 45%, transparent);
 }

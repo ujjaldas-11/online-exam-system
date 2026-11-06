@@ -108,13 +108,13 @@
   font-size: 0.75rem;
   font-weight: 700;
   background: var(--color-primary-light);
-  color: var(--color-surface);
+  color: #ffffff;
 }
 .ex-live-dot {
   width: 7px;
   height: 7px;
   border-radius: var(--radius-full);
-  background: var(--color-surface);
+  background: #ffffff;
   animation: live-blink 1.2s ease-in-out infinite;
 }
 @keyframes live-blink {
@@ -381,7 +381,7 @@
 .rank-me__val { font-size: 1.35rem; font-weight: 800; line-height: 1.1; color: var(--color-gold-hover); }
 .rank-me__of { font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted); }
 .rank-me__avg { text-align: right; font-size: 0.75rem; color: var(--color-text-muted); font-weight: 600; }
-.rank-me__avg strong { display: block; font-size: 1.05rem; color: var(--color-surface); }
+.rank-me__avg strong { display: block; font-size: 1.05rem; color: #ffffff; }
 .rank-list { list-style: none; margin: 0; padding: 0 8px 12px; }
 .rank-row {
   display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 8px;
@@ -394,7 +394,7 @@
 .rank-pos { text-align: center; font-weight: 700; color: var(--color-text-secondary); font-size: 0.85rem; }
 .rank-pos--1, .rank-pos--2, .rank-pos--3 { font-size: 1.15rem; }
 .rank-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text); }
-.rank-avg { font-weight: 700; color: var(--color-primary); font-variant-numeric: tabular-nums; }
+.rank-avg { font-weight: 700; color: var(--color-primary-light); font-variant-numeric: tabular-nums; }
 .rank-empty { padding: 20px 16px 24px; text-align: center; color: var(--color-text-secondary); font-size: 0.88rem; }
 .rank-modal-scroll { max-height: 55vh; overflow-y: auto; }
 .rank-modal-scroll table { margin: 0; }
@@ -404,31 +404,31 @@
 /* ---------- Hall of Fame Component ---------- */
 .hof {
     --hof-max-h: 350px;
-    background: var(--color-surface, #fff);
-    border: 1px solid var(--color-border, #e2e8f0);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg, 14px);
     padding: 14px;
-    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, .08));
+    box-shadow: var(--shadow-sm);
 }
 
 .hof__head {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     margin-bottom: 10px; padding-bottom: 8px;
-    border-bottom: 1px solid #dbe7f7;
+    border-bottom: 1px solid var(--color-border);
 }
 .hof__title {
     display: flex; align-items: center; gap: 6px; margin: 0;
-    font-size: 0.95rem; font-weight: 800; color: var(--color-dark, #0b1b3a);
+    font-size: 0.95rem; font-weight: 800; color: var(--color-text);
 }
-.hof__title .material-symbols-outlined { font-size: 1.3rem; color: #f5a623; }
+.hof__title .material-symbols-outlined { font-size: 1.3rem; color: var(--color-gold); }
 .hof__total {
     display: inline-flex; align-items: center; gap: 4px;
     padding: 3px 10px; border-radius: 999px;
-    background: #e6efff; color: #1e3a8a;
+    background: var(--color-primary-soft); color: var(--color-primary-light);
     font-size: 0.72rem; font-weight: 600; white-space: nowrap;
 }
-.hof__total .material-symbols-outlined { font-size: 0.95rem; color: #2563eb; }
-.hof__total b { font-size: 0.85rem; font-weight: 800; color: #0b1b3a; }
+.hof__total .material-symbols-outlined { font-size: 0.95rem; color: var(--color-primary-light); }
+.hof__total b { font-size: 0.85rem; font-weight: 800; color: var(--color-text); }
 
 .hof__list {
     display: flex; flex-direction: column; gap: 8px;

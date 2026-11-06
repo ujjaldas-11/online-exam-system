@@ -44,6 +44,12 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
             <span class="material-symbols-outlined" id="menuIcon">menu</span>
         </button>
 
+        <button type="button" onclick="toggleExamifyTheme()" class="btn btn-secondary btn-sm no-print"
+                title="Switch Theme" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined icon-sm" id="theme-icon">dark_mode</span>
+            <span id="theme-label">Dark Mode</span>
+        </button>
+
         <div class="student-nav-links" id="navLinks">
             <a href="profile.php" class="drawer-profile">
                 <img src="<?= $esc($nav_avatar_url) ?>" alt="Profile" class="nav-profile-pic lg" loading="lazy">
@@ -115,6 +121,32 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
     </div>
     <div class="student-nav-overlay" id="navOverlay"></div>
 </nav>
+
+
+
+<script>
+function syncThemeUI() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const icon = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (icon) icon.textContent = isDark ? 'light_mode' : 'dark_mode';
+    if (label) label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+}
+
+function toggleExamifyTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('examify_theme', 'light');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('examify_theme', 'dark');
+    }
+    syncThemeUI();
+}
+
+document.addEventListener('DOMContentLoaded', syncThemeUI);
+</script>
 
 <script defer>
 (function () {

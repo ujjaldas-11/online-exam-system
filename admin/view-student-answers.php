@@ -105,16 +105,16 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
     <!-- Quick Stats -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card" style="text-align: center; padding: 16px; background: #f0fdf4; border-color: #bbf7d0;">
+        <div class="card" style="text-align: center; padding: 16px; background: var(--color-success-bg); border-color: #bbf7d0;">
             <div style="font-size: 24px; font-weight: 800; color: #16a34a;"><?= $correct ?></div>
-            <div style="font-size: 14px; color: #15803d;">Correct</div>
+            <div style="font-size: 14px; color: var(--color-success);">Correct</div>
         </div>
-        <div class="card" style="text-align: center; padding: 16px; background: #fef2f2; border-color: #fecaca;">
+        <div class="card" style="text-align: center; padding: 16px; background: var(--color-error-bg); border-color: #fecaca;">
             <div style="font-size: 24px; font-weight: 800; color: #dc2626;"><?= $wrong ?></div>
             <div style="font-size: 14px; color: #b91c1c;">Wrong</div>
         </div>
-        <div class="card" style="text-align: center; padding: 16px; background: #f8fafc; border-color: #e2e8f0;">
-            <div style="font-size: 24px; font-weight: 800; color: #64748b;"><?= $skipped ?></div>
+        <div class="card" style="text-align: center; padding: 16px; background: var(--color-info-bg); border-color: #e2e8f0;">
+            <div style="font-size: 24px; font-weight: 800; color: var(--color-info);"><?= $skipped ?></div>
             <div style="font-size: 14px; color: #475569;">Skipped</div>
         </div>
     </div>
