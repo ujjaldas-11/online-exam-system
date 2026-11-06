@@ -406,7 +406,7 @@ class PdfService
 
     private static function safe(string $s): string
     {
-        return preg_replace('/[^a-zA-Z0-9_-]/', '_', $s);
+        return preg_replace('/[^a-zA-Z0-9_-]/', ' ', $s);
     }
 
     /*
@@ -698,9 +698,9 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
                 
             }
         }
-        $pdf->paperCode = ExamifyBasePdf::INSTITUTE_CODE . '@' . date('d-m-Y') . '_MCQ#set-' . $setNo;
+        $pdf->paperCode = ExamifyBasePdf::INSTITUTE_CODE . '@' . date('d-m-Y') . '_MCQ#SET-' . $setNo;
 
-        $titleSlug = trim(preg_replace('/_+/', '_', self::safe((string) ($exam['title'] ?? 'Exam_Paper'))), '_');
+        $titleSlug = trim(preg_replace('/_+/', ' ', self::safe((string) ($exam['title'] ?? 'Exam_Paper'))), '_');
         $fileName = ($titleSlug !== '' ? $titleSlug : 'Exam_Paper') . '-set-' . $setNo . '.pdf';
         $pdf->AliasNbPages();
         $pdf->SetMargins(10, 10, 10);
@@ -727,7 +727,7 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
         $pdf->Cell(190, 4.2, 'Full Marks ' . $totalMarks . ' | Set: ' . $setNo, 0, 1, 'C');
 
         $pdf->SetFont('Times', 'B', 9.5);
-        $pdf->Cell(190, 4.2, 'A. Attempt all the MCQs ' . $perQMarks . 'x' . $totalQ . '=' . $totalMarks, 0, 1, 'C');
+        $pdf->Cell(190, 4.2, 'Attempt all the MCQs ' . $perQMarks . 'x' . $totalQ . '=' . $totalMarks, 0, 1, 'C');
 
         // Horizontal divider line under top header
         $headerBottomY = $pdf->GetY() + 1.2;
@@ -866,6 +866,9 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
             $curY += $qGap;
             $qNum++;
         }
+
+        error_log("RAW  : [" . $rawOpt . "]");
+        error_log("CLEAN: [" . $cleanOpt . "]");
 
         // ---------------------------------------------------------
         // PART 1.5: BIST OMR Sheet (Black & White, before Answer Key)
