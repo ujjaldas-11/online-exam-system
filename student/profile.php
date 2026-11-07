@@ -126,32 +126,41 @@ try {
         $last_submission = $past_results[0]['submitted_at'] ?? null;
         $recent_scores = array_reverse(array_slice($past_results, 0, 6));
 
-        // Evaluate Badges for every historical semester
-        foreach ($semester_buckets as $key => $fm_count) {
-            $total_conducted = $semester_totals[$key] ?? 0;
+} // (This closes the `if ($completed_exams > 0) {` block from your original code)
 
-            if ($total_conducted >= 5 && $fm_count === $total_conducted) {
-                $earned_badges['goat']++;
-            } elseif ($fm_count >= 7) {
-                $earned_badges['legend']++;
-            } elseif ($fm_count >= 3) {
-                $earned_badges['knight']++;
-            } elseif ($fm_count >= 1) {
-                $earned_badges['ace']++;
-            }
-        }
+    // --- CURRENT SEMESTER BADGE LOGIC ---
+    // Only calculate badges for the student's active department and semester
+    $current_key = $student['department'] . '_' . $student['semester'];
+    $current_fm_count = $semester_buckets[$current_key] ?? 0;
+    $current_total_exams = $semester_totals[$current_key] ?? 0;
+
+    $my_badges = []; // Will hold ['ace', 'knight', 'legend', 'goat']
+
+    // INDEPENDENT IF STATEMENTS: This ensures if they get GOAT, they get ALL of them.
+    if ($current_fm_count >= 1) {
+        $my_badges[] = 'ace';
+    }
+    if ($current_fm_count >= 3) {
+        $my_badges[] = 'knight';
+    }
+    if ($current_fm_count >= 7) {
+        $my_badges[] = 'legend';
+    }
+    if ($current_total_exams >= 5 && $current_fm_count === $current_total_exams) {
+        $my_badges[] = 'goat';
     }
 
-    // Determine highest active badge for the profile header
-    $primary_badge = null;
-    if ($earned_badges['goat'] > 0)
-        $primary_badge = 'goat';
-    elseif ($earned_badges['legend'] > 0)
-        $primary_badge = 'legend';
-    elseif ($earned_badges['knight'] > 0)
-        $primary_badge = 'knight';
-    elseif ($earned_badges['ace'] > 0)
-        $primary_badge = 'ace';
+    // For the profile header icon (we just take the highest tier they earned)
+    $primary_badge = !empty($my_badges) ? end($my_badges) : null; 
+
+    // Badge UI Definitions for rendering the HTML card
+    $badge_ui = [
+        'ace'    => ['title' => 'Ace',    'icon' => 'star',              'color' => 'var(--color-primary)', 'bg' => 'var(--color-primary-soft)'],
+        'knight' => ['title' => 'Knight', 'icon' => 'shield',            'color' => 'var(--color-info)',    'bg' => 'var(--color-info-bg)'],
+        'legend' => ['title' => 'Legend', 'icon' => 'military_tech',     'color' => 'var(--color-success)', 'bg' => 'var(--color-success-bg)'],
+        'goat'   => ['title' => 'G.O.A.T','icon' => 'workspace_premium', 'color' => 'var(--color-warning)', 'bg' => 'var(--color-warning-bg)']
+    ];
+
 } catch (PDOException $e) {
     log_error("Failed to load profile for student $student_id", $e);
     die('Database Error. Please try again later.');
@@ -376,48 +385,46 @@ if ($chart_n > 0) {
                 </section>
 
                 <!-- Badges & Achievements -->
-                <section class="card">
+                <section class="card no-print">
                     <div class="pf-head">
                         <h2 class="pf-title">
                             <span class="pf-title__icon"><span class="material-symbols-outlined">emoji_events</span></span>
-                            Badges &amp; Achievements
+                            Current Badges &amp; Achievements
                         </h2>
                         <button type="button" id="openBadgeRulesBtn" class="pf-link" style="background:none; border:none; cursor:pointer; padding:0;">
                             <span class="material-symbols-outlined icon-sm">help</span> How to earn
                         </button>
                     </div>
                     
-                    <div class="pf-ach-container">
-                        <?php
-                        $has_badges = false;
-                        foreach (['goat', 'legend', 'knight', 'ace'] as $tier):
-                            $count = (int) ($earned_badges[$tier] ?? 0);
-                            if ($count > 0):
-                                $has_badges = true;
-                                $meta = $tier_meta[$tier];
-                                ?>
-                            <!-- Dynamically applies .badge-goat, .badge-legend, .badge-knight -->
-                            <div class="pf-ach-chip badge-<?= $tier ?>">
-                                
-                                <!-- <span class="badge-icon" style="font-size: 1.2rem;"><?= $meta['icon'] ?></span>
-                                <span class="pf-ach-chip__name"><?= e($meta['title']) ?></span> -->
-                                <img src="<?= e($hof_img_base . $meta['img'])  ?>" alt="<?= e($meta['title']) ?>" title="<?= e($meta['title']) ?> For a reason." width="70px" height="50px" style="border-radius: 50%;">
-                            </div>
-                                <?php if ($count > 1): ?>
-                                    <span class="pf-ach-chip__count">x<?= $count ?></span>
-                                <?php endif; ?>
-                                
-                        <?php
-                            endif;
-                        endforeach;
-
-                        if (!$has_badges):
-                            ?>
-                            <div class="pf-empty" style="flex-direction: row; padding: 10px; opacity: 0.7;">
+                    <div class="pf-ach-container" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <?php if (empty($my_badges)): ?>
+                            <div class="pf-empty" style="flex-direction: row; padding: 10px; opacity: 0.7; width: 100%;">
                                 <span class="material-symbols-outlined icon-sm">lock</span>
-                                <span style="font-size: 0.85rem;">No badges earned yet. Score full marks to unlock!</span>
+                                <span style="font-size: 0.85rem;">No badges earned this semester. Score full marks to unlock!</span>
                             </div>
+                        <?php else: ?>
+                            <?php 
+                            $reversed_badges = array_reverse($my_badges);
+                            foreach ($reversed_badges as $tier): 
+                                $meta = $tier_meta[$tier];
+                            ?>
+                                <!-- Render the badge image container -->
+                                <div class="pf-ach-chip badge-<?= $tier ?>" style="position: relative; display: inline-block;">
+                                    <img src="<?= e($hof_img_base . $meta['img']) ?>" 
+                                         alt="<?= e($meta['title']) ?>" 
+                                         title="<?= e($meta['title']) ?> For a reason." 
+                                         width="70px" height="50px" 
+                                         style="border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm);">
+                                </div>
+                            <?php endforeach; ?>
                         <?php endif; ?>
+                    </div>
+                    
+                    <!-- Small summary text underneath the badges -->
+                    <div style="margin-top: 12px; text-align: right;">
+                        <span style="font-size: 0.8rem; color: var(--color-text-secondary); font-weight: 600;">
+                            <?= $current_fm_count ?> / <?= $current_total_exams ?> Perfect Scores
+                        </span>
                     </div>
                 </section>
             </div>
@@ -426,66 +433,97 @@ if ($chart_n > 0) {
 </div>
 
 <!-- ===================== BADGE RULES MODAL ===================== -->
-<div id="badgeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; padding: 16px;">
-    <div style="background: var(--color-bg); width: 100%; max-width: 450px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+<div id="badgeModal" class="no-print" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; padding: 16px;">
+    
+    <div style="background: var(--color-surface); width: 100%; max-width: 450px; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg);">
+        
         <div style="padding: 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; font-size: 1.2rem; color: var(--color-dark); display: flex; align-items: center; gap: 8px;">
-                <span class="material-symbols-outlined" style="color: var(--color-gold);">military_tech</span>
+                <span class="material-symbols-outlined" style="color: var(--color-warning);">military_tech</span>
                 How to Earn Badges
             </h3>
             <button type="button" id="closeBadgeBtn" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--color-text-secondary);">&times;</button>
         </div>
+        
         <div style="padding: 20px;">
-            <p style="margin-top: 0; margin-bottom: 16px; font-size: 0.9rem; color: var(--color-text-secondary);">Badges are awarded based on the number of exams where you score <strong>Full Marks (100%)</strong> in a single semester.</p>
+            <p style="margin-top: 0; margin-bottom: 16px; font-size: 0.9rem; color: var(--color-text-secondary);">
+                Badges are awarded based on the number of exams where you score <strong>Full Marks (100%)</strong> in your current semester.
+            </p>
             
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--color-gray-100); border-radius: 8px;">
-                    <span style="font-size: 1.6rem;">𓃵</span>
+                
+                <!-- GOAT -->
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--color-warning-bg); border: 1px solid var(--color-warning); border-radius: var(--radius-md);">
+                    <span style="font-size: 1.6rem; color: var(--color-warning);">𓃵</span>
                     <div>
-                        <strong style="display: block; color: var(--color-primary); margin-bottom: 2px;">GOAT (Flawless Semester)</strong>
-                        <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Score 100% on <strong>ALL</strong> exams in a semester (min 5 exams required).</span>
+                        <strong style="display: block; color: var(--color-warning); margin-bottom: 2px;">GOAT (Flawless Semester)</strong>
+                        <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Score 100% on <strong>ALL</strong> exams in a semester (minimum 5 exams required).</span>
                     </div>
                 </div>
-                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--color-gray-100); border-radius: 8px;">
-                    <span style="font-size: 1.6rem;">🗿</span>
+                
+                <!-- Legend -->
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--color-success-bg); border: 1px solid var(--color-success); border-radius: var(--radius-md);">
+                    <span style="font-size: 1.6rem; color: var(--color-success);">🗿</span>
                     <div>
-                        <strong style="display: block; color: #6b21a8; margin-bottom: 2px;">Legend</strong>
+                        <strong style="display: block; color: var(--color-success); margin-bottom: 2px;">Legend</strong>
                         <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Score 100% on <strong>7</strong> exams in a semester.</span>
                     </div>
                 </div>
-                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--color-gray-100); border-radius: 8px;">
-                    <span style="font-size: 1.6rem;">🥷🏻</span>
+                
+                <!-- Knight -->
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--color-info-bg); border: 1px solid var(--color-info); border-radius: var(--radius-md);">
+                    <span style="font-size: 1.6rem; color: var(--color-info);">🥷🏻</span>
                     <div>
-                        <strong style="display: block; color: #1d4ed8; margin-bottom: 2px;">Knight</strong>
+                        <strong style="display: block; color: var(--color-info); margin-bottom: 2px;">Knight</strong>
                         <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Score 100% on <strong>3</strong> exams in a semester.</span>
                     </div>
                 </div>
-                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--color-gray-100); border-radius: 8px;">
-                    <span style="font-size: 1.6rem;">★</span>
+                
+                <!-- Ace -->
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--color-primary-soft); border: 1px solid var(--color-primary); border-radius: var(--radius-md);">
+                    <span style="font-size: 1.6rem; color: var(--color-primary);">★</span>
                     <div>
-                        <strong style="display: block; color: #1d4ed8; margin-bottom: 2px;">Ace</strong>
-                        <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Score 100% on <strong>1</strong> exams in a semester.</span>
+                        <strong style="display: block; color: var(--color-primary); margin-bottom: 2px;">Ace</strong>
+                        <span style="font-size: 0.85rem; color: var(--color-text-secondary);">Score 100% on <strong>1</strong> exam in a semester.</span>
                     </div>
                 </div>
+                
             </div>
+
+            <!-- Clarification Rule -->
+            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--color-border); text-align: center;">
+                <span style="font-size: 0.82rem; color: var(--color-text-muted); display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">info</span>
+                    Badges reset at the start of every new semester.
+                </span>
+            </div>
+            
         </div>
     </div>
 </div>
 
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // --- Badge Rules Modal Logic ---
-        const badgeModal = document.getElementById('badgeModal');
-        const badgeOpen = document.getElementById('openBadgeRulesBtn');
-        const badgeClose = document.getElementById('closeBadgeBtn');
+    const badgeModal = document.getElementById('badgeModal');
+    const openBadgeBtn = document.getElementById('openBadgeRulesBtn');
+    const closeBadgeBtn = document.getElementById('closeBadgeBtn');
 
-        if (badgeOpen && badgeModal) badgeOpen.addEventListener('click', () => badgeModal.style.display = 'flex');
-        const closeBadge = () => { if (badgeModal) badgeModal.style.display = 'none'; };
-        if (badgeClose) badgeClose.addEventListener('click', closeBadge);
-        if (badgeModal) badgeModal.addEventListener('click', e => { if (e.target === badgeModal) closeBadge(); });
-    });
+    if (openBadgeBtn && badgeModal && closeBadgeBtn) {
+        openBadgeBtn.addEventListener('click', () => {
+            badgeModal.style.display = 'flex';
+        });
+
+        closeBadgeBtn.addEventListener('click', () => {
+            badgeModal.style.display = 'none';
+        });
+
+        badgeModal.addEventListener('click', (e) => {
+            if (e.target === badgeModal) {
+                badgeModal.style.display = 'none';
+            }
+        });
+    }
 </script>
+
 
 
 

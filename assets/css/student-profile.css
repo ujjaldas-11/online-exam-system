@@ -541,3 +541,74 @@
     padding: 16px;
   }
 }
+
+
+
+
+
+/* =========================================
+   PREMIUM BADGE ANIMATIONS
+   ========================================= */
+
+/* 1. Smooth Floating Animation */
+@keyframes premiumFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+/* 2. Golden Glow Pulse (For GOAT Only) */
+@keyframes goatGlow {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.3)); }
+    50% { filter: drop-shadow(0 0 12px rgba(255, 193, 7, 0.8)); }
+}
+
+/* 3. Glossy Shine Sweep across the card */
+@keyframes shineSweep {
+    0% { transform: translateX(-150%) skewX(-45deg); opacity: 0; }
+    10% { opacity: 0.5; }
+    20% { transform: translateX(150%) skewX(-45deg); opacity: 0; }
+    100% { transform: translateX(150%) skewX(-45deg); opacity: 0; }
+}
+
+/* --- Apply to Profile Badge Images & Hall of Fame Badge Images --- */
+.badge-legend img,
+.hof-row--legend .hof-row__badge img {
+    animation: premiumFloat 3.5s ease-in-out infinite;
+}
+
+/* GOAT gets the float AND the golden glow */
+.badge-goat img,
+.hof-row--goat .hof-row__badge img {
+    animation: premiumFloat 3s ease-in-out infinite, goatGlow 2.5s ease-in-out infinite;
+}
+
+/* --- Apply Shine Sweep to Profile Chip Containers --- */
+.pf-ach-chip.badge-goat,
+.pf-ach-chip.badge-legend {
+    position: relative;
+    overflow: hidden; /* Keeps the shine inside the rounded borders */
+}
+
+.pf-ach-chip.badge-legend::after,
+.pf-ach-chip.badge-goat::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    transform: skewX(-45deg);
+    pointer-events: none; /* Ensures the hover tooltip still works */
+}
+
+/* Silver/White shine for Legend */
+.pf-ach-chip.badge-legend::after {
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: shineSweep 4.5s infinite;
+}
+
+/* Golden shine for GOAT */
+.pf-ach-chip.badge-goat::after {
+    background: linear-gradient(to right, transparent, rgba(255, 193, 7, 0.4), transparent);
+    animation: shineSweep 3.5s infinite;
+}
