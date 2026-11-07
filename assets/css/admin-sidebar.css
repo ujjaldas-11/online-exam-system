@@ -11,27 +11,27 @@
   --shell-gap: 12px;
   --transition: 0.25s ease;
 
-  /* ---- Light Mode (Default) Theme Tokens ---- */
+  /* ---- Light theme (default) ---- */
   --color-on-header: var(--color-text);
   --color-on-header-dim: var(--color-text-secondary);
-  --color-white: #ffffff;
-  --color-black: #000000;
   --sidebar-active-text: var(--color-primary-light);
   --sidebar-hover-text: var(--color-primary-light);
-  --sidebar-role-color: var(--color-warning);
+  --sidebar-role-color: var(--color-gold-text);
   --sidebar-active-bar: var(--color-gold);
+  --profile-border: color-mix(in srgb, var(--color-text) 26%, transparent);
 
-  /* ---- Glass recipe: Light frosted glass ---- */
+  /* ---- Glass recipe: light frosted glass ---- */
   --glass-blur: blur(16px) saturate(180%);
   --glass-bg: color-mix(in srgb, var(--color-surface) 82%, transparent);
   --glass-bg-solid: color-mix(in srgb, var(--color-surface) 96%, transparent);
   --glass-border: var(--color-border);
-  --glass-hover: color-mix(in srgb, var(--color-primary) 5%, transparent);
-  --glass-highlight: rgba(255, 255, 255, 0.9);
-  --glass-active: color-mix(in srgb, var(--color-primary-light) 10%, transparent);
-  --glass-shadow: 0 8px 30px -4px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --glass-hover: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  --glass-highlight: color-mix(in srgb, var(--color-white) 90%, transparent);
+  --glass-active: color-mix(in srgb, var(--color-primary-light) 12%, transparent);
+  --glass-shadow: 0 8px 30px -4px color-mix(in srgb, var(--color-black) 12%, transparent),
+                  0 2px 6px -1px color-mix(in srgb, var(--color-black) 8%, transparent);
   --tooltip-bg: var(--color-dark);
-  --tooltip-text: #ffffff;
+  --tooltip-text: var(--color-white);
 }
 
 [data-theme="dark"] {
@@ -42,24 +42,22 @@
   --sidebar-role-color: var(--color-gold-hover);
   --sidebar-active-bar: var(--color-gold-hover);
 
-  /* ---- Glass recipe: Dark sleek glass ---- */
+  /* ---- Glass recipe: dark sleek glass ---- */
   --glass-blur: blur(18px) saturate(160%);
   --glass-bg: color-mix(in srgb, var(--color-surface) 78%, transparent);
   --glass-bg-solid: color-mix(in srgb, var(--color-surface) 95%, transparent);
   --glass-border: var(--color-border);
-  --glass-hover: rgba(255, 255, 255, 0.06);
-  --glass-highlight: rgba(255, 255, 255, 0.06);
+  --glass-hover: color-mix(in srgb, var(--color-white) 7%, transparent);
+  --glass-highlight: color-mix(in srgb, var(--color-white) 6%, transparent);
   --glass-active: color-mix(in srgb, var(--color-gold) 16%, transparent);
-  --glass-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  --glass-shadow: 0 12px 36px color-mix(in srgb, var(--color-black) 50%, transparent);
   --tooltip-bg: var(--color-surface);
   --tooltip-text: var(--color-text);
 }
 
 /* Fallback when backdrop-filter is unsupported */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root {
-    --glass-bg: var(--color-surface);
-  }
+  :root,
   [data-theme="dark"] {
     --glass-bg: var(--color-surface);
   }
@@ -72,7 +70,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Subtle ambient colour behind the page so the glass has something to refract */
+/* Ambient colour behind the page so the glass has something to refract */
 body::before {
   content: "";
   position: fixed;
@@ -80,14 +78,13 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(40rem 28rem at 8% -6%, rgba(59, 130, 246, 0.04), transparent 70%),
-    radial-gradient(34rem 24rem at 100% 0%, rgba(216, 164, 87, 0.03), transparent 70%);
+    radial-gradient(40rem 28rem at 8% -6%, color-mix(in srgb, var(--color-primary-light) 10%, transparent), transparent 70%),
+    radial-gradient(34rem 24rem at 100% 0%, color-mix(in srgb, var(--color-gold) 8%, transparent), transparent 70%);
 }
-
 [data-theme="dark"] body::before {
   background:
-    radial-gradient(40rem 28rem at 8% -6%, rgba(59, 130, 246, 0.12), transparent 70%),
-    radial-gradient(34rem 24rem at 100% 0%, rgba(229, 179, 102, 0.08), transparent 70%);
+    radial-gradient(40rem 28rem at 8% -6%, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 70%),
+    radial-gradient(34rem 24rem at 100% 0%, color-mix(in srgb, var(--color-gold) 9%, transparent), transparent 70%);
 }
 
 /* ---------- Main content area ---------- */
@@ -138,7 +135,7 @@ body.sidebar-collapsed .main-content {
   display: flex;
   align-items: center;
 }
-.topbar-left { gap: 12px; }
+.topbar-left  { gap: 12px; }
 .topbar-right { gap: 6px; }
 
 .topbar-brand {
@@ -155,7 +152,7 @@ body.sidebar-collapsed .main-content {
   box-shadow: none;
 }
 .brand-wordmark {
-  margin-left: -20px;
+  margin-left: -15px;
   margin-top: 7.5px;
   font-size: 1.4rem;
   color: var(--color-on-header);
@@ -226,7 +223,10 @@ body.sidebar-collapsed .main-content {
 }
 
 .mobile-menu-btn { display: none; }
-/* ---------- Profile trigger ---------- */
+
+/* =========================================================
+   PROFILE WIDGET — solid surfaces, strong borders, no glass
+   ========================================================= */
 .profile-widget {
   position: relative;
   display: flex;
@@ -237,19 +237,20 @@ body.sidebar-collapsed .main-content {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 10px 4px 4px;
+  padding: 4px 12px 4px 4px;
   border-radius: var(--radius-full);
-  background: var(--color-bg); /* Solid background instead of glass */
-  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border: 1px solid var(--profile-border);
+  box-shadow: var(--shadow-sm);
   color: var(--color-text);
   font: inherit;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 .profile-trigger:hover,
 .profile-trigger[aria-expanded="true"] {
-  background: var(--color-gray-100);
+  border-color: var(--sidebar-active-text);
+  box-shadow: var(--shadow-md);
 }
 
 .nav-profile-pic {
@@ -258,13 +259,14 @@ body.sidebar-collapsed .main-content {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--color-border);
+  border: 2px solid var(--profile-border);
   background: var(--color-surface);
 }
 .nav-profile-pic.lg {
-  width: 88px;
-  height: 88px;
-  border-width: 3px;
+  width: 84px;
+  height: 84px;
+  border: 3px solid var(--sidebar-active-text);
+  box-shadow: 0 0 0 4px var(--glass-active);
 }
 
 .profile-text {
@@ -273,7 +275,6 @@ body.sidebar-collapsed .main-content {
   text-align: left;
   line-height: 1.2;
 }
-
 .admin-name {
   max-width: 140px;
   overflow: hidden;
@@ -283,12 +284,12 @@ body.sidebar-collapsed .main-content {
   font-weight: 600;
   color: var(--color-text);
 }
-
 .admin-role {
   font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  color: var(--color-primary); /* Stand out slightly */
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--sidebar-role-color);
 }
 
 .chevron-icon {
@@ -296,12 +297,11 @@ body.sidebar-collapsed .main-content {
   color: var(--color-text-secondary);
   transition: transform 0.2s ease;
 }
-
 .profile-trigger[aria-expanded="true"] .chevron-icon {
   transform: rotate(180deg);
 }
 
-/* ---------- Dropdown ---------- */
+/* ---------- Dropdown (solid, no glass) ---------- */
 .profile-dropdown {
   position: absolute;
   top: calc(100% + 12px);
@@ -310,19 +310,17 @@ body.sidebar-collapsed .main-content {
   width: 290px;
   max-width: calc(100vw - 24px);
   overflow: hidden;
-  /* Removed glass-bg and backdrop filter */
   background: var(--color-surface);
   color: var(--color-text);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--profile-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg); /* Solid shadow */
+  box-shadow: var(--shadow-lg);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px) scale(0.98);
   transform-origin: top right;
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
 }
-
 .profile-dropdown.open {
   opacity: 1;
   visibility: visible;
@@ -333,36 +331,35 @@ body.sidebar-collapsed .main-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 20px 16px 16px;
+  gap: 14px;
+  padding: 22px 16px 18px;
   text-align: center;
+  background: linear-gradient(to bottom, var(--glass-active), transparent);
 }
-
 .dropdown-identity {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
 }
-
 .dropdown-name {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--color-text);
 }
-
 .role-badge {
   display: inline-block;
-  padding: 3px 12px;
+  padding: 3px 14px;
   border-radius: var(--radius-full);
-  background: var(--color-primary-soft); /* Replaced glass-active */
-  border: 1px solid var(--color-primary-light);
-  color: var(--color-primary);
+  background: var(--glass-active);
+  border: 1px solid color-mix(in srgb, var(--sidebar-active-text) 40%, transparent);
+  color: var(--sidebar-active-text);
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
-
 .dropdown-college {
   margin: 2px 0 0;
   font-size: 0.8rem;
@@ -372,13 +369,15 @@ body.sidebar-collapsed .main-content {
 
 .dropdown-admin-details {
   padding: 10px 16px;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg); /* Use page background for contrast block */
+  margin-left: 0.8rem;
+  margin-right: 0.8rem;
+  /* border-top: 1px solid var(--glass-border); */
+  /* border: 1px solid var(--glass-border); */
+  border-radius: 10px;
+  background: var(--color-bg);
   font-size: 0.85rem;
   color: var(--color-text);
 }
-
 .dropdown-admin-details p {
   display: flex;
   align-items: center;
@@ -387,15 +386,12 @@ body.sidebar-collapsed .main-content {
   font-weight: 600;
   overflow-wrap: anywhere;
 }
-
 .dropdown-admin-details .material-symbols-outlined {
   font-size: 18px;
   color: var(--color-text-secondary);
 }
 
-.dropdown-actions { 
-  padding: 6px; 
-}
+.dropdown-actions { padding: 6px; }
 
 .dropdown-item {
   display: flex;
@@ -409,45 +405,27 @@ body.sidebar-collapsed .main-content {
   background: transparent;
   color: var(--color-text);
   font-size: 0.9rem;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
-
-.dropdown-item .material-symbols-outlined { 
+.dropdown-item .material-symbols-outlined {
   font-size: 20px;
   color: var(--color-text-secondary);
 }
-
-.dropdown-item-label { 
-  flex: 1; 
-}
-
-.dropdown-item-arrow { 
-  color: var(--color-text-muted); 
-}
+.dropdown-item-label { flex: 1; }
+.dropdown-item-arrow { color: var(--color-text-muted); }
 
 .dropdown-item:hover {
-  background: var(--color-gray-100); /* Solid hover color */
-  color: var(--color-primary);
+  background: var(--glass-active);
+  color: var(--sidebar-active-text);
 }
+.dropdown-item:hover .material-symbols-outlined { color: inherit; }
 
-.dropdown-item:hover .material-symbols-outlined {
-  color: var(--color-primary);
-}
-
-.dropdown-item.logout-btn { 
-  color: var(--color-error); 
-}
-
-.dropdown-item.logout-btn .material-symbols-outlined {
-  color: var(--color-error);
-}
-
-.dropdown-item.logout-btn .dropdown-item-arrow { 
-  color: inherit; 
-}
-
+.dropdown-item.logout-btn,
+.dropdown-item.logout-btn .material-symbols-outlined,
+.dropdown-item.logout-btn .dropdown-item-arrow { color: var(--color-error); }
 .dropdown-item.logout-btn:hover {
   background: var(--color-error-bg);
   color: var(--color-error);
@@ -577,6 +555,7 @@ body.sidebar-collapsed .main-content {
 .sidebar-links a.active .material-symbols-outlined {
   font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
 }
+
 /* Active indicator bar */
 .sidebar-links a::before {
   content: "";
@@ -611,12 +590,21 @@ body.sidebar-collapsed .main-content {
   text-align: center;
 }
 
-/* Collapse button pinned to the bottom */
+/* Collapse button: pinned to the bottom and always visible, even when the list scrolls */
 .sidebar-collapse-btn {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   margin-top: auto;
+  padding-top: 14px;
   border-top: 1px solid var(--glass-border);
   border-radius: 0 0 var(--radius-md) var(--radius-md);
-  padding-top: 14px;
+  background: var(--glass-bg-solid);
+}
+.sidebar-links .sidebar-collapse-btn:hover {
+  background:
+    linear-gradient(var(--glass-hover), var(--glass-hover)),
+    var(--glass-bg-solid);
 }
 .sidebar-collapse-btn .material-symbols-outlined { transition: transform 0.25s ease; }
 
@@ -696,6 +684,23 @@ body.sidebar-collapsed .main-content {
   }
 }
 
+/* Short desktop windows: let the collapsed sidebar scroll instead of overflowing off-screen
+   (hover tooltips are clipped only in this case) */
+@media (min-width: 993px) and (max-height: 640px) {
+  body.sidebar-collapsed .admin-sidebar {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
+/* Compact spacing on low-height screens */
+@media (max-height: 700px) {
+  .sidebar-links { gap: 2px; }
+  .sidebar-links a,
+  .sidebar-collapse-btn { padding-top: 8px; padding-bottom: 8px; }
+  .sidebar-header { margin-bottom: 6px; }
+}
+
 /* =========================================================
    TABLET / MOBILE
    ========================================================= */
@@ -729,12 +734,49 @@ body.sidebar-collapsed .main-content {
 }
 
 @media (max-width: 576px) {
-  .topbar-inner { padding: 0 12px; }
-  .profile-text,
-  .chevron-icon { display: none; }
-  .profile-trigger { padding: 2px; }
+  .topbar-inner { padding: 0 10px; gap: 8px; }
+
+  /* Left side may shrink; right side (with the avatar) never gets pushed off-screen */
+  .topbar-left  { min-width: 0; flex: 1 1 auto; gap: 6px; }
+  .topbar-brand { min-width: 0; margin-left: 0; overflow: hidden; }
+  .topbar-brand .auth-logo { height: 30px; }
+  .brand-wordmark { font-size: 1.2rem; }
+
+  .topbar-right { flex: 0 0 auto; gap: 2px; }
   .topbar-sep { display: none; }
-  .topbar-right { gap: 2px; }
+  .icon-btn { width: 36px; height: 36px; }
+}
+
+/* Very small phones: drop the docs shortcut to make room */
+@media (max-width: 400px) {
+  .topbar-right a[href*="admin-doc"] { display: none; }
+}
+
+/* =========================================================
+   PROFILE WIDGET — always visible on every screen size
+   Scoped to .admin-topbar so shared/student rules can't hide it.
+   ========================================================= */
+.admin-topbar .profile-widget {
+  display: flex !important;
+  flex-shrink: 0;
+}
+.admin-topbar .profile-trigger { display: flex; }
+.admin-topbar .nav-profile-pic { display: block; }
+
+@media (max-width: 576px) {
+  /* Avatar-only button */
+  .admin-topbar .profile-text,
+  .admin-topbar .chevron-icon { display: none; }
+  .admin-topbar .profile-trigger { padding: 2px; gap: 0; }
+  .admin-topbar .profile-trigger .nav-profile-pic { width: 34px; height: 34px; }
+
+  /* Same dropdown as desktop, anchored under the avatar and kept on-screen */
+  .admin-topbar .profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: min(300px, calc(100vw - 20px));
+  }
 }
 
 /* ---------- Reduced motion ---------- */

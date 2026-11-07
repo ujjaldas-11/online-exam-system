@@ -102,8 +102,8 @@ include __DIR__ . '/../components/header.php';
         <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--color-dark); margin-bottom: 8px;">Registration Submitted!</h1>
         <p style="color: var(--color-text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;"><?= e($success) ?></p>
 
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; text-align: left;">
-            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.88rem; color: #64748b; margin-bottom: 10px;">
+        <div style="background: var(--color-surface); border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; text-align: left;">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.88rem; color: var(--color-text); margin-bottom: 10px;">
                 <span class="material-symbols-outlined icon-xs" style="color: #10b981;">schedule</span>
                 <span>Redirecting to homepage...</span>
             </div>
@@ -240,7 +240,7 @@ include __DIR__ . '/../components/header.php';
         </form>
 
         <p class="footer">
-            Already have an account? <a href="login.php">Login here</a>
+            Already have an account? <a href="login.php" style="color: var(--color-primary-light);">Login here</a>
         </p>
     </div>
 <?php endif; ?>

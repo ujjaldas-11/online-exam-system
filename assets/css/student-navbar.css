@@ -1,176 +1,208 @@
+/* =========================================================
+   STUDENT NAVBAR
+   Glass bar + SOLID profile widget (so it stays readable in
+   both themes). Colors come only from variables.css tokens.
+   ========================================================= */
+
 :root {
-  --nav-h: 54px;
-  --nav-bg: color-mix(in srgb, var(--color-surface) 82%, transparent);
-  --nav-bg-solid: color-mix(in srgb, var(--color-surface) 96%, transparent);
-  --nav-border: var(--color-border);
+  --nav-h: 60px;
+  --nav-bg: color-mix(in srgb, var(--color-surface) 78%, transparent);
+  --nav-bg-solid: var(--color-surface);
+  --nav-border: color-mix(in srgb, var(--color-text) 14%, transparent);
+  --nav-border-strong: color-mix(in srgb, var(--color-text) 26%, transparent);
   --nav-text: var(--color-text);
   --nav-text-dim: var(--color-text-secondary);
-  --nav-hover-bg: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  --nav-hover-bg: color-mix(in srgb, var(--color-text) 7%, transparent);
   --nav-hover-color: var(--color-primary-light);
-  --nav-active-bg: color-mix(in srgb, var(--color-primary-light) 10%, transparent);
+  --nav-active-bg: color-mix(in srgb, var(--color-primary-light) 12%, transparent);
   --nav-active-color: var(--color-primary-light);
-  --nav-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
-  --nav-role-color: var(--color-warning);
+  --nav-role-color: var(--color-gold-text);
+  --nav-shadow: 0 4px 20px -2px color-mix(in srgb, var(--color-black) 10%, transparent);
+  --nav-scrim: color-mix(in srgb, var(--color-black) 50%, transparent);
 }
 
 [data-theme="dark"] {
-  --nav-bg: color-mix(in srgb, var(--color-surface) 80%, transparent);
-  --nav-bg-solid: color-mix(in srgb, var(--color-surface) 95%, transparent);
-  --nav-border: var(--color-border);
-  --nav-text: var(--color-text);
-  --nav-text-dim: var(--color-text-secondary);
-  --nav-hover-bg: rgba(255, 255, 255, 0.06);
   --nav-hover-color: var(--color-gold-hover);
   --nav-active-bg: color-mix(in srgb, var(--color-gold) 16%, transparent);
   --nav-active-color: var(--color-gold-hover);
-  --nav-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   --nav-role-color: var(--color-gold-hover);
+  --nav-shadow: 0 4px 20px color-mix(in srgb, var(--color-black) 50%, transparent);
 }
 
+/* ---------- Bar ----------
+   The blur lives on ::before, NOT on the bar itself: a backdrop-filter on the
+   bar would trap the fixed mobile drawer/overlay inside the 60px bar. */
 .student-navbar {
-  background: var(--nav-bg);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  backdrop-filter: blur(16px) saturate(180%);
-  color: var(--nav-text);
   position: sticky;
   top: 0;
   z-index: 50;
+  color: var(--nav-text);
   border-bottom: 1px solid var(--nav-border);
   box-shadow: var(--nav-shadow);
 }
+.student-navbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+}
 
 .student-nav-inner {
-  padding: 0 20px;
   height: var(--nav-h);
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
 
+/* ---------- Brand (dark pill so the logo is visible in BOTH themes) ---------- */
+/* ---------- Brand lockup ---------- */
 .student-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--nav-text);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
+  --wordmark-nudge: 7.5px;            /* tweak if the wordmark sits too high/low */
 
-.student-brand .auth-logo {
-  height: 34px;
-  width: auto;
-  background-color: transparent;
-  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 40px;                       /* fixed height = consistent with the 40px nav buttons */
+  padding: 0 14px 0 8px;
+  box-sizing: border-box;
+  background: var(--color-header);
+  border: 0;                          /* no hard outline */
+  border-radius: var(--radius-md);    /* matches buttons and nav links */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--color-white) 8%, transparent),
+    var(--shadow-sm);
+  text-decoration: none;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .student-brand:hover {
-  color: var(--nav-hover-color);
+  background: var(--color-header-hover);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--color-gold) 45%, transparent),
+    var(--shadow-md);
 }
 
-.student-brand .nav-logo {
-  color: var(--nav-text);
+.student-brand:focus-visible {
+  outline: 2px solid var(--color-gold-hover);
+  outline-offset: 3px;
 }
 
-.student-greeting {
-  font-weight: 600;
-  font-size: 0.95rem;
-  white-space: nowrap;
-  color: var(--nav-text);
+.student-brand .auth-logo {
+  height: 28px;                       /* sits inside the 40px bar with even 6px space */
+  width: auto;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.drawer-profile {
-  display: none;
+.student-brand .brand-wordmark {
+  margin-left: -13px;                 /* keeps the "E" + "xamify" lockup */
+  margin-top: var(--wordmark-nudge);
+  font-size: 1.3rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--color-white);
 }
 
+@media (max-width: 576px) {
+  .student-brand { height: 36px; padding: 0 12px 0 6px; }
+  .student-brand .auth-logo { height: 24px; }
+  .student-brand .brand-wordmark { font-size: 1.15rem; margin-left: -15px; }
+}
+
+/* ---------- Links group ---------- */
 .student-nav-links {
   display: flex;
-  gap: 6px;
   align-items: center;
+  gap: 6px;
 }
 
-.student-nav-links a {
-  display: flex;
+.student-nav-links .nav-link,
+.nav-theme-btn {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--nav-text-dim);
-  text-decoration: none;
   padding: 8px 12px;
-  border-radius: var(--radius-sm, 6px);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--nav-text-dim);
+  font: inherit;
   font-size: 0.9rem;
   font-weight: 500;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
+.student-nav-links .nav-link .material-symbols-outlined,
+.nav-theme-btn .material-symbols-outlined { font-size: 20px; }
 
-.student-nav-links a .material-symbols-outlined {
-  font-size: 20px;
-}
-
-.student-nav-links a:hover {
+.student-nav-links .nav-link:hover,
+.nav-theme-btn:hover {
   background: var(--nav-hover-bg);
   color: var(--nav-hover-color);
 }
-
-.student-nav-links a.active {
+.student-nav-links .nav-link.active {
   background: var(--nav-active-bg);
   color: var(--nav-active-color);
   font-weight: 600;
 }
 
-.menu-btn {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--nav-text);
-  font-size: 1.5rem;
-  cursor: pointer;
+/* Theme button: compact square icon button on desktop */
+.nav-theme-btn {
   width: 40px;
   height: 40px;
-  align-items: center;
+  padding: 0;
   justify-content: center;
-  border-radius: var(--radius-sm, 6px);
-  transition: background 0.15s ease;
-  flex-shrink: 0;
+  border-color: var(--nav-border);
+  color: var(--nav-text);
+}
+.nav-theme-label { display: none; }
+
+.nav-sep {
+  width: 1px;
+  height: 24px;
+  margin: 0 8px;
+  background: var(--nav-border-strong);
 }
 
-.menu-btn:hover {
-  background: var(--nav-hover-bg);
+.student-navbar a:focus-visible,
+.student-navbar button:focus-visible {
+  outline: 2px solid var(--nav-active-color);
+  outline-offset: 2px;
 }
 
-.student-nav-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(2px);
-  z-index: 90;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
+/* Mobile-only pieces are hidden on desktop */
+.drawer-head,
+.nav-logout,
+.menu-btn { display: none; }
 
-.student-nav-overlay.show {
-  display: block;
-  opacity: 1;
-}
-
+/* ---------- Avatars ---------- */
 .nav-profile-pic {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--nav-border);
+  border: 2px solid var(--nav-border-strong);
   background: var(--color-surface);
 }
-.nav-profile-pic.lg {
-  width: 56px;
-  height: 56px;
+.nav-profile-pic.lg { width: 64px; height: 64px; }
+.nav-profile-pic.xl {
+  width: 84px;
+  height: 84px;
+  border: 3px solid var(--nav-active-color);
+  box-shadow: 0 0 0 4px var(--nav-active-bg);
 }
 
+/* =========================================================
+   PROFILE WIDGET — solid surfaces, strong borders, no glass
+   ========================================================= */
 .profile-widget {
   position: relative;
   display: flex;
@@ -182,21 +214,19 @@
   align-items: center;
   gap: 10px;
   padding: 4px 12px 4px 4px;
-  border-radius: 50px;
-  background: var(--nav-hover-bg);
-  border: 1px solid var(--nav-border);
+  background: var(--color-surface);
+  border: 1px solid var(--nav-border-strong);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
   color: var(--nav-text);
+  font: inherit;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .profile-trigger:hover,
 .profile-trigger[aria-expanded="true"] {
-  background: var(--nav-active-bg);
-  border-color: var(--nav-border);
-}
-.profile-trigger:focus-visible {
-  outline: 2px solid var(--nav-active-color);
-  outline-offset: 2px;
+  border-color: var(--nav-active-color);
+  box-shadow: var(--shadow-md);
 }
 
 .profile-text {
@@ -206,20 +236,20 @@
   line-height: 1.2;
 }
 .admin-name {
-  font-size: 0.85rem;
-  font-weight: 600;
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--nav-text);
 }
 .admin-role {
   font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--nav-role-color);
-  text-transform: uppercase;
+  font-weight: 700;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--nav-role-color);
 }
 
 .chevron-icon {
@@ -227,241 +257,265 @@
   color: var(--nav-text-dim);
   transition: transform 0.2s ease;
 }
-.profile-trigger[aria-expanded="true"] .chevron-icon {
-  transform: rotate(180deg);
-}
+.profile-trigger[aria-expanded="true"] .chevron-icon { transform: rotate(180deg); }
 
-/* ---------- 2. Dropdown Menu (Theme-Aware Glass) ---------- */
+/* ---------- Dropdown ---------- */
 .profile-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   right: 0;
   z-index: 1000;
-  width: 280px;
+  width: 290px;
   max-width: calc(100vw - 24px);
-  background: var(--nav-bg-solid);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  backdrop-filter: blur(16px) saturate(180%);
+  overflow: hidden;
+  background: var(--color-surface);
   color: var(--nav-text);
-  border: 1px solid var(--nav-border);
-  border-radius: 12px;
-  box-shadow: var(--nav-shadow);
+  border: 1px solid var(--nav-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: 0.2s ease;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
 }
 .profile-dropdown.open {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: none;
 }
 
 .dropdown-header {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 14px;
+  padding: 22px 16px 18px;
   text-align: center;
-  gap: 12px;
-  padding: 16px;
+  background: linear-gradient(to bottom, var(--nav-active-bg), transparent);
+  border-bottom: 1px solid var(--nav-border);
+}
+.dropdown-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 .dropdown-name {
-  margin: 0 0 4px;
+  margin: 0;
+  font-size: 1.05rem;
   font-weight: 700;
-  font-size: 0.95rem;
   color: var(--nav-text);
 }
-.profile-dropdown .badge,
-.profile-dropdown .badge-active {
-  background-color: var(--nav-active-bg) !important;
-  color: var(--nav-role-color) !important;
-  border: 1px solid var(--nav-border);
-  font-weight: 600;
+.role-badge {
+  display: inline-block;
+  padding: 3px 14px;
+  border-radius: var(--radius-full);
+  background: var(--nav-active-bg);
+  border: 1px solid color-mix(in srgb, var(--nav-active-color) 35%, transparent);
+  color: var(--nav-active-color);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
-.profile-dropdown .dropdown-header p {
-  color: var(--nav-role-color);
-}
-
-.dropdown-admin-details {
-  padding: 12px 16px;
-  background: var(--nav-hover-bg);
-  border-top: 1px solid var(--nav-border);
-  border-bottom: 1px solid var(--nav-border);
-  font-size: 0.85rem;
+.dropdown-college {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
   color: var(--nav-text-dim);
-  line-height: 1.5;
-}
-.dropdown-admin-details p {
-  margin: 4px 0;
-  overflow-wrap: anywhere;
-  font-weight: 500;
-}
-.dropdown-admin-details strong {
-  color: var(--nav-text);
-  font-weight: 600;
 }
 
-.dropdown-reset-btn-item,
-.logout-btn {
+.dropdown-actions { padding: 6px; }
+
+.dropdown-item {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 16px;
+  padding: 11px 12px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--radius-md);
   background: transparent;
-  border: none;
   color: var(--nav-text);
   font-size: 0.9rem;
-  cursor: pointer;
-  transition: 0.2s ease;
+  font-weight: 500;
   text-decoration: none;
-  box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.dropdown-reset-btn-item:hover {
-  background: var(--nav-hover-bg);
-  color: var(--nav-hover-color);
+.dropdown-item .material-symbols-outlined { font-size: 20px; }
+.dropdown-item-label { flex: 1; }
+.dropdown-item-arrow { color: var(--nav-text-dim); }
+.dropdown-item:hover {
+  background: var(--nav-active-bg);
+  color: var(--nav-active-color);
 }
+.dropdown-item:hover .dropdown-item-arrow { color: inherit; }
 
-.logout-btn {
-  color: var(--color-error);
-}
-.logout-btn:hover {
+.dropdown-item.logout-btn { color: var(--color-error); }
+.dropdown-item.logout-btn .dropdown-item-arrow { color: inherit; }
+.dropdown-item.logout-btn:hover {
   background: var(--color-error-bg);
   color: var(--color-error);
 }
-.logout-btn .material-symbols-outlined {
-  font-size: 20px;
-}
 
-.dropdown-divider {
-  margin: 0;
-  border: none;
-  border-top: 1px solid var(--nav-border);
+/* =========================================================
+   MOBILE DRAWER
+   ========================================================= */
+.student-nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: var(--nav-scrim);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
+.student-nav-overlay.show { display: block; opacity: 1; }
 
-/* ---------- Mobile ---------- */
 @media (max-width: 768px) {
+  .student-nav-inner { padding: 0 14px; }
+
   .menu-btn {
-    display: flex;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border: 1px solid var(--nav-border);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--nav-text);
+    cursor: pointer;
+    transition: background 0.15s ease;
   }
+  .menu-btn:hover { background: var(--nav-hover-bg); }
 
   .student-nav-links {
     position: fixed;
     top: 0;
     right: 0;
-    height: 100vh;
-    width: 78%;
-    max-width: 300px;
-    background: var(--nav-bg-solid);
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-    border-left: 1px solid var(--nav-border);
+    bottom: 0;
+    z-index: 95;
+    width: 80%;
+    max-width: 320px;
     flex-direction: column;
     align-items: stretch;
-    padding: 24px 18px;
     gap: 4px;
-    z-index: 95;
-    transform: translateX(100%);
+    padding: 18px 16px 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    background: var(--nav-bg-solid);
+    border-left: 1px solid var(--nav-border-strong);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(105%);
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
-    display: flex;
   }
+  .student-nav-links.show { transform: none; }
 
-  .student-nav-links.show {
-    transform: translateX(0);
+  .drawer-head {
+    position: relative;
+    display: block;
+    padding: 6px 0 18px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--nav-border);
   }
-
   .drawer-profile {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 12px;
-    padding: 10px 12px 18px;
-    border-bottom: 1px solid var(--nav-border);
-    margin-bottom: 10px;
+    gap: 10px;
+    padding-top: 10px;
+    text-decoration: none;
+  }
+  .student-greeting {
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--nav-text);
+  }
+  .drawer-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--nav-hover-bg);
+    color: var(--nav-text);
+    cursor: pointer;
   }
 
-  .student-nav-links a {
-    padding: 12px 14px;
+  .student-nav-links .nav-link,
+  .nav-theme-btn,
+  .nav-logout {
     width: 100%;
-    opacity: 0;
-    transform: translateX(16px);
+    height: auto;
+    padding: 12px 14px;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    font-size: 0.95rem;
   }
 
-  .student-nav-links.show a {
+  /* Theme toggle becomes a labelled row */
+  .nav-theme-btn {
+    border-color: var(--nav-border);
+    color: var(--nav-text);
+  }
+  .nav-theme-label { display: inline; }
+
+  .nav-sep,
+  .profile-widget { display: none; }
+
+  /* Logout pinned to the bottom of the drawer */
+  .nav-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    border: 1px solid color-mix(in srgb, var(--color-error) 35%, transparent);
+    border-radius: var(--radius-md);
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* Staggered entrance */
+  .student-nav-links > * { opacity: 0; transform: translateX(16px); }
+  .student-nav-links.show > * {
     animation: navLinkIn 0.35s ease forwards;
   }
-
-  .student-nav-links.show a:nth-child(2) {
-    animation-delay: 0.05s;
-  }
-  .student-nav-links.show a:nth-child(3) {
-    animation-delay: 0.1s;
-  }
-  .student-nav-links.show a:nth-child(4) {
-    animation-delay: 0.15s;
-  }
+  .student-nav-links.show > *:nth-child(2) { animation-delay: 0.05s; }
+  .student-nav-links.show > *:nth-child(3) { animation-delay: 0.10s; }
+  .student-nav-links.show > *:nth-child(4) { animation-delay: 0.15s; }
+  .student-nav-links.show > *:nth-child(6) { animation-delay: 0.20s; }
 
   @keyframes navLinkIn {
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+    to { opacity: 1; transform: translateX(0); }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .student-nav-links,
-  .student-nav-overlay {
+  .student-nav-overlay,
+  .profile-dropdown,
+  .chevron-icon {
     transition: none !important;
     animation: none !important;
   }
+  .student-nav-links > * { opacity: 1; transform: none; }
 }
 
-
-
-/* Layout-only fixes. No colors changed: your existing navbar styles still apply. */
-.nav-profile-pic {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-  border: 2px solid var(--color-border);
-  background-color: var(--color-surface);
-}
-.nav-profile-pic.lg {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 8px;
-}
-
-.student-navbar .student-greeting {
-  white-space: nowrap;
-}
-
-/* Drawer avatar block: desktop hidden (this was the duplicate avatar), mobile shown */
-.student-navbar .drawer-profile {
-  display: none;
-}
-
-.logout {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .student-navbar .drawer-profile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 0;
-  }
-  .student-navbar .drawer-profile .student-greeting {
-    margin-left: 0;
-  }
-  .profile-widget {
-    display: none;
-  }
-  .logout {
-    display: block;
-  }
+@media print {
+  .student-navbar { display: none !important; }
 }

@@ -127,7 +127,7 @@ include __DIR__ . '/../components/header.php';
         </form>
 
         <p class="footer">
-            Don't have an account? <a href="register.php">Register here</a>
+            Don't have an account? <a href="register.php" style="color: var(--color-primary-light);">Register here</a>
         </p>
     </div>
 </main>
