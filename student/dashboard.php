@@ -21,7 +21,7 @@ try {
     $sql = "
         SELECT
             e.id, e.title, e.description, e.duration_minutes, e.total_marks,
-            e.total_questions_to_ask, e.status, e.results_published, e.start_time,
+            e.total_questions_to_ask, e.status, e.results_published, e.start_time, e.end_time,
             s.name AS subject_name,
             ea.id AS attempt_id, ea.score, ea.status AS attempt_status, ea.total_questions
         FROM exams e
@@ -64,13 +64,17 @@ foreach ($available_exams as $exam) {
         $scheduled_count++;
         $exam['category'] = 'scheduled';
     } elseif ($exam['status'] === 'active') {
-        $start_timestamp = !empty($exam['start_time']) ? strtotime($exam['start_time']) : time();
-        $end_timestamp = $start_timestamp + ($exam['duration_minutes'] * 60);
+        $is_ended = false;
+        if (!empty($exam['end_time'])) {
+            $is_ended = (time() >= strtotime($exam['end_time']));
+        } elseif (!empty($exam['start_time']) && !empty($exam['duration_minutes'])) {
+            $is_ended = (time() >= (strtotime($exam['start_time']) + ($exam['duration_minutes'] * 60)));
+        }
 
-        if (time() >= $end_timestamp && empty($attempt_status)) {
+        if ($is_ended && empty($attempt_status)) {
             continue;
         }
-        if (time() < $end_timestamp) {
+        if (!$is_ended) {
             $active_count++;
         }
         $exam['category'] = 'active';
@@ -392,68 +396,101 @@ include __DIR__ . '/../components/student-navbar.php';
 </div>
 
 <script>
-    // Live exam synchronization without constant full-page reloads
+    // 1. Independent Motivational Quotes Rotation (every 15 seconds)
+    (function initQuoteRotation() {
+        const quotes = <?= json_encode(array_values(array_filter(array_column($quotesArr, 'quote'))), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        const quoteEl = document.getElementById('funny-quote');
+        if (!quoteEl || !Array.isArray(quotes) || quotes.length <= 1) return;
+
+        let currentQuote = quoteEl.textContent.replace(/^"|"$/g, '').trim();
+        quoteEl.style.transition = 'opacity 0.25s ease';
+
+        setInterval(() => {
+            let nextQuote;
+            let attempts = 0;
+            do {
+                nextQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                attempts++;
+            } while (nextQuote === currentQuote && attempts < 10);
+
+            currentQuote = nextQuote;
+            quoteEl.style.opacity = '0';
+            setTimeout(() => {
+                quoteEl.textContent = `"${nextQuote}"`;
+                quoteEl.style.opacity = '1';
+            }, 250);
+        }, 15000);
+    })();
+
+    // 2. Independent Automatic Exam Refresh (every 15 seconds)
     let knownActiveIds = <?= json_encode($actionable_active_ids) ?>;
 
     async function refreshExamGridSilently() {
         try {
-            const res = await fetch(window.location.href);
+            const res = await fetch(window.location.href, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) return false;
             const html = await res.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
-            const newGrid = doc.querySelector('.exam-grid') || doc.querySelector('.dash-empty');
-            const currentContainer = document.querySelector('.exam-grid') || document.querySelector('.dash-empty');
-            if (newGrid && currentContainer) {
-                currentContainer.replaceWith(newGrid);
-            }
+            const newLiveResults = doc.getElementById('live-results');
+            const currentLiveResults = document.getElementById('live-results');
+            if (newLiveResults && currentLiveResults) {
+                currentLiveResults.innerHTML = newLiveResults.innerHTML;
+                document.dispatchEvent(new CustomEvent('live-search:updated', { detail: { target: currentLiveResults } }));
+                return true;
+            } else {
+                const newGrid = doc.querySelector('.exam-grid') || doc.querySelector('.dash-empty');
+                const currentContainer = document.querySelector('.exam-grid') || document.querySelector('.dash-empty');
+                if (newGrid && currentContainer) {
+                    currentContainer.replaceWith(newGrid);
+                }
 
-            const newPagination = doc.querySelector('.pagination-wrap');
-            const currentPagination = document.querySelector('.pagination-wrap');
-            if (newPagination && currentPagination) {
-                currentPagination.replaceWith(newPagination);
+                const newPagination = doc.querySelector('.pagination-wrap');
+                const currentPagination = document.querySelector('.pagination-wrap');
+                if (newPagination && currentPagination) {
+                    currentPagination.replaceWith(newPagination);
+                }
+                return true;
             }
         } catch (e) {
-            window.location.reload();
+            console.error('Silent exam refresh failed', e);
+            return false;
         }
     }
 
     let isCheckingExams = false;
     setInterval(async function () {
-        if (isCheckingExams || document.hidden) return;
+        if (isCheckingExams) return;
         try {
             isCheckingExams = true;
-            const response = await fetch('check-exams.php');
+            const response = await fetch('check-exams.php', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) return;
             const data = await response.json();
 
             if (Array.isArray(data.active_ids)) {
-                const newExams = data.active_ids.filter(id => !knownActiveIds.includes(id));
-                if (newExams.length > 0) {
-                    knownActiveIds = data.active_ids;
+                const hasNew = data.active_ids.some(id => !knownActiveIds.includes(id));
+                const hasRemoved = knownActiveIds.some(id => !data.active_ids.includes(id));
 
-                    const isModalOpen = document.querySelector('.admin-modal-overlay.active, .modal-overlay.active') !== null;
-                    const isTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
-
-                    if (isModalOpen || isTyping) {
-                        const alertEl = document.getElementById('liveExamAlert');
-                        if (alertEl) {
-                            const titleEl = document.getElementById('liveExamAlertTitle');
-                            if (titleEl && Array.isArray(data.titles) && data.titles.length > 0) {
-                                titleEl.textContent = 'Live: ' + data.titles[0];
-                            }
-                            alertEl.style.display = 'flex';
-                        }
-                    } else {
-                        await refreshExamGridSilently();
+                if (hasNew || hasRemoved) {
+                    const refreshed = await refreshExamGridSilently();
+                    if (refreshed) {
+                        knownActiveIds = data.active_ids;
                     }
                 }
             }
         } catch (error) {
+            console.error('Auto exam check error', error);
         } finally {
             isCheckingExams = false;
         }
     }, 15000);
 
+    // Keep alert handlers for backward compatibility
     document.getElementById('btnLiveExamRefresh')?.addEventListener('click', async () => {
         const alertEl = document.getElementById('liveExamAlert');
         if (alertEl) alertEl.style.display = 'none';
