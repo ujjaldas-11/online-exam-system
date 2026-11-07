@@ -450,7 +450,7 @@ class PdfService
         $pdf->Cell($w['time'], 8, 'Submitted', 1, 1, 'C', true);
     }
 
-public static function generateExamResultsPdf(array $exam, array $allResults, string $mode = 'P'): string
+    public static function generateExamResultsPdf(array $exam, array $allResults, string $mode = 'P'): string
     {
         $pdf = new ExamifyPdf('P', 'mm', 'A4');
         $pdf->AliasNbPages();
@@ -584,7 +584,7 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
                 $pdf->Cell($w['name'], 7, $nameStr, 1, 0, 'L', $fill);
 
                 $scoreLabel = ($status === 'not_attempted') ? '-' : sprintf('%.2f', $score) . " / $maxMarks";
-                $pctLabel   = ($status === 'not_attempted') ? '-' : "$pct%";
+                $pctLabel = ($status === 'not_attempted') ? '-' : "$pct%";
 
                 $pdf->Cell($w['score'], 7, $scoreLabel, 1, 0, 'C', $fill);
                 $pdf->Cell($w['pct'], 7, $pctLabel, 1, 0, 'C', $fill);
@@ -661,41 +661,48 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
         $pdf->footerSubtext = 'Official Offline Question Paper';
 
         $examId = (int) ($exam['id'] ?? 0);
-        $setNo = '001'; // Default fallback
+        $setNo = '001';  // Default fallback
 
         if ($examId > 0 && $pdo) {
-            // Ensure session is started for the debounce timer
-            if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-                session_start();
-            }
+            try {
+                // Start transaction to prevent parallel PDF viewer requests from racing
+                $pdo->beginTransaction();
 
-            $sessionKey = 'last_printed_exam_' . $examId;
-            $now = time();
+                // Fetch the latest set and how many seconds ago it was created (FOR UPDATE locks the rows)
+                $stmt = $pdo->prepare('
+            SELECT set_number, TIMESTAMPDIFF(SECOND, created_at, NOW()) AS seconds_ago
+            FROM exam_set_logs 
+            WHERE exam_id = ? 
+            ORDER BY set_number DESC 
+            LIMIT 1
+            FOR UPDATE
+        ');
+                $stmt->execute([$examId]);
+                $lastRecord = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // FPDF Double-Request Fix: If requested again within 5 seconds, DO NOT increment.
-            if (isset($_SESSION[$sessionKey]) && ($now - $_SESSION[$sessionKey]) < 5) {
-                
-                // Just fetch the last generated set number
-                $stmt = $pdo->prepare("SELECT MAX(set_number) FROM exam_set_logs WHERE exam_id = ?");
-                $stmt->execute([$examId]);
-                $lastSet = (int) $stmt->fetchColumn();
-                $setNo = sprintf('%03d', max(1, $lastSet));
-                
-            } else {
-                
-                // Genuine new print request - Increment and save
-                $stmt = $pdo->prepare("SELECT MAX(set_number) FROM exam_set_logs WHERE exam_id = ?");
-                $stmt->execute([$examId]);
-                $lastSet = (int) $stmt->fetchColumn();
-                
-                $nextSetNo = $lastSet + 1;
-                $insert = $pdo->prepare("INSERT INTO exam_set_logs (exam_id, set_number) VALUES (?, ?)");
-                $insert->execute([$examId, $nextSetNo]);
-                
-                // Start the 5-second cooldown
-                $_SESSION[$sessionKey] = $now; 
-                $setNo = sprintf('%03d', $nextSetNo);
-                
+                if (!$lastRecord) {
+                    // 1. Brand new exam (No records exist) -> Strictly start at 1 (001)
+                    $nextSetNo = 1;
+                    $insert = $pdo->prepare('INSERT INTO exam_set_logs (exam_id, set_number, created_at) VALUES (?, ?, NOW())');
+                    $insert->execute([$examId, $nextSetNo]);
+                    $setNo = '001';
+                } elseif ($lastRecord['seconds_ago'] !== null && (int) $lastRecord['seconds_ago'] < 5) {
+                    // 2. FPDF Double-Request Fix -> Generated less than 5 seconds ago, reuse exact same set
+                    $setNo = sprintf('%03d', (int) $lastRecord['set_number']);
+                } else {
+                    // 3. Genuine new print request -> Increment serially (002, 003, ...)
+                    $nextSetNo = (int) $lastRecord['set_number'] + 1;
+                    $insert = $pdo->prepare('INSERT INTO exam_set_logs (exam_id, set_number, created_at) VALUES (?, ?, NOW())');
+                    $insert->execute([$examId, $nextSetNo]);
+                    $setNo = sprintf('%03d', $nextSetNo);
+                }
+
+                $pdo->commit();
+            } catch (PDOException $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                log_error("Failed to generate exam set number for exam $examId", $e);
             }
         }
         $pdf->paperCode = ExamifyBasePdf::INSTITUTE_CODE . '@' . date('d-m-Y') . '_MCQ#SET-' . $setNo;
@@ -867,8 +874,8 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
             $qNum++;
         }
 
-        error_log("RAW  : [" . $rawOpt . "]");
-        error_log("CLEAN: [" . $cleanOpt . "]");
+        error_log('RAW  : [' . $rawOpt . ']');
+        error_log('CLEAN: [' . $cleanOpt . ']');
 
         // ---------------------------------------------------------
         // PART 1.5: BIST OMR Sheet (Black & White, before Answer Key)
@@ -1101,18 +1108,18 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
 
         // ---- Block layout: spread evenly across the full 190mm width (x = 10 → 200) ----
         $wRoll = 15.0;
-        $wReg  = 42.0;
+        $wReg = 42.0;
         $wYear = 56.0;
-        $wUg   = 27.0;
+        $wUg = 27.0;
         $wExam = 28.0;
 
         $gap = (190.0 - ($wRoll + $wReg + $wYear + $wUg + $wExam)) / 4;  // equal spacing = 5.5mm
 
         $xRoll = 10.0;
-        $xReg  = $xRoll + $wRoll + $gap;
-        $xYear = $xReg  + $wReg  + $gap;
-        $xUg   = $xYear + $wYear + $gap;
-        $xExam = $xUg   + $wUg   + $gap;
+        $xReg = $xRoll + $wRoll + $gap;
+        $xYear = $xReg + $wReg + $gap;
+        $xUg = $xYear + $wYear + $gap;
+        $xExam = $xUg + $wUg + $gap;
 
         // 1. ROLL (2 cols)
         $drawDigitBlock($xRoll, $partBY, $wRoll, 'ROLL', 2, false);
@@ -1182,7 +1189,7 @@ public static function generateExamResultsPdf(array $exam, array $allResults, st
 
         // (Black timing bars on the right edge removed)
         $pdf->SetFillColor(255, 255, 255);
-        
+
         // ---------------- PART-C (FIXED 50 QUESTIONS, STANDARD LARGE BUBBLES) ----------------
         $pdf->SetY($partBY + $boxH + 2.5);
         $pdf->SetFont('Helvetica', 'B', 10);
