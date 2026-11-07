@@ -9,21 +9,11 @@ $studentId = (int) ($_SESSION['student_id'] ?? 0);
 $semester = (int) ($_SESSION['semester'] ?? 0);
 $department = (string) ($_SESSION['department'] ?? '');
 
-// Throttle global status sync to at most once per minute per session to eliminate write-lock thrashing
-$lastSync = (int) ($_SESSION['last_exam_status_sync'] ?? 0);
-$shouldSync = (time() - $lastSync > 60);
-if ($shouldSync) {
-    $_SESSION['last_exam_status_sync'] = time();
-}
+// Release session lock immediately to prevent serializing parallel requests
 release_session_lock();
 
 try {
-    // 1. Auto-synchronize scheduled exams that have arrived (throttled)
-    if ($shouldSync) {
-        ExamEngine::syncExamStatuses($pdo);
-    }
-
-    // 2. Fetch active exams available to take or resume for this student
+    // Fetch active or auto-activated exams available to take or resume for this student
     $stmt = $pdo->prepare("
         SELECT e.id, e.title
         FROM exams e
@@ -31,7 +21,10 @@ try {
         LEFT JOIN exam_attempts ea ON e.id = ea.exam_id AND ea.student_id = :student_id
         WHERE s.department = :department
           AND s.semester = :semester
-          AND e.status = 'active'
+          AND (
+              e.status = 'active'
+              OR (e.status = 'scheduled' AND e.start_time IS NOT NULL AND e.start_time <= NOW())
+          )
           AND (ea.id IS NULL OR ea.status = 'in_progress')
           AND (
               (e.end_time IS NOT NULL AND NOW() < e.end_time)
