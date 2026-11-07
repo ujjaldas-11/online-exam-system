@@ -56,6 +56,18 @@ try {
         die('Student record not found.');
     }
 
+    // Determine the semester to filter by (defaults to current semester)
+    $current_semester = (int) $student['semester'];
+    $raw_sem = $_GET['sem'] ?? null;
+    
+    if ($raw_sem === 'all') {
+        $target_sem = 'all';
+    } else {
+        $target_sem = isset($_GET['sem']) ? (int) $_GET['sem'] : $current_semester;
+        if ($target_sem > $current_semester || $target_sem < 1) {
+            $target_sem = $current_semester;
+        }
+    }
     // 1. Fetch Total Exams per Semester (For GOAT logic)
     $examCountStmt = $pdo->query("
         SELECT s.department, s.semester, COUNT(e.id) as total_exams 
@@ -82,84 +94,106 @@ try {
     $resultStmt->execute([$student_id]);
     $past_results = $resultStmt->fetchAll();
 
-    $completed_exams = count($past_results);
-    $average_score = 0.0;
+    // Reset Tracking Variables
+    $semester_buckets = [];
+    $filtered_results = [];
+    $percentages = [];
+    
     $best_score_pct = 0.0;
     $best_score_raw = 0.0;
     $best_score_max = 0.0;
-    $last_submission = null;
-    $recent_scores = [];
 
-    // Badge Tracking Variables
-    $semester_buckets = [];
-    $earned_badges = ['goat' => 0, 'legend' => 0, 'knight' => 0, 'ace' => 0];
+    // Process all historical results to build badge buckets, but filter stats for the Target Sem
+    foreach ($past_results as &$r) {
+        $score = (float) $r['score'];
+        $total = (float) $r['total_marks'];
+        $pct = ($total > 0) ? ($score / $total) * 100 : 0;
+        $r['percentage'] = $pct;
 
-    if ($completed_exams > 0) {
-        $percentages = [];
+        // Bucket by Department & Semester for Badge Logic globally
+        $bucket_key = $r['subject_dept'] . '_' . $r['subject_sem'];
+        if (!isset($semester_buckets[$bucket_key])) {
+            $semester_buckets[$bucket_key] = 0;
+        }
+        if ($score == $total && $total > 0) {
+            $semester_buckets[$bucket_key]++;
+        }
 
-        foreach ($past_results as &$r) {
-            $score = (float) $r['score'];
-            $total = (float) $r['total_marks'];
-            $pct = ($total > 0) ? ($score / $total) * 100 : 0;
-            $r['percentage'] = $pct;
+        // Only push to charts and snapshots if it matches the selected Target Semester
+        if ($target_sem === 'all' || (int)$r['subject_sem'] === $target_sem) {
+            $filtered_results[] = $r;
             $percentages[] = $pct;
 
-            // Track Absolute Best Score
             if ($pct >= $best_score_pct) {
                 $best_score_pct = $pct;
                 $best_score_raw = $score;
                 $best_score_max = $total;
             }
-
-            // Bucket by Department & Semester for Badge Logic
-            $bucket_key = $r['subject_dept'] . '_' . $r['subject_sem'];
-            if (!isset($semester_buckets[$bucket_key])) {
-                $semester_buckets[$bucket_key] = 0;  // Tracks full marks count
-            }
-            if ($score == $total && $total > 0) {
-                $semester_buckets[$bucket_key]++;
-            }
         }
-        unset($r);
+    }
+    unset($r);
 
-        $average_score = array_sum($percentages) / count($percentages);
-        $last_submission = $past_results[0]['submitted_at'] ?? null;
-        $recent_scores = array_reverse(array_slice($past_results, 0, 6));
+    // Calculate Snapshot Data specifically for the Target Semester
+    $completed_exams = count($filtered_results);
+    $average_score = $completed_exams > 0 ? (array_sum($percentages) / $completed_exams) : 0.0;
+    $last_submission = $completed_exams > 0 ? $filtered_results[0]['submitted_at'] : null;
+    $recent_scores = $completed_exams > 0 ? array_reverse(array_slice($filtered_results, 0, 6)) : [];
 
-} // (This closes the `if ($completed_exams > 0) {` block from your original code)
+    // --- TARGET SEMESTER BADGE LOGIC (For the Achievements Card) ---
+    $badge_counts = ['goat' => 0, 'legend' => 0, 'knight' => 0, 'ace' => 0];
+    $target_fm_count = 0;
+    $target_total_exams = 0;
 
-    // --- CURRENT SEMESTER BADGE LOGIC ---
-    // Only calculate badges for the student's active department and semester
-    $current_key = $student['department'] . '_' . $student['semester'];
+    if ($target_sem === 'all') {
+        // Calculate cumulative all-time stats across every semester
+        for ($s = 1; $s <= $current_semester; $s++) {
+            $k = $student['department'] . '_' . $s;
+            $fm = $semester_buckets[$k] ?? 0;
+            $tot = $semester_totals[$k] ?? 0;
+            
+            $target_fm_count += $fm;
+            $target_total_exams += $tot;
+
+            if ($fm >= 1) $badge_counts['ace']++;
+            if ($fm >= 3) $badge_counts['knight']++;
+            if ($fm >= 7) $badge_counts['legend']++;
+            if ($tot >= 5 && $fm === $tot) $badge_counts['goat']++;
+        }
+    } else {
+        // Calculate strictly for the selected semester
+        $target_key = $student['department'] . '_' . $target_sem;
+        $fm = $semester_buckets[$target_key] ?? 0;
+        $tot = $semester_totals[$target_key] ?? 0;
+        
+        $target_fm_count = $fm;
+        $target_total_exams = $tot;
+        
+        if ($fm >= 1) $badge_counts['ace']++;
+        if ($fm >= 3) $badge_counts['knight']++;
+        if ($fm >= 7) $badge_counts['legend']++;
+        if ($tot >= 5 && $fm === $tot) $badge_counts['goat']++;
+    }
+
+    $my_badges = []; 
+    if ($badge_counts['ace'] > 0) $my_badges[] = 'ace';
+    if ($badge_counts['knight'] > 0) $my_badges[] = 'knight';
+    if ($badge_counts['legend'] > 0) $my_badges[] = 'legend';
+    if ($badge_counts['goat'] > 0) $my_badges[] = 'goat';
+
+
+    // --- CURRENT SEMESTER BADGE LOGIC (Keeps the Avatar Header Icon stable) ---
+    $current_key = $student['department'] . '_' . $current_semester;
     $current_fm_count = $semester_buckets[$current_key] ?? 0;
     $current_total_exams = $semester_totals[$current_key] ?? 0;
-
-    $my_badges = []; // Will hold ['ace', 'knight', 'legend', 'goat']
-
-    // INDEPENDENT IF STATEMENTS: This ensures if they get GOAT, they get ALL of them.
-    if ($current_fm_count >= 1) {
-        $my_badges[] = 'ace';
-    }
-    if ($current_fm_count >= 3) {
-        $my_badges[] = 'knight';
-    }
-    if ($current_fm_count >= 7) {
-        $my_badges[] = 'legend';
-    }
+    
+    $current_badges = [];
+    if ($current_fm_count >= 1) $current_badges[] = 'ace';
+    if ($current_fm_count >= 3) $current_badges[] = 'knight';
+    if ($current_fm_count >= 7) $current_badges[] = 'legend';
     if ($current_total_exams >= 5 && $current_fm_count === $current_total_exams) {
-        $my_badges[] = 'goat';
+        $current_badges[] = 'goat';
     }
-
-    // For the profile header icon (we just take the highest tier they earned)
-    $primary_badge = !empty($my_badges) ? end($my_badges) : null; 
-
-    // Badge UI Definitions for rendering the HTML card
-    $badge_ui = [
-        'ace'    => ['title' => 'Ace',    'icon' => 'star',              'color' => 'var(--color-primary)', 'bg' => 'var(--color-primary-soft)'],
-        'knight' => ['title' => 'Knight', 'icon' => 'shield',            'color' => 'var(--color-info)',    'bg' => 'var(--color-info-bg)'],
-        'legend' => ['title' => 'Legend', 'icon' => 'military_tech',     'color' => 'var(--color-success)', 'bg' => 'var(--color-success-bg)'],
-        'goat'   => ['title' => 'G.O.A.T','icon' => 'workspace_premium', 'color' => 'var(--color-warning)', 'bg' => 'var(--color-warning-bg)']
-    ];
+    $primary_badge = !empty($current_badges) ? end($current_badges) : null; 
 
 } catch (PDOException $e) {
     log_error("Failed to load profile for student $student_id", $e);
@@ -300,13 +334,27 @@ if ($chart_n > 0) {
 
             <!-- Performance Snapshot -->
             <section class="card">
-                <div class="pf-head">
-                    <h2 class="pf-title">
+                <div class="pf-head" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <h2 class="pf-title" style="margin: 0;">
                         <span class="pf-title__icon"><span class="material-symbols-outlined">bar_chart</span></span>
                         Performance Snapshot
                     </h2>
-                    <a href="exam-history.php" class="pf-link">View Exam History <span class="material-symbols-outlined icon-sm">arrow_forward</span></a>
+                    
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <!-- Semester Filter Form -->
+                        <form method="GET" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <label for="sem_filter" style="font-size: 0.85rem; color: var(--color-text-secondary); font-weight: 600;">View:</label>
+                            <select name="sem" id="sem_filter" onchange="this.form.submit()" style="...">
+                                <option value="all" <?= $target_sem === 'all' ? 'selected' : '' ?>>All Semesters</option>
+                                <?php for($i = 1; $i <= $current_semester; $i++): ?>
+                                    <option value="<?= $i ?>" <?= $i === $target_sem ? 'selected' : '' ?>>Sem <?= $i ?></option>
+                                <?php endfor; ?>
+                            </select>
+                        </form>
+                        <a href="exam-history.php" class="pf-link" style="margin: 0;">History <span class="material-symbols-outlined icon-sm">arrow_forward</span></a>
+                    </div>
                 </div>
+                
                 <div class="pf-stats">
                     <div class="pf-stat">
                         <span class="pf-stat__icon"><span class="material-symbols-outlined">description</span></span>
@@ -379,7 +427,7 @@ if ($chart_n > 0) {
                     <?php else: ?>
                         <div class="pf-empty">
                             <span class="material-symbols-outlined">quiz</span>
-                            <p>No completed exams yet. Your scores will appear here after your first attempt.</p>
+                            <p>No exams completed <?= $target_sem === 'all' ? 'yet.' : 'in Semester ' . e((string)$target_sem) . '.' ?></p>
                         </div>
                     <?php endif; ?>
                 </section>
@@ -389,7 +437,7 @@ if ($chart_n > 0) {
                     <div class="pf-head">
                         <h2 class="pf-title">
                             <span class="pf-title__icon"><span class="material-symbols-outlined">emoji_events</span></span>
-                            Current Badges &amp; Achievements
+                            <?= $target_sem === 'all' ? 'All-Time' : 'Semester ' . e((string)$target_sem) ?> Achievements
                         </h2>
                         <button type="button" id="openBadgeRulesBtn" class="pf-link" style="background:none; border:none; cursor:pointer; padding:0;">
                             <span class="material-symbols-outlined icon-sm">help</span> How to earn
@@ -400,7 +448,7 @@ if ($chart_n > 0) {
                         <?php if (empty($my_badges)): ?>
                             <div class="pf-empty" style="flex-direction: row; padding: 10px; opacity: 0.7; width: 100%;">
                                 <span class="material-symbols-outlined icon-sm">lock</span>
-                                <span style="font-size: 0.85rem;">No badges earned this semester. Score full marks to unlock!</span>
+                                <span style="font-size: 0.85rem;">No badges earned <?= $target_sem === 'all' ? 'yet' : 'in Semester ' . e((string)$target_sem) ?>. Score full marks to unlock!</span>
                             </div>
                         <?php else: ?>
                             <?php 
@@ -411,10 +459,17 @@ if ($chart_n > 0) {
                                 <!-- Render the badge image container -->
                                 <div class="pf-ach-chip badge-<?= $tier ?>" style="position: relative; display: inline-block;">
                                     <img src="<?= e($hof_img_base . $meta['img']) ?>" 
-                                         alt="<?= e($meta['title']) ?>" 
-                                         title="<?= e($meta['title']) ?> For a reason." 
-                                         width="70px" height="50px" 
-                                         style="border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm);">
+                                        alt="<?= e($meta['title']) ?>" 
+                                        title="<?= e($meta['title']) ?> For a reason." 
+                                        width="70px" height="50px" 
+                                        style="border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm);">
+                                        
+                                    <!-- Show multiplier badge (e.g., 2) if they earned it in multiple semesters -->
+                                    <?php if ($badge_counts[$tier] > 1): ?>
+                                        <span style="position: absolute; top: -4px; right: -4px; background: var(--color-dark); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; border: 2px solid var(--color-surface); z-index: 10;">
+                                            <?= $badge_counts[$tier] ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -423,7 +478,7 @@ if ($chart_n > 0) {
                     <!-- Small summary text underneath the badges -->
                     <div style="margin-top: 12px; text-align: right;">
                         <span style="font-size: 0.8rem; color: var(--color-text-secondary); font-weight: 600;">
-                            <?= $current_fm_count ?> / <?= $current_total_exams ?> Perfect Scores
+                            <?= $target_fm_count ?> / <?= $target_total_exams ?> Perfect Scores
                         </span>
                     </div>
                 </section>
@@ -523,9 +578,5 @@ if ($chart_n > 0) {
         });
     }
 </script>
-
-
-
-
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

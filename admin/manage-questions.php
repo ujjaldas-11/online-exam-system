@@ -314,8 +314,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
             <div class="admin-modal-header" style="flex-shrink: 0;">
                 <div>
                     <h3
-                        style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.15rem; color: var(--color-dark);">
-                        <span class="material-symbols-outlined" style="color: var(--color-primary);">preview</span>
+                        style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.15rem; color: var(--color-text);">
+                        <span class="material-symbols-outlined" style="color: var(--color-text);">preview</span>
                         <span>Questions Import Preview</span>
                     </h3>
                     <p id="preview-summary-subtext"
@@ -327,7 +327,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
 
             <div id="preview-summary-badges"
-                style="padding: 10px 20px; background: var(--bg-body, #f8fafc); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 0.85rem;">
+                style="padding: 10px 20px; background: var(--color-bg); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 0.85rem;">
                 <!-- Badges will be dynamically injected here -->
             </div>
 
@@ -890,7 +890,7 @@ Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Que
                     <td style="max-width: 140px; word-break: break-word;">${escapeHtml(q.optB)}</td>
                     <td style="max-width: 140px; word-break: break-word;">${escapeHtml(q.optC || '—')}</td>
                     <td style="max-width: 140px; word-break: break-word;">${escapeHtml(q.optD || '—')}</td>
-                    <td style="text-align: center; font-weight: 700; color: var(--color-primary);">${escapeHtml(q.correct)}</td>
+                    <td style="text-align: center; font-weight: 700; color: var(--color-text);">${escapeHtml(q.correct)}</td>
                     <td style="text-align: center;">${statusBadge}</td>
                 </tr>
             `;
