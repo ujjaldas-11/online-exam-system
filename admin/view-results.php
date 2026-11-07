@@ -183,6 +183,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <!-- Publication Status Banner -->
+    <!-- Publication Status Banner -->
     <div class="card no-print" style="margin-bottom: 24px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: <?= !empty($exam['results_published']) ? 'var(--color-success-bg)' : 'var(--color-warning-bg)' ?>; border-color: <?= !empty($exam['results_published']) ? 'var(--color-success)' : 'var(--color-warning)' ?>;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--color-surface); color: <?= !empty($exam['results_published']) ? 'var(--color-success)' : 'var(--color-warning)' ?>; display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
@@ -209,7 +210,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                         <span class="material-symbols-outlined icon-sm">publish</span> Publish Results to Students
                     </button>
                 <?php else: ?>
-                    <form method="POST" style="display: inline;" onsubmit="return confirm('Publish results to all students now? Students will immediately see their scores and answer breakdowns.');">
+                    <form method="POST" style="display: inline;" data-confirm="Publish results to all students now? Students will immediately see their scores, leaderboards, and answer breakdowns." data-confirm-title="Publish Results?" data-confirm-btn="publish">
                         <?= csrf_field() ?>
                         <button type="submit" name="publish_results" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 6px;">
                             <span class="material-symbols-outlined icon-sm">publish</span> Publish Results to Students
@@ -217,7 +218,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     </form>
                 <?php endif; ?>
             <?php else: ?>
-                <form method="POST" style="display: inline;" onsubmit="return confirm('Hide results from students? Scores and answer reviews will be locked.');">
+                <form method="POST" style="display: inline;" data-confirm="Hide results from students? Scores, leaderboards, and answer reviews will be immediately locked." data-confirm-title="Unpublish Results?" data-confirm-btn="visibility_off">
                     <?= csrf_field() ?>
                     <button type="submit" name="unpublish_results" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
                         <span class="material-symbols-outlined icon-sm">visibility_off</span> Unpublish Results
@@ -360,5 +361,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
     <?php endif; ?>
 </div>
+<?php
+include __DIR__ . '/../components/confirm-modal.php';
+?>
 
 <?php include __DIR__ . '/../components/footer.php'; ?>

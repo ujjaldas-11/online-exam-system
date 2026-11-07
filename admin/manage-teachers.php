@@ -524,7 +524,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                         </a>
 
                                         <!-- Reset Password Button / Trigger -->
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="promptResetPassword(<?= $row['id'] ?>, '<?= e(addslashes($row['name'])) ?>')" global-data-tooltip="Reset Password">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="openTeacherResetModal(<?= (int)$row['id'] ?>, '<?= e(addslashes($row['name'])) ?>')" global-data-tooltip="Reset Password">
                                             <span class="material-symbols-outlined icon-xs">key</span>
                                         </button>
 
@@ -571,6 +571,74 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <input type="hidden" name="reset_password" value="1">
 </form>
 
+<!-- Teacher Reset Password Modal -->
+<div id="teacherResetModal" class="no-print" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 99999; justify-content: center; align-items: center; padding: 16px;">
+    <div style="background: var(--color-surface); color: var(--color-text); width: 100%; max-width: 420px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
+        
+        <form method="POST" style="margin: 0;">
+            <?= csrf_field() ?>
+            <!-- Name matches your $_POST['teacher_id'] -->
+            <input type="hidden" name="teacher_id" id="reset_teacher_id" value="">
+            
+            <!-- Header -->
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-outlined" style="color: var(--color-warning);">key</span> 
+                    Reset Password
+                </h3>
+                <button type="button" onclick="closeTeacherResetModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--color-text-secondary);">&times;</button>
+            </div>
+            
+            <!-- Body -->
+            <div style="padding: 20px;">
+                <p style="margin-top: 0; margin-bottom: 16px; font-size: 0.9rem; color: var(--color-text-secondary);">
+                    Set a new password for <strong id="reset_teacher_name" style="color: var(--color-text);">Teacher</strong>.
+                </p>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="new_password" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85rem; color: var(--color-text);">New Password <span style="color: var(--color-error);">*</span></label>
+                    <!-- minlength="8" matches your PHP strlen check -->
+                    <input type="text" name="new_password" id="new_password" required minlength="8" autocomplete="off" placeholder="At least 8 characters..." 
+                           style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg); color: var(--color-text); outline: none;">
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="padding: 16px 20px; border-top: 1px solid var(--color-border); background: var(--color-bg); border-bottom-left-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md); display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" class="btn btn-secondary" onclick="closeTeacherResetModal()">Cancel</button>
+                <!-- Name matches your isset($_POST['reset_password']) check -->
+                <button type="submit" name="reset_password" class="btn btn-warning" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined icon-xs">save</span> Update Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openTeacherResetModal(id, name) {
+    document.getElementById('reset_teacher_id').value = id;
+    document.getElementById('reset_teacher_name').textContent = name;
+    
+    const passInput = document.getElementById('new_password');
+    passInput.value = ''; // Clear old input
+    
+    document.getElementById('teacherResetModal').style.display = 'flex';
+    
+    // Auto-focus input for fast typing
+    setTimeout(() => { passInput.focus(); }, 50);
+}
+
+function closeTeacherResetModal() {
+    document.getElementById('teacherResetModal').style.display = 'none';
+}
+
+// Close if user clicks outside the modal card
+document.getElementById('teacherResetModal').addEventListener('click', function(e) {
+    if (e.target === this) closeTeacherResetModal();
+});
+</script>
+
 <script>
 function promptResetPassword(teacherId, teacherName) {
     const newPass = prompt(`Enter new password for ${teacherName} (minimum 8 characters):`);
@@ -606,5 +674,4 @@ document.addEventListener('DOMContentLoaded', () => {
     <?php endif; ?>
 })
 </script>
-
 <?php include __DIR__ . '/../components/footer.php'; ?>

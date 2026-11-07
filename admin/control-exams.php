@@ -327,13 +327,13 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php endif; ?>
 
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
-    
+
     <!-- filter bar -->
     <?php include __DIR__ . '/../components/filter-bar.php'; ?>
 
     <div class="card" id="live-results">
         <div class="card-title">All Examinations (<?= $total_exam_count ?>)</div>
-                
+
         <div class="table-wrap">
             <table>
                 <thead>
@@ -351,7 +351,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <tbody>
                     <?php if (empty($exams)): ?>
                         <tr>
-                            <td colspan="7" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">No exams configured yet.</td>
+                            <td colspan="7" style="text-align: center; color: var(--color-text-secondary); padding: 32px;">
+                                No exams configured yet.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($exams as $exam): ?>
@@ -391,29 +392,36 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                 <td>
                                     <strong><?= e($exam['title']) ?></strong><br>
                                     <small style="color: var(--color-text-secondary);">
-                                        <?= e($exam['subject_name']) ?> (<?= e($exam['department']) ?>, Sem <?= e((string) $exam['semester']) ?>)
+                                        <?= e($exam['subject_name']) ?> (<?= e($exam['department']) ?>, Sem
+                                        <?= e((string) $exam['semester']) ?>)
                                     </small>
                                     <div style="font-size: 0.76rem; color: var(--color-text-secondary); margin-top: 2px;">
                                         By: <strong><?= e($exam['creator_name'] ?? 'System') ?></strong>
                                         <?php if (($exam['creator_status'] ?? '') === 'retired'): ?>
-                                            <span class="badge badge-warning" style="font-size: 0.65rem; padding: 1px 4px;">Retired</span>
+                                            <span class="badge badge-warning"
+                                                style="font-size: 0.65rem; padding: 1px 4px;">Retired</span>
                                         <?php endif; ?>
                                     </div>
                                 </td>
                                 <td>
-                                    <div><?= e((string) $exam['total_questions_to_ask']) ?> Qs • <?= e((string) $exam['duration_minutes']) ?> mins</div>
+                                    <div><?= e((string) $exam['total_questions_to_ask']) ?> Qs •
+                                        <?= e((string) $exam['duration_minutes']) ?> mins</div>
                                     <?php if ($exam['status'] === 'scheduled' && !empty($exam['start_time'])): ?>
-                                        <small style="color: var(--color-text-secondary); display: block;">Starts: <?= date('M d, h:i A', strtotime($exam['start_time'])) ?></small>
+                                        <small style="color: var(--color-text-secondary); display: block;">Starts:
+                                            <?= date('M d, h:i A', strtotime($exam['start_time'])) ?></small>
                                     <?php elseif (!empty($exam['start_time'])): ?>
-                                        <small style="color: var(--color-text-secondary); display: block;">Started: <?= date('h:i A', strtotime($exam['start_time'])) ?></small>
+                                        <small style="color: var(--color-text-secondary); display: block;">Started:
+                                            <?= date('h:i A', strtotime($exam['start_time'])) ?></small>
                                     <?php endif; ?>
                                     <?php if (!empty($exam['end_time'])): ?>
-                                        <small style="color: var(--color-text-secondary); display: block;">Closes: <?= date('M d, h:i A', strtotime($exam['end_time'])) ?></small>
+                                        <small style="color: var(--color-text-secondary); display: block;">Closes:
+                                            <?= date('M d, h:i A', strtotime($exam['end_time'])) ?></small>
                                     <?php endif; ?>
                                 </td>
                                 <td>
                                     <?php if (!empty($exam['access_pin'])): ?>
-                                        <span class="badge badge-pending" style="font-family: var(--font-mono); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
+                                        <span class="badge badge-pending"
+                                            style="font-family: var(--font-mono); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
                                             <span class="material-symbols-outlined icon-xs">key</span> <?= e($exam['access_pin']) ?>
                                         </span>
                                     <?php else: ?>
@@ -425,12 +433,18 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <?php if ($display_status === 'ENDED' || $exam['status'] === 'ended'): ?>
                                         <div style="margin-top: 4px;">
                                             <?php if (!empty($exam['results_published'])): ?>
-                                                <span class="badge badge-active" style="font-size: 0.72rem; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px;" title="Scores and answers visible to students">
-                                                    <span class="material-symbols-outlined" style="font-size: 13px;">visibility</span> Published
+                                                <span class="badge badge-active"
+                                                    style="font-size: 0.72rem; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px;"
+                                                    title="Scores and answers visible to students">
+                                                    <span class="material-symbols-outlined" style="font-size: 13px;">visibility</span>
+                                                    Published
                                                 </span>
                                             <?php else: ?>
-                                                <span class="badge badge-warning" style="font-size: 0.72rem; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px;" title="Scores and answers hidden from students">
-                                                    <span class="material-symbols-outlined" style="font-size: 13px;">visibility_off</span> Hidden
+                                                <span class="badge badge-warning"
+                                                    style="font-size: 0.72rem; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px;"
+                                                    title="Scores and answers hidden from students">
+                                                    <span class="material-symbols-outlined"
+                                                        style="font-size: 13px;">visibility_off</span> Hidden
                                                 </span>
                                             <?php endif; ?>
                                         </div>
@@ -440,9 +454,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <strong><?= e((string) $exam['total_attempts']) ?></strong>
                                 </td>
                                 <td style="text-align: right;">
-                                     <!-- Start Exam -->
+                                    <!-- Start Exam -->
                                     <?php if ($display_status === 'NOT STARTED' || $display_status === 'SCHEDULED'): ?>
-                                        <form method="POST" style="margin: 0;" data-confirm="Are you ready to begin the examination? Once you start, students will be able to join immediately." data-confirm-title="Start Examination?" data-confirm-btn="start">
+                                        <form method="POST" style="margin: 0;"
+                                            data-confirm="Are you ready to begin the examination? Once you start, students will be able to join immediately."
+                                            data-confirm-title="Start Examination?" data-confirm-btn="start">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
                                             <button type="submit" name="start_exam" class="btn btn-primary btn-sm">
@@ -450,40 +466,45 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                             </button>
                                         </form>
 
-                                    <!-- Running Exam Controls -->
+                                        <!-- Running Exam Controls -->
                                     <?php elseif ($display_status === 'RUNNING'): ?>
-                                    <div style="display: flex; gap: 10px;">
-                                        <a href="proctor-exam.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm">
-                                            <span class="material-symbols-outlined icon-sm">visibility</span> Live Proctor
-                                        </a>
-                                        <form method="POST" style="margin: 0;">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
-                                            <input type="hidden" name="extra_minutes" value="5">
-                                            <button type="submit" name="add_time" class="btn btn-secondary btn-sm" global-data-tooltip="Add more 5 minutes">
-                                                <span class="material-symbols-outlined icon-sm"> add</span> 5
-                                            </button>
-                                        </form>
-                                    </div>                                        
+                                        <div style="display: flex; gap: 10px;">
+                                            <a href="proctor-exam.php?exam_id=<?= $exam['id'] ?>" class="btn btn-primary btn-sm">
+                                                <span class="material-symbols-outlined icon-sm">visibility</span> Live Proctor
+                                            </a>
+                                            <form method="POST" style="margin: 0;">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
+                                                <input type="hidden" name="extra_minutes" value="5">
+                                                <button type="submit" name="add_time" class="btn btn-secondary btn-sm"
+                                                    global-data-tooltip="Add more 5 minutes">
+                                                    <span class="material-symbols-outlined icon-sm"> add</span> 5
+                                                </button>
+                                            </form>
+                                        </div>
                                     <?php endif; ?>
 
                                 </td>
-                                
+
                                 <td>
                                     <!-- action dropdown -->
-                                    <div class="action-dropdown" style="position: relative; display: inline-block; text-align: left;">
+                                    <div class="action-dropdown"
+                                        style="position: relative; display: inline-block; text-align: left;">
                                         <!-- Three-Dot Trigger Button -->
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleActionMenu(event)" style="padding: 4px 8px; border-radius: 6px;" global-data-tooltip="more actions">
-                                            <span class="material-symbols-outlined" style="font-size: 18px; margin: 0;">more_vert</span>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleActionMenu(event)"
+                                            style="padding: 4px 8px; border-radius: 6px;" global-data-tooltip="more actions">
+                                            <span class="material-symbols-outlined"
+                                                style="font-size: 18px; margin: 0;">more_vert</span>
                                         </button>
 
                                         <!-- Dropdown Box -->
                                         <div class="action-menu-content">
-                                            
+
                                             <!-- Print Paper -->
-                                            <a href="?download_offline=true&exam_id=<?= $exam['id'] ?>" target="_blank" rel="noopener"
-                                            class="action-menu-item">
-                                                <span class="material-symbols-outlined icon-sm">print</span> Preview / Print Paper
+                                            <a href="?download_offline=true&exam_id=<?= $exam['id'] ?>" target="_blank"
+                                                rel="noopener" class="action-menu-item">
+                                                <span class="material-symbols-outlined icon-sm">print</span> Preview / Print
+                                                Paper
                                             </a>
                                             <div class="action-menu-divider"></div>
                                             <!-- EDIT / LOCKED BUTTON LOGIC -->
@@ -493,23 +514,27 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                     <span class="material-symbols-outlined icon-sm">edit</span> Edit Exam
                                                 </a>
                                             <?php else: ?>
-                                                <button class="action-menu-item" disabled title="Locked: Exam has already started" style="opacity: 0.5; cursor: not-allowed;">
+                                                <button class="action-menu-item" disabled title="Locked: Exam has already started"
+                                                    style="opacity: 0.5; cursor: not-allowed;">
                                                     <span class="material-symbols-outlined icon-sm">lock</span> Edit Locked
                                                 </button>
                                             <?php endif; ?>
-                                            
+
                                             <div class="action-menu-divider"></div>
 
                                             <!-- Ended Exam Controls -->
                                             <?php if ($display_status === 'ENDED'): ?>
-                                                <form method="POST" style="margin: 0;" onsubmit="return confirm('Reopen this exam for the next batch? Previous submissions will be saved safely. Remember to change the PIN!');">
+                                                <form method="POST" style="margin: 0;"
+                                                    data-confirm="Are you sure you want to reopen this exam for the next batch? Previous submissions will be saved safely. Remember to edit the exam and generate a NEW Access PIN before starting it again!"
+                                                    data-confirm-title="Reopen Examination?" data-confirm-btn="refresh">
                                                     <?= csrf_field() ?>
                                                     <input type="hidden" name="exam_id" value="<?= (int) $exam['id'] ?>">
                                                     <button type="submit" name="reopen_exam" class="action-menu-item text-warning">
-                                                        <span class="material-symbols-outlined icon-sm">refresh</span> Reopen (Next Batch)
+                                                        <span class="material-symbols-outlined icon-sm">refresh</span> Reopen (Next
+                                                        Batch)
                                                     </button>
                                                 </form>
-                                            <?php endif; ?> 
+                                            <?php endif; ?>
 
                                             <!-- Results & Publishing -->
                                             <?php if ($display_status === 'ENDED' || (int) $exam['total_attempts'] > 0): ?>
@@ -521,123 +546,133 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
                                                 <?php if (empty($exam['results_published'])): ?>
                                                     <?php if ($is_ongoing): ?>
-                                                        <button type="button" class="action-menu-item" disabled title="Cannot publish results while the exam is still ongoing" style="opacity: 0.5;">
+                                                        <button type="button" class="action-menu-item" disabled
+                                                            title="Cannot publish results while the exam is still ongoing"
+                                                            style="opacity: 0.5;">
                                                             <span class="material-symbols-outlined icon-sm">publish</span> Publish Results
                                                         </button>
                                                     <?php else: ?>
-                                                        <form method="POST" style="margin: 0;" onsubmit="return confirm('Publish results for exam #<?= $exam['id'] ?> to students? Students will immediately see their scores and answer breakdowns.');">
+                                                        <form method="POST" style="margin: 0;"
+                                                            data-confirm="Publish results for exam #<?= $exam['id'] ?> to all students? Students will immediately see their scores, grade breakdown, and answer reviews on their dashboard."
+                                                            data-confirm-title="Publish Results?" data-confirm-btn="publish">
                                                             <?= csrf_field() ?>
                                                             <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
-                                                            <button type="submit" name="publish_results" class="action-menu-item text-success">
-                                                                <span class="material-symbols-outlined icon-sm">publish</span> Publish Results
+                                                            <button type="submit" name="publish_results"
+                                                                class="action-menu-item text-success">
+                                                                <span class="material-symbols-outlined icon-sm">publish</span> Publish
+                                                                Results
                                                             </button>
                                                         </form>
                                                     <?php endif; ?>
                                                 <?php else: ?>
-                                                    <form method="POST" style="margin: 0;" onsubmit="return confirm('Unpublish results for exam #<?= $exam['id'] ?>? Scores and answers will be hidden from students.');">
+                                                    <form method="POST" style="margin: 0;"
+                                                        data-confirm="Unpublish results for exam #<?= $exam['id'] ?>? Scores, official answer sheets, and leaderboards will be instantly hidden from all students."
+                                                        data-confirm-title="Hide Results?" data-confirm-btn="visibility_off">
                                                         <?= csrf_field() ?>
                                                         <input type="hidden" name="exam_id" value="<?= $exam['id'] ?>">
-                                                        <button type="submit" name="unpublish_results" class="action-menu-item text-danger">
-                                                            <span class="material-symbols-outlined icon-sm">visibility_off</span> Unpublish Results
+                                                        <button type="submit" name="unpublish_results"
+                                                            class="action-menu-item text-danger">
+                                                            <span class="material-symbols-outlined icon-sm">visibility_off</span>
+                                                            Unpublish Results
                                                         </button>
                                                     </form>
                                                 <?php endif; ?>
-                                            <?php endif; ?>
+                                            <?php endif; ?> 
                                         </div>
                                     </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
-                    <?php endif; ?>
+                <?php endif; ?>
             </table>
         </div>
-                <?php
-                // Include the pagination UI component
-                $total_items = $total_exam_count;
-                include __DIR__ . '/../components/pagination.php';
-                ?>
-        
+        <?php
+        // Include the pagination UI component
+        $total_items = $total_exam_count;
+        include __DIR__ . '/../components/pagination.php';
+        ?>
+
     </div>
 </div>
 
 <script>
-(function () {
-  const GAP = 6, EDGE = 8;
-  const hasPopover = typeof HTMLElement.prototype.showPopover === 'function';
-  let current = null; // { button, menu }
+    (function () {
+        const GAP = 6, EDGE = 8;
+        const hasPopover = typeof HTMLElement.prototype.showPopover === 'function';
+        let current = null; // { button, menu }
 
-  function closeMenu() {
-    if (!current) return;
-    const { button, menu } = current;
-    if (hasPopover) { try { menu.hidePopover(); } catch (e) {} }
-    else menu.classList.remove('show');
-    button.setAttribute('aria-expanded', 'false');
-    current = null;
-  }
+        function closeMenu() {
+            if (!current) return;
+            const { button, menu } = current;
+            if (hasPopover) { try { menu.hidePopover(); } catch (e) { } }
+            else menu.classList.remove('show');
+            button.setAttribute('aria-expanded', 'false');
+            current = null;
+        }
 
-  function placeMenu(button, menu) {
-    const r  = button.getBoundingClientRect();
-    const w  = menu.offsetWidth;
-    const h  = menu.offsetHeight;
-    const vw = document.documentElement.clientWidth;
-    const vh = document.documentElement.clientHeight;
+        function placeMenu(button, menu) {
+            const r = button.getBoundingClientRect();
+            const w = menu.offsetWidth;
+            const h = menu.offsetHeight;
+            const vw = document.documentElement.clientWidth;
+            const vh = document.documentElement.clientHeight;
 
-    // Right-align to the 3-dot button, keep inside the viewport
-    const left = Math.min(Math.max(r.right - w, EDGE), vw - w - EDGE);
+            // Right-align to the 3-dot button, keep inside the viewport
+            const left = Math.min(Math.max(r.right - w, EDGE), vw - w - EDGE);
 
-    // Open downward; flip upward only if there is no room below and more room above
-    const spaceBelow = vh - r.bottom - GAP - EDGE;
-    const spaceAbove = r.top - GAP - EDGE;
-    const openUp = h > spaceBelow && spaceAbove > spaceBelow;
+            // Open downward; flip upward only if there is no room below and more room above
+            const spaceBelow = vh - r.bottom - GAP - EDGE;
+            const spaceAbove = r.top - GAP - EDGE;
+            const openUp = h > spaceBelow && spaceAbove > spaceBelow;
 
-    let top = openUp ? r.top - h - GAP : r.bottom + GAP;
-    top = Math.min(Math.max(top, EDGE), Math.max(EDGE, vh - h - EDGE));
+            let top = openUp ? r.top - h - GAP : r.bottom + GAP;
+            top = Math.min(Math.max(top, EDGE), Math.max(EDGE, vh - h - EDGE));
 
-    menu.style.right = 'auto';
-    menu.style.left  = left + 'px';
-    menu.style.top   = top + 'px';
-    menu.dataset.placement = openUp ? 'top' : 'bottom';
-  }
+            menu.style.right = 'auto';
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+            menu.dataset.placement = openUp ? 'top' : 'bottom';
+        }
 
-  // Toggle the clicked menu and close any other (same name as before)
-  window.toggleActionMenu = function (event) {
-    event.stopPropagation();
-    const button = event.currentTarget;
-    const menu = button.nextElementSibling;
-    if (!menu) return;
+        // Toggle the clicked menu and close any other (same name as before)
+        window.toggleActionMenu = function (event) {
+            event.stopPropagation();
+            const button = event.currentTarget;
+            const menu = button.nextElementSibling;
+            if (!menu) return;
 
-    if (current && current.menu === menu) { closeMenu(); return; }
-    closeMenu();
+            if (current && current.menu === menu) { closeMenu(); return; }
+            closeMenu();
 
-    if (hasPopover) {
-      menu.setAttribute('popover', 'manual');   // top layer: above tables, cards, navbar
-      menu.showPopover();
-    } else {
-      menu.classList.add('show');               // fallback for older browsers
-    }
-    placeMenu(button, menu);                     // position in the same frame, no visible jump
-    button.setAttribute('aria-expanded', 'true');
-    current = { button, menu };
-  };
+            if (hasPopover) {
+                menu.setAttribute('popover', 'manual');   // top layer: above tables, cards, navbar
+                menu.showPopover();
+            } else {
+                menu.classList.add('show');               // fallback for older browsers
+            }
+            placeMenu(button, menu);                     // position in the same frame, no visible jump
+            button.setAttribute('aria-expanded', 'true');
+            current = { button, menu };
+        };
 
-  // Close when clicking anywhere else (item handlers still run first)
-  document.addEventListener('click', closeMenu);
+        // Close when clicking anywhere else (item handlers still run first)
+        document.addEventListener('click', closeMenu);
 
-  // Close on page/table scroll, but not when scrolling inside the menu itself
-  document.addEventListener('scroll', function (e) {
-    if (current && !current.menu.contains(e.target)) closeMenu();
-  }, true);
+        // Close on page/table scroll, but not when scrolling inside the menu itself
+        document.addEventListener('scroll', function (e) {
+            if (current && !current.menu.contains(e.target)) closeMenu();
+        }, true);
 
-  window.addEventListener('resize', closeMenu);
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && current) {
-      const btn = current.button;
-      closeMenu();
-      btn.focus();
-    }
-  });
-})();
+        window.addEventListener('resize', closeMenu);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && current) {
+                const btn = current.button;
+                closeMenu();
+                btn.focus();
+            }
+        });
+    })();
 </script>
 
 <?php
