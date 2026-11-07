@@ -111,14 +111,14 @@ include __DIR__ . '/../components/student-navbar.php';
 
                     <!-- Confidential Status Display (Score hidden until published) -->
                     <div style="background: var(--color-primary-soft); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 24px;">
-                        <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;">Assessment Outcome</div>
+                        <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--color-text); letter-spacing: 0.5px;">Assessment Outcome</div>
                         <div style="font-size: 1.65rem; font-weight: 800; color: var(--color-dark); line-height: 1.2; margin: 8px 0;">
                             Submission Received — Results Pending
                         </div>
                         <div style="font-weight: 600; font-size: 0.95rem; color: var(--color-text-secondary);">
                              Your answersheet will be available for review and download once the exam ends and your instructor officially publishes the results.
                             <br><br>
-                            <em style="color: #000; text-decoration: italic;">
+                            <em style="color: var(--color-gold); text-decoration: italic;">
                                 Note: Scores and question breakdowns remain confidential until officially published.
                             </em>
                         </div>
@@ -135,10 +135,10 @@ include __DIR__ . '/../components/student-navbar.php';
             <?php else: ?>
 
                 <!-- Final Score Display -->
-                <div style="background: var(--color-primary-soft); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px;">
-                    <div style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.5px;"><?= $student_name ?> - Your Total Score</div>
-                    <div style="font-size: 3rem; font-weight: 800; color: var(--color-primary); line-height: 1.1; margin: 6px 0;">
-                        <?= sprintf('%.2f', $score) ?> <span style="font-size: 1.5rem; color: var(--color-text-secondary); font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
+                <div style="background: var(--color-surface); border: 2px solid var(--color-primary-light); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px;">
+                    <div style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-text); letter-spacing: 0.5px;"><?= $student_name ?> - Your Total Score</div>
+                    <div style="font-size: 3rem; font-weight: 800; color: var(--color-gold); line-height: 1.1; margin: 6px 0;">
+                        <?= sprintf('%.2f', $score) ?> <span style="font-size: 1.5rem; color: var(--color-text); font-weight: 600;">/ <?= e((string)$total_marks) ?></span>
                     </div>
                     <div style="font-weight: 700; font-size: 1.1rem; color: <?= $percentage >= 50 ? 'var(--color-success)' : 'var(--color-error)' ?>;">
                         Score Percentage: <?= $percentage ?>%

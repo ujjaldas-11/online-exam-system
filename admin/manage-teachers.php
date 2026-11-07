@@ -368,7 +368,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 ?>
             </div>
             <div class="stat-label" style="display: flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined icon-sm">auto_stories</span> Teacher Content Items
+                <span class="material-symbols-outlined icon-sm">auto_stories</span> Teacher Content Items(exams+ questions)
             </div>
         </div>
     </div>
@@ -543,7 +543,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                                 <form method="POST" style="display: inline;" onsubmit="return confirm('Retire <?= e(addslashes($row['name'])) ?>? Login access will be disabled, but all their created exams, questions, and records will be PERMANENTLY KEPT in the system.');">
                                                     <?= csrf_field() ?>
                                                     <input type="hidden" name="teacher_id" value="<?= $row['id'] ?>">
-                                                    <button type="submit" name="retire_teacher" class="btn btn-warning btn-sm" style="display: inline-flex; align-items: center; gap: 4px; background: #d97706; color: white;">
+                                                    <button type="submit" name="retire_teacher" class="btn btn-warning btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
                                                         <span class="material-symbols-outlined icon-xs">person_off</span> Retire
                                                     </button>
                                                 </form>

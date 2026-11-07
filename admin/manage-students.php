@@ -624,7 +624,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <input type="checkbox" name="student_ids[]" value="<?= (int) $st['id'] ?>" class="student-select-cb" onchange="updateBatchBar()" data-name="<?= e($st['name']) ?>" data-sem="<?= (int) $st['semester'] ?>">
                                 </td>
                                 <td style="white-space: nowrap;">
-                                    <span style="font-family: monospace; font-weight: 700; background: #e2e8f0; color: #0f172a; padding: 3px 8px; border-radius: 4px; font-size: 0.82rem;">
+                                    <span style="font-family: monospace; font-weight: 700; padding: 3px 8px; border-radius: 4px; font-size: 0.82rem;">
                                         <?= e($st['roll_number']) ?>
                                     </span>
                                 </td>
@@ -635,7 +635,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <?php endif; ?>
                                 </td>
                                 <td style="white-space: nowrap;">
-                                    <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600;">
+                                    <span class="badge badge-info" style="font-weight: 600;">
                                         <?= e($st['department']) ?>
                                     </span>
                                 </td>

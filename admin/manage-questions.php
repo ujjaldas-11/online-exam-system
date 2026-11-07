@@ -911,44 +911,66 @@ Question Text,Unit Number,Option A,Option B,Option C,Option D,Correct Option,Que
 
     //  dialog modal for select subject
 
-    const subjectModal = document.getElementById('standaloneSubjectModal');
+(function () {
+  const getModal = () => document.getElementById('standaloneSubjectModal');
 
-    // Open & Close Functions
-    function openSubjectModal() {
-        subjectModal.style.display = 'flex';
+  window.openSubjectModal = function () {
+    const modal = getModal();
+    if (!modal) return;
+    modal.style.display = 'flex';
+    // Reset the search each time and focus it
+    const search = modal.querySelector('input');
+    if (search) {
+      search.value = '';
+      modal.querySelectorAll('.standalone-list-item').forEach(i => i.style.display = '');
+      setTimeout(() => search.focus(), 0);
     }
+  };
 
-    function closeSubjectModal() {
-        subjectModal.style.display = 'none';
-    }
+  window.closeSubjectModal = function () {
+    const modal = getModal();
+    if (modal) modal.style.display = 'none';
+  };
 
-    // Pick Subject Logic
-    function pickSubject(id, name) {
-        document.getElementById('real_subject_id').value = id;
-        document.getElementById('subject_display_name').value = name;
-        closeSubjectModal();
+  window.pickSubject = function (id, name) {
+    const idInput = document.getElementById('real_subject_id');
+    const nameInput = document.getElementById('subject_display_name');
+    if (!idInput || !nameInput) return;
+    idInput.value = id;
+    nameInput.value = name;
+    window.closeSubjectModal();
+    // Fire a change event in case other code needs to load units for this subject
+    idInput.dispatchEvent(new Event('change', { bubbles: true }));
+  };
 
-        // Force a change event in case your API needs to fetch units now
-        document.getElementById('real_subject_id').dispatchEvent(new Event('change'));
-    }
+  // Delegated listeners are attached to `document`, so they keep working after page swaps.
+  // The flag stops duplicates if this script runs more than once.
+  if (!window.__subjectModalBound) {
+    window.__subjectModalBound = true;
 
-    // Connect the included searchbar.php to filter this list
-    subjectModal.addEventListener('input', function (e) {
-        if (e.target.tagName === 'INPUT') {
-            const filter = e.target.value.toLowerCase();
-            const items = document.querySelectorAll('.standalone-list-item');
-
-            items.forEach(item => {
-                const text = item.innerText.toLowerCase();
-                item.style.display = text.includes(filter) ? '' : 'none';
-            });
-        }
+    // Live search inside the modal
+    document.addEventListener('input', function (e) {
+      const modal = getModal();
+      if (!modal || !modal.contains(e.target) || e.target.tagName !== 'INPUT') return;
+      const filter = e.target.value.toLowerCase();
+      modal.querySelectorAll('.standalone-list-item').forEach(item => {
+        item.style.display = item.innerText.toLowerCase().includes(filter) ? '' : 'none';
+      });
     });
 
-    // Close the modal if the user clicks the dark background outside the white card
-    subjectModal.addEventListener('click', function (e) {
-        if (e.target === subjectModal) closeSubjectModal();
+    // Click on the dark backdrop closes it
+    document.addEventListener('click', function (e) {
+      const modal = getModal();
+      if (modal && e.target === modal) window.closeSubjectModal();
     });
+
+    // Esc closes it
+    document.addEventListener('keydown', function (e) {
+      const modal = getModal();
+      if (e.key === 'Escape' && modal && modal.style.display === 'flex') window.closeSubjectModal();
+    });
+  }
+})();
 
 
 </script>

@@ -256,7 +256,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"><?= $medals[$index] ?></div>
                             <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-dark); margin-bottom: 2px;"><?= e($student['name']) ?></h3>
                             <div style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 8px;">Roll: <?= e($student['roll_number']) ?></div>
-                            <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-primary);">
+                            <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-gold);">
                                 <?= sprintf('%.2f', (float) $student['score']) ?> <span style="font-size: 0.9rem; color: var(--color-text-secondary);">/ <?= e((string) $exam['total_marks']) ?></span>
                             </div>
                         </div>
@@ -334,7 +334,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                                     <?php elseif ($status === 'disqualified'): ?>
                                         <span class="badge badge-danger">disqualified</span>
                                     <?php else: ?>
-                                        <span class="badge" style="background: #f1f5f9; color: #475569;">not_attempted</span>
+                                        <span class="badge badge-warning">not_attempted</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>

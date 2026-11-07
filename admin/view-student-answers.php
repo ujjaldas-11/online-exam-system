@@ -74,11 +74,6 @@ include __DIR__ . '/../components/admin-sidebar.php';
 ?>
 
 <div class="container main-content">
-    <div style="margin-bottom: 16px;">
-        <a href="view-results.php?exam_id=<?= $attemptData['exam_id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-            <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to Results
-        </a>
-    </div>
 
         <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
             <div>
@@ -96,6 +91,10 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </p>
             </div>
         <div>
+
+        <a href="view-results.php?exam_id=<?= $attemptData['exam_id'] ?>" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined icon-sm">arrow_back</span> Back to Results
+        </a>
         <!-- The PDF Download Button -->
         <a href="?attempt_id=<?= $attempt_id ?>&download=pdf" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
             <span class="material-symbols-outlined icon-sm">picture_as_pdf</span> Download PDF
@@ -155,16 +154,16 @@ include __DIR__ . '/../components/admin-sidebar.php';
                     $weight = 'normal';
 
                     if ($is_selected && $is_correct) {
-                        $bg = '#dcfce7';
-                        $color = '#16a34a';
+                        $bg = 'var(--color-success-bg)';
+                        $color = 'var(--color-success)';
                         $weight = 'bold';
                     } elseif ($is_selected && !$is_correct) {
-                        $bg = '#fee2e2';
-                        $color = '#dc2626';
+                        $bg = 'var(--color-error-bg)';
+                        $color = 'var(--color-error)';
                         $weight = 'bold';
                     } elseif ($is_actual_correct && !$is_correct) {
-                        $bg = '#f0fdf4';
-                        $color = '#15803d';
+                        $bg = 'var(--color-success-bg)';
+                        $color = 'var(--color-success)';
                         $weight = 'bold';  // Highlight correct answer if they missed it
                     }
                     ?>
@@ -177,7 +176,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
             </div>
 
             <?php if (!$selected): ?>
-                <div style="color: #64748b; font-size: 14px; font-style: italic;">
+                <div style="color: var(--color-error); font-size: 14px; font-style: italic;">
                     <span class="material-symbols-outlined icon-sm" style="vertical-align: middle;">remove_circle_outline</span> Student skipped this question.
                 </div>
             <?php endif; ?>

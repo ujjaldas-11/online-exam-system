@@ -217,19 +217,19 @@ $total_marks = (float) ($examOverview['total_marks'] ?? 0);
                     $isSelected = in_array($letter, $selectedTokens, true);
 
                     if ($isTargetCorrect && $isSelected) {
-                        $bgColor = '#ecfdf5';
-                        $borderColor = '#10b981';
-                        $textColor = '#065f46';
+                        $bgColor = 'var(--color-success-bg)';
+                        $borderColor = 'var(--color-success)';
+                        $textColor = 'var(--color-text)';
                         $badgeText = '<span style="color: #059669; font-weight: bold; font-size: 0.85rem;">✓ Selected & Correct</span>';
                     } elseif ($isTargetCorrect) {
-                        $bgColor = '#ecfdf5';
-                        $borderColor = '#10b981';
-                        $textColor = '#065f46';
+                        $bgColor = 'var(--color-success-bg)';
+                        $borderColor = 'var(--color-success)';
+                        $textColor = 'var(--color-text)';
                         $badgeText = '<span style="color: #059669; font-weight: bold; font-size: 0.85rem;">✓ Correct Key</span>';
                     } elseif ($isSelected) {
-                        $bgColor = '#fef2f2';
-                        $borderColor = '#ef4444';
-                        $textColor = '#991b1b';
+                        $bgColor = 'var(--color-error-bg)';
+                        $borderColor = 'var(--color-error)';
+                        $textColor = 'var(--color-text)';
                         $badgeText = '<span style="color: #dc2626; font-weight: bold; font-size: 0.85rem;">✗ Your Choice</span>';
                     }
                     ?>

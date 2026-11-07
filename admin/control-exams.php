@@ -562,56 +562,82 @@ include __DIR__ . '/../components/admin-sidebar.php';
 </div>
 
 <script>
-    // Toggle the specific menu and close others
-    function toggleActionMenu(event) {
-        event.stopPropagation();
-        const button = event.currentTarget;
-        const currentMenu = button.nextElementSibling;
-        
-        // Close all other open menus
-        document.querySelectorAll('.action-menu-content.show').forEach(menu => {
-            if (menu !== currentMenu) {
-                menu.classList.remove('show');
-            }
-        });
-        
-        // Toggle the clicked menu
-        const isNowOpen = currentMenu.classList.toggle('show');
-        
-        if (isNowOpen) {
-            // Get exact coordinates of the 3-dot button on the screen
-            const btnRect = button.getBoundingClientRect();
-            
-            // Align to the right edge of the button
-            currentMenu.style.right = (window.innerWidth - btnRect.right) + 'px';
-            
-            // Check if there is enough space below
-            const menuHeight = currentMenu.offsetHeight;
-            const spaceBelow = window.innerHeight - btnRect.bottom;
-            
-            if (spaceBelow < menuHeight + 20) {
-                // Not enough space! Pop upwards above the button
-                currentMenu.style.top = (btnRect.top - menuHeight - 4) + 'px';
-            } else {
-                // Pop downwards normally
-                currentMenu.style.top = (btnRect.bottom + 4) + 'px';
-            }
-        }
+(function () {
+  const GAP = 6, EDGE = 8;
+  const hasPopover = typeof HTMLElement.prototype.showPopover === 'function';
+  let current = null; // { button, menu }
+
+  function closeMenu() {
+    if (!current) return;
+    const { button, menu } = current;
+    if (hasPopover) { try { menu.hidePopover(); } catch (e) {} }
+    else menu.classList.remove('show');
+    button.setAttribute('aria-expanded', 'false');
+    current = null;
+  }
+
+  function placeMenu(button, menu) {
+    const r  = button.getBoundingClientRect();
+    const w  = menu.offsetWidth;
+    const h  = menu.offsetHeight;
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+
+    // Right-align to the 3-dot button, keep inside the viewport
+    const left = Math.min(Math.max(r.right - w, EDGE), vw - w - EDGE);
+
+    // Open downward; flip upward only if there is no room below and more room above
+    const spaceBelow = vh - r.bottom - GAP - EDGE;
+    const spaceAbove = r.top - GAP - EDGE;
+    const openUp = h > spaceBelow && spaceAbove > spaceBelow;
+
+    let top = openUp ? r.top - h - GAP : r.bottom + GAP;
+    top = Math.min(Math.max(top, EDGE), Math.max(EDGE, vh - h - EDGE));
+
+    menu.style.right = 'auto';
+    menu.style.left  = left + 'px';
+    menu.style.top   = top + 'px';
+    menu.dataset.placement = openUp ? 'top' : 'bottom';
+  }
+
+  // Toggle the clicked menu and close any other (same name as before)
+  window.toggleActionMenu = function (event) {
+    event.stopPropagation();
+    const button = event.currentTarget;
+    const menu = button.nextElementSibling;
+    if (!menu) return;
+
+    if (current && current.menu === menu) { closeMenu(); return; }
+    closeMenu();
+
+    if (hasPopover) {
+      menu.setAttribute('popover', 'manual');   // top layer: above tables, cards, navbar
+      menu.showPopover();
+    } else {
+      menu.classList.add('show');               // fallback for older browsers
     }
+    placeMenu(button, menu);                     // position in the same frame, no visible jump
+    button.setAttribute('aria-expanded', 'true');
+    current = { button, menu };
+  };
 
-    // Close menu when clicking anywhere else
-    document.addEventListener('click', function() {
-        document.querySelectorAll('.action-menu-content.show').forEach(menu => {
-            menu.classList.remove('show');
-        });
-    });
+  // Close when clicking anywhere else (item handlers still run first)
+  document.addEventListener('click', closeMenu);
 
-    // Close menu when scrolling the table or page (prevents detached floating)
-    document.addEventListener('scroll', function() {
-        document.querySelectorAll('.action-menu-content.show').forEach(menu => {
-            menu.classList.remove('show');
-        });
-    }, true); // The 'true' captures scrolling inside the table wrap too!
+  // Close on page/table scroll, but not when scrolling inside the menu itself
+  document.addEventListener('scroll', function (e) {
+    if (current && !current.menu.contains(e.target)) closeMenu();
+  }, true);
+
+  window.addEventListener('resize', closeMenu);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && current) {
+      const btn = current.button;
+      closeMenu();
+      btn.focus();
+    }
+  });
+})();
 </script>
 
 <?php

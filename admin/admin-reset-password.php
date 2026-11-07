@@ -68,7 +68,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
 
         <?php include __DIR__ . '/../components/flash-messages.php'; ?>
-        <div class="card" style="background: #fff; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); padding: 32px;">
+        <div class="card" style="background: var(--color-surface); border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); padding: 32px;">
             <form method="POST" action="" class="password-form">
                 <?= csrf_field() ?>
 
