@@ -5,6 +5,7 @@ $student_nav = [
     'dashboard.php' => ['label' => 'Home', 'icon' => 'home'],
     // 'exam-history.php' => ['label' => 'Exam History', 'icon' => 'history_edu'],
     '../docs/user/user-doc.php' => ['label' => 'docs', 'icon' => 'docs']
+    
 ];
 
 // --- AVATAR LOGIC ---
@@ -47,7 +48,7 @@ $esc = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8')
         <button type="button" onclick="toggleExamifyTheme()" class="btn btn-secondary btn-sm no-print"
                 title="Switch Theme" style="display: inline-flex; align-items: center; gap: 6px;">
             <span class="material-symbols-outlined icon-sm" id="theme-icon">dark_mode</span>
-            <span id="theme-label">Dark Mode</span>
+            <!-- <span id="theme-label">Dark Mode</span> -->
         </button>
 
         <div class="student-nav-links" id="navLinks">

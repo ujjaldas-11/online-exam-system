@@ -226,7 +226,6 @@ body.sidebar-collapsed .main-content {
 }
 
 .mobile-menu-btn { display: none; }
-
 /* ---------- Profile trigger ---------- */
 .profile-widget {
   position: relative;
@@ -240,16 +239,17 @@ body.sidebar-collapsed .main-content {
   gap: 10px;
   padding: 4px 10px 4px 4px;
   border-radius: var(--radius-full);
-  background: var(--glass-hover);
-  border: 1px solid var(--glass-border);
-  color: var(--color-on-header);
+  background: var(--color-bg); /* Solid background instead of glass */
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
   font: inherit;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
+
 .profile-trigger:hover,
 .profile-trigger[aria-expanded="true"] {
-  background: var(--glass-active);
+  background: var(--color-gray-100);
 }
 
 .nav-profile-pic {
@@ -258,7 +258,7 @@ body.sidebar-collapsed .main-content {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 2px solid var(--glass-border);
+  border: 2px solid var(--color-border);
   background: var(--color-surface);
 }
 .nav-profile-pic.lg {
@@ -273,6 +273,7 @@ body.sidebar-collapsed .main-content {
   text-align: left;
   line-height: 1.2;
 }
+
 .admin-name {
   max-width: 140px;
   overflow: hidden;
@@ -280,19 +281,22 @@ body.sidebar-collapsed .main-content {
   white-space: nowrap;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--color-on-header);
+  color: var(--color-text);
 }
+
 .admin-role {
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.4px;
-  color: var(--sidebar-role-color);
+  color: var(--color-primary); /* Stand out slightly */
 }
 
 .chevron-icon {
   font-size: 20px;
+  color: var(--color-text-secondary);
   transition: transform 0.2s ease;
 }
+
 .profile-trigger[aria-expanded="true"] .chevron-icon {
   transform: rotate(180deg);
 }
@@ -306,19 +310,19 @@ body.sidebar-collapsed .main-content {
   width: 290px;
   max-width: calc(100vw - 24px);
   overflow: hidden;
-  background: var(--glass-bg-solid);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-  color: var(--color-on-header);
-  border: 1px solid var(--glass-border);
+  /* Removed glass-bg and backdrop filter */
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
+  box-shadow: var(--shadow-lg); /* Solid shadow */
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px) scale(0.98);
   transform-origin: top right;
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
 }
+
 .profile-dropdown.open {
   opacity: 1;
   visibility: visible;
@@ -333,43 +337,48 @@ body.sidebar-collapsed .main-content {
   padding: 20px 16px 16px;
   text-align: center;
 }
+
 .dropdown-identity {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
 }
+
 .dropdown-name {
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--color-on-header);
+  color: var(--color-text);
 }
+
 .role-badge {
   display: inline-block;
   padding: 3px 12px;
   border-radius: var(--radius-full);
-  background: var(--glass-active);
-  border: 1px solid var(--glass-border);
-  color: var(--sidebar-role-color);
+  background: var(--color-primary-soft); /* Replaced glass-active */
+  border: 1px solid var(--color-primary-light);
+  color: var(--color-primary);
   font-size: 0.72rem;
   font-weight: 600;
 }
+
 .dropdown-college {
   margin: 2px 0 0;
   font-size: 0.8rem;
   line-height: 1.35;
-  color: var(--color-on-header-dim);
+  color: var(--color-text-secondary);
 }
 
 .dropdown-admin-details {
   padding: 10px 16px;
-  border-top: 1px solid var(--glass-border);
-  border-bottom: 1px solid var(--glass-border);
-  background: var(--glass-hover);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg); /* Use page background for contrast block */
   font-size: 0.85rem;
-  color: var(--color-on-header);
+  color: var(--color-text);
 }
+
 .dropdown-admin-details p {
   display: flex;
   align-items: center;
@@ -378,12 +387,15 @@ body.sidebar-collapsed .main-content {
   font-weight: 600;
   overflow-wrap: anywhere;
 }
+
 .dropdown-admin-details .material-symbols-outlined {
   font-size: 18px;
-  color: var(--color-on-header-dim);
+  color: var(--color-text-secondary);
 }
 
-.dropdown-actions { padding: 6px; }
+.dropdown-actions { 
+  padding: 6px; 
+}
 
 .dropdown-item {
   display: flex;
@@ -395,21 +407,47 @@ body.sidebar-collapsed .main-content {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--color-on-header);
+  color: var(--color-text);
   font-size: 0.9rem;
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.dropdown-item .material-symbols-outlined { font-size: 20px; }
-.dropdown-item-label { flex: 1; }
-.dropdown-item-arrow { color: var(--color-on-header-dim); }
-.dropdown-item:hover {
-  background: var(--glass-hover);
-  color: var(--sidebar-hover-text);
+
+.dropdown-item .material-symbols-outlined { 
+  font-size: 20px;
+  color: var(--color-text-secondary);
 }
-.dropdown-item.logout-btn { color: var(--color-error); }
-.dropdown-item.logout-btn .dropdown-item-arrow { color: inherit; }
+
+.dropdown-item-label { 
+  flex: 1; 
+}
+
+.dropdown-item-arrow { 
+  color: var(--color-text-muted); 
+}
+
+.dropdown-item:hover {
+  background: var(--color-gray-100); /* Solid hover color */
+  color: var(--color-primary);
+}
+
+.dropdown-item:hover .material-symbols-outlined {
+  color: var(--color-primary);
+}
+
+.dropdown-item.logout-btn { 
+  color: var(--color-error); 
+}
+
+.dropdown-item.logout-btn .material-symbols-outlined {
+  color: var(--color-error);
+}
+
+.dropdown-item.logout-btn .dropdown-item-arrow { 
+  color: inherit; 
+}
+
 .dropdown-item.logout-btn:hover {
   background: var(--color-error-bg);
   color: var(--color-error);

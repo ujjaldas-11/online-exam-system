@@ -427,7 +427,7 @@ if ($chart_n > 0) {
 
 <!-- ===================== BADGE RULES MODAL ===================== -->
 <div id="badgeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; padding: 16px;">
-    <div style="background: #fff; width: 100%; max-width: 450px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+    <div style="background: var(--color-bg); width: 100%; max-width: 450px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="padding: 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; font-size: 1.2rem; color: var(--color-dark); display: flex; align-items: center; gap: 8px;">
                 <span class="material-symbols-outlined" style="color: var(--color-gold);">military_tech</span>
