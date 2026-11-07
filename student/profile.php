@@ -466,7 +466,7 @@ if ($chart_n > 0) {
                                         
                                     <!-- Show multiplier badge (e.g., 2) if they earned it in multiple semesters -->
                                     <?php if ($badge_counts[$tier] > 1): ?>
-                                        <span style="position: absolute; top: -4px; right: -4px; background: var(--color-dark); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; border: 2px solid var(--color-surface); z-index: 10;">
+                                        <span style="position: absolute; top: -4px; right: -4px; background: var(--color-bg); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; border: 2px solid var(--color-surface); z-index: 10;">
                                             <?= $badge_counts[$tier] ?>
                                         </span>
                                     <?php endif; ?>
