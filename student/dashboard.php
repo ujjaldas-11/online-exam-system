@@ -169,17 +169,23 @@ try {
         $total_class_exams = $semester_exam_counts[$class_key] ?? 0;
 
         // COLLEGE-WIDE BADGE ASSIGNMENTS (Strictly tied to current semester)
+        $stat['earned_tiers'] = []; // Array to hold all badges they qualify for
+
+        if ($fm_count >= 1) {
+            $stat['earned_tiers'][] = 'ace';
+        }
+        if ($fm_count >= 3) {
+            $stat['earned_tiers'][] = 'knight';
+        }
+        if ($fm_count >= 7) {
+            $stat['earned_tiers'][] = 'legend';
+        }
+        // GOAT = Must have at least 5 exams in the semester, and scored 100% on ALL of them
         if ($total_class_exams >= 5 && $fm_count === $total_class_exams) {
-            $stat['badge'] = ['title' => 'GOAT', 'tier' => 'goat', 'icon' => '𓃵', 'desc' => 'Flawless Semester!'];
-        } elseif ($fm_count >= 7) {
-            $stat['badge'] = ['title' => 'Legend', 'tier' => 'legend', 'icon' => '🗿', 'desc' => '7x Full Marks!'];
-        } elseif ($fm_count >= 3) {
-            $stat['badge'] = ['title' => 'Knight', 'tier' => 'knight', 'icon' => '🥷🏻', 'desc' => '3x Full Marks!'];
-        } elseif ($fm_count >= 1) {
-            $stat['badge'] = ['title' => 'Ace', 'tier' => 'ace', 'icon' => '★', 'desc' => '1x Full Marks!'];
+            $stat['earned_tiers'][] = 'goat';
         }
 
-        if ($stat['badge']) {
+        if (!empty($stat['earned_tiers'])) {
             $badge_holders[] = $stat;
         }
 

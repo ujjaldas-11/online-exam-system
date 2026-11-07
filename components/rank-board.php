@@ -75,7 +75,7 @@ $top_leaders = $top_10 ?? [];
             </button>
         </div>
 
-        <div style="margin: 0; padding: 0 1rem;">
+        <div style="margin: 10px; padding: 0 1rem;">
             <?php
             $search_placeholder = 'Search classmate by name or roll...';
             include __DIR__ . '/../components/searchbar.php';
