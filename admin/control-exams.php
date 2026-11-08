@@ -208,6 +208,7 @@ $show_dept = true;
 $show_sem = true;
 $show_status = true;
 $show_author = true;
+$show_year = true;
 $search_placeholder = 'Search by exam name';
 
 $departments = CurriculumService::getDepartments($pdo);
@@ -231,9 +232,15 @@ $filterDept = clean_input($_GET['department'] ?? '');
 $filterSem = isset($_GET['semester']) ? (int) $_GET['semester'] : 0;
 $filterStatus = clean_input($_GET['status'] ?? '');
 $filterAuthor = isset($_GET['author']) ? (int) $_GET['author'] : 0;
+$filterYear = isset($_GET['year']) && $_GET['year'] === 'all' ? 'all' : (isset($_GET['year']) && is_numeric($_GET['year']) && (int)$_GET['year'] > 0 ? (int)$_GET['year'] : (int)date('Y'));
 
 $queryWhere = [];
 $queryParams = [];
+
+if ($filterYear !== 'all') {
+    $queryWhere[] = 'YEAR(COALESCE(e.start_time, e.created_at)) = ?';
+    $queryParams[] = $filterYear;
+}
 
 if ($filterQ !== '') {
     $queryWhere[] = '(e.title LIKE ?)';

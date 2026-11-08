@@ -13,14 +13,21 @@ $show_status = false;
 $show_dept = false;
 $show_sem = true; // Enables the semester dropdown from filter-bar.php
 $show_author = false;
+$show_year = true;
 
 $filterQ = trim(clean_input($_GET['q'] ?? ''));
 $filterSem = isset($_GET['semester']) ? (int) $_GET['semester'] : 0;
+$filterYear = isset($_GET['year']) && $_GET['year'] === 'all' ? 'all' : (isset($_GET['year']) && is_numeric($_GET['year']) && (int)$_GET['year'] > 0 ? (int)$_GET['year'] : (int)date('Y'));
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $per_page = 10;
 
 $queryWhere = ["ea.student_id = ?", "ea.status IN ('completed', 'disqualified')"];
 $queryParams = [$student_id];
+
+if ($filterYear !== 'all') {
+    $queryWhere[] = "YEAR(COALESCE(ea.submitted_at, ea.started_at)) = ?";
+    $queryParams[] = $filterYear;
+}
 
 // Search both Exam Title and Subject Name
 if ($filterQ !== '') {
