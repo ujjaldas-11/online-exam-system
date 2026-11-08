@@ -19,10 +19,13 @@ if ((!isset($pending_registration_requests_count) || !isset($pending_requests_co
 }
 
 // --- AVATAR & PROFILE DATA ---
-$admin_gender = strtolower($_SESSION['gender'] ?? 'male');
-$nav_avatar_url = ($admin_gender === 'female')
-    ? '../assets/avatars/admin-female.avif'
-    : '../assets/avatars/admin-male.webp';
+$admin_gender = strtolower($_SESSION['gender'] ?? 'others');
+
+$nav_avatar_url = match ($admin_gender) {
+    'male'   => '../assets/avatars/admin-male.png',
+    'female' => '../assets/avatars/admin-female.png',
+    default  => '../assets/avatars/all-gender.webp',
+};
 
 $adminName   = $_SESSION['admin_name']  ?? 'Admin';
 $adminRole   = $_SESSION['admin_role']  ?? 'Teacher';
