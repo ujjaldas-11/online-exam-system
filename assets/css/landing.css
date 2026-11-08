@@ -1,4 +1,4 @@
-/*LANDING PAGE*/
+/* LANDING PAGE */
 
 :root {
     --landing-bg: #f8fafc;
@@ -22,8 +22,10 @@
     --landing-accent-shadow: rgba(15, 23, 42, 0.16);
     --landing-accent-shadow-soft: rgba(15, 23, 42, 0.1);
 
-    
     --landing-card-bg-hover: rgba(46, 101, 188, 0.9);
+
+    /* Motion token for card & nav transitions */
+    --landing-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .landing-body {
@@ -39,20 +41,32 @@
     font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
 }
 
+/* ============================================================
+   NAV EFFECT (Glassmorphism + Scroll State)
+   ============================================================ */
 .landing-nav {
     flex-shrink: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 12px 28px;  
-    background: var(--landing-nav-bg);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--landing-border);
+    background: rgba(15, 23, 42, 0.72);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 4px 24px -4px rgba(15, 23, 42, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
     position: sticky;
     top: 0;
     z-index: 50;
-    margin-bottom: -3.5rem;
+    transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.landing-nav.is-scrolled {
+    background: rgba(15, 23, 42, 0.82);
+    border-bottom-color: rgba(56, 189, 248, 0.22);
+    box-shadow: 0 12px 32px -8px rgba(2, 6, 23, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .college-brand {
@@ -70,6 +84,7 @@
     object-fit: contain;
     border-radius: 50%;
 }
+
 .college-name {
     font-size: 1.25rem;
     font-weight: 800;
@@ -90,11 +105,9 @@
     transition: color 0.2s ease-in-out;
 }
 
-
 .college-name:hover span {
     color: #FFFFFF; 
 }
-
 
 .college-name-mob {
     display: none;
@@ -103,14 +116,22 @@
     font-weight: 800;
 }
 
+/* ============================================================
+   MAIN & HERO
+   ============================================================ */
 .landing-main {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-evenly;
-    padding: 40px 5%;
+    justify-content: center;
+    padding: 60px 6% 40px;
     position: relative;
-    gap: 40px;
+    gap: 48px;
+    max-width: 1300px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .hero-bg {
@@ -123,43 +144,53 @@
 .hero-section {
     position: relative;
     z-index: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 48px;
+}
+
+.hero-brand {
     flex: 1;
-    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.hero-content {
+    flex: 1.3;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
 .eyebrow img {
-    width: min(400px, 60vw);
+    width: min(220px, 45vw);
     height: auto;
-    margin-bottom: -10px;
     filter: drop-shadow(0 15px 25px rgba(15, 23, 42, 0.25)) 
             drop-shadow(0 5px 10px rgba(34, 166, 222, 0.15));
 }
 
-.hero-section h1 {
-    margin: 0 3px 4px; 
-    font-size: clamp(3.5rem, 6vw, 5.5rem); 
+.hero-brand h1 {
+    margin: 12px 0 0; 
+    font-size: clamp(3rem, 5vw, 4.5rem); 
     font-weight: 800;
-    line-height: 1.18; 
+    line-height: 1.1; 
     letter-spacing: -0.04em;
-    
     color: #0F172A;
-    padding-left: 2.9rem;
-    padding-bottom: 0.18em;
 }
 
-
-.hero-section p {
+.hero-sub {
     font-family: "Segoe UI Text", "Segoe UI", -apple-system, Roboto, sans-serif;
-    font-size: clamp(1.15rem, 2vw, 1.3rem);
+    font-size: clamp(1.05rem, 1.8vw, 1.22rem);
     font-weight: 400;
     line-height: 1.65;
     color: #334155; 
-    max-width: 600px;
-    margin-top: 12px;
+    margin: 0 0 24px;
 }
+
 .hero-actions {
     display: flex;
     gap: 12px;
@@ -183,7 +214,6 @@
                 background 0.2s ease, color 0.2s ease;
 }
 
-
 .btn:hover {
     transform: translateY(-2px);
 }
@@ -191,7 +221,6 @@
 .btn:active {
     transform: translateY(0);
 }
-
 
 .btn-admin {
     color: #fff;
@@ -203,7 +232,6 @@
     background: #1E3A8A;
     box-shadow: 0 7px 18px rgba(15, 23, 42, 0.2);
 }
-
 
 .btn-student {
     color: #0F172A;
@@ -219,7 +247,6 @@
     box-shadow: 0 7px 18px rgba(15, 23, 42, 0.18);
 }
 
-
 .btn-text-documentation {
     color: #1e3a8a;
     background: transparent;
@@ -233,20 +260,26 @@
     text-shadow: none;
 }
 
-
+/* ============================================================
+   FEATURE CARDS EFFECT (Single Row on Desktop)
+   ============================================================ */
 .features-section {
     position: relative;
     z-index: 1;
-    flex: 1;
-    max-width: 600px;
+    width: 100%;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
+    perspective: 1000px;
 }
 
 .feature-card {
-    background:#0F172A;
-    border: 1px solid gray;
+    --mx: 50%;
+    --my: 50%;
+    position: relative;
+    overflow: hidden;
+    background: #0F172A;
+    border: 1px solid rgba(148, 163, 184, 0.35);
     border-radius: 16px;
     padding: 20px;
     display: flex;
@@ -254,16 +287,37 @@
     gap: 12px;
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 14px 32px -18px rgba(2, 6, 23, 0.55);
+    transform-style: preserve-3d;
+    transition: transform 0.3s var(--landing-ease), box-shadow 0.3s var(--landing-ease), border-color 0.3s ease;
+    will-change: transform;
     cursor: default;
 }
 
+.feature-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(260px circle at var(--mx) var(--my), rgba(56, 189, 248, 0.18), transparent 65%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
 
+.feature-card:hover {
+    border-color: rgba(56, 189, 248, 0.5);
+    box-shadow: 0 22px 44px -20px rgba(29, 78, 216, 0.45);
+}
+
+.feature-card:hover::before {
+    opacity: 1;
+}
 
 .feature-icon {
     font-size: 1.8rem;
     line-height: 1;
-    background:#eff6ff;
+    background: #eff6ff;
     width: max-content;
     padding: 10px;
     border-radius: 12px;
@@ -272,11 +326,22 @@
     align-items: center;
     justify-content: center;
     color: var(--landing-accent-text);
+    transform: translateZ(20px);
+    transition: transform 0.3s var(--landing-ease), background 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    transform: translateZ(20px) scale(1.06);
+    background: #ffffff;
 }
 
 .feature-icon .material-symbols-outlined {
     font-size: 1.8rem;
     color: var(--landing-accent-text);
+}
+
+.feature-text {
+    transform: translateZ(12px);
 }
 
 .feature-title {
@@ -293,6 +358,9 @@
     line-height: 1.5;
 }
 
+/* ============================================================
+   FOOTER
+   ============================================================ */
 .landing-footer {
     flex-shrink: 0;
     display: flex;
@@ -350,24 +418,24 @@
     transition: color 0.2s ease, opacity 0.2s ease;
 }
 
-
 .footer-nav-link:hover {
     color: #ffd700;
     text-decoration: none;
 }
 
+/* ============================================================
+   RESPONSIVE DESIGN
+   ============================================================ */
 @media (max-width: 950px) {
-    .landing-main {
-        flex-direction: column;
-        justify-content: center;
-        gap: 30px;
-        padding: 40px 20px;
-    }
-
     .hero-section {
+        flex-direction: column;
         align-items: center;
         text-align: center;
-        flex: none;
+        gap: 24px;
+    }
+
+    .hero-content {
+        align-items: center;
     }
 
     .hero-actions {
@@ -375,14 +443,12 @@
     }
 
     .features-section {
-        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
 
     .feature-card {
-        flex-direction: row;
-        align-items: center;
-        padding: 12px 16px;
+        padding: 14px 16px;
     }
 }
 
@@ -399,13 +465,17 @@
         padding: 8px 16px;
     }
 
-    .hero-section h1 {
-        font-size: 2.2rem;
-        padding-right: 1.9rem;
+    .landing-main {
+        padding: 32px 16px;
+        gap: 32px;
+    }
+
+    .hero-brand h1 {
+        font-size: 2.4rem;
     }
 
     .hero-sub {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         margin-bottom: 20px;
     }
 
@@ -415,15 +485,9 @@
     }
 
     .feature-card {
+        flex-direction: row;
+        align-items: center;
         padding: 12px 16px;
-    }
-
-    .feature-desc {
-        display: none;
-    }
-
-    .feature-title {
-        margin: 0;
     }
 
     .landing-footer {

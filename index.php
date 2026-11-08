@@ -4,8 +4,7 @@ require_once __DIR__ . '/utils/env.php';
 require_once __DIR__ . '/utils/auth.php';
 require_once __DIR__ . '/config/database.php';
 
-$assetVersion = asset_version();
-$isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
+$assetVersion = asset_version();$isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -19,6 +18,7 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
     <link rel="stylesheet" href="assets/css/material-symbols.css?v=<?= $assetVersion ?>">
     <link rel="stylesheet" href="assets/css/components.css?v=<?= $assetVersion ?>">
     <link rel="stylesheet" href="assets/css/landing.css?v=<?= $assetVersion ?>">
+    <script src="assets/js/landing.js?v=<?= $assetVersion ?>" defer></script>
 </head>
 <body class="landing-body">
     <?php if (!$isInitialized): ?>
@@ -32,7 +32,7 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
     <nav class="landing-nav">
         <a href="https://www.bistpurulia.org/" class="college-brand" target="_blank" rel="noopener noreferrer" aria-label="Visit Bengal Institute of Science and Technology website">
             <img src="assets/images/college_logo_.png" alt="Bengal Institute of Science and Technology logo">
-            <div class="college-name" title="Bengal Institute of Science and Technology" ><span>B</span>engal <span>I</span>nstitute of <span>S</span>cience and <span>T</span>echnology</div>
+            <div class="college-name" title="Bengal Institute of Science and Technology"><span>B</span>engal <span>I</span>nstitute of <span>S</span>cience and <span>T</span>echnology</div>
             <div class="college-name-mob">B.I.S.T</div>
         </a>
     </nav>
@@ -41,16 +41,24 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
         <div class="hero-bg" aria-hidden="true"></div>
 
         <section class="hero-section">
-            <div class="eyebrow">
-                <img src="assets/images/examify_logo.png" alt="Examify">
+            <div class="hero-brand">
+                <div class="eyebrow">
+                    <img src="assets/images/examify_logo.png" alt="Examify">
+                </div>
+                <h1>Examify</h1>
             </div>
-            <h1>Examify</h1>
-            <p class="hero-sub">Build question banks, run timed and proctored exams, and get graded results instantly.</p>
 
-            <div class="hero-actions">
-                <a href="admin/admin-login.php" class="btn btn-admin">Admin Portal</a>
-                <a href="student/login.php" class="btn btn-student">Student Portal</a>
-                <a href="docs/user/user-doc.php" class="btn btn-text-documentation">Documentation &rarr;</a>
+            <div class="hero-content">
+                <p class="hero-sub">
+                    Examify replaces fragmented manual exam workflows with a <b style="color: #1e3a8a;">unified hybrid engine</b> that handles both digital testing and physical paper generation from a single question bank.<br><br>
+                    Build question banks, run timed and proctored exams, and get graded results instantly.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="admin/admin-login.php" class="btn btn-admin">Admin Portal</a>
+                    <a href="student/login.php" class="btn btn-student">Student Portal</a>
+                    <a href="docs/user/user-doc.php" class="btn btn-text-documentation">Documentation &rarr;</a>
+                </div>
             </div>
         </section>
 
@@ -104,8 +112,6 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
                 <span class="material-symbols-outlined icon-xs">group</span>
                 <span>Meet the Contributors</span>
             </a>
-            
-    
         </div>
         <p class="footer-copy">&copy; <?= date('Y') ?> Examify. All rights reserved.</p>
     </footer>
