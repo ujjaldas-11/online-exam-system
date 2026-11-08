@@ -10,9 +10,9 @@ require_once __DIR__ . '/../utils/sanitize.php';
 init_secure_session();
 
 // If system is already initialized with a superadmin, lock this page
-// if (is_system_initialized($pdo)) {
-//     redirect('admin-login.php');
-// }
+if (is_system_initialized($pdo)) {
+    redirect('admin-login.php');
+}
 
 $error = '';
 
