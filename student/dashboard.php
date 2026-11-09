@@ -16,12 +16,15 @@ $semester = (int) $_SESSION['semester'];
 $department = (string) $_SESSION['department'];
 $student_id = (int) $_SESSION['student_id'];
 
+$filterYear = isset($_GET['year']) && $_GET['year'] === 'all' ? 'all' : (isset($_GET['year']) && is_numeric($_GET['year']) && (int)$_GET['year'] > 0 ? (int)$_GET['year'] : (int)date('Y'));
+
 // --- 1. Fetch All Applicable Exams ---
 try {
+    $yearSql = ($filterYear !== 'all') ? "AND YEAR(COALESCE(e.start_time, e.created_at)) = :year" : "";
     $sql = "
         SELECT
             e.id, e.title, e.description, e.duration_minutes, e.total_marks,
-            e.total_questions_to_ask, e.status, e.results_published, e.start_time, e.end_time,
+            e.total_questions_to_ask, e.status, e.results_published, e.start_time, e.end_time, e.created_at,
             s.name AS subject_name,
             ea.id AS attempt_id, ea.score, ea.status AS attempt_status, ea.total_questions
         FROM exams e
@@ -30,10 +33,15 @@ try {
         WHERE s.department = :department
           AND s.semester = :semester
           AND e.status IN ('active', 'scheduled', 'ended')
+          $yearSql
         ORDER BY FIELD(e.status, 'active', 'scheduled', 'ended'), e.start_time DESC
     ";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([':semester' => $semester, ':department' => $department, ':student_id' => $student_id]);
+    $execParams = [':semester' => $semester, ':department' => $department, ':student_id' => $student_id];
+    if ($filterYear !== 'all') {
+        $execParams[':year'] = $filterYear;
+    }
+    $stmt->execute($execParams);
     $available_exams = $stmt->fetchAll();
 } catch (PDOException $e) {
     log_error("Dashboard loading error for student $student_id", $e);
@@ -234,6 +242,7 @@ try {
 $form_action = 'dashboard.php';
 $search_placeholder = 'Search exam or subject...';
 $show_status = true;
+$show_year = true;
 $status_list = [
     'active' => 'Active Now',
     'scheduled' => 'Upcoming',
@@ -247,6 +256,13 @@ $per_page = 9;
 
 $filtered_exams = [];
 foreach ($processed_exams as $exam) {
+    if ($filterYear !== 'all') {
+        $exam_date = !empty($exam['start_time']) ? $exam['start_time'] : ($exam['created_at'] ?? '');
+        $exam_year = $exam_date ? (int)date('Y', strtotime($exam_date)) : (int)date('Y');
+        if ($exam_year !== $filterYear) {
+            continue;
+        }
+    }
     if ($filterStatus !== '' && $exam['status'] !== $filterStatus) {
         continue;
     }

@@ -21,11 +21,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $name = clean_input($_POST['name'] ?? '');
     $email = clean_input($_POST['email'] ?? '');
+    $gender = clean_input($_POST['gender'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
+    $valid_genders = ['male', 'female', 'others'];
+
+    if (empty($name) || empty($email) || empty($gender) || empty($password) || empty($confirm_password)) {
         $error = "All fields are required.";
+    } elseif (!in_array($gender, $valid_genders, true)) {
+        $error = "Please select a valid gender.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Please provide a valid email address.";
     } elseif (strlen($password) < 8) {
@@ -35,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             $checkStmt = $pdo->query("SELECT COUNT(*) FROM admins WHERE role = 'superadmin'");
-            if ((int)$checkStmt->fetchColumn() > 0) {
+            if ((int) $checkStmt->fetchColumn() > 0) {
                 redirect('admin-login.php');
             }
 
@@ -51,10 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $superadminId = (int) $existingId;
             } else {
                 $stmt = $pdo->prepare("
-                    INSERT INTO admins (name, email, password, role, status, department)
-                    VALUES (?, ?, ?, 'superadmin', 'active', 'Administration')
+                    INSERT INTO admins (name, email, password, role, status, department, gender)
+                    VALUES (?, ?, ?, 'superadmin', 'active', 'Administration', ?)
                 ");
-                $stmt->execute([$name, $email, $hashed]);
+                $stmt->execute([$name, $email, $hashed, $gender]);
                 $superadminId = (int) $pdo->lastInsertId();
             }
 
@@ -92,7 +97,8 @@ include __DIR__ . '/../components/header.php';
         </div>
 
         <div class="alert alert-warning" style="margin-bottom: 20px; font-size: 0.85rem;">
-            <strong>Initial System Provisioning:</strong> No administrator account was detected in the database. Please configure your master administrative credentials below.
+            <strong>Initial System Provisioning:</strong> No administrator account was detected in the database. Please
+            configure your master administrative credentials below.
         </div>
 
         <?php if ($error): ?>
@@ -102,37 +108,55 @@ include __DIR__ . '/../components/header.php';
         <form method="POST" action="">
             <?= csrf_field() ?>
 
+            
             <div class="form-group">
-                <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>" placeholder="e.g. Dr. Administrator">
+                <input type="text" name="name" required value="<?= e($_POST['name'] ?? '') ?>"
+                placeholder=" ">
                 <label>Superadmin Full Name</label>
             </div>
-
-            <div class="form-group">
-                <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>" placeholder="admin@college.edu">
-                <label>Master Email Address</label>
-            </div>
-
-            <div class="form-group">
-                <div class="password-wrapper">
-                    <input type="password" name="password" required minlength="8" placeholder="••••••••••••">
-                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
-                        <span class="material-symbols-outlined">visibility</span>
-                    </button>
-                    <label>Password (Min 8 characters)</label>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <div class="form-group">
+                    <input type="email" name="email" required value="<?= e($_POST['email'] ?? '') ?>"
+                        placeholder=" ">
+                    <label>Master Email Address</label>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <div class="password-wrapper">
-                    <input type="password" name="confirm_password" required minlength="8" placeholder="••••••••••••">
-                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
-                        <span class="material-symbols-outlined">visibility</span>
-                    </button>
-                    <label>Confirm Password</label>
+                <div class="form-group">
+                    <select name="gender" id="gender" required>
+                        <option value="" disabled selected></option>
+                        <option value="male" <?= (($_POST['gender'] ?? '') === 'male') ? 'selected' : '' ?>>Male</option>
+                        <option value="female" <?= (($_POST['gender'] ?? '') === 'female') ? 'selected' : '' ?>>Female</option>
+                        <option value="others" <?= (($_POST['gender'] ?? '') === 'others') ? 'selected' : '' ?>>Others</option>
+                    </select>
+                    <label for="gender">Gender</label>
                 </div>
+
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <div class="form-group">
+                    <div class="password-wrapper">
+                        <input type="password" name="password" required minlength="8" placeholder=" ">
+                        <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                        <label>Password (Min 8 characters)</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="password-wrapper">
+                        <input type="password" name="confirm_password" required minlength="8" placeholder=" ">
+                        <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                        <label>Confirm Password</label>
+                    </div>
+                </div>
+
+
+            <button type="submit" class="btn btn-primary btn-block"
+                style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
                 <span class="material-symbols-outlined icon-sm">admin_panel_settings</span> Initialize System
             </button>
         </form>

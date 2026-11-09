@@ -73,6 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     redirect('manage-teachers.php');
                 }
             } catch (PDOException $e) {
+                die("<div style='background:#fee; padding:20px; color:#c00; font-family:monospace;'>
+                    <strong>Database Error:</strong><br>" . $e->getMessage() . "
+                 </div>");
                 set_flash('error', safe_db_error($e, "Failed to create teacher account."));
                 redirect('manage-teachers.php');
             }
@@ -422,7 +425,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                             <option value="">— Select —</option>
                             <option value="male" <?= (($_POST['gender'] ?? '') === 'male') ? 'selected' : '' ?>>Male</option>
                             <option value="female" <?= (($_POST['gender'] ?? '') === 'female') ? 'selected' : '' ?>>Female</option>
-                            <option value="other" <?= (($_POST['gender'] ?? '') === 'other') ? 'selected' : '' ?>>Other</option>
+                            <option value="others" <?= (($_POST['gender'] ?? '') === 'others') ? 'selected' : '' ?>>Others</option>
                         </select>
                         <label>Gender</label>
                     </div>
