@@ -9,7 +9,7 @@ if (file_exists('assets/css/app.css')) {
 }
 
 $assetVersion = asset_version();
-$pageTitle = $page_title ?? 'Examify • Online Examination System';
+$pageTitle = $page_title ?? 'Examify • Institutional Examination Platform';
 $bodyClass = $body_class ?? '';
 ?>
 <!DOCTYPE html>

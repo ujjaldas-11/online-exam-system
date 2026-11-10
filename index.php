@@ -4,24 +4,15 @@ require_once __DIR__ . '/utils/env.php';
 require_once __DIR__ . '/utils/auth.php';
 require_once __DIR__ . '/config/database.php';
 
+
 $assetVersion = asset_version();
 $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
+
+include __DIR__ . '/components/header.php';
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Examify — Institutional Examination Platform</title>
-    <link rel="icon" type="image/x-icon" href="assets/images/examify_icon.ico?v=<?= $assetVersion ?>">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/examify_logo.png?v=<?= $assetVersion ?>">
-    <link rel="apple-touch-icon" href="assets/images/examify_logo.png?v=<?= $assetVersion ?>">
-    <link rel="stylesheet" href="assets/css/material-symbols.css?v=<?= $assetVersion ?>">
-    <link rel="stylesheet" href="assets/css/components.css?v=<?= $assetVersion ?>">
-    <link rel="stylesheet" href="assets/css/landing.css?v=<?= $assetVersion ?>">
-    <script src="assets/js/landing.js?v=<?= $assetVersion ?>" defer></script>
-</head>
 
 <body class="landing-body">
     <?php if (!$isInitialized): ?>
@@ -35,9 +26,9 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
     <!-- Navigation Bar -->
     <header class="landing-header">
         <nav class="landing-nav">
-            <a href="index.php" class="brand-link">
-                <img src="assets/images/examify_logo.png" alt="Examify" class="brand-logo">
-                <span class="brand-title">Examify</span>
+            <a href="index.php" class="topbar-brand student-brand" aria-label="Examify dashboard">
+                <img src="assets/images/examify_logo.png" alt="" class="auth-logo">
+                <span class="nav-logo brand-wordmark"> xamify</span>
             </a>
 
             <div class="nav-links">
@@ -46,8 +37,8 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
                 <a href="#technology" class="nav-item">Technology</a>
             </div>
 
-            <button type="button" class="theme-toggle" id="themeToggleBtn" aria-label="Toggle color theme">
-                <span class="material-symbols-outlined theme-icon" id="themeIcon">light_mode</span>
+             <button type="button" onclick="toggleExamifyTheme()" class="icon-btn no-print" aria-label="Switch theme" title="Switch theme">
+                <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
             </button>
         </nav>
     </header>
@@ -83,7 +74,7 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
                             <span class="material-symbols-outlined btn-icon">person</span>
                             <span>Student Portal Login</span>
                         </a>
-                        <a href="student/login.php" class="btn btn-hero-secondary">
+                        <a href="admin/admin-login.php" class="btn btn-hero-secondary">
                             <span class="material-symbols-outlined btn-icon">co_present</span>
                             <span>Faculty/Teacher Login</span>
                         </a>
@@ -280,4 +271,24 @@ $isInitialized = isset($pdo) ? is_system_initialized($pdo) : true;
         </div>
     </footer>
 </body>
+
+<script>
+    function syncThemeUI() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = isDark ? 'light_mode' : 'dark_mode';
+}
+
+function toggleExamifyTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        try { localStorage.setItem('examify_theme', 'light'); } catch (e) {}
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        try { localStorage.setItem('examify_theme', 'dark'); } catch (e) {}
+    }
+    syncThemeUI();
+}
+</script>
 </html>
