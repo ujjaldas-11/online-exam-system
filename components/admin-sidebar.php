@@ -177,7 +177,7 @@ $e = static fn($v) => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
             $badge    = $nav_badges[$page] ?? 0;
         ?>
             <a href="<?= $e($page) ?>"
-               class="<?= $isActive ? 'active' : '' ?>"
+               class="<?= $isActive ? 'active' : '' ?>" title="<?= $e($meta['label'])?>"
                data-tooltip="<?= $e($meta['label']) ?>"
                <?= $isActive ? 'aria-current="page"' : '' ?>>
                 <span class="material-symbols-outlined" aria-hidden="true"><?= $e($meta['icon']) ?></span>
@@ -200,25 +200,84 @@ $e = static fn($v) => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
 
 <script>
 /* ---------- Theme ---------- */
-function syncThemeUI() {
+function syncThemeUI(animate = false) {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const icon = document.getElementById('theme-icon');
-    if (icon) icon.textContent = isDark ? 'light_mode' : 'dark_mode';
-}
+    if (!icon) return;
 
-function toggleExamifyTheme() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    if (isDark) {
-        document.documentElement.removeAttribute('data-theme');
-        try { localStorage.setItem('examify_theme', 'light'); } catch (e) {}
-    } else {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        try { localStorage.setItem('examify_theme', 'dark'); } catch (e) {}
+    if (animate) {
+        icon.classList.remove('theme-icon-spin');
+        void icon.offsetWidth; // Force reflow to restart animation
+        icon.classList.add('theme-icon-spin');
     }
-    syncThemeUI();
+
+    icon.textContent = isDark ? 'light_mode' : 'dark_mode';
 }
 
-document.addEventListener('DOMContentLoaded', syncThemeUI);
+function toggleExamifyTheme(event) {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const nextTheme = isDark ? 'light' : 'dark';
+
+    const applyTheme = () => {
+        if (nextTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+
+        try {
+            localStorage.setItem('examify_theme', nextTheme);
+        } catch (e) {}
+
+        syncThemeUI(true);
+    };
+
+    // Circular Ripple Animation (View Transitions API)
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (document.startViewTransition && !prefersReducedMotion) {
+        const iconEl = document.getElementById('theme-icon');
+        const rect = iconEl ? iconEl.getBoundingClientRect() : null;
+
+        // Automatically finds the button coordinates even if event wasn't passed
+        const x = event?.clientX ?? (rect ? rect.left + rect.width / 2 : window.innerWidth - 40);
+        const y = event?.clientY ?? (rect ? rect.top + rect.height / 2 : 30);
+
+        const endRadius = Math.hypot(
+            Math.max(x, window.innerWidth - x),
+            Math.max(y, window.innerHeight - y)
+        );
+
+        const transition = document.startViewTransition(() => {
+            applyTheme();
+        });
+
+        transition.ready.then(() => {
+            document.documentElement.animate(
+                {
+                    clipPath: [
+                        `circle(0px at ${x}px ${y}px)`,
+                        `circle(${endRadius}px at ${x}px ${y}px)`
+                    ]
+                },
+                {
+                    duration: 500,
+                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                    pseudoElement: '::view-transition-new(root)'
+                }
+            );
+        });
+        return;
+    }
+
+    // Fallback smooth color transition for older browsers
+    document.documentElement.classList.add('theme-transitioning');
+    applyTheme();
+    setTimeout(() => {
+        document.documentElement.classList.remove('theme-transitioning');
+    }, 350);
+}
+
+document.addEventListener('DOMContentLoaded', () => syncThemeUI(false));
 
 /* ---------- Sidebar ---------- */
 (function () {

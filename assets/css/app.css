@@ -13,3 +13,55 @@
 @import "./student-dashboard.css";
 @import "./utilities.css";
 @import "./landing.css";
+
+/* ---------- Theme Switcher Animations ---------- */
+#theme-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease;
+    will-change: transform;
+}
+
+/* Hover micro-interaction on the button */
+button:hover #theme-icon,
+.theme-toggle:hover #theme-icon {
+    transform: rotate(18deg) scale(1.1);
+}
+
+/* Click spin + spring pop animation */
+.theme-icon-spin {
+    animation: examifyIconMorph 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes examifyIconMorph {
+    0% {
+        transform: rotate(-120deg) scale(0.4);
+        opacity: 0;
+    }
+    100% {
+        transform: rotate(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Full-screen circular ripple view transition */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+    z-index: 1;
+}
+
+::view-transition-new(root) {
+    z-index: 9999;
+}
+
+/* Smooth fallback for browsers without View Transitions */
+.theme-transitioning,
+.theme-transitioning * {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+}
