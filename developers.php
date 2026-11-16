@@ -2,9 +2,6 @@
 /**
  * Contributors – Examify
  */
-
-declare(strict_types=1);
-
 require_once __DIR__ . '/utils/env.php';
 require_once __DIR__ . '/utils/sanitize.php';
 
@@ -130,7 +127,8 @@ include __DIR__ . '/components/header.php';
             display: block;
         }
 
-        .contrib-fallback {
+        .contrib-fallback,
+        .dev-fallback {
             position: absolute;
             inset: 0;
             z-index: 1;
@@ -241,7 +239,7 @@ include __DIR__ . '/components/header.php';
                         <article class="tech-card contrib-card <?= $section['highlight'] ? 'is-core' : '' ?>">
                             <div class="contrib-header">
                                 <div class="contrib-avatar">
-                                    <div class="contrib-fallback" style="background: <?= e($dev['color']) ?>;">
+                                    <div class="contrib-fallback dev-fallback" style="background: <?= e($dev['color']) ?>;">
                                         <?= e($dev['initials']) ?>
                                     </div>
                                     <img src="<?= e($devAvatarSrc) ?>" alt="<?= e($dev['name']) ?>" loading="lazy"
