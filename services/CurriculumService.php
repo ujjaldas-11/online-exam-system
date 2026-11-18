@@ -156,7 +156,7 @@ class CurriculumService
                 $formatted_units[] = [
                     'unit_number' => $unit,
                     'question_count' => $count,
-                    'label' => "Unit $unit (Available Questions $count)" // Formatted exactly as requested
+                    'label' => "Unit $unit ($count Qs)" // Formatted exactly as requested
                 ];
             }
             

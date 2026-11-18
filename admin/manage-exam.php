@@ -15,29 +15,29 @@ $departments = CurriculumService::getDepartments($pdo);
 // =================================================================================
 $is_edit = false;
 $edit_id = 0;
-$form_data = []; // Holds the sticky form values
+$form_data = [];  // Holds the sticky form values
 
 if (isset($_GET['edit'])) {
     $is_edit = true;
     $edit_id = (int) $_GET['edit'];
 
     // Fetch the existing exam data
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         SELECT e.*, s.department, s.semester 
         FROM exams e
         JOIN subjects s ON e.subject_id = s.id
         WHERE e.id = ?
-    ");
+    ');
     $stmt->execute([$edit_id]);
     $exam = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$exam) {
-        set_flash('error', "Exam not found.");
+        set_flash('error', 'Exam not found.');
         redirect('control-exams.php');
     }
 
     if (!can_admin_manage_exam($pdo, $edit_id)) {
-        set_flash('error', "Access Denied: You do not have permission to edit this exam.");
+        set_flash('error', 'Access Denied: You do not have permission to edit this exam.');
         redirect('control-exams.php');
     }
 
@@ -46,7 +46,7 @@ if (isset($_GET['edit'])) {
     $has_started = $exam['start_time'] ? (strtotime($exam['start_time']) <= time()) : false;
 
     if ($exam['status'] === 'retired' || ($is_active && $has_started)) {
-        set_flash('error', "LOCKED: You cannot edit an exam that has already started or is retired.");
+        set_flash('error', 'LOCKED: You cannot edit an exam that has already started or is retired.');
         redirect('control-exams.php');
     }
 
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['create_exam']) || is
     $form_data['duration_minutes'] = int_param($_POST['duration_minutes'] ?? 0);
     $form_data['total_marks'] = int_param($_POST['total_marks'] ?? 0);
     $form_data['total_questions_to_ask'] = int_param($_POST['total_questions_to_ask'] ?? 0);
-    $form_data['negative_marks_per_question'] = max(0.0, round((float)($_POST['negative_marks_per_question'] ?? 0.0), 2));
+    $form_data['negative_marks_per_question'] = max(0.0, round((float) ($_POST['negative_marks_per_question'] ?? 0.0), 2));
     $form_data['access_pin'] = clean_input($_POST['access_pin'] ?? '');
     $form_data['target_units'] = clean_input($_POST['target_units'] ?? '');
 
@@ -90,13 +90,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['create_exam']) || is
         set_flash('warning', 'fill all required fields with valid values.');
         redirect('manage-exam.php');
     } elseif (strlen($form_data['title']) > 200) {
-        set_flash('warning','Exam title cannot exceed 200 characters.');
+        set_flash('warning', 'Exam title cannot exceed 200 characters.');
         redirect('manage-exam.php');
     } elseif (strlen($form_data['access_pin']) > 10) {
         set_flash('warning', 'Access PIN cannot exceed 10 characters.');
         redirect('manage-exam.php');
     } elseif ($start_time_db && $end_time_db && strtotime($end_time_db) <= strtotime($start_time_db)) {
-        set_flash('warning','Scheduled end time must be after the start time.');
+        set_flash('warning', 'Scheduled end time must be after the start time.');
         redirect('manage-exam.php');
     } else {
         // Question availability check
@@ -104,15 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['create_exam']) || is
             $stmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ?');
             $stmt->execute([$form_data['subject_id']]);
         } else {
-            $stmt =$pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ? AND unit_number = ?');
-            $stmt->execute([$form_data['subject_id'],$form_data['target_units']]);
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM questions WHERE subject_id = ? AND unit_number = ?');
+            $stmt->execute([$form_data['subject_id'], $form_data['target_units']]);
         }
 
-        $available = (int)$stmt->fetchColumn();
+        $available = (int) $stmt->fetchColumn();
 
-        if ($available <$form_data['total_questions_to_ask']) {
-            $unit_text = ($form_data['target_units'] === 'all') ? "This subject" : "Unit " . $form_data['target_units'];
-            set_flash('error',"$unit_text only has$available questions in the bank. You cannot configure an exam for {$form_data['total_questions_to_ask']} questions.");
+        if ($available < $form_data['total_questions_to_ask']) {
+            $unit_text = ($form_data['target_units'] === 'all') ? 'This subject' : 'Unit ' . $form_data['target_units'];
+            set_flash('error', "$unit_text only has$available questions in the bank. You cannot configure an exam for {$form_data['total_questions_to_ask']} questions.");
             redirect('manage-exam.php');
         } else {
             try {
@@ -124,50 +124,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['create_exam']) || is
 
                 if ($is_edit) {
                     // RUN SQL UPDATE
-                    $stmt =$pdo->prepare("
+                    $stmt = $pdo->prepare('
                         UPDATE exams SET 
                             title=?, subject_id=?, duration_minutes=?, total_marks=?, 
                             negative_marks_per_question=?, total_questions_to_ask=?, 
                             access_pin=?, target_units=?, status=?, start_time=?, end_time=? 
                         WHERE id=?
-                    ");
+                    ');
                     $stmt->execute([
-                        $form_data['title'],$form_data['subject_id'], $form_data['duration_minutes'],$form_data['total_marks'], $form_data['negative_marks_per_question'],$form_data['total_questions_to_ask'], $form_data['access_pin'] ?: null,$form_data['target_units'], $calc_status,$start_time_db, $end_time_db,$edit_id
+                        $form_data['title'], $form_data['subject_id'], $form_data['duration_minutes'], $form_data['total_marks'], $form_data['negative_marks_per_question'], $form_data['total_questions_to_ask'], $form_data['access_pin'] ?: null, $form_data['target_units'], $calc_status, $start_time_db, $end_time_db, $edit_id
                     ]);
 
-                    if(function_exists('log_admin_action')) {
-                        log_admin_action($pdo, 'update_exam', 'exam',$edit_id, "Updated exam configurations: {$form_data['title']}");
+                    if (function_exists('log_admin_action')) {
+                        log_admin_action($pdo, 'update_exam', 'exam', $edit_id, "Updated exam configurations: {$form_data['title']}");
                     }
-                    
-                    set_flash('success', "Exam updated successfully!");
+
+                    set_flash('success', 'Exam updated successfully!');
                     redirect('control-exams.php');
                 } else {
                     // RUN SQL INSERT
-                    $creator_id =$_SESSION['admin_id'] ?? null;
-                    $stmt =$pdo->prepare("
+                    $creator_id = $_SESSION['admin_id'] ?? null;
+                    $stmt = $pdo->prepare('
                         INSERT INTO exams
                         (title, subject_id, duration_minutes, total_marks, negative_marks_per_question, total_questions_to_ask, access_pin, target_units, status, start_time, end_time, created_by)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ");
+                    ');
                     $stmt->execute([
-                        $form_data['title'],$form_data['subject_id'], $form_data['duration_minutes'],$form_data['total_marks'], $form_data['negative_marks_per_question'],$form_data['total_questions_to_ask'], $form_data['access_pin'] ?: null,$form_data['target_units'], $calc_status,$start_time_db, $end_time_db,$creator_id
+                        $form_data['title'], $form_data['subject_id'], $form_data['duration_minutes'], $form_data['total_marks'], $form_data['negative_marks_per_question'], $form_data['total_questions_to_ask'], $form_data['access_pin'] ?: null, $form_data['target_units'], $calc_status, $start_time_db, $end_time_db, $creator_id
                     ]);
-                    $newExamId = (int)$pdo->lastInsertId();
+                    $newExamId = (int) $pdo->lastInsertId();
 
-                    if(function_exists('log_admin_action')) {
-                        log_admin_action($pdo, 'create_exam', 'exam',$newExamId, "Created exam: {$form_data['title']} (Status:$calc_status)");
+                    if (function_exists('log_admin_action')) {
+                        log_admin_action($pdo, 'create_exam', 'exam', $newExamId, "Created exam: {$form_data['title']} (Status:$calc_status)");
                     }
-                    
-                    set_flash('success',($calc_status === 'scheduled')
-                        ? "Exam scheduled successfully for " . date('M d, Y h:i A', strtotime($start_time_db)) . "! It will activate automatically."
-                        : "Exam created successfully!");
+
+                    set_flash('success', ($calc_status === 'scheduled')
+                        ? 'Exam scheduled successfully for ' . date('M d, Y h:i A', strtotime($start_time_db)) . '! It will activate automatically.'
+                        : 'Exam created successfully!');
                     redirect('control-exams.php');
-                    $form_data = []; // Clear form on success
+                    $form_data = [];  // Clear form on success
                 }
             } catch (PDOException $e) {
                 set_flash('error', safe_db_error($e, 'Failed to save examination.'));
                 redirect('manage-exam.php');
-                }
+            }
         }
     }
 }
@@ -176,21 +176,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['create_exam']) || is
 // 3. DROPDOWN DATA (AJAX Fallback / Sticky States)
 // =================================================================================
 $sticky_semesters = [];
-$sticky_subjects = [];$sticky_units = [];
+$sticky_subjects = [];
+$sticky_units = [];
 
-$sel_dept =$form_data['department'] ?? '';
-$sel_sem = (int)($form_data['semester'] ?? 0);
-$sel_sub = (int)($form_data['subject_id'] ?? 0);
+$sel_dept = $form_data['department'] ?? '';
+$sel_sem = (int) ($form_data['semester'] ?? 0);
+$sel_sub = (int) ($form_data['subject_id'] ?? 0);
 
 if ($sel_dept) {
-    $stmt =$pdo->prepare("SELECT DISTINCT semester FROM subjects WHERE department = ? ORDER BY semester ASC");
+    $stmt = $pdo->prepare('SELECT DISTINCT semester FROM subjects WHERE department = ? ORDER BY semester ASC');
     $stmt->execute([$sel_dept]);
-    $sticky_semesters =$stmt->fetchAll(PDO::FETCH_COLUMN);
+    $sticky_semesters = $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
-if ($sel_dept &&$sel_sem) {
-    $stmt =$pdo->prepare("SELECT id, name FROM subjects WHERE department = ? AND semester = ? ORDER BY name ASC");
-    $stmt->execute([$sel_dept,$sel_sem]);
-    $sticky_subjects =$stmt->fetchAll(PDO::FETCH_ASSOC);
+if ($sel_dept && $sel_sem) {
+    $stmt = $pdo->prepare('SELECT id, name FROM subjects WHERE department = ? AND semester = ? ORDER BY name ASC');
+    $stmt->execute([$sel_dept, $sel_sem]);
+    $sticky_subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 if ($sel_sub) {
     $sticky_units = CurriculumService::getUnitsBySubject($pdo, $sel_sub);
@@ -218,7 +219,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
 
     <div class="card exam-card">
         <!-- The form action MUST include the ?edit= ID if in edit mode!  -->
-        <form method="POST" class="exam-form" action="<?= $is_edit ? 'manage-exam.php?edit='.$edit_id : 'manage-exam.php' ?>">
+        <form method="POST" class="exam-form" action="<?= $is_edit ? 'manage-exam.php?edit=' . $edit_id : 'manage-exam.php' ?>">
             <?= csrf_field() ?>
 
             <div class="exam-form__field exam-form__field--full float-field">
@@ -231,8 +232,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div class="exam-form__field float-field float-field--select">
                     <select name="department" id="dept_dropdown" required class="form-control">
                         <option value="" selected>-- Choose Department --</option>
-                        <?php foreach ($departments as$dept): ?>
-                            <option value="<?= e($dept) ?>" <?= (($form_data['department'] ?? '') ===$dept) ? 'selected' : '' ?>>
+                        <?php foreach ($departments as $dept): ?>
+                            <option value="<?= e($dept) ?>" <?= (($form_data['department'] ?? '') === $dept) ? 'selected' : '' ?>>
                                 <?= e($dept) ?>
                             </option>
                         <?php endforeach; ?>
@@ -243,8 +244,8 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div class="exam-form__field float-field float-field--select">
                     <select name="semester" id="sem_dropdown" required class="form-control" <?= empty($sticky_semesters) ? 'disabled' : '' ?>>
                         <option value="" disabled selected hidden></option>
-                        <?php foreach ($sticky_semesters as$sem): ?>
-                            <option value="<?= e((string) $sem) ?>" <?= (($form_data['semester'] ?? 0) ==$sem) ? 'selected' : '' ?>>
+                        <?php foreach ($sticky_semesters as $sem): ?>
+                            <option value="<?= e((string) $sem) ?>" <?= (($form_data['semester'] ?? 0) == $sem) ? 'selected' : '' ?>>
                                 Sem <?= e((string) $sem) ?>
                             </option>
                         <?php endforeach; ?>
@@ -267,13 +268,20 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 </div>
 
                 <div class="exam-form__field float-field float-field--select">
+                   <?php
+                    $sel_unit = (string) ($form_data['target_units'] ?? '');
+                    $total_qs = array_sum(array_column($sticky_units, 'question_count'));
+                    ?>
                     <select name="target_units" id="unit_dropdown" required class="form-control" <?= empty($sticky_units) ? 'disabled' : '' ?>>
-                        <option value="" disabled selected hidden></option>
+                        <option value="" disabled <?= $sel_unit === '' ? 'selected' : '' ?> hidden></option>
                         <?php if (!empty($sticky_units)): ?>
-                            <option value="all" <?= (($form_data['target_units'] ?? '') === 'all') ? 'selected' : '' ?>>All units</option>
-                            <?php foreach ($sticky_units as$unit): ?>
-                                <option value="<?= e((string) $unit) ?>" <?= (($form_data['target_units'] ?? '') ==$unit) ? 'selected' : '' ?>>
-                                    Unit <?= e((string) $unit) ?>
+                            <option value="all" <?= $sel_unit === 'all' ? 'selected' : '' ?>>
+                                All Units (Combined Exam - <?= $total_qs ?> Qs)
+                            </option>
+                            <?php foreach ($sticky_units as $unit): ?>
+                                <?php $unitNum = (string) $unit['unit_number']; ?>
+                                <option value="<?= e($unitNum) ?>" <?= $sel_unit === $unitNum ? 'selected' : '' ?>>
+                                    <?= e($unit['label']) ?>
                                 </option>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -394,31 +402,33 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
    subjectDropdown.addEventListener('change', function() {
-        const subId = this.value;
-        resetDropdowns(3);
-        if (!subId) return;
-        
-        unitDropdown.innerHTML = '<option value="">Loading units...</option>';
-        unitDropdown.disabled = false;
-        
-        fetch(`api-curriculum.php?type=units&subject_id=${subId}`)
-            .then(res => res.json())
-            .then(data => {
-                let html = '<option value="">-- Select Target Unit --</option>';
-                
-                if (data.length === 0) { 
-                    html += '<option value="" disabled>No questions uploaded yet</option>'; 
-                } else {
-                    html += '<option value="all">All Units (Combined Exam)</option>';
-                    
-                    data.forEach(unit => { 
-                        html += `<option value="${unit.unit_number}">${unit.label}</option>`; 
-                    });
-                }
-                
-                unitDropdown.innerHTML = html;
-            });
+    const subId = this.value;
+    resetDropdowns(3);
+    if (!subId) return;
+
+    unitDropdown.innerHTML = '<option value="">Loading units...</option>';
+    unitDropdown.disabled = false;
+
+    fetch(`api-curriculum.php?type=units&subject_id=${subId}`)
+        .then(res => res.json())
+        .then(data => {
+            let html = '<option value="">-- Select Target Unit --</option>';
+
+            if (data.length === 0) {
+                html += '<option value="" disabled>No questions uploaded yet</option>';
+            } else {
+                const totalQs = data.reduce((sum, unit) => sum + Number(unit.question_count || 0), 0);
+                html += `<option value="all">All Units (Combined Exam - ${totalQs} Qs)</option>`;
+
+                data.forEach(unit => {
+                    html += `<option value="${unit.unit_number}">${unit.label}</option>`;
+                });
+            }
+
+            unitDropdown.innerHTML = html;
+        });
     });
+
 
     // 4. Date Picker Restrictions: Disable past dates in UI
     const startTimeInput = document.getElementById('start_time');
