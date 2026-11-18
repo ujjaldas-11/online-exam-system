@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Global Filter & Search Bar Component (Live Search)
  *
@@ -18,37 +19,37 @@
  */
 
 // --- Defaults (must come BEFORE they are used) ---
-$form_action        = $form_action ?? '#';
-$show_dept          = $show_dept ?? false;
-$show_sem           = $show_sem ?? false;
-$show_status        = $show_status ?? false;
-$show_author        = $show_author ?? false;
-$show_year          = $show_year ?? false;
-$show_admin         = $show_admin ?? false;
-$show_action        = $show_action ?? false;
-$inline_filters     = $inline_filters ?? false;
-$search_placeholder = $search_placeholder ?? "Search records...";
-$departments        = $departments ?? [];
-$status_list        = $status_list ?? [];
-$authors_list       = $authors_list ?? [];
-$admin_list         = $admin_list ?? [];
-$action_list        = $action_list ?? [];
-$live_target        = $live_target ?? '#live-results';
-$live_delay         = (int)($live_delay ?? 400);
-$live_min_chars     = (int)($live_min_chars ?? 2);
+$form_action = $form_action ?? '#';
+$show_dept = $show_dept ?? false;
+$show_sem = $show_sem ?? false;
+$show_status = $show_status ?? false;
+$show_author = $show_author ?? false;
+$show_year = $show_year ?? false;
+$show_admin = $show_admin ?? false;
+$show_action = $show_action ?? false;
+$inline_filters = $inline_filters ?? false;
+$search_placeholder = $search_placeholder ?? 'Search records...';
+$departments = $departments ?? [];
+$status_list = $status_list ?? [];
+$authors_list = $authors_list ?? [];
+$admin_list = $admin_list ?? [];
+$action_list = $action_list ?? [];
+$live_target = $live_target ?? '#live-results';
+$live_delay = (int) ($live_delay ?? 400);
+$live_min_chars = (int) ($live_min_chars ?? 2);
 
 $managed_keys = ['q', 'department', 'semester', 'status', 'author', 'admin_id', 'action', 'year', 'page'];
 
 // --- Years list setup (defaults to current year down to recent years) ---
-$current_year = (int)date('Y');
-$years_list   = $years_list ?? [];
+$current_year = (int) date('Y');
+$years_list = $years_list ?? [];
 if (empty($years_list)) {
-    $install_year = 2026; // The exact year Examify was deployed
+    $install_year = 2026;  // The exact year Examify was deployed
     $max_year = $current_year;
-    $min_year = $install_year; 
+    $min_year = $install_year;
     if (isset($_GET['year']) && is_numeric($_GET['year'])) {
-        $min_year = min($min_year, (int)$_GET['year']);
-        $max_year = max($max_year, (int)$_GET['year']);
+        $min_year = min($min_year, (int) $_GET['year']);
+        $max_year = max($max_year, (int) $_GET['year']);
     }
     $years_list = range($max_year, $min_year);
 }
@@ -64,24 +65,30 @@ $reset_query_string = http_build_query($reset_params);
 $reset_url = $form_action . ($reset_query_string ? '?' . $reset_query_string : '');
 
 // Retain existing filters from GET request safely
-$filterQ       = is_scalar($_GET['q'] ?? '') ? (string)($_GET['q'] ?? '') : '';
-$filterDept    = $_GET['department'] ?? '';
-$filterSem     = isset($_GET['semester']) ? (int)$_GET['semester'] : 0;
-$filterStatus  = $_GET['status'] ?? '';
-$filterAuthor  = $_GET['author'] ?? '';
-$filterAdminId = isset($_GET['admin_id']) ? (int)$_GET['admin_id'] : 0;
-$filterAction  = is_scalar($_GET['action'] ?? '') ? (string)($_GET['action'] ?? '') : '';
-$filterYear    = $filterYear ?? (isset($_GET['year']) && $_GET['year'] === 'all' ? 'all' : (isset($_GET['year']) && is_numeric($_GET['year']) && (int)$_GET['year'] > 0 ? (int)$_GET['year'] : $current_year));
+$filterQ = is_scalar($_GET['q'] ?? '') ? (string) ($_GET['q'] ?? '') : '';
+$filterDept = $_GET['department'] ?? '';
+$filterSem = isset($_GET['semester']) ? (int) $_GET['semester'] : 0;
+$filterStatus = $_GET['status'] ?? '';
+$default_admin_id = (int) ($default_admin_id ?? 0);
+$filterAdminId = isset($filterAdminId) ? (int) $filterAdminId : (isset($_GET['admin_id']) ? (int) $_GET['admin_id'] : $default_admin_id);
+$filterAction = is_scalar($_GET['action'] ?? '') ? (string) ($_GET['action'] ?? '') : '';
+$filterYear = $filterYear ?? (isset($_GET['year']) && $_GET['year'] === 'all' ? 'all' : (isset($_GET['year']) && is_numeric($_GET['year']) && (int) $_GET['year'] > 0 ? (int) $_GET['year'] : $current_year));
 
 // Active Filters Count for the Badge
 $active_filters_count = 0;
-if (!empty($filterDept))     $active_filters_count++;
-if (!empty($filterSem))      $active_filters_count++;
-if (!empty($filterStatus))   $active_filters_count++;
-if (!empty($filterAuthor))   $active_filters_count++;
+if (!empty($filterDept))
+    $active_filters_count++;
+if (!empty($filterSem))
+    $active_filters_count++;
+if (!empty($filterStatus))
+    $active_filters_count++;
+if ($filterAuthor !== $default_author)
+    $active_filters_count++;
 if (!$inline_filters) {
-    if (!empty($filterAdminId)) $active_filters_count++;
-    if (!empty($filterAction))  $active_filters_count++;
+    if ($filterAdminId !== $default_admin_id)
+        $active_filters_count++;
+    if (!empty($filterAction))
+        $active_filters_count++;
 }
 
 $has_advanced_filters = (!$inline_filters && ($show_dept || $show_sem || $show_status || $show_author || $show_admin || $show_action));
@@ -250,33 +257,36 @@ $has_advanced_filters = (!$inline_filters && ($show_dept || $show_sem || $show_s
                     <span class="material-symbols-outlined icon-calendar">calendar_today</span>
                     <select name="year" id="filterYearSelect" class="form-control modern-year-select" aria-label="Filter by Year" onchange="if(this.form.requestSubmit){this.form.requestSubmit();}else{this.form.submit();}">
                         <?php foreach ($years_list as $yr): ?>
-                            <option value="<?= (int)$yr ?>" <?= (string)$filterYear === (string)$yr ? 'selected' : '' ?>>
-                                <?= (int)$yr ?>
+                            <option value="<?= (int) $yr ?>" <?= (string) $filterYear === (string) $yr ? 'selected' : '' ?>>
+                                <?= (int) $yr ?>
                             </option>
                         <?php endforeach; ?>
-                        <option value="all" <?= (string)$filterYear === 'all' ? 'selected' : '' ?>>All Years</option>
+                        <option value="all" <?= (string) $filterYear === 'all' ? 'selected' : '' ?>>All Years</option>
                     </select>
                 </div>
             <?php endif; ?>
 
             <!-- Inline Filters (used if inline_filters is true, e.g. audit-logs.php) -->
             <?php if ($inline_filters): ?>
-                <?php if ($show_admin && !empty($admin_list)): ?>
-                    <select name="admin_id" class="form-control modern-inline-select" aria-label="Filter by Instructor" onchange="if(this.form.requestSubmit){this.form.requestSubmit();}else{this.form.submit();}">
-                        <option value="0">All Instructors &amp; Admins</option>
-                        <?php foreach ($admin_list as $adm): ?>
-                            <option value="<?= (int)$adm['id'] ?>" <?= (int)$filterAdminId === (int)$adm['id'] ? 'selected' : '' ?>>
-                                <?= e($adm['name']) ?> (<?= ucfirst(e($adm['role'])) ?><?= ($adm['status'] ?? '') === 'retired' ? ', Retired' : '' ?>)
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                <?php if ($show_author && !empty($authors_list)): ?>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 4px; display: block;">Author</label>
+                        <select name="author" class="form-control" style="width: 100%;">
+                            <option value="0" <?= $filterAuthor === 0 ? 'selected' : '' ?>>All Authors</option>
+                            <?php foreach ($authors_list as $auth): ?>
+                                <option value="<?= (int) $auth['id'] ?>" <?= $filterAuthor === (int) $auth['id'] ? 'selected' : '' ?>>
+                                    <?= e($auth['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 <?php endif; ?>
 
                 <?php if ($show_action && !empty($action_list)): ?>
                     <select name="action" class="form-control modern-inline-select" aria-label="Filter by Action" onchange="if(this.form.requestSubmit){this.form.requestSubmit();}else{this.form.submit();}">
                         <option value="">All Actions</option>
                         <?php foreach ($action_list as $act): ?>
-                            <option value="<?= e($act) ?>" <?= (string)$filterAction === (string)$act ? 'selected' : '' ?>>
+                            <option value="<?= e($act) ?>" <?= (string) $filterAction === (string) $act ? 'selected' : '' ?>>
                                 <?= e(ucwords(str_replace('_', ' ', $act))) ?>
                             </option>
                         <?php endforeach; ?>
@@ -323,7 +333,7 @@ $has_advanced_filters = (!$inline_filters && ($show_dept || $show_sem || $show_s
                             <select name="admin_id" class="form-control" style="width: 100%;">
                                 <option value="0">All Instructors &amp; Admins</option>
                                 <?php foreach ($admin_list as $adm): ?>
-                                    <option value="<?= (int)$adm['id'] ?>" <?= (int)$filterAdminId === (int)$adm['id'] ? 'selected' : '' ?>>
+                                    <option value="<?= (int) $adm['id'] ?>" <?= (int) $filterAdminId === (int) $adm['id'] ? 'selected' : '' ?>>
                                         <?= e($adm['name']) ?> (<?= ucfirst(e($adm['role'])) ?><?= ($adm['status'] ?? '') === 'retired' ? ', Retired' : '' ?>)
                                     </option>
                                 <?php endforeach; ?>
@@ -337,7 +347,7 @@ $has_advanced_filters = (!$inline_filters && ($show_dept || $show_sem || $show_s
                             <select name="action" class="form-control" style="width: 100%;">
                                 <option value="">All Actions</option>
                                 <?php foreach ($action_list as $act): ?>
-                                    <option value="<?= e($act) ?>" <?= (string)$filterAction === (string)$act ? 'selected' : '' ?>>
+                                    <option value="<?= e($act) ?>" <?= (string) $filterAction === (string) $act ? 'selected' : '' ?>>
                                         <?= e(ucwords(str_replace('_', ' ', $act))) ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -351,7 +361,7 @@ $has_advanced_filters = (!$inline_filters && ($show_dept || $show_sem || $show_s
                             <select name="author" class="form-control" style="width: 100%;">
                                 <option value="">All Authors</option>
                                 <?php foreach ($authors_list as $auth): ?>
-                                    <option value="<?= (int)$auth['id'] ?>" <?= (string)$filterAuthor === (string)$auth['id'] ? 'selected' : '' ?>>
+                                    <option value="<?= (int) $auth['id'] ?>" <?= (string) $filterAuthor === (string) $auth['id'] ? 'selected' : '' ?>>
                                         <?= e($auth['name']) ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -395,7 +405,7 @@ $has_advanced_filters = (!$inline_filters && ($show_dept || $show_sem || $show_s
                                         $label = ucfirst($label);
                                     }
                                     ?>
-                                    <option value="<?= e($value) ?>" <?= (string)$filterStatus === (string)$value ? 'selected' : '' ?>>
+                                    <option value="<?= e($value) ?>" <?= (string) $filterStatus === (string) $value ? 'selected' : '' ?>>
                                         <?= e($label) ?>
                                     </option>
                                 <?php endforeach; ?>

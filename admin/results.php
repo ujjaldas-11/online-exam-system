@@ -33,6 +33,10 @@ $filterYear = isset($_GET['year']) && $_GET['year'] === 'all' ? 'all' : (isset($
 $queryWhere = ["e.status='ended'"];
 $queryParams = [];
 
+$logged_in_id   = (int) ($_SESSION['admin_id'] ?? $_SESSION['user_id'] ?? 0);
+$default_author = $logged_in_id;
+$filterAuthor   = isset($_GET['author']) ? max(0, (int) $_GET['author']) : $default_author;
+
 if ($filterYear !== 'all') {
     $queryWhere[] = "YEAR(COALESCE(e.start_time, e.created_at)) = ?";
     $queryParams[] = $filterYear;

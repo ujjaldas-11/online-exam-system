@@ -201,9 +201,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 // --- Data Fetching & Filter Query ---
 $form_action = 'control-exams.php';
+$logged_in_id = (int) ($_SESSION['admin_id'] ?? $_SESSION['user_id'] ?? 0);
+
 $show_dept = true;
 $show_sem = true;
 $show_status = true;
@@ -218,7 +219,7 @@ $status_list = [
     'inactive' => 'Not Started',
     'ended' => 'Ended',
     'scheduled' => 'Scheduled',
-    // 'draft'    => 'Draft'
+    // 'draft'  => 'Draft'
 ];
 
 try {
@@ -231,8 +232,15 @@ $filterQ = clean_input($_GET['q'] ?? '');
 $filterDept = clean_input($_GET['department'] ?? '');
 $filterSem = isset($_GET['semester']) ? (int) $_GET['semester'] : 0;
 $filterStatus = clean_input($_GET['status'] ?? '');
-$filterAuthor = isset($_GET['author']) ? (int) $_GET['author'] : 0;
-$filterYear = isset($_GET['year']) && $_GET['year'] === 'all' ? 'all' : (isset($_GET['year']) && is_numeric($_GET['year']) && (int)$_GET['year'] > 0 ? (int)$_GET['year'] : (int)date('Y'));
+$filterYear = isset($_GET['year']) && $_GET['year'] === 'all'
+    ? 'all'
+    : (isset($_GET['year']) && is_numeric($_GET['year']) && (int) $_GET['year'] > 0
+        ? (int) $_GET['year']
+        : (int) date('Y'));
+
+// Default to logged-in admin on initial load;
+$default_author = $logged_in_id;
+$filterAuthor = isset($_GET['author']) ? max(0, (int) $_GET['author']) : $default_author;
 
 $queryWhere = [];
 $queryParams = [];
@@ -241,7 +249,6 @@ if ($filterYear !== 'all') {
     $queryWhere[] = 'YEAR(COALESCE(e.start_time, e.created_at)) = ?';
     $queryParams[] = $filterYear;
 }
-
 if ($filterQ !== '') {
     $queryWhere[] = '(e.title LIKE ?)';
     $queryParams[] = "%$filterQ%";
@@ -254,12 +261,10 @@ if ($filterSem > 0 && $filterSem <= 8) {
     $queryWhere[] = 's.semester = ?';
     $queryParams[] = $filterSem;
 }
-
 if ($filterAuthor > 0) {
     $queryWhere[] = 'e.created_by = ?';
     $queryParams[] = $filterAuthor;
 }
-
 if ($filterStatus !== '' && array_key_exists($filterStatus, $status_list)) {
     $queryWhere[] = 'e.status = ?';
     $queryParams[] = $filterStatus;
@@ -336,7 +341,11 @@ include __DIR__ . '/../components/admin-sidebar.php';
     <?php include __DIR__ . '/../components/flash-messages.php'; ?>
 
     <!-- filter bar -->
-    <?php include __DIR__ . '/../components/filter-bar.php'; ?>
+     
+    <?php
+    $selected_author = $filterAuthor;
+    include __DIR__ . '/../components/filter-bar.php';
+    ?>
 
     <div class="card" id="live-results">
         <div class="card-title">All Examinations (<?= $total_exam_count ?>)</div>
