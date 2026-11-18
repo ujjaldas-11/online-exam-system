@@ -18,27 +18,34 @@ try {
     $total_subjects = (int) $pdo->query('SELECT COUNT(*) FROM subjects')->fetchColumn();
     $total_questions = (int) $pdo->query('SELECT COUNT(*) FROM questions')->fetchColumn();
 
-    //  Live / Ongoing Exams
+    // Match your exact login session key (e.g., admin_id or user_id)
+    $logged_in_id = (int) ($_SESSION['admin_id'] ?? $_SESSION['user_id'] ?? 0);
+
+    // Live / Ongoing Exams (created by logged-in admin)
     // Exams that are active and currently within their time window
-    $liveExamsStmt = $pdo->query("
-        SELECT e.id, e.title, e.duration_minutes, s.department, s.semester 
-        FROM exams e
-        JOIN subjects s ON e.subject_id = s.id
-        WHERE e.status = 'active' 
-          AND e.start_time <= NOW() 
-          AND DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE) >= NOW()
-        ORDER BY e.start_time DESC LIMIT 4
+    $liveExamsStmt = $pdo->prepare("
+    SELECT e.id, e.title, e.duration_minutes, s.department, s.semester 
+    FROM exams e
+    JOIN subjects s ON e.subject_id = s.id
+    WHERE e.created_by = :admin_id
+      AND e.status = 'active' 
+      AND e.start_time <= NOW() 
+      AND DATE_ADD(e.start_time, INTERVAL e.duration_minutes MINUTE) >= NOW()
+    ORDER BY e.start_time DESC LIMIT 4
     ");
+    $liveExamsStmt->execute([':admin_id' => $logged_in_id]);
     $live_exams = $liveExamsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    //  Scheduled / Upcoming Exams
-    $scheduledExamsStmt = $pdo->query("
-        SELECT e.id, e.title, e.start_time, s.department, s.semester 
-        FROM exams e
-        JOIN subjects s ON e.subject_id = s.id
-        WHERE e.status = 'scheduled'
-        ORDER BY e.start_time ASC LIMIT 4
+    // Scheduled / Upcoming Exams (created by logged-in admin)
+    $scheduledExamsStmt = $pdo->prepare("
+    SELECT e.id, e.title, e.start_time, s.department, s.semester 
+    FROM exams e
+    JOIN subjects s ON e.subject_id = s.id
+    WHERE e.created_by = :admin_id
+      AND e.status = 'scheduled'
+    ORDER BY e.start_time ASC LIMIT 4
     ");
+    $scheduledExamsStmt->execute([':admin_id' => $logged_in_id]);
     $scheduled_exams = $scheduledExamsStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Fetch Top recent exam Submissions by percentage
@@ -228,7 +235,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
                 <div><strong>Manage Students</strong><small>Edit roster & passwords</small></div>
             </a>
 
-            <?php if($isAdminSuper): ?>
+            <?php if ($isAdminSuper): ?>
                 <a href="manage-teachers.php" class="btn btn-secondary quick-action-btn">
                     <span class="material-symbols-outlined icon-md">school</span>
                     <div><strong>Manage Teachers</strong><small>Edit roster & passwords</small></div>
@@ -297,7 +304,7 @@ include __DIR__ . '/../components/admin-sidebar.php';
         </div>
 
         <!-- System Audit Log -->
-        <?php if($isAdminSuper): ?>
+        <?php if ($isAdminSuper): ?>
             <div class="card">
                 <div class="card-title" style="padding: 12px 16px; font-size: 0.95rem; border-bottom: 1px solid var(--color-border);"><span class="material-symbols-outlined icon-sm" style="vertical-align: middle; margin-right: 4px;">history</span> Recent Activity</div>
                 <?php if (empty($recent_logs)): ?>
