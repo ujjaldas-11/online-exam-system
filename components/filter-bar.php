@@ -82,8 +82,8 @@ if (!empty($filterSem))
     $active_filters_count++;
 if (!empty($filterStatus))
     $active_filters_count++;
-if ($filterAuthor !== $default_author)
-    $active_filters_count++;
+// if ($filterAuthor !== $default_author)
+//     $active_filters_count++;
 if (!$inline_filters) {
     if ($filterAdminId !== $default_admin_id)
         $active_filters_count++;
